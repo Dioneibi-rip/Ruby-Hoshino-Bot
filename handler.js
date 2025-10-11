@@ -5,8 +5,8 @@ import { fileURLToPath } from 'url'
 import path, { join } from 'path'
 import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
-import failureHandler from './lib/respuesta.js';
 import fetch from 'node-fetch'
+import failureHandler from './lib/respuesta.js';
 
 const { proto } = (await import('@whiskeysockets/baileys')).default
 const isNumber = x => typeof x === 'number' && !isNaN(x)
@@ -32,24 +32,19 @@ m = smsg(this, m) || m
 if (!m)
 return
 
-const chatDB = global.db.data.chats[m.chat];
-if (chatDB && chatDB.botPrimario) {
-const universalWords = ['resetbot', 'resetprimario', 'botreset'];
-const firstWord = m.text ? m.text.trim().split(' ')[0].toLowerCase() : '';
+if (m.isGroup) {
+    const chat = global.db.data.chats[m.chat];
+    if (chat?.primaryBot) {
+        const universalWords = ['resetbot', 'resetprimario', 'botreset'];
+        const firstWord = m.text ? m.text.trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '') : '';
 
-if (!universalWords.includes(firstWord)) {
-if (chatDB.botPrimario !== this.user.jid) {
-return;
+        if (!universalWords.includes(firstWord)) {
+            if (this?.user?.jid !== chat.primaryBot) {
+                return;
+            }
+        }
+    }
 }
-}
-}
-
-if (m.isGroup && global.conns && global.conns.length > 1) {
-let botsEnGrupo = global.conns.filter(c => c.user && c.user.jid && c.ws && c.ws.socket && c.ws.socket.readyState !== 3)
-let elegido = botsEnGrupo[Math.floor(Math.random() * botsEnGrupo.length)]
-if (this.user.jid !== elegido.user.jid) return
-}
-
 sender = m.isGroup ? (m.key.participant ? m.key.participant : m.sender) : m.key.remoteJid;
 
 m.exp = 0
@@ -59,113 +54,46 @@ let user = global.db.data.users[sender]
 if (typeof user !== 'object')
 global.db.data.users[sender] = {}
 if (user) {
-if (!isNumber(user.exp))
-user.exp = 0
-if (!isNumber(user.coin))
-user.coin = 10
-if (!isNumber(user.joincount))
-user.joincount = 1
-if (!isNumber(user.diamond))
-user.diamond = 3
-if (!isNumber(user.lastadventure))
-user.lastadventure = 0
-if (!isNumber(user.lastclaim))
-user.lastclaim = 0
-if (!isNumber(user.health))
-user.health = 100
-if (!isNumber(user.crime))
-user.crime = 0
-if (!isNumber(user.lastcofre))
-user.lastcofre = 0
-if (!isNumber(user.lastdiamantes))
-user.lastdiamantes = 0
-if (!isNumber(user.lastpago))
-user.lastpago = 0
-if (!isNumber(user.lastcode))
-user.lastcode = 0
-if (!isNumber(user.lastcodereg))
-user.lastcodereg = 0
-if (!isNumber(user.lastduel))
-user.lastduel = 0
-if (!isNumber(user.lastmining))
-user.lastmining = 0
-if (!('muto' in user))
-user.muto = false
-if (!('premium' in user))
-user.premium = false
-if (!user.premium)
-user.premiumTime = 0
-if (!('registered' in user))
-user.registered = false
-if (!('genre' in user))
-user.genre = ''
-if (!('birth' in user))
-user.birth = ''
-if (!('marry' in user))
-user.marry = ''
-if (!('description' in user))
-user.description = ''
-if (!('packstickers' in user))
-user.packstickers = null
+if (!isNumber(user.exp)) user.exp = 0
+if (!isNumber(user.coin)) user.coin = 10
+if (!isNumber(user.joincount)) user.joincount = 1
+if (!isNumber(user.diamond)) user.diamond = 3
+if (!isNumber(user.lastadventure)) user.lastadventure = 0
+if (!isNumber(user.lastclaim)) user.lastclaim = 0
+if (!isNumber(user.health)) user.health = 100
+if (!isNumber(user.crime)) user.crime = 0
+if (!isNumber(user.lastcofre)) user.lastcofre = 0
+if (!isNumber(user.lastdiamantes)) user.lastdiamantes = 0
+if (!isNumber(user.lastpago)) user.lastpago = 0
+if (!isNumber(user.lastcode)) user.lastcode = 0
+if (!isNumber(user.lastcodereg)) user.lastcodereg = 0
+if (!isNumber(user.lastduel)) user.lastduel = 0
+if (!isNumber(user.lastmining)) user.lastmining = 0
+if (!('muto' in user)) user.muto = false
+if (!('premium' in user)) user.premium = false
+if (!user.premium) user.premiumTime = 0
+if (!('registered' in user)) user.registered = false
+if (!('genre' in user)) user.genre = ''
+if (!('birth' in user)) user.birth = ''
+if (!('marry' in user)) user.marry = ''
+if (!('description' in user)) user.description = ''
+if (!('packstickers' in user)) user.packstickers = null
 if (!user.registered) {
-if (!('name' in user))
-user.name = m.name
-if (!isNumber(user.age))
-user.age = -1
-if (!isNumber(user.regTime))
-user.regTime = -1
+if (!('name' in user)) user.name = m.name
+if (!isNumber(user.age)) user.age = -1
+if (!isNumber(user.regTime)) user.regTime = -1
 }
-if (!isNumber(user.afk))
-user.afk = -1
-if (!('afkReason' in user))
-user.afkReason = ''
-if (!('role' in user))
-user.role = 'Nuv'
-if (!('banned' in user))
-user.banned = false
-if (!('useDocument' in user))
-user.useDocument = false
-if (!isNumber(user.level))
-user.level = 0
-if (!isNumber(user.bank))
-user.bank = 0
-if (!isNumber(user.warn))
-user.warn = 0
+if (!isNumber(user.afk)) user.afk = -1
+if (!('afkReason' in user)) user.afkReason = ''
+if (!('role' in user)) user.role = 'Nuv'
+if (!('banned' in user)) user.banned = false
+if (!('useDocument' in user)) user.useDocument = false
+if (!isNumber(user.level)) user.level = 0
+if (!isNumber(user.bank)) user.bank = 0
+if (!isNumber(user.warn)) user.warn = 0
 } else
 global.db.data.users[sender] = {
-exp: 0,
-coin: 10,
-joincount: 1,
-diamond: 3,
-lastadventure: 0,
-health: 100,
-lastclaim: 0,
-lastcofre: 0,
-lastdiamantes: 0,
-lastcode: 0,
-lastduel: 0,
-lastpago: 0,
-lastmining: 0,
-lastcodereg: 0,
-muto: false,
-registered: false,
-genre: '',
-birth: '',
-marry: '',
-description: '',
-packstickers: null,
-name: m.name,
-age: -1,
-regTime: -1,
-afk: -1,
-afkReason: '',
-banned: false,
-useDocument: false,
-bank: 0,
-level: 0,
-role: 'Nuv',
-premium: false,
-premiumTime: 0,
+exp: 0, coin: 10, joincount: 1, diamond: 3, lastadventure: 0, health: 100, lastclaim: 0, lastcofre: 0, lastdiamantes: 0, lastcode: 0, lastduel: 0, lastpago: 0, lastmining: 0, lastcodereg: 0, muto: false, registered: false, genre: '', birth: '', marry: '', description: '', packstickers: null, name: m.name, age: -1, regTime: -1, afk: -1, afkReason: '', banned: false, useDocument: false, bank: 0, level: 0, role: 'Nuv', premium: false, premiumTime: 0,
 }
 let chat = global.db.data.chats[m.chat]
 if (typeof chat !== 'object')
@@ -199,10 +127,7 @@ if (!('botPrimario' in chat)) chat.botPrimario = null
 global.db.data.chats[m.chat] = {
 sAutoresponder: '', welcome: true, isBanned: false, autolevelup: false, autoresponder: false, delete: false, autoAceptar: false, autoRechazar: false, detect: true, antiBot: false,
 antiBot2: false, modoadmin: false, antiLink: true, antifake: false, antiArabe: false, reaction: false, nsw: false, expired: 0,
-welcomeText: null,
-byeText: null,
-audios: false,
-botPrimario: null,
+welcomeText: null, byeText: null, audios: false, botPrimario: null,
 }
 var settings = global.db.data.settings[this.user.jid]
 if (typeof settings !== 'object') global.db.data.settings[this.user.jid] = {}
@@ -327,8 +252,10 @@ if (name != 'owner-unbanuser.js' && user?.banned) return
 }
 let hl = _prefix
 let adminMode = global.db.data.chats[m.chat].modoadmin
-let mini = `${plugins.botAdmin || plugins.admin || plugins.group || plugins || noPrefix || hl || m.text.slice(0, 1) == hl || plugins.command}`
-if (adminMode && !isOwner && !isROwner && m.isGroup && !isAdmin && mini) return
+if (adminMode && m.isGroup && !isAdmin && !isOwner && !isROwner) {
+ return
+}
+
 if (plugin.rowner && plugin.owner && !(isROwner || isOwner)) {
 fail('owner', m, this)
 continue

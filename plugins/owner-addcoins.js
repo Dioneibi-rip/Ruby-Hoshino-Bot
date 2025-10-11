@@ -15,23 +15,23 @@ let handler = async (m, { conn, text }) => {
     } else {
         who = m.chat;
     }
-    
+
     if (!who) return m.reply(`${emoji} Por favor, menciona al usuario o cita un mensaje.`);
-    
+
     let txt = text.replace('@' + who.split`@`[0], '').trim();
     if (!txt) return m.reply(`${emoji} Por favor, ingresa la cantidad que deseas añadir.`);
     if (isNaN(txt)) return m.reply(`${emoji2} sólo números.`);
-    
+
     let dmt = parseInt(txt);
     let coin = dmt;
     let pjk = Math.ceil(dmt * impts);
     coin += pjk;
-    
+
     if (coin < 1) return m.reply(`${emoji2} Mínimo es *1*`);
-    
+
     let users = global.db.data.users;
     users[who].coin += dmt;
-    
+
     m.reply(`💸 *Añadido:*
 » ${dmt} \n@${who.split('@')[0]}, recibiste ${dmt} 💸`, null, { mentions: [who] });
 };

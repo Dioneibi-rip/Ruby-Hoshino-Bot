@@ -1,65 +1,55 @@
 const handler = async (m, { conn }) => {
+  const chat = global.db.data.chats[m.chat] || {};
+  const metadata = await conn.groupMetadata(m.chat).catch(_ => null) || {};
+  const groupName = metadata.subject || 'este Grupo';
 
-const avatar = "https://files.catbox.moe/1k2k6p.jpg";
+  const status = (option) => option ? '✅' : '❌';
 
-  const text = `✨ *CONFIGURACIÓN DEL GRUPO*  
+  const primaryBot = chat.botPrimario ? `@${chat.botPrimario.split('@')[0]}` : 'Sin establecer';
 
-◈ Welcome: \`${welcome ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Activa o desactiva el mensaje de bienvenida en el grupo.
+  const avatar = "https://files.catbox.moe/1k2k6p.jpg";
 
-◈ Autolevelup: \`${autolevelup ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Activa o descativa la subida automática de nivel en el Bot.
+  const text = `╭━━━[ *CONFIGURACIÓN* ]━━━⬣
+┃
+┃ ✨ Grupo: *${groupName}*
+┃ 🤖 Bot Primario: *${primaryBot}*
+┃
+┠───═[ *SEGURIDAD* ]═───⬣
+┃
+┃ ${status(chat.antiLink)} ◈ Antilink
+┃ ${status(chat.antiLink2)} ◈ Antilink2
+┃ ${status(chat.antiBot)} ◈ Antibot
+┃ ${status(chat.antiBot2)} ◈ Antisubbots
+┃ ${status(chat.antitoxic)} ◈ Antitoxic
+┃ ${status(chat.antitraba)} ◈ Antitraba
+┃ ${status(chat.antifake)} ◈ Antifake
+┃
+┠───═[ *AUTOMATIZACIÓN* ]═───⬣
+┃
+┃ ${status(chat.welcome)} ◈ Welcome
+┃ ${status(chat.detect)} ◈ detect
+┃ ${status(chat.autolevelup)} ◈ autolevelup
+┃ ${status(chat.autoresponder)} ◈ autoresponder
+┃ ${status(chat.reaction)} ◈ reaction
+┃
+┠───═[ *GESTIÓN Y CONTENIDO* ]═───⬣
+┃
+┃ ${status(chat.modoadmin)} ◈ modoadmin
+┃ ${status(chat.autoAceptar)} ◈ autoAceptar
+┃ ${status(chat.autoRechazar)} ◈ autoRechazar
+┃ ${status(chat.nsfw)} ◈ nsfw
+┃
+╰━━━━━━━━━━━━━━━━━━⬣
 
-◈ Antibot: \`${antiBot ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Expulsa a otros bots no autorizados.
-
-◈ Antisubbots: \`${antiBot2 ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Expulsa a subbots no autorizados.
-
-◈ Autoaceptar: \`${autoAceptar ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Acepta automáticamente números al grupo.
-
-◈ Autorechazar: \`${autoRechazar ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Rechaza automáticamente números al grupo.
-
-◈ Autoresponder: \`${autoresponder ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Responde automáticamente con IA.
-
-◈ Modoadmin: \`${modoadmin ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Solo responde a admins.
-
-◈ Reaction: \`${reaction ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Activa las reacciones del bot.
-
-◈ NSFW: \`${nsfw ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Activa comandos +18.
-
-◈ Detect: \`${detect ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Detecta cambios en el grupo.
-
-◈ Antilink: \`${antiLink ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Bloquea links de WhatsApp.
-
-◈ Antilink2: \`${antiLink2 ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Bloquea enlaces HTTPS.
-
-◈ Antitoxic: \`${antitoxic ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Elimina mensajes ofensivos.
-
-◈ Antitraba: \`${antiTraba ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Evita mensajes traba (muchos caracteres).
-
-◈ Antifake: \`${antifake ? 'Activado' : 'Desactivado'}\`
-> ➨ *Descripción:* Bloquea números falsos.
-
-_*✦ Nota: Puedes activar una opción así: Ejemplo: #antilink*_`.trim();
+> *Activa o desactiva una opción con, por ejemplo: #antilink*`.trim();
 
   await conn.sendMessage(m.chat, {
     text,
     contextInfo: {
+      mentionedJid: [chat.botPrimario],
       externalAdReply: {
-        title: packname,
-        body: dev,
+        title: `❖ ${groupName} ❖`,
+        body: '(◍•ᴗ•◍) 𝙲𝙾𝙽𝙵𝙸𝙶𝚄𝚁𝙰𝙲𝙸𝙾́𝙽 𝙳𝙴𝙻 𝙶𝚁𝚄𝙿𝙾',
         thumbnailUrl: avatar,
         mediaType: 1,
         showAdAttribution: true,
