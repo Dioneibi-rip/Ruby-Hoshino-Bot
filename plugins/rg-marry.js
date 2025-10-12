@@ -1,4 +1,4 @@
-/* Código hecho por Destroy, adaptado por ChatGPT
+/* Código hecho por Destroy, adaptado y mejorado por ChatGPT
  - https://github.com/The-King-Destroy
  - Créditos respetados.
 */
@@ -37,6 +37,7 @@ const handler = async (m, { conn, command }) => {
                     throw new Error('Debes mencionar a alguien para aceptar o proponer matrimonio.\n> Ejemplo » *#marry @Usuario*');
                 }
             }
+
             if (userIsMarried(proposer)) throw new Error(`Ya estás casado con ${conn.getName(marriages[proposer].partner)}.`);
             if (userIsMarried(proposee)) throw new Error(`${conn.getName(proposee)} ya está casado con ${conn.getName(marriages[proposee].partner)}.`);
             if (proposer === proposee) throw new Error('¡No puedes proponerte matrimonio a ti mismo!');
@@ -44,7 +45,7 @@ const handler = async (m, { conn, command }) => {
             proposals[proposer] = proposee;
             const proposerName = conn.getName(proposer);
             const proposeeName = conn.getName(proposee);
-            const confirmationMessage = `♡ ${proposerName} te ha propuesto matrimonio. ${proposeeName}  ¿aceptas? •(=^●ω●^=)•\n\n*Debes Responder con:*\n> ✐"Si" » para aceptar\n> ✐"No" » para rechazar.`;
+            const confirmationMessage = `♡ ${proposerName} te ha propuesto matrimonio, ${proposeeName} 💍\n\n¿Aceptas? •(=^●ω●^=)•\n\n*Debes responder con:*\n> ✐ "Si" para aceptar 💞\n> ✐ "No" para rechazar 💔`;
             await conn.reply(m.chat, confirmationMessage, m, { mentions: [proposee, proposer] });
 
             confirmation[proposee] = {
@@ -66,27 +67,30 @@ const handler = async (m, { conn, command }) => {
             if (global.db.data.users[m.sender]) global.db.data.users[m.sender].marry = '';
             if (global.db.data.users[partner]) global.db.data.users[partner].marry = '';
 
-            await conn.reply(m.chat, `✐ ${conn.getName(m.sender)} y ${conn.getName(partner)} se han divorciado.`, m);
+            await conn.reply(m.chat, `✐ ${conn.getName(m.sender)} y ${conn.getName(partner)} se han divorciado. 💔`, m);
         }
     } catch (error) {
         await conn.reply(m.chat, `《✧》 ${error.message}`, m);
     }
-}
+};
 
-handler.before = async (m) => {
+handler.before = async (m, { conn }) => {
     if (m.isBaileys) return;
     if (!(m.sender in confirmation)) return;
     if (!m.text) return;
 
+    const respuesta = m.text.trim().toLowerCase();
     const { proposer, timeout } = confirmation[m.sender];
 
-    if (/^No$/i.test(m.text)) {
+    if (respuesta === 'no') {
         clearTimeout(timeout);
         delete confirmation[m.sender];
-        return conn.sendMessage(m.chat, { text: '*《✧》Han rechazado tu propuesta de matrimonio.*' }, { quoted: m });
+        return conn.sendMessage(m.chat, { text: `《✧》 ${conn.getName(m.sender)} ha rechazado la propuesta de matrimonio 💔` }, { quoted: m });
     }
 
-    if (/^Si$/i.test(m.text)) {
+    if (respuesta === 'si' || respuesta === 'sí') {
+        clearTimeout(timeout);
+        delete confirmation[m.sender];
         delete proposals[proposer];
 
         const fecha = Date.now();
@@ -95,16 +99,20 @@ handler.before = async (m) => {
         marriages[m.sender] = { partner: proposer, date: fecha };
         saveMarriages();
 
-        if (global.db.data.users[proposer]) global.db.data.users[proposer].marry = m.sender;
-        if (global.db.data.users[m.sender]) global.db.data.users[m.sender].marry = proposer;
+        if (global.db?.data?.users[proposer]) global.db.data.users[proposer].marry = m.sender;
+        if (global.db?.data?.users[m.sender]) global.db.data.users[m.sender].marry = proposer;
 
-        conn.sendMessage(m.chat, { text: `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩
-¡Se han Casado! ฅ^•ﻌ•^ฅ*:･ﾟ✧\n\n*•.¸♡ Esposo ${conn.getName(proposer)}\n*•.¸♡ Esposa ${conn.getName(m.sender)}\n\n\`Disfruten de su luna de miel\`
+        await conn.sendMessage(m.chat, {
+            text: `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩
+💞 ¡Se han Casado! ฅ^•ﻌ•^ฅ*:･ﾟ✧
 
-✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩`, mentions: [proposer, m.sender] }, { quoted: m });
+*•.¸♡ Esposo:* ${conn.getName(proposer)}
+*•.¸♡ Esposa:* ${conn.getName(m.sender)}
 
-        clearTimeout(timeout);
-        delete confirmation[m.sender];
+🎉 ¡Disfruten de su luna de miel! 🍓💍
+✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩`,
+            mentions: [proposer, m.sender]
+        }, { quoted: m });
     }
 };
 

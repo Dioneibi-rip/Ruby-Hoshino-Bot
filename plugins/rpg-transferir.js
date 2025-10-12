@@ -1,30 +1,47 @@
 async function handler(m, { conn, args, usedPrefix, command }) {
+
+  let who;
+  if (m.isGroup) {
+    who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : false;
+  } else {
+    who = m.chat;
+  }
+
+  if (!who) {
+    return m.reply(`${emoji} ᥱ𝗍і𝗊ᥙᥱ𝗍ᥲ ᥆ rᥱs⍴᥆ᥒძᥱ ᥲᥣ mᥱᥒsᥲȷᥱ ძᥱᥣ ᥙsᥙᥲrі᥆ ᥲᥣ 𝗊ᥙᥱ 𝗊ᥙіᥱrᥱs 𝗍rᥲᥒs𝖿ᥱrіr.`);
+  }
+
+  const amountText = args.find(arg => !arg.startsWith('@') && isNumber(arg));
+  if (!amountText) {
+      return m.reply(`(๑•̌ . •̑๑)ˀ̣ˀ̣  ძᥱᑲᥱs ᥱs⍴ᥱᥴі𝖿іᥴᥲr ᥣᥲ ᥴᥲᥒ𝗍іძᥲძ ძᥱ ${m.moneda} 𝗊ᥙᥱ 𝗊ᥙіᥱrᥱs transferir.\n> *ᥱȷᥱm⍴ᥣ᥆:* ${usedPrefix + command} 1000 @usuario`);
+  }
+
+  const count = Math.min(Number.MAX_SAFE_INTEGER, Math.max(1, parseInt(amountText)));
   const user = global.db.data.users[m.sender];
   const type = 'coin';
   const bankType = 'bank';
 
-  if (!args[0] || !args[1]) {
-    const helpMessage = `${emoji} Debes mencionar a quien quieras regalar *${moneda}*.\n> Ejemplo » *${usedPrefix + command} 25000 @mencion*`.trim();
-    return conn.sendMessage(m.chat, {text: helpMessage, mentions: [m.sender]}, {quoted: m});
+  if (user[bankType] < count) {
+    return m.reply(`⚠️ ᥒ᥆ 𝗍іᥱᥒᥱs sᥙ𝖿іᥴіᥱᥒ𝗍ᥱs ${m.moneda} ᥱᥒ ᥱᥣ ᑲᥲᥒᥴ᥆ ⍴ᥲrᥲ rᥱᥲᥣіzᥲr ᥣᥲ transferenciᥲ.`);
+  }
+  
+  if (!(who in global.db.data.users)) {
+    return m.reply(`❌ ᥱᥣ ᥙsᥙᥲrі᥆ ᥒ᥆ sᥱ ᥱᥒᥴᥙᥱᥒ𝗍rᥲ ᥱᥒ mі ᑲᥲsᥱ ძᥱ datos.`);
   }
 
-  const count = Math.min(Number.MAX_SAFE_INTEGER, Math.max(100, (isNumber(args[0]) ? parseInt(args[0]) : 100))) * 1;
-  const who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : args[1] ? (args[1].replace(/[@ .+-]/g, '') + '@s.whatsapp.net') : '';
+  if (who === m.sender) {
+    return m.reply(`❌ ᥒ᥆ ⍴ᥙᥱძᥱs 𝗍rᥲᥒs𝖿ᥱrіr𝗍ᥱ ძіᥒᥱr᥆ ᥲ 𝗍і mіsm᥆.`);
+  }
 
-  if (!who) return conn.sendMessage(m.chat, {text: `${emoji2} Debes regalar al menos 100 ${moneda}*`, mentions: [m.sender]}, {quoted: m});
-  if (!(who in global.db.data.users)) return conn.sendMessage(m.chat, {text: `${emoji2} El usuario ${who} no está en la base de datos.`, mentions: [m.sender]}, {quoted: m});
-  if (user[bankType] * 1 < count) return conn.sendMessage(m.chat, {text: `${emoji2} No tienes suficientes ${moneda} en el banco para transferir.`, mentions: [m.sender]}, {quoted: m});
-
-  user[bankType] -= count * 1;
-  global.db.data.users[who][type] += count * 1;
+  user[bankType] -= count;
+  global.db.data.users[who][type] += count;
 
   const mentionText = `@${who.split('@')[0]}`;
-  const totalInBank = user[bankType];
-
-  conn.sendMessage(m.chat, {text: `${emoji} Transferiste *${count} ${moneda}* a ${mentionText}\n> Ahora tienes *${totalInBank} ${moneda}* en total en el banco.`, mentions: [who]}, {quoted: m});
+  
+  m.reply(`✅ ¡𝗍rᥲᥒs𝖿ᥱrᥱᥒᥴіᥲ ᥱ᥊і𝗍᥆sᥲ!\n\n› һᥲs ᥱᥒ᥎іᥲძ᥆ *${count.toLocaleString()} ${m.moneda}* ᥲ ${mentionText}.\n› 𝗍ᥱ 𝗊ᥙᥱძᥲᥒ *${user[bankType].toLocaleString()} ${m.moneda}* en el banco.`, null, { mentions: [who] });
 }
 
-handler.help = ['pay'];
+handler.help = ['pay <cantidad> @usuario'];
 handler.tags = ['rpg'];
 handler.command = ['pay', 'transfer'];
 handler.group = true;
@@ -33,5 +50,8 @@ handler.register = true;
 export default handler;
 
 function isNumber(x) {
-  return !isNaN(x);
+  if (typeof x === 'string') {
+    x = x.trim();
+  }
+  return !isNaN(x) && x !== '';
 }
