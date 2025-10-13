@@ -37,7 +37,7 @@ let rtx2 = `╭━╴╶╴╶╴╶╴𖣘╶╴╶╴╶╴╶━╮
 │ (*ᴗ͈ˬᴗ͈)ꕤ  𝐔𝐬𝐚 𝐞𝐬𝐭𝐞 𝐂𝐨𝐝𝐢𝐠𝐨 𝐏𝐚𝐫𝐚 𝐒𝐞𝐫 𝐒𝐮𝐛 𝐁𝐨𝐭
 ├╶╴╶╴╶╴╶╴╶╴╶╴╶╴╶╴╶╴
 │💎 𝐏𝐚𝐬𝐨𝐬:
-├╶╴╶╴╶╴╶╴╶╴╶╴╶╴╶╴
+├╶╴╶╴╶╴╶╴╶╴╶╴╶╴╶╴╶╴
 │🏟️⃟̶̸̷┆ \`1\` : 𝐇𝐚𝐠𝐚 𝐜𝐥𝐢𝐜𝐤 𝐞𝐧 𝐥𝐨𝐬 3 𝐩𝐮𝐧𝐭𝐨𝐬 𝐝𝐞 𝐥𝐚 𝐞𝐬𝐪𝐮𝐢𝐧𝐚 𝐝𝐞𝐫𝐞𝐜𝐡𝐚
 ├╶╴╶╴╶╴╶╴╶╴╶╴
 │🏟️⃟̶̸̷┆ \`2\` : 𝐓𝐞 𝐝𝐢𝐬𝐩𝐨𝐬𝐢𝐭𝐢𝐯𝐨𝐬 𝐕𝐢𝐧𝐜𝐮𝐥𝐚𝐝𝐨𝐬
@@ -54,20 +54,21 @@ const __dirname = path.dirname(__filename)
 const RubyJBOptions = {}
 if (global.conns instanceof Array) console.log()
 else global.conns = []
+
 let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
-//if (!globalThis.db.data.settings[conn.user.jid].jadibotmd) return m.reply(`♡ Comando desactivado temporalmente.`)
 let time = global.db.data.users[m.sender].Subs + 120000
 if (new Date - global.db.data.users[m.sender].Subs < 120000) return conn.reply(m.chat, `${emoji} Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
-const subBots = [...new Set([...global.conns.filter((conn) => conn.user && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED).map((conn) => conn)])]
+
+const limiteSubBots = global.subbotlimitt || 20; 
+const subBots = [...new Set([...global.conns.filter((c) => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)])]
 const subBotsCount = subBots.length
-if (subBotsCount === 90) {
-return m.reply(`${emoji2} No se han encontrado espacios para *Sub-Bots* disponibles.`)
+
+if (subBotsCount >= limiteSubBots) {
+return m.reply(`${emoji2} Se ha alcanzado o superado el límite de *Sub-Bots* activos (${subBotsCount}/${limiteSubBots}).\n\nNo se pueden crear más conexiones hasta que un Sub-Bot se desconecte.`)
 }
-/*if (Object.values(global.conns).length === 30) {
-return m.reply(`${emoji2} No se han encontrado espacios para *Sub-Bots* disponibles.`)
-}*/
+
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
-let id = `${who.split`@`[0]}`  //conn.getName(who)
+let id = `${who.split`@`[0]}`
 let pathRubyJadiBot = path.join(`./${jadi}/`, id)
 if (!fs.existsSync(pathRubyJadiBot)){
 fs.mkdirSync(pathRubyJadiBot, { recursive: true })
@@ -86,6 +87,7 @@ handler.help = ['qr', 'code']
 handler.tags = ['serbot']
 handler.command = ['qr', 'code']
 export default handler 
+
 
 export async function RubyJadiBot(options) {
 let { pathRubyJadiBot, m, conn, args, usedPrefix, command } = options
@@ -143,7 +145,7 @@ txtQR = await conn.sendMessage(m.chat, { image: await qrcode.toBuffer(qr, { scal
 return 
 }
 if (txtQR && txtQR.key) {
-setTimeout(() => { conn.sendMessage(m.sender, { delete: txtQR.key })}, 30000)
+setTimeout(() => { conn.sendMessage(m.sender, { delete: txtQR.key })}, 45000)
 }
 return
 } 
@@ -158,10 +160,10 @@ codeBot = await m.reply(secret);
 console.log(secret)
 }
 if (txtCode && txtCode.key) {
-setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key })}, 30000)
+setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key })}, 45000)
 }
 if (codeBot && codeBot.key) {
-setTimeout(() => { conn.sendMessage(m.sender, { delete: codeBot.key })}, 30000)
+setTimeout(() => { conn.sendMessage(m.sender, { delete: codeBot.key })}, 45000)
 }
 const endSesion = async (loaded) => {
 if (!loaded) {
@@ -206,7 +208,6 @@ if (reason === 500) {
 console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Conexión perdida en la sesión (+${path.basename(pathRubyJadiBot)}). Borrando datos...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
 if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathRubyJadiBot)}@s.whatsapp.net`, {text : '*CONEXIÓN PÉRDIDA*\n\n> *INTENTÉ MANUALMENTE VOLVER A SER SUB-BOT*' }, { quoted: m || null }) : ""
 return creloadHandler(true).catch(console.error)
-//fs.rmdirSync(pathRubyJadiBot, { recursive: true })
 }
 if (reason === 515) {
 console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Reinicio automático para la sesión (+${path.basename(pathRubyJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
@@ -233,7 +234,6 @@ m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@'
 setInterval(async () => {
 if (!sock.user) {
 try { sock.ws.close() } catch (e) {      
-//console.log(await creloadHandler(true).catch(console.error))
 }
 sock.ev.removeAllListeners()
 let i = global.conns.indexOf(sock)                
