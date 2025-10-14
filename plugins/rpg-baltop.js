@@ -18,7 +18,7 @@ let handler = async (m, { conn, args, participants }) => {
   const totalPages = Math.ceil(sorted.length / perPage)
 
   const iconos = ['👑', '🥈', '🥉']
-  let texto = `「✿」Los usuarios con más *¥ ${m.moneda}* son:\n\n`
+  let texto = `「✿」Los usuarios con más *${m.moneda}* son:\n\n`
 
   for (let i = start; i < Math.min(end, sorted.length); i++) {
     const { jid, coin = 0, bank = 0 } = sorted[i]
