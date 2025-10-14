@@ -33,17 +33,17 @@ if (!m)
 return
 
 if (m.isGroup) {
-    const chat = global.db.data.chats[m.chat];
-    if (chat?.primaryBot) {
-        const universalWords = ['resetbot', 'resetprimario', 'botreset'];
-        const firstWord = m.text ? m.text.trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '') : '';
+const chat = global.db.data.chats[m.chat];
+if (chat?.primaryBot) {
+const universalWords = ['resetbot', 'resetprimario', 'botreset'];
+const firstWord = m.text ? m.text.trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '') : '';
 
-        if (!universalWords.includes(firstWord)) {
-            if (this?.user?.jid !== chat.primaryBot) {
-                return;
-            }
-        }
-    }
+if (!universalWords.includes(firstWord)) {
+if (this?.user?.jid !== chat.primaryBot) {
+return;
+}
+}
+}
 }
 sender = m.isGroup ? (m.key.participant ? m.key.participant : m.sender) : m.key.remoteJid;
 
@@ -100,6 +100,7 @@ if (typeof chat !== 'object')
 global.db.data.chats[m.chat] = {}
 if (chat) {
 if (!('isBanned' in chat)) chat.isBanned = false
+if (!('bannedBots' in chat)) chat.bannedBots = []
 if (!('sAutoresponder' in chat)) chat.sAutoresponder = ''
 if (!('welcome' in chat)) chat.welcome = true
 if (!('welcomeText' in chat)) chat.welcomeText = null
@@ -128,6 +129,7 @@ global.db.data.chats[m.chat] = {
 sAutoresponder: '', welcome: true, isBanned: false, autolevelup: false, autoresponder: false, delete: false, autoAceptar: false, autoRechazar: false, detect: true, antiBot: false,
 antiBot2: false, modoadmin: false, antiLink: true, antifake: false, antiArabe: false, reaction: false, nsw: false, expired: 0,
 welcomeText: null, byeText: null, audios: false, botPrimario: null,
+bannedBots: []
 }
 var settings = global.db.data.settings[this.user.jid]
 if (typeof settings !== 'object') global.db.data.settings[this.user.jid] = {}
@@ -230,6 +232,15 @@ global.comando = command
 if ((m.id.startsWith('NJX-') || (m.id.startsWith('BAE5') && m.id.length === 16) || (m.id.startsWith('B24E') && m.id.length === 20))) return
 if (!isAccept) { continue }
 m.plugin = name
+
+let chat = global.db.data.chats[m.chat] || {};
+const isBotBannedInThisChat = chat.bannedBots && chat.bannedBots.includes(this.user.jid);
+const unbanCommandFiles = ['grupo-unbanchat.js'];
+
+if (isBotBannedInThisChat && !unbanCommandFiles.includes(name)) {
+return;
+}
+
 if (m.chat in global.db.data.chats || sender in global.db.data.users) {
 let chat = global.db.data.chats[m.chat]
 let user = global.db.data.users[sender]
@@ -253,7 +264,7 @@ if (name != 'owner-unbanuser.js' && user?.banned) return
 let hl = _prefix
 let adminMode = global.db.data.chats[m.chat].modoadmin
 if (adminMode && m.isGroup && !isAdmin && !isOwner && !isROwner) {
- return
+return
 }
 
 if (plugin.rowner && plugin.owner && !(isROwner || isOwner)) {

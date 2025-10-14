@@ -1,6 +1,10 @@
-let handler = async (m, { conn, text }) => {
+let handler = async (m, { conn, text, isROwner }) => {
+  if (!isROwner && m.sender !== conn.user.jid) {
+      throw `Este comando solo puede ser utilizado por el propietario del bot.`;
+  }
+
   let settings = global.db.data.settings[conn.user.jid];
-  
+
   if (!settings) {
     global.db.data.settings[conn.user.jid] = {};
     settings = global.db.data.settings[conn.user.jid];
@@ -26,6 +30,5 @@ Por favor, proporciona un nombre para la moneda.
 handler.help = ['setmoneda <nombre>'];
 handler.tags = ['owner'];
 handler.command = ['setmoneda'];
-handler.rowner = true;
 
 export default handler;

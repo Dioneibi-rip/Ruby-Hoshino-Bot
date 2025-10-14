@@ -1,43 +1,28 @@
-let handler = async (m, { conn, usedPrefix, command, args }) => {
-  if (!(m.chat in global.db.data.chats)) {
-    return conn.reply(m.chat, `《✦》¡Este chat no está registrado!.`, m);
-  }
-
-  let chat = global.db.data.chats[m.chat];
-
-  if (command === 'bot') {
-    if (args.length === 0) {
-      const estado = chat.isBanned ? '✗ Desactivado' : '✓ Activado';
-      const info = `
-「✦」Un administrador puede activar o desactivar a *${botname}* utilizando:
-
-> ✐ *${usedPrefix}bot on* para activar
-> ✐ *${usedPrefix}bot off* para desactivar
-
-✧ Estado actual » *${estado}*
-`;
-      return conn.reply(m.chat, info, m);
+let handler = async (m, { conn, isROwner }) => {
+    if (!isROwner && m.sender !== conn.user.jid) {
+        throw `Este comando solo puede ser utilizado por el creador o el mismo bot.`;
     }
 
-    if (args[0] === 'off') {
-      if (chat.isBanned) {
-        return conn.reply(m.chat, `《✧》${botname} ya estaba desactivado.`, m);
-      }
-      chat.isBanned = true;
-      return conn.reply(m.chat, `✐ Has *desactivado* a ${botname}!`, m);
-    } else if (args[0] === 'on') {
-      if (!chat.isBanned) {
-        return conn.reply(m.chat, `《✧》*${botname}* ya estaba activado.`, m);
-      }
-      chat.isBanned = false;
-      return conn.reply(m.chat, `✐ Has *activado* a ${botname}!`, m);
+
+    let chat = global.db.data.chats[m.chat];
+    if (!chat || !chat.bannedBots) {
+        return m.reply('Este bot no está baneado en este chat.');
     }
-  }
+
+    const botJid = conn.user.jid;
+
+    if (!chat.bannedBots.includes(botJid)) {
+        return m.reply('Este bot no está baneado en este chat.');
+    }
+
+    chat.bannedBots = chat.bannedBots.filter(jid => jid !== botJid);
+
+    m.reply(`✅ *Bot Desbaneado*\n\nEste bot (${conn.user.name || 'este bot'}) volverá a responder a los comandos en este chat a partir de ahora.`);
 };
 
-handler.help = ['bot'];
-handler.tags = ['grupo'];
-handler.command = ['bot'];
-handler.admin = true;
+handler.help = ['unbanchat'];
+handler.tags = ['owner'];
+handler.command = ['unbanchat', 'desbanearchat'];
+handler.group = true;
 
 export default handler;
