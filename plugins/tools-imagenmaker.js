@@ -1,4 +1,4 @@
-// Código Creado Por Sisked — mejorado por speed3xz
+// Código Creado Por Speed3xz
 
 import {Maker} from 'imagemaker.js';
 const handler = async (m, {conn, args, command, usedPrefix}) => {
@@ -338,5 +338,5 @@ if (command == 'logopubgfem') {
 }
 handler.help = ['logocorazon', 'logochristmas', 'logopareja', 'logoglitch', 'logosad', 'logogaming', 'logosolitario', 'logodragonball', 'logoneon', 'logogatito', 'logochicagamer', 'logonaruto', 'logofuturista', 'logonube', 'logoangel', 'logomurcielago', 'logocielo', 'logograffiti3d', 'logomatrix', 'logohorror', 'logoalas', 'logoarmy', 'logopubg', 'logopubgfem', 'logolol', 'logoamongus', 'logovideopubg', 'logovideotiger', 'logovideointro', 'logovideogaming', 'logoguerrero', 'logoportadaplayer', 'logoportadaff', 'logoportadapubg', 'logoportadacounter']
 handler.tags = ['logos']
-handler.command = /^logocorazon|logochristmas|logopareja|logoglitch|logosad|logogaming|logosolitario|logodragonball|logoneon|logogatito|logochicagamer|logonaruto|logofuturista|logonube|logoangel|logomurcielago|logocielo|logograffiti3d|logomatrix|logohorror|logoalas|logoarmy|logopubg|logopubgfem|logolol|logoamongus|logovideopubg|logovideotiger|logovideointro|logovideogaming|logoguerrero|logoportadaplayer|logoportadaff|logoportadapubg|logoportadacounter/i;
+handler.command = ['logocorazon', 'logochristmas', 'logopareja', 'logoglitch', 'logosad', 'logogaming', 'logosolitario', 'logodragonball', 'logoneon', 'logogatito', 'logochicagamer', 'logonaruto', 'logofuturista', 'logonube', 'logoangel', 'logomurcielago', 'logocielo', 'logograffiti3d', 'logomatrix', 'logohorror', 'logoalas', 'logoarmy', 'logopubg', 'logopubgfem', 'logolol', 'logoamongus', 'logovideopubg', 'logovideotiger', 'logovideointro', 'logovideogaming', 'logoguerrero', 'logoportadaplayer', 'logoportadaff', 'logoportadapubg', 'logoportadacounter']
 export default handler;
