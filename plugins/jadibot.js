@@ -21,7 +21,7 @@ let handler = async (m, { conn: _envio, command, usedPrefix, args, text, isOwner
 
       if (!await fs.existsSync(dirPath)) {
         await conn.sendMessage(m.chat, {
-          text: `🚫 *Sesión no encontrada*\n\n✨ No tienes una sesión activa.\n\n🔰 Puedes crear una con:\n*${usedPrefix + command}*\n\n📦 ¿Tienes un ID?\nUsa este comando seguido del ID:\n*${usedPrefix + command}* \`\`\`(ID)\`\`\``
+          text: `🚫 *Sesión no encontrada*\n\n✨ No tienes una sesión activa.\n\n🔰 Puedes crear una con:\n*${usedPrefix}qr*\n\n📦 ¿Tienes un ID?\nUsa este comando seguido del ID:\n*${usedPrefix}code* \`\`\`(ID)\`\`\``
         }, { quoted: m });
         return;
       }
@@ -61,52 +61,57 @@ let handler = async (m, { conn: _envio, command, usedPrefix, args, text, isOwner
     case isShowBots: {
       const users = [...new Set([...global.conns.filter(conn => conn.user && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED)])];
 
-      const convertirMsADiasHorasMinutosSegundos = (ms) => {
+      const convertirMsAFormato = (ms) => {
+        if (!ms || ms < 1000) return 'Recién conectado';
         let segundos = Math.floor(ms / 1000);
         let minutos = Math.floor(segundos / 60);
         let horas = Math.floor(minutos / 60);
         let días = Math.floor(horas / 24);
+        
         segundos %= 60;
         minutos %= 60;
         horas %= 24;
 
-        return [
-          días ? `${días} día(s)` : '',
-          horas ? `${horas} hora(s)` : '',
-          minutos ? `${minutos} minuto(s)` : '',
-          segundos ? `${segundos} segundo(s)` : '',
-        ].filter(Boolean).join(', ');
+        const parts = [];
+        if (días > 0) parts.push(`${días}d`);
+        if (horas > 0) parts.push(`${horas}h`);
+        if (minutos > 0) parts.push(`${minutos}m`);
+        if (segundos > 0) parts.push(`${segundos}s`);
+        
+        return parts.join(', ') || 'Justo ahora';
       };
 
-      const listaSubBots = users.map((v, i) => 
-`🌟 *SUB-BOT #${i + 1}*
-📱 Número: https://wa.me/${v.user.jid.replace(/[^0-9]/g, '')}?text=${usedPrefix}estado
-👤 Nombre: ${v.user.name || 'Sub-Bot'}
-🕒 En línea hace: ${v.uptime ? convertirMsADiasHorasMinutosSegundos(Date.now() - v.uptime) : 'Desconocido'}`)
-      .join('\n\n───────────────\n\n');
+      const listaSubBots = users.map((v, i) => {
+          const uptime = v.uptime ? convertirMsAFormato(Date.now() - v.uptime) : 'Desconocido';
+          const numero = v.user.jid.split('@')[0];
+          const nombre = v.user.name || 'Sin Nombre';
+          return `╭━ • 🤖 *SUB-BOT ${i + 1}* • ━
+│➤ *Usuario:* ${nombre}
+│➤ *Número:* wa.me/${numero}
+│➤ *Activo:* ${uptime}
+╰━━━━━━━━━━━━━`;
+        }).join('\n\n');
 
-      const finalMessage = listaSubBots.length === 0
-        ? '💤 No hay Sub-Bots activos por ahora... intenta más tarde.'
-        : listaSubBots;
+      const finalMessage = users.length > 0
+        ? listaSubBots
+        : '💤 Actualmente no hay Sub-Bots conectados.';
 
-      const msg = `
-${emoji} 𝐋𝐈𝐒𝐓𝐀 𝐃𝐄 𝐒𝐔𝐁-𝐁𝐎𝐓𝐒 𝐀𝐂𝐓𝐈𝐕𝐎𝐒 💫
+      const msg = `*SUB-BOTS CONECTADOS* ✨
+      
+Aquí tienes la lista de los bots que están activos en este momento.
 
-ㅤㅤㅤㅤㅤㅤֹㅤ¿𝐐𝐮𝐢𝐞𝐫𝐞𝐬 𝐭𝐞𝐧𝐞𝐫 𝐮𝐧 𝐛𝐨𝐭 𝐞𝐧 𝐭𝐮 𝐠𝐫𝐮𝐩𝐨?
-ㅤ𝖯𝗎𝖾d𝖾𝗌 𝗉𝖾𝖽𝗂𝗋 𝗉𝖾𝗋𝗆𝗂𝗌𝗈 𝖺 uno de estos para unirlo 𝗌𝗂𝗇 probrema!
+*Total Conectados:* ${users.length}
+${users.length > 0 ? '\n───────────────\n' : ''}
+${finalMessage}
 
-${emoji2} 𝐀𝐃𝐕𝐄𝐑𝐓𝐄𝐍𝐂𝐈𝐀:
-⚠️ ֹ𝖤𝖫 𝖴𝖲𝖮 𝖣𝖤 𝖫𝖮𝖲 𝖲𝖴𝖡-𝖡𝖮𝖳𝖲 𝖤𝖲 𝖱𝖤𝖲𝖯𝖮𝖭𝖲𝖠𝖡𝖨𝖫𝖨𝖣𝖠𝖣 𝖣𝖤 𝖢𝖠𝖣𝖠 𝖴𝖲𝖴𝖠𝖱𝖨𝖮
-𝖤𝗅 𝗇𝗎𝗆𝖾𝗋𝗈 𝗉𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅 𝗇𝗈 𝗌𝖾 𝗁𝖺𝖼𝖾 𝗋𝖾𝗌𝗉𝗈𝗇𝗌𝖺𝖻𝗅𝖾 𝗉𝗈𝗋 𝖾𝗅 𝗆𝖺𝗅 𝗎𝗌𝗈 🚫
-
-🌐 𝐒𝐔𝐁-𝐁𝐎𝐓𝐒 𝐂𝐎𝐍𝐄𝐂𝐓𝐀𝐃𝐎𝐒: ${users.length || '0'}
-
-${finalMessage}`.trim();
+*Nota:* El bot principal no se hace responsable por el uso que se le de a los Sub-Bots.`.trim();
 
       await _envio.sendMessage(m.chat, {
-        text: msg,
+        image: { url: 'https://files.catbox.moe/65rdkc.jpg' },
+        caption: msg,
         mentions: _envio.parseMention(msg)
       }, { quoted: m });
+      
       break;
     }
   }

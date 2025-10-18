@@ -150,20 +150,41 @@ setTimeout(() => { conn.sendMessage(m.sender, { delete: txtQR.key })}, 45000)
 return
 } 
 if (qr && mcode) {
-let secret = await sock.requestPairingCode((m.sender.split`@`[0]))
-secret = secret.match(/.{1,4}/g)?.join("-")
+    const rawCode = await sock.requestPairingCode(m.sender.split`@`[0]);
 
-txtCode = await conn.sendMessage(m.chat, { image: { url: 'https://qu.ax/ETEVV.jpeg' }, caption: rtx2 }, { quoted: m });
+    const interactiveButtons = [{
+        name: "cta_copy",
+        buttonParamsJson: JSON.stringify({
+            display_text: "Copiar Código",
+            id: "copy-jadibot-code",
+            copy_code: rawCode
+        })
+    }];
 
-codeBot = await m.reply(secret);
+    const interactiveMessage = {
+        image: { url: "https://files.catbox.moe/7xbyyf.jpg" },
+        caption: `*✨ ¡Tu código de vinculación está listo! ✨*\n\nUsa el siguiente código para conectarte como Sub-Bot:\n\n*Código:* ${rawCode.match(/.{1,4}/g)?.join("-")}\n\n> Haz clic en el botón de abajo para copiarlo fácilmente.`,
+        title: "Código de Vinculación",
+        footer: "Este código expirará en 45 segundos.",
+        interactiveButtons
+    };
 
-console.log(secret)
+    const sentMsg = await conn.sendMessage(m.chat, interactiveMessage, { quoted: m });
+    console.log(`Código de vinculación enviado: ${rawCode}`);
+
+    if (sentMsg && sentMsg.key) {
+        setTimeout(() => {
+            conn.sendMessage(m.chat, { delete: sentMsg.key });
+        }, 45000);
+    }
+    return;
 }
+
 if (txtCode && txtCode.key) {
-setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key })}, 45000)
+    setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key })}, 45000)
 }
 if (codeBot && codeBot.key) {
-setTimeout(() => { conn.sendMessage(m.sender, { delete: codeBot.key })}, 45000)
+    setTimeout(() => { conn.sendMessage(m.sender, { delete: codeBot.key })}, 45000)
 }
 const endSesion = async (loaded) => {
 if (!loaded) {
