@@ -92,7 +92,7 @@ cfonts.say('Ruby Hoshino Bot', {
 })
 
 // Créditos
-cfonts.say('Developed By: Dioneibi-rip', {
+cfonts.say('Developed By: Deyner-Bot', {
   font: 'console',
   align: 'center',
   colors: ['blueBright']
