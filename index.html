@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEB DE RUBY</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav id="menu">
+        <button id="hamburger" onclick="toggleMenu()">☰</button>
+        <div id="menu-content">
+            <button id="ajustes" onclick="toggleAjustes()">Ajustes</button>
+            <div id="ajustes-content" style="display: none;">
+                <p>Tema</p>
+                <button id="tema" onclick="cambiarTema()">🌙</button>
+                <button id="volver" onclick="volver()"><- Volver a la página principal</button>
+            </div>
+        </div>
+    </nav>
+    <main>
+        <h1>WEB DE RUBY</h1>
+        <p>Próximamente online...</p>
+    </main>
+
+    <script>
+        let tema = 'claro';
+
+        function toggleMenu() {
+            document.getElementById('menu-content').style.display = document.getElementById('menu-content').style.display === 'block' ? 'none' : 'block';
+        }
+
+        function toggleAjustes() {
+            document.getElementById('ajustes-content').style.display = document.getElementById('ajustes-content').style.display === 'block' ? 'none' : 'block';
+        }
+
+        function cambiarTema() {
+            if (tema === 'claro') {
+                tema = 'oscuro';
+                document.body.style.background = '         
+                document.body.style.color = '#00ffff';
+                document.getElementById('tema').innerHTML = '☀️';
+            } else {
+                tema = 'claro';
+                document.body.style.background = '         
+                document.body.style.color = '#2f2f2f';
+                document.getElementById('tema').innerHTML = '🌙';
+            }
+        }
+
+        function volver() {
+            document.getElementById('ajustes-content').style.display = 'none';
+            document.getElementById('menu-content').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
