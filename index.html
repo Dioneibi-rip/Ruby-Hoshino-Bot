@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WEB DE RUBY</title>
     <style>
         body {
             background-color: #00ffff;
             color: #2f2f2f;
             font-family: Arial, sans-serif;
-            transition: background-color 0.5s, color 00.5s;
+            transition: background-color 0.5s, color 0.5s;
         }
 
         main {
@@ -37,6 +37,7 @@
             border: none;
             font-size: 24px;
             cursor: pointer;
+            type: button;
         }
 
         #menu-content {
@@ -47,6 +48,7 @@
             background-color: #00ffff;
             padding: 10px;
             border: 1px solid #2f2f2f;
+            z-index: 100;
         }
 
         #ajustes {
@@ -64,6 +66,7 @@
             background-color: #00ffff;
             padding: 10px;
             border: 1px solid #2f2f2f;
+            z-index: 100;
         }
 
         #tema {
@@ -79,17 +82,20 @@
             font-size: 18px;
             cursor: pointer;
         }
+
+        /* Asegurar que los botones no envíen formularios por defecto si se usan dentro de uno */
+        button { type: button; }
     </style>
 </head>
 <body>
     <nav id="menu">
-        <button id="hamburger">☰</button>
+        <button id="hamburger" type="button">☰</button>
         <div id="menu-content">
-            <button id="ajustes">Ajustes</button>
+            <button id="ajustes" type="button">Ajustes</button>
             <div id="ajustes-content">
                 <p>Tema</p>
-                <button id="tema">🌙</button>
-                <button id="volver"><- Volver a la página principal</button>
+                <button id="tema" type="button">🌙</button>
+                <button id="volver" type="button">&larr; Volver a la página principal</button>
             </div>
         </div>
     </nav>
@@ -102,40 +108,42 @@
         let tema = 'claro';
 
         document.getElementById('hamburger').addEventListener('click', function() {
-            let menuContent = document.getElementById('menu-content');
-            if (menuContent.style.display === 'block') {
-                menuContent.style.display = 'none';
-            } else {
-                menuContent.style.display = 'block';
-            }
+            const menuContent = document.getElementById('menu-content');
+            menuContent.style.display = (menuContent.style.display === 'block') ? 'none' : 'block';
         });
 
         document.getElementById('ajustes').addEventListener('click', function() {
-            let ajustesContent = document.getElementById('ajustes-content');
-            if (ajustesContent.style.display === 'block') {
-                ajustesContent.style.display = 'none';
-            } else {
-                ajustesContent.style.display = 'block';
-            }
+            const ajustesContent = document.getElementById('ajustes-content');
+            ajustesContent.style.display = (ajustesContent.style.display === 'block') ? 'none' : 'block';
         });
 
         document.getElementById('tema').addEventListener('click', function() {
             if (tema === 'claro') {
                 tema = 'oscuro';
-                document.body.style.background = '         
+                document.body.style.backgroundColor = '#2f2f2f';
                 document.body.style.color = '#00ffff';
-                document.getElementById('tema').innerHTML = '☀️';
+                document.getElementById('tema').textContent = '☀️';
             } else {
                 tema = 'claro';
-                document.body.style.background = '         
+                document.body.style.backgroundColor = '#00ffff';
                 document.body.style.color = '#2f2f2f';
-                document.getElementById('tema').innerHTML = '🌙';
+                document.getElementById('tema').textContent = '🌙';
             }
         });
 
         document.getElementById('volver').addEventListener('click', function() {
             document.getElementById('ajustes-content').style.display = 'none';
             document.getElementById('menu-content').style.display = 'none';
+        });
+
+        // (Opcional) cerrar menús al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('menu');
+            const isInsideMenu = menu.contains(e.target);
+            if (!isInsideMenu) {
+                document.getElementById('ajustes-content').style.display = 'none';
+                document.getElementById('menu-content').style.display = 'none';
+            }
         });
     </script>
 </body>
