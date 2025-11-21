@@ -9,7 +9,7 @@
             background-color: #00ffff;
             color: #2f2f2f;
             font-family: Arial, sans-serif;
-            transition: background-color 0.5s, color 0.5s;
+            transition: background-color 0.5s, color 00.5s;
         }
 
         main {
@@ -83,13 +83,13 @@
 </head>
 <body>
     <nav id="menu">
-        <button id="hamburger" onclick="toggleMenu()">☰</button>
+        <button id="hamburger">☰</button>
         <div id="menu-content">
-            <button id="ajustes" onclick="toggleAjustes()">Ajustes</button>
-            <div id="ajustes-content" style="display: none;">
+            <button id="ajustes">Ajustes</button>
+            <div id="ajustes-content">
                 <p>Tema</p>
-                <button id="tema" onclick="cambiarTema()">🌙</button>
-                <button id="volver" onclick="volver()"><- Volver a la página principal</button>
+                <button id="tema">🌙</button>
+                <button id="volver"><- Volver a la página principal</button>
             </div>
         </div>
     </nav>
@@ -101,25 +101,25 @@
     <script>
         let tema = 'claro';
 
-        function toggleMenu() {
+        document.getElementById('hamburger').addEventListener('click', function() {
             let menuContent = document.getElementById('menu-content');
             if (menuContent.style.display === 'block') {
                 menuContent.style.display = 'none';
             } else {
                 menuContent.style.display = 'block';
             }
-        }
+        });
 
-        function toggleAjustes() {
+        document.getElementById('ajustes').addEventListener('click', function() {
             let ajustesContent = document.getElementById('ajustes-content');
             if (ajustesContent.style.display === 'block') {
                 ajustesContent.style.display = 'none';
             } else {
                 ajustesContent.style.display = 'block';
             }
-        }
+        });
 
-        function cambiarTema() {
+        document.getElementById('tema').addEventListener('click', function() {
             if (tema === 'claro') {
                 tema = 'oscuro';
                 document.body.style.background = '         
@@ -131,12 +131,12 @@
                 document.body.style.color = '#2f2f2f';
                 document.getElementById('tema').innerHTML = '🌙';
             }
-        }
+        });
 
-        function volver() {
+        document.getElementById('volver').addEventListener('click', function() {
             document.getElementById('ajustes-content').style.display = 'none';
             document.getElementById('menu-content').style.display = 'none';
-        }
+        });
     </script>
 </body>
 </html>
