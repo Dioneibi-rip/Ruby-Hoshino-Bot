@@ -15,6 +15,16 @@ global.botNumber = '' //Ejemplo: 573218138672
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
+global.whitelist = {
+  enabled: true, // true para activar la lista blanca, false para desactivar
+  namesGroup: [
+    '' //Ejemplo: 'grupo1', 'Grupo de amigos'
+  ],
+  noPrivate: true // true para evitar que el bot responda en chats privados (sin mensaje de advertencia)
+};
+
+//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
+
 global.owner = [
 // <-- Número @s.whatsapp.net -->
   ['18294868853', '⏤͟͞ू⃪ ፝͜⁞𝘿𝙞𝙤𝙣𝙚𝙞𝙗𝙞-ʳⁱᵖ ִֶ ࣪˖ ִֶָ🐇་༘', true],

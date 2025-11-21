@@ -209,6 +209,16 @@ m.text = ''
 
 const _user = global.db.data.users[sender]
 const groupMetadata = m.isGroup ? { ...(this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}), ...(((this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants) && { participants: ((this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants || []).map(p => ({ ...p, id: p.jid, jid: p.jid, lid: p.lid })) }) } : {}
+
+if(m.isGroup && global.whitelist.enabled && global.whitelist.namesGroup.length > 0) {
+    let groupName = await conn.getName(m.chat) || (await conn.groupMetadata(m.chat).catch(() => ({})))?.subject.toLowerCase();
+    if (!global.whitelist.namesGroup.includes(groupName)) {
+        return;
+    }
+} else if (!m.isGroup && global.whitelist.noPrivate) {
+    return;
+}
+
 const participants = ((m.isGroup ? groupMetadata.participants : []) || []).map(participant => ({ id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin }))
 const userGroup = (m.isGroup ? participants.find((u) => this.decodeJid(u.jid) === sender) : {}) || {}
 const botGroup = (m.isGroup ? participants.find((u) => this.decodeJid(u.jid) == this.user.jid) : {}) || {}
@@ -319,6 +329,8 @@ let adminMode = global.db.data.chats[m.chat].modoadmin
 if (adminMode && m.isGroup && !isAdmin && !isOwner && !isROwner) {
 return
 }
+
+
 
 if (plugin.rowner && plugin.owner && !(isROwner || isOwner)) {
 fail('owner', m, this)
