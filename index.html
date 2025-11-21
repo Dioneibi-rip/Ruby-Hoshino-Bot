@@ -1,150 +1,388 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>WEB DE RUBY</title>
+
+    <!-- Font Awesome para los iconos (luna/sol) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pc6V2qf0h/0Qb1Uq1Q8mT0c3zQZ5e3Q6Q7i9o3Yx3Q7tVx5Q1yZ1o8rF6e6K1j3p7b9v2y9g6k3s1Z4r7Y8g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <style>
-        body {
-            background-color: #00ffff;
-            color: #2f2f2f;
-            font-family: Arial, sans-serif;
-            transition: background-color 0.5s, color 0.5s;
+        /* Variables de color y temas */
+        :root{
+            --bg: #00ffff;         /* claro por defecto */
+            --text: #2f2f2f;
+            --accent: #1a90ff;
+            --card-bg: #ffffff;
+            --menu-bg: rgba(255,255,255,0.95);
         }
 
-        main {
-            text-align: center;
-            margin-top: 20vh;
+        /* Tema oscuro (usar esquema del .bash-card) */
+        .theme-oscuro {
+            --bg: #0f1113;        /* fondo general oscuro */
+            --text: #cbd5e1;      /* texto claro */
+            --accent: #1a90ff;
+            --card-bg: #222a36;   /* .bash-card background */
+            --menu-bg: rgba(34,42,54,0.98);
         }
 
-        h1 {
-            font-size: 48px;
-            margin-bottom: 10px;
+        /* Tema claro (inspirado en tu color original, pero con cards oscuras cuando convenga) */
+        .theme-claro {
+            --bg: #00ffff;
+            --text: #2f2f2f;
+            --accent: #1a90ff;
+            --card-bg: #ffffff;
+            --menu-bg: rgba(255,255,255,0.95);
         }
 
-        p {
-            font-size: 18px;
+        /* Reset/base */
+        html,body{
+            height:100%;
+            margin:0;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background-color: var(--bg);
+            color: var(--text);
+            transition: background-color .35s, color .35s;
         }
 
+        main{
+            text-align:center;
+            margin-top:18vh;
+            padding:1rem;
+        }
+
+        h1{ font-size:2.6rem; margin:0 0 .25rem; }
+        p { font-size:1.05rem; margin:0 0 1.2rem; }
+
+        /* Menú: apariencia tipo .bash-card */
         #menu {
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index:1200;
         }
 
         #hamburger {
-            background-color: #00ffff;
+            background: transparent;
             border: none;
-            font-size: 24px;
-            cursor: pointer;
-            type: button;
+            font-size:1.45rem;
+            padding:10px 12px;
+            border-radius:10px;
+            color: var(--text);
+            cursor:pointer;
+            display:inline-flex;
+            align-items:center;
+            gap:.6rem;
+            backdrop-filter: blur(4px);
         }
+        #hamburger:hover { background: rgba(0,0,0,0.06); }
 
-        #menu-content {
-            display: none;
+        /* Contenedor del menú - similar a .bash-card */
+        .menu-card {
+            display:none;
             position: absolute;
-            top: 40px;
+            top: 54px;
             left: 0;
-            background-color: #00ffff;
-            padding: 10px;
-            border: 1px solid #2f2f2f;
-            z-index: 100;
+            min-width: 260px;
+            max-width: 92vw;
+            background: var(--menu-bg);
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            padding: 12px;
+            border: 1px solid rgba(0,0,0,0.12);
+            color: var(--text);
         }
 
-        #ajustes {
-            background-color: #00ffff;
+        /* Ajustes anidados (sub-menu) */
+        .submenu-card {
+            display:none;
+            position: absolute;
+            top: 70px;
+            left: 8px;
+            min-width: 240px;
+            background: var(--menu-bg);
+            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid rgba(0,0,0,0.08);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+
+        /* Botones dentro del menú */
+        .menu-btn {
+            background: transparent;
             border: none;
-            font-size: 18px;
-            cursor: pointer;
+            color: var(--text);
+            font-size:1rem;
+            padding:8px 10px;
+            border-radius:8px;
+            cursor:pointer;
+            display:inline-flex;
+            align-items:center;
+            gap:.6rem;
         }
+        .menu-btn:hover { background: rgba(0,0,0,0.06); }
 
-        #ajustes-content {
-            display: none;
-            position: absolute;
-            top: 80px;
-            left: 0;
-            background-color: #00ffff;
-            padding: 10px;
-            border: 1px solid #2f2f2f;
-            z-index: 100;
-        }
-
+        /* Botón del tema con estilo tipo .bash-btn (uso del accent) */
         #tema {
-            background-color: #00ffff;
+            background: var(--accent);
+            color: #fff;
             border: none;
-            font-size: 24px;
-            cursor: pointer;
+            padding:8px 12px;
+            border-radius:10px;
+            cursor:pointer;
+            font-size:1rem;
+            display:inline-flex;
+            align-items:center;
+            gap:.5rem;
         }
+        #tema:active { transform: translateY(1px); }
 
+        /* Volver */
         #volver {
-            background-color: #00ffff;
+            background: transparent;
             border: none;
-            font-size: 18px;
-            cursor: pointer;
+            color: var(--text);
+            font-size:.95rem;
+            cursor:pointer;
+            margin-top:6px;
+            display:inline-block;
         }
 
-        /* Asegurar que los botones no envíen formularios por defecto si se usan dentro de uno */
-        button { type: button; }
+        /* Estilos .bash-* solicitados, integrados y adaptados al tema */
+        .bash-card {
+            background: var(--card-bg); /* cambia según tema */
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+            padding: 2.2rem 2rem 1.7rem 2rem;
+            margin-top: 2.2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            color: var(--text);
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        /* Para tema oscuro forzamos el texto claro dentro de la card */
+        .theme-oscuro .bash-card { color: #e6eef8; }
+
+        .bash-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1.2rem;
+        }
+        .bash-label {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: inherit;
+            margin-right: 1rem;
+            margin-bottom: 0.3rem;
+        }
+        .bash-btn {
+            font-size: 1.0rem;
+            font-weight: 600;
+            padding: 0.6rem 1.4rem;
+            border-radius: 10px;
+            border: none;
+            margin-right: 0.8rem;
+            margin-bottom: 0.7rem;
+            background: var(--accent);
+            color: #fff;
+            transition: background 0.18s, transform 0.06s;
+            cursor: pointer;
+        }
+        .bash-btn:hover, .bash-btn:focus { background: #0066cc; }
+        .bash-btn:active { transform: translateY(1px); }
+
+        @media(max-width:700px){
+            .bash-card { max-width: 98vw; padding:1.4rem; }
+            .bash-label { font-size:1.05rem; }
+            .bash-btn { font-size:0.95rem; padding:0.55rem 1rem; }
+            #hamburger { font-size:1.2rem; padding:8px; }
+            .menu-card { top:46px; left:0; }
+            .submenu-card { top:82px; left:8px; }
+        }
+
+        /* Pequeños detalles */
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+            font-size:0.95rem;
+            color: inherit;
+            margin-top:0.8rem;
+            text-align:left;
+            white-space:pre-wrap;
+            word-break:break-word;
+        }
+
+        /* Asegurar que los elementos dentro del menu se vean bien sobre menu-bg */
+        .menu-card, .submenu-card { color: var(--text); }
     </style>
 </head>
 <body>
-    <nav id="menu">
-        <button id="hamburger" type="button">☰</button>
-        <div id="menu-content">
-            <button id="ajustes" type="button">Ajustes</button>
-            <div id="ajustes-content">
-                <p>Tema</p>
-                <button id="tema" type="button">🌙</button>
-                <button id="volver" type="button">&larr; Volver a la página principal</button>
+    <nav id="menu" aria-label="Menú principal">
+        <button id="hamburger" aria-expanded="false" aria-controls="menu-content" title="Abrir menú">
+            <i class="fa-solid fa-bars"></i> Menú
+        </button>
+
+        <div id="menu-content" class="menu-card" role="menu" aria-hidden="true">
+            <button id="ajustes" class="menu-btn" aria-expanded="false" aria-controls="ajustes-content">
+                <i class="fa-solid fa-gear"></i> Ajustes
+            </button>
+
+            <!-- Submenu que aparece con la estética de las cards -->
+            <div id="ajustes-content" class="submenu-card" role="menu" aria-hidden="true">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <div style="display:flex;flex-direction:column;">
+                        <strong style="margin-bottom:6px;">Tema</strong>
+                        <small style="opacity:.85;">Alterna claro / oscuro</small>
+                    </div>
+                    <button id="tema" aria-pressed="false" title="Cambiar tema">
+                        <i class="fa-solid fa-moon" id="icon-tema"></i>
+                        <span id="texto-tema" style="margin-left:6px;">Oscuro</span>
+                    </button>
+                </div>
+
+                <button id="volver" type="button" aria-label="Volver" style="display:block;">
+                    ← Volver a la página principal
+                </button>
             </div>
         </div>
     </nav>
+
     <main>
         <h1>WEB DE RUBY</h1>
         <p>Próximamente online...</p>
+
+        <!-- Tarjeta con estilos .bash-* -->
+        <div class="bash-card" role="region" aria-label="Ejemplo terminal">
+            <div class="bash-row" style="align-items:flex-start;">
+                <div class="bash-label">Terminal</div>
+
+                <div style="display:flex;flex-wrap:wrap;gap:.6rem;">
+                    <button class="bash-btn" id="btn-ejecutar" type="button">Ejecutar</button>
+                    <button class="bash-btn" id="btn-copiar" type="button">Copiar</button>
+                    <button class="bash-btn" id="btn-limpiar" type="button">Limpiar</button>
+                </div>
+            </div>
+
+            <div class="mono" id="terminal-output">$ echo "Bienvenido a WEB DE RUBY"</div>
+        </div>
     </main>
 
     <script>
-        let tema = 'claro';
+        // Inicialización del tema con localStorage (si existe) o predeterminado 'claro'
+        (function(){
+            const root = document.documentElement;
+            const body = document.body;
+            const saved = localStorage.getItem('tema');
+            const initial = saved === 'oscuro' ? 'oscuro' : 'claro';
+            body.classList.add(initial === 'oscuro' ? 'theme-oscuro' : 'theme-claro');
 
-        document.getElementById('hamburger').addEventListener('click', function() {
-            const menuContent = document.getElementById('menu-content');
-            menuContent.style.display = (menuContent.style.display === 'block') ? 'none' : 'block';
-        });
-
-        document.getElementById('ajustes').addEventListener('click', function() {
-            const ajustesContent = document.getElementById('ajustes-content');
-            ajustesContent.style.display = (ajustesContent.style.display === 'block') ? 'none' : 'block';
-        });
-
-        document.getElementById('tema').addEventListener('click', function() {
-            if (tema === 'claro') {
-                tema = 'oscuro';
-                document.body.style.backgroundColor = '#2f2f2f';
-                document.body.style.color = '#00ffff';
-                document.getElementById('tema').textContent = '☀️';
+            // Actualiza el botón de tema según el estado
+            const icon = document.getElementById('icon-tema');
+            const texto = document.getElementById('texto-tema');
+            if(initial === 'oscuro'){
+                icon.className = 'fa-solid fa-sun';
+                texto.textContent = 'Claro';
+                document.getElementById('tema').setAttribute('aria-pressed','true');
             } else {
-                tema = 'claro';
-                document.body.style.backgroundColor = '#00ffff';
-                document.body.style.color = '#2f2f2f';
-                document.getElementById('tema').textContent = '🌙';
+                icon.className = 'fa-solid fa-moon';
+                texto.textContent = 'Oscuro';
+                document.getElementById('tema').setAttribute('aria-pressed','false');
+            }
+        })();
+
+        // Elementos
+        const hamburger = document.getElementById('hamburger');
+        const menuContent = document.getElementById('menu-content');
+        const ajustesBtn = document.getElementById('ajustes');
+        const ajustesContent = document.getElementById('ajustes-content');
+        const temaBtn = document.getElementById('tema');
+        const iconTema = document.getElementById('icon-tema');
+        const textoTema = document.getElementById('texto-tema');
+        const volver = document.getElementById('volver');
+
+        // Abrir/cerrar menu principal
+        hamburger.addEventListener('click', function(e){
+            e.stopPropagation();
+            const opened = menuContent.style.display === 'block';
+            menuContent.style.display = opened ? 'none' : 'block';
+            hamburger.setAttribute('aria-expanded', String(!opened));
+            menuContent.setAttribute('aria-hidden', String(opened));
+        });
+
+        // Abrir/cerrar ajustes (submenu)
+        ajustesBtn.addEventListener('click', function(e){
+            e.stopPropagation();
+            const opened = ajustesContent.style.display === 'block';
+            ajustesContent.style.display = opened ? 'none' : 'block';
+            ajustesBtn.setAttribute('aria-expanded', String(!opened));
+            ajustesContent.setAttribute('aria-hidden', String(opened));
+        });
+
+        // Toggle tema - aplica clases de tema, actualiza icono/texto y guarda en localStorage
+        temaBtn.addEventListener('click', function(){
+            const body = document.body;
+            const isOscuro = body.classList.contains('theme-oscuro');
+            if(isOscuro){
+                // pasar a claro
+                body.classList.remove('theme-oscuro');
+                body.classList.add('theme-claro');
+                iconTema.className = 'fa-solid fa-moon';
+                textoTema.textContent = 'Oscuro';
+                temaBtn.setAttribute('aria-pressed','false');
+                localStorage.setItem('tema','claro');
+            } else {
+                // pasar a oscuro
+                body.classList.remove('theme-claro');
+                body.classList.add('theme-oscuro');
+                iconTema.className = 'fa-solid fa-sun';
+                textoTema.textContent = 'Claro';
+                temaBtn.setAttribute('aria-pressed','true');
+                localStorage.setItem('tema','oscuro');
             }
         });
 
-        document.getElementById('volver').addEventListener('click', function() {
-            document.getElementById('ajustes-content').style.display = 'none';
-            document.getElementById('menu-content').style.display = 'none';
+        // Volver cierra submenus y menu
+        volver.addEventListener('click', function(e){
+            ajustesContent.style.display = 'none';
+            menuContent.style.display = 'none';
+            ajustesBtn.setAttribute('aria-expanded','false');
+            hamburger.setAttribute('aria-expanded','false');
+            ajustesContent.setAttribute('aria-hidden','true');
+            menuContent.setAttribute('aria-hidden','true');
         });
 
-        // (Opcional) cerrar menús al hacer clic fuera
-        document.addEventListener('click', function(e) {
+        // Cerrar al click fuera
+        document.addEventListener('click', function(e){
             const menu = document.getElementById('menu');
-            const isInsideMenu = menu.contains(e.target);
-            if (!isInsideMenu) {
-                document.getElementById('ajustes-content').style.display = 'none';
-                document.getElementById('menu-content').style.display = 'none';
+            if(!menu.contains(e.target)){
+                ajustesContent.style.display = 'none';
+                menuContent.style.display = 'none';
+                ajustesBtn.setAttribute('aria-expanded','false');
+                hamburger.setAttribute('aria-expanded','false');
+                ajustesContent.setAttribute('aria-hidden','true');
+                menuContent.setAttribute('aria-hidden','true');
             }
         });
+
+        // Ejemplo de funcionalidad para botones de la .bash-card
+        document.getElementById('btn-ejecutar').addEventListener('click', function(){
+            const out = document.getElementById('terminal-output');
+            out.textContent = '$ ruby -v\n' + (typeof RUBY_VERSION !== 'undefined' ? RUBY_VERSION : 'ruby 3.x.x (ejemplo)') + '\n$ echo "Ejecutando..."';
+        });
+        document.getElementById('btn-copiar').addEventListener('click', function(){
+            const text = 'echo "Bienvenido a WEB DE RUBY"';
+            if(navigator.clipboard){
+                navigator.clipboard.writeText(text).then(()=>alert('Comando copiado'), ()=>alert('No se pudo copiar'));
+            } else {
+                alert('Portapapeles no disponible');
+            }
+        });
+        document.getElementById('btn-limpiar').addEventListener('click', function(){
+            document.getElementById('terminal-output').textContent = '';
+        });
+
     </script>
 </body>
 </html>
