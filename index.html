@@ -1,20 +1,25 @@
-<!DOCTYPE html><html lang="es"><head>
+<!DOCTYPE html>
+<html lang="es">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ruby Web</title>
     <link rel="stylesheet" href="css/all.min.css">
     <style>
         :root {
-            --primary: #4dabf7;
-            --primary-dark: #1971c2;
-            --primary-light: #a5d8ff;
+            /* Normal blue -> Rosado normal. Neon blue -> Morado neón */
+            --primary: #ff66b2;          /* antes: #4dabf7 */
+            --primary-dark: #c2185b;     /* antes: #1971c2 */
+            --primary-light: #ffc1e3;    /* antes: #a5d8ff */
+            --neon-purple: #8a2be2;      /* morado neón para efectos/glow (reemplaza azul neón) */
+
             --dark: #121212;
             --dark-light: #1e1e1e;
             --dark-lighter: #2d2d2d;
             --text: #ffffff;
             --text-secondary: #cccccc;
             --accent: #ff6b6b;
-            --gradient: linear-gradient(135deg, #4dabf7 0%, #1971c2 100%);
+            --gradient: linear-gradient(135deg, #ff66b2 0%, #8a2be2 100%); /* rosa -> morado neón */
         }
 
         * {
@@ -121,7 +126,8 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(77, 171, 247, 0.1) 0%, rgba(18, 18, 18, 0) 70%);
+            /* radial glow: antes azul neón, ahora morado neón */
+            background: radial-gradient(circle, rgba(138, 43, 226, 0.1) 0%, rgba(18, 18, 18, 0) 70%);
             z-index: -1;
         }
 
@@ -161,7 +167,8 @@
             height: 100%;
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 0 30px rgba(77, 171, 247, 0.5);
+            /* Glow: antes azul neón, ahora morado neón */
+            box-shadow: 0 0 30px rgba(138, 43, 226, 0.5);
             transition: all 0.5s ease;
             position: relative;
             z-index: 2;
@@ -174,7 +181,8 @@
 
         .bot-image:hover {
             transform: scale(1.05);
-            box-shadow: 0 0 50px rgba(77, 171, 247, 0.8);
+            /* Hover glow: morado neón */
+            box-shadow: 0 0 50px rgba(138, 43, 226, 0.8);
             border-color: var(--primary-light);
         }
 
@@ -225,7 +233,8 @@
             font-weight: 600;
             font-size: 1rem;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(25, 113, 194, 0.4);
+            /* sombra antes azul oscuro -> ahora rosado */
+            box-shadow: 0 4px 15px rgba(255,102,178,0.4);
             position: relative;
             overflow: hidden;
         }
@@ -247,7 +256,8 @@
 
         .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(25, 113, 194, 0.6);
+            /* hover shadow antes azul -> ahora rosado */
+            box-shadow: 0 6px 20px rgba(255,102,178,0.6);
         }
 
         .btn:active {
@@ -418,30 +428,30 @@
             .hero h1 {
                 font-size: 2.5rem;
             }
-            
+
             .hero-subtitle {
                 font-size: 1.2rem;
             }
-            
+
             .hero p {
                 font-size: 1.1rem;
             }
-            
+
             .buttons {
                 flex-direction: column;
                 align-items: center;
             }
-            
+
             .btn {
                 width: 100%;
                 max-width: 300px;
                 justify-content: center;
             }
-            
+
             .nav-links {
                 display: none;
             }
-            
+
             .features {
                 grid-template-columns: 1fr;
             }
@@ -493,21 +503,21 @@
             </div>
         </div>
     </header>
-    
+
     <main>
         <section class="hero">
             <div class="container">
                 <h1 class="fade-in">Ruby-Hoshino-Bot-MD</h1>
                 <div class="hero-subtitle fade-in">Tu asistente multifuncional de WhatsApp</div>
                 <p class="fade-in delay-1">Desarrollado por Dioneibi-rip - Disfruta de música, descargas, juegos RPG, economía y mucho más directamente en WhatsApp.</p>
-                
+
                 <div class="bot-container fade-in delay-2">
                     <div class="bot-glow"></div>
                     <a href="https://wa.me/1234567890" target="_blank" class="bot-image">
                         <img src="https://files.catbox.moe/fvdkhb.jpeg" alt="Ruby-Hoshino-Bot-MD">
                     </a>
                 </div>
-                
+
                 <div class="buttons fade-in delay-3">
                     <a href="https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot" target="_blank" class="btn">
                         <i class="fab fa-github"></i> Ver Repositorio
@@ -518,7 +528,7 @@
                 </div>
             </div>
         </section>
-        
+
         <section id="features" class="container">
             <div class="features">
                 <div class="feature fade-in">
@@ -528,7 +538,7 @@
                     <h3>Descarga de Música</h3>
                     <p>Descarga música de YouTube, Instagram y TikTok directamente a tus conversaciones de WhatsApp con comandos simples.</p>
                 </div>
-                
+
                 <div class="feature fade-in delay-1">
                     <div class="feature-icon">
                         <i class="fas fa-download"></i>
@@ -536,7 +546,7 @@
                     <h3>Descarga de Videos</h3>
                     <p>Obtén videos de YouTube, Instagram, TikTok y más plataformas en la mejor calidad disponible.</p>
                 </div>
-                
+
                 <div class="feature fade-in delay-2">
                     <div class="feature-icon">
                         <i class="fas fa-images"></i>
@@ -552,7 +562,7 @@
                     <h3>Juegos RPG</h3>
                     <p>Disfruta de emocionantes juegos de rol con sistema de niveles, misiones y batallas épicas.</p>
                 </div>
-                
+
                 <div class="feature fade-in delay-1">
                     <div class="feature-icon">
                         <i class="fas fa-coins"></i>
@@ -560,7 +570,7 @@
                     <h3>Sistema de Economía</h3>
                     <p>Gana monedas virtuales, realiza transacciones y compra objetos en la economía del bot.</p>
                 </div>
-                
+
                 <div class="feature fade-in delay-2">
                     <div class="feature-icon">
                         <i class="fas fa-dice"></i>
@@ -570,7 +580,7 @@
                 </div>
             </div>
         </section>
-        
+
         <section id="commands" class="container">
             <div class="command-info fade-in">
                 <h2>Prefijo de Comandos</h2>
@@ -579,7 +589,7 @@
             </div>
         </section>
     </main>
-    
+
     <footer>
         <div class="container">
             <div class="footer-content">
@@ -605,14 +615,14 @@
             </div>
         </div>
     </footer>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Animación de escritura para el título
             const title = document.querySelector('.hero h1');
             const originalText = title.textContent;
             title.textContent = '';
-            
+
             let i = 0;
             const typeWriter = () => {
                 if (i < originalText.length) {
@@ -621,9 +631,9 @@
                     setTimeout(typeWriter, 100);
                 }
             };
-            
+
             setTimeout(typeWriter, 500);
-            
+
             // Efecto de aparición para elementos con clase fade-in
             const fadeElements = document.querySelectorAll('.fade-in');
             const observer = new IntersectionObserver((entries) => {
@@ -634,18 +644,18 @@
                     }
                 });
             }, { threshold: 0.1 });
-            
+
             fadeElements.forEach(element => {
                 element.style.opacity = 0;
                 element.style.transform = 'translateY(20px)';
                 element.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
                 observer.observe(element);
             });
-            
-            // Efecto de partículas para el fondo
+
+            // Efecto de partículas para el fondo (antes azul -> ahora morado neón)
             createParticles();
         });
-        
+
         function createParticles() {
             const particlesContainer = document.createElement('div');
             particlesContainer.style.position = 'fixed';
@@ -656,42 +666,43 @@
             particlesContainer.style.pointerEvents = 'none';
             particlesContainer.style.zIndex = '-1';
             document.body.appendChild(particlesContainer);
-            
+
             for (let i = 0; i < 50; i++) {
                 const particle = document.createElement('div');
                 particle.style.position = 'absolute';
                 particle.style.width = Math.random() * 5 + 2 + 'px';
                 particle.style.height = particle.style.width;
-                particle.style.background = 'rgba(77, 171, 247, 0.3)';
+                /* antes: 'rgba(77, 171, 247, 0.3)' (azul neón) -> ahora morado neón */
+                particle.style.background = 'rgba(138, 43, 226, 0.3)';
                 particle.style.borderRadius = '50%';
                 particle.style.top = Math.random() * 100 + 'vh';
                 particle.style.left = Math.random() * 100 + 'vw';
-                
+
                 particlesContainer.appendChild(particle);
-                
+
                 animateParticle(particle);
             }
         }
-        
+
         function animateParticle(particle) {
             let x = parseFloat(particle.style.left);
             let y = parseFloat(particle.style.top);
             let xSpeed = (Math.random() - 0.5) * 0.5;
             let ySpeed = (Math.random() - 0.5) * 0.5;
-            
+
             function move() {
                 x += xSpeed;
                 y += ySpeed;
-                
+
                 if (x < 0 || x > 100) xSpeed *= -1;
                 if (y < 0 || y > 100) ySpeed *= -1;
-                
+
                 particle.style.left = x + 'vw';
                 particle.style.top = y + 'vh';
-                
+
                 requestAnimationFrame(move);
             }
-            
+
             move();
         }
     </script>
