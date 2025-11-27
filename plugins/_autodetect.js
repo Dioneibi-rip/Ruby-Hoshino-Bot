@@ -1,51 +1,117 @@
-let WAMessageStubType = (await import('@whiskeysockets/baileys')).default
+import { WAMessageStubType } from '@whiskeysockets/baileys'
+import fetch from 'node-fetch'
+
+const styleText = (text) => {
+    const map = {
+        'a': '𝘢', 'b': '𝘣', 'c': '𝘤', 'd': '𝘥', 'e': '𝘦', 'f': '𝘧', 'g': '𝘨', 'h': '𝘩', 'i': '𝘪', 'j': '𝘫', 'k': '𝘬', 'l': '𝘭', 'm': '𝘮', 'n': '𝘯', 'o': '𝘰', 'p': '𝘱', 'q': '𝘲', 'r': '𝘳', 's': '𝘴', 't': '𝘵', 'u': '𝘶', 'v': '𝘷', 'w': '𝘸', 'x': '𝘹', 'y': '𝘺', 'z': '𝘻',
+        'A': '𝘼', 'B': '𝘽', 'C': '𝘾', 'D': '𝘿', 'E': '𝙀', 'F': '𝙁', 'G': '𝙂', 'H': '𝙃', 'I': '𝙄', 'J': '𝙅', 'K': '𝙆', 'L': '𝙇', 'M': '𝙈', 'N': '𝙉', 'O': '𝙊', 'P': '𝙋', 'Q': '𝙌', 'R': '𝙍', 'S': '𝙎', 'T': '𝙏', 'U': '𝙐', 'V': '𝙑', 'W': '𝙒', 'X': '𝙓', 'Y': '𝙔', 'Z': '𝙕',
+        '0': '𝟎', '1': '𝟏', '2': '𝟐', '3': '𝟑', '4': '𝟒', '5': '𝟓', '6': '𝟔', '7': '𝟕', '8': '𝟖', '9': '𝟗'
+    };
+    return text.split('').map(char => map[char] || char).join('');
+}
 
 let handler = m => m
+
 handler.before = async function (m, { conn, participants, groupMetadata }) {
-if (!m.messageStubType || !m.isGroup) return
-const fkontak = { "key": { "participants":"0@s.whatsapp.net", "remoteJid": "status@broadcast", "fromMe": false, "id": "Halo" }, "message": { "contactMessage": { "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD` }}, "participant": "0@s.whatsapp.net"}  
-let chat = global.db.data.chats[m.chat]
-let usuario = `@${m.sender.split`@`[0]}`
-let pp = await conn.profilePictureUrl(m.chat, 'image').catch(_ => null) || 'https://files.catbox.moe/xr2m6u.jpg'
+    if (!m.messageStubType || !m.isGroup) return
+    let chat = global.db.data.chats[m.chat]
+    let usuario = m.sender.split('@')[0]
+    
+    let fkontak = null;
+    try {
+        const res = await fetch('https://i.postimg.cc/6562JdR7/Hoshino-Ruby-(2).jpg');
+        const thumb2 = await res.buffer();
+        fkontak = {
+            key: { participant: '0@s.whatsapp.net', remoteJid: 'status@broadcast', fromMe: false, id: 'Halo' },
+            message: {
+                locationMessage: {
+                    name: styleText('Notificaciones del Grupo'),
+                    jpegThumbnail: thumb2
+                }
+            },
+            participant: '0@s.whatsapp.net'
+        };
+    } catch (e) {
+        console.error(e)
+    }
 
-let nombre, foto, edit, newlink, status, admingp, noadmingp, aceptar
-nombre = `《✦》${usuario} Ha cambiado el nombre del grupo.\n\n> ✧ Ahora el grupo se llama:\n> *${m.messageStubParameters[0]}*.`
-foto = `《✦》Se ha cambiado la imagen del grupo.\n\n> ✧ Acción hecha por:\n> » ${usuario}`
-edit = `《✦》${usuario} Ha permitido que ${m.messageStubParameters[0] == 'on' ? 'solo admins' : 'todos'} puedan configurar el grupo.`
-newlink = `《✦》El enlace del grupo ha sido restablecido.\n\n> ✧ Acción hecha por:\n> » ${usuario}`
-status = `《✦》El grupo ha sido ${m.messageStubParameters[0] == 'on' ? '*cerrado*' : '*abierto*'} Por ${usuario}\n\n> ✧ Ahora ${m.messageStubParameters[0] == 'on' ? '*solo admins*' : '*todos*'} pueden enviar mensaje.`
-admingp = `《✦》@${m.messageStubParameters[0].split`@`[0]} Ahora es admin del grupo.\n\n> ✧ Acción hecha por:\n> » ${usuario}`
-noadmingp =  `《✦》@${m.messageStubParameters[0].split`@`[0]} Deja de ser admin del grupo.\n\n> ✧ Acción hecha por:\n> » ${usuario}`
-aceptar = `✦ Ha llegado un nuevo participante al grupo.\n\n> ◦ ✐ Grupo: *${groupMetadata.subject}*\n\n> ◦ ⚘ Bienvenido/a: @${m.messageStubParameters[0].split('@')[0]}\n\n> ◦ ✧ Aceptado por: @${m.sender.split('@')[0]}` 
+    let text = ''
+    let mentions = [m.sender]
 
-if (chat.detect && m.messageStubType == 21) {
-await conn.sendMessage(m.chat, { text: nombre, mentions: [m.sender] }, { quoted: fkontak })   
 
-} else if (chat.detect && m.messageStubType == 22) {
-await conn.sendMessage(m.chat, { image: { url: pp }, caption: foto, mentions: [m.sender] }, { quoted: fkontak })
+    const footer = `‿︵‿︵‿︵୨˚̣̣̣͙୧ - - ୨˚̣̣̣͙୧‿︵‿︵‿︵`
 
-} else if (chat.detect && m.messageStubType == 23) {
-await conn.sendMessage(m.chat, { text: newlink, mentions: [m.sender] }, { quoted: fkontak })    
+    if (chat.detect && m.messageStubType == 21) {
+        text = `
+       𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐂𝐡𝐚𝐧𝐠𝐞𝐝 𝐍𝐚𝐦𝐞.   𖤝        
+꒰꒰ 🐻‍❄️ 𝐍𝐞𝐰 𝐍𝐚𝐦𝐞 Ი꯭ᰍ
+> 🏷️ ${styleText(m.messageStubParameters[0])}`
 
-} else if (chat.detect && m.messageStubType == 25) {
-await conn.sendMessage(m.chat, { text: edit, mentions: [m.sender] }, { quoted: fkontak })  
+    } else if (chat.detect && m.messageStubType == 22) {
+        text = `
+       𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐂𝐡𝐚𝐧𝐠𝐞𝐝 𝐈𝐜𝐨𝐧.   𖤝        
+꒰꒰ 🖼️ 𝐍𝐞𝐰 𝐈𝐦𝐚𝐠𝐞 Ი꯭ᰍ
+> 🫧 ${styleText("Aesthetic Mode On")}`
 
-} else if (chat.detect && m.messageStubType == 26) {
-await conn.sendMessage(m.chat, { text: status, mentions: [m.sender] }, { quoted: fkontak })  
+    } else if (chat.detect && m.messageStubType == 23) {
+        text = `
+       𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐑𝐞𝐯𝐨𝐤𝐞𝐝 𝐋𝐢𝐧𝐤.   𖤝        
+꒰꒰ 🔗 𝐒𝐭𝐚𝐭𝐮𝐬 Ი꯭ᰍ
+> 🚫 ${styleText("Old link is dead")}`
 
-} else if (chat.detect2 && m.messageStubType == 27) {
-await conn.sendMessage(m.chat, { text: aceptar, mentions: [`${m.sender}`, `${m.messageStubParameters[0]}`] }, { quoted: fkontak })
+    } else if (chat.detect && m.messageStubType == 25) {
+        let type = m.messageStubParameters[0] == 'on' ? '𝐀𝐝𝐦𝐢𝐧𝐬 𝐎𝐧𝐥𝐲' : '𝐀𝐥𝐥 𝐔𝐬𝐞𝐫𝐬'
+        text = `
+       𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐄𝐝𝐢𝐭 𝐒𝐞𝐭𝐭𝐢𝐧𝐠𝐬.   𖤝        
+꒰꒰ ⚙️ 𝐈𝐧𝐟𝐨 𝐆𝐫𝐨𝐮𝐩 Ი꯭ᰍ
+> 🔓 ${styleText(type)}`
 
-} else if (chat.detect && m.messageStubType == 29) {
-await conn.sendMessage(m.chat, { text: admingp, mentions: [`${m.sender}`,`${m.messageStubParameters[0]}`] }, { quoted: fkontak })  
+    } else if (chat.detect && m.messageStubType == 26) {
+        let type = m.messageStubParameters[0] == 'on' ? '🔒 𝐂𝐥𝐨𝐬𝐞𝐝' : '🔓 𝐎𝐩𝐞𝐧'
+        text = `
+       𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐂𝐡𝐚𝐭 𝐒𝐭𝐚𝐭𝐮𝐬.   𖤝        
+꒰꒰ 💬 𝐌𝐞𝐬𝐬𝐚𝐠𝐞𝐬 Ი꯭ᰍ
+> ${styleText(type)}`
 
-} if (chat.detect && m.messageStubType == 30) {
-await conn.sendMessage(m.chat, { text: noadmingp, mentions: [`${m.sender}`,`${m.messageStubParameters[0]}`] }, { quoted: fkontak })
-} else {
-if (m.messageStubType == 2) return
-console.log({messageStubType: m.messageStubType,
-messageStubParameters: m.messageStubParameters,
-type: WAMessageStubType[m.messageStubType], 
-})
-}}
+    } else if (chat.detect2 && m.messageStubType == 27) {
+        let nuevo = m.messageStubParameters[0]
+        mentions.push(nuevo)
+        text = `
+       𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐍𝐞𝐰 𝐌𝐞𝐦𝐛𝐞𝐫.   𖤝        
+꒰꒰ 🧸 𝐖𝐞𝐥𝐜𝐨𝐦𝐞 Ი꯭ᰍ
+> 👋 @${nuevo.split('@')[0]}`
+
+    } else if (chat.detect && m.messageStubType == 29) {
+        let nuevoAdmin = m.messageStubParameters[0]
+        mentions.push(nuevoAdmin)
+        text = `
+       𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐍𝐞𝐰 𝐀𝐝𝐦𝐢𝐧.   𖤝        
+꒰꒰ 👑 𝐏𝐫𝐨𝐦𝐨𝐭𝐞𝐝 Ი꯭ᰍ
+> 🫡 @${nuevoAdmin.split('@')[0]}`
+
+    } else if (chat.detect && m.messageStubType == 30) {
+        let exAdmin = m.messageStubParameters[0]
+        mentions.push(exAdmin)
+        text = `
+       𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐃𝐞𝐦𝐨𝐭𝐞𝐝 𝐔𝐬𝐞𝐫.   𖤝        
+꒰꒰ 📉 𝐅𝐞𝐥𝐥 𝐎𝐟𝐟 Ი꯭ᰍ
+> 😔 @${exAdmin.split('@')[0]}`
+    }
+
+    if (text) {
+        await conn.sendMessage(m.chat, { 
+            text: text, 
+            mentions: mentions
+        }, { quoted: fkontak || m })
+    }
+}
+
 export default handler

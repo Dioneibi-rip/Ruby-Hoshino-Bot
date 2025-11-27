@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 
 const charactersFilePath = './src/database/characters.json';
-const haremFilePath = './src/database/harem.json';
+// const haremFilePath = './src/database/harem.json'; 
 
 async function loadCharacters() {
     try {
@@ -12,6 +12,7 @@ async function loadCharacters() {
     }
 }
 
+/*
 async function loadHarem() {
     try {
         const data = await fs.readFile(haremFilePath, 'utf-8');
@@ -20,6 +21,7 @@ async function loadHarem() {
         return [];
     }
 }
+*/
 
 let handler = async (m, { conn, args }) => {
     if (args.length === 0) {
@@ -38,15 +40,18 @@ let handler = async (m, { conn, args }) => {
             return;
         }
 
-        const harem = await loadHarem();
-        const userEntry = harem.find(entry => entry.characterId === character.id);
-        const statusMessage = userEntry 
-            ? `Reclamado por @${userEntry.userId.split('@')[0]}` 
-            : 'Libre';
         
+        const statusMessage = character.user 
+            ? `Reclamado por @${character.user.split('@')[0]}` 
+            : 'Libre';
+
+        const mentions = character.user ? [character.user] : [];
+        
+
         const message = `❀ Nombre » *${character.name}*\n⚥ Género » *${character.gender}*\n✰ Valor » *${character.value}*\n♡ Estado » ${statusMessage}\n❖ Fuente » *${character.source}*`;
 
-        await conn.reply(m.chat, message, m, { mentions: [userEntry ? userEntry.userId : null] });
+        await conn.reply(m.chat, message, m, { mentions }); 
+
     } catch (error) {
         await conn.reply(m.chat, `✘ Error al cargar la información del personaje: ${error.message}`, m);
     }

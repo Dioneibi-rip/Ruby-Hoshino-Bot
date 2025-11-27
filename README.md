@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://files.catbox.moe/fvdkhb.jpeg" alt="Banner Ruby Hoshino Bot" width="full">
+  <img src="https://files.catbox.moe/91q106.jpg" alt="Banner Ruby Hoshino Bot" width="full">
 </div>
 
 <div align="center">

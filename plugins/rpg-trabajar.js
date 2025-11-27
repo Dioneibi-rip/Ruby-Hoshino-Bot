@@ -10,7 +10,7 @@ const handler = async (m, { conn }) => {
 
     if (cooldowns[m.sender] && Date.now() - cooldowns[m.sender] < cooldown) {
         const remaining = segundosAHMS(Math.ceil((cooldowns[m.sender] + cooldown - Date.now()) / 1000));
-        return conn.reply(m.chat, `⏱️ Tómate un descanso, la chamba puede esperar. Vuelve en *${remaining}*.`, m);
+        return conn.reply(m.chat, `☕ Hace mucho frío... Tómate un descanso y un chocolate caliente. Vuelve en *${remaining}*.`, m);
     }
 
     const winChance = 0.85;
@@ -20,8 +20,7 @@ const handler = async (m, { conn }) => {
         const amount = Math.floor((Math.random() * 4000 + 1000) * premiumBenefit);
         user.coin += amount;
         const work = pickRandom(trabajosBuenos);
-        await m.react('✅');
-        await conn.reply(m.chat, `${work} y te llevaste *¥${amount.toLocaleString()} ${m.moneda}*.\n\n*💰 Cartera:* ¥${user.coin.toLocaleString()} | *🏦 Banco:* ¥${user.bank.toLocaleString()}`, m);
+        await conn.reply(m.chat, `${work} y te llevaste *${m.moneda} ${amount.toLocaleString()}*.\n\n*💰 Cartera:* ${m.moneda} ${user.coin.toLocaleString()} | *🏦 Banco:* ${m.moneda} ${user.bank.toLocaleString()}`, m);
     } else {
         const amount = Math.floor(Math.random() * 3000 + 500);
         let total = user.coin + user.bank;
@@ -36,8 +35,7 @@ const handler = async (m, { conn }) => {
         }
 
         const work = pickRandom(trabajosMalos);
-        await m.react('❌');
-        await conn.reply(m.chat, `${work} y en el proceso perdiste *¥${loss.toLocaleString()} ${m.moneda}*.\n\n*💰 Cartera:* *¥${user.coin.toLocaleString()}* | *🏦 Banco:* *¥${user.bank.toLocaleString()}*`, m);
+        await conn.reply(m.chat, `${work} y en el proceso perdiste *${m.moneda} ${loss.toLocaleString()}*.\n\n*💰 Cartera:* *${m.moneda} ${user.coin.toLocaleString()}* | *🏦 Banco:* *${m.moneda} ${user.bank.toLocaleString()}*`, m);
     }
 
     cooldowns[m.sender] = Date.now();
@@ -62,42 +60,51 @@ function pickRandom(list) {
 }
 
 const trabajosBuenos = [
-    "💻 Programaste un bot para Discord",
-    "🎨 Vendiste un diseño de logo en Fiverr",
-    "🐕 Paseaste al perro de tu vecino",
-    "🎵 Fuiste DJ en una fiesta de cumpleaños",
-    "📝 Tradujiste un documento importante",
-    "🍔 Trabajaste de repartidor de comida por una noche",
-    "🎮 Ganaste un pequeño torneo de videojuegos online",
-    "🔧 Reparaste la computadora de un amigo",
-    "✍️ Escribiste artículos para un blog",
-    "🎬 Editaste un video para un Youtuber",
-    "🖼️ Creaste y vendiste stickers personalizados",
-    "🛒 Hiciste las compras para una persona mayor",
-    "🎨 Pintaste una miniatura para un juego de mesa",
-    "🤳 Creaste un filtro de Instagram que se hizo popular",
-    "🤔 Llenaste encuestas en línea",
-    "📦 Ayudaste en una mudanza",
-    "💡 Le enseñaste a alguien a usar un nuevo software",
-    "🚗 Lavaste el coche de tus padres",
-    "🌿 Cuidaste las plantas de un amigo que se fue de viaje",
-    "🎂 Horneaste un pastel para una venta de garaje"
+    "✨ Pusiste luces decorativas en el techo de la casa de un vecino sin caerte",
+    "🎄 Ayudaste a montar el árbol gigante del centro comercial",
+    "📦 Repartiste paquetes de última hora para un servicio de mensajería bajo la nieve",
+    "🌰 Vendiste castañas asadas en un puesto callejero y se agotaron",
+    "🌨️ Trabajaste quitando nieve de las entradas de varias casas con una pala",
+    "🍪 Ayudaste en una panadería a hacer galletas y pan de temporada",
+    "🎁 Trabajaste envolviendo regalos en una tienda departamental muy ocupada",
+    "🎶 Fuiste DJ en una fiesta de fin de año de una empresa",
+    "🐾 Cuidaste las mascotas de una familia que se fue de vacaciones por las fiestas",
+    "⛸️ Vendiste boletos para la pista de patinaje sobre hielo",
+    "🎅 Fuiste 'Santa' en un centro comercial y los niños te adoraron",
+    "🥂 Serviste copas en un catering para una fiesta de gala",
+    "☕ Trabajaste de barista preparando bebidas calientes especiales de temporada",
+    "🧸 Ayudaste a descargar camiones llenos de juguetes en una gran tienda",
+    "🚜 Condujiste un quitanieves en las calles principales después de una tormenta",
+    "🍷 Vendiste vino caliente especiado en un mercado navideño",
+    "🎸 Tocaste villancicos con tu guitarra en la calle y la gente fue generosa",
+    "🎨 Creaste y vendiste adornos hechos a mano por internet",
+    "🐶 Ayudaste en un refugio de animales a cuidar cachorros durante el frío",
+    "🚗 Hiciste de valet parking en un restaurante de lujo durante una noche muy ocupada",
+    "🔧 Reparaste el sistema de calefacción de una anciana y te dio una buena propina",
+    "🌺 Ayudaste a una floristería a preparar arreglos de nochebuenas"
 ];
 
 const trabajosMalos = [
-    "💥 Intentaste arreglar una tubería y causaste una inundación, tuviste que pagar los daños",
-    "💸 Invertiste en una criptomoneda que resultó ser una estafa",
-    "💔 Un cliente no te pagó por el trabajo de diseño que realizaste",
-    "☕ Derramaste café en la laptop de un cliente y tuviste que cubrir la reparación",
-    "🤡 Compraste productos para revender, pero nadie los quiso y perdiste la inversión",
-    " штраф Te multaron por estacionarte mal durante una entrega",
-    "📵 Se te cayó el celular trabajando y tuviste que comprar uno nuevo",
-    "📉 Apostaste en una carrera de caballos y perdiste",
-    "🍽️ Rompiste varios platos trabajando de mesero y te los descontaron de tu sueldo",
-    "🤦‍♂️ Caíste en una estafa de phishing y perdiste dinero de tu cuenta",
-    "🔥 Quemaste la comida que estabas preparando para un evento y tuviste que reponer los ingredientes",
-    "🚕 El taxi al trabajo te costó más de lo que ganaste ese día",
-    "🌧️ Se arruinó el material con el que trabajabas por culpa de la lluvia",
-    "Fake Compraste una herramienta por internet que resultó ser de mala calidad y se rompió",
-    "🤧 Te enfermaste y tuviste que gastar en medicinas más de lo que ganaste"
+    "💡 Mientras ponías luces, hiciste un cortocircuito. Tuviste que pagar al electricista",
+    "🔮 Se te cayeron varias cajas de adornos de cristal frágiles descargando un camión. Te lo descontaron",
+    "🤕 Intentaste quitar nieve con una pala, pero resbalaste y rompiste la ventana de un coche. Pagaste la reparación",
+    "💧 Repartiendo paquetes, te resbalaste en el hielo y un regalo cayó en un charco. Tuviste que reponerlo",
+    "💥 Derramaste una bandeja entera de copas de champán en la fiesta donde servías. Te costó el sueldo del día",
+    "🐕 El perro que cuidabas se comió la decoración de un vecino. Tuviste que pagar por los adornos",
+    "🧧 Envolviste el regalo equivocado en la caja equivocada. Tuviste que pagar el envío urgente para solucionarlo",
+    "🚦 Te quedaste atascado en el tráfico por un desfile y no entregaste un pedido importante. Te penalizaron",
+    "🪜 Decorando un árbol, te caíste de la escalera y rompiste una figura de porcelana cara. Tuviste que pagarla",
+    "🔥 Se te quemó un lote entero de galletas en la panadería. Tuviste que reponer los ingredientes de tu bolsillo",
+    "🧔 Siendo 'Santa', un niño tiró de tu barba falsa tan fuerte que rompió el traje. Tuviste que pagar el alquiler",
+    "💨 La máquina de café explotó y te salpicó de leche caliente. Tuviste que pagar parte de la reparación",
+    "📱 Patinando sobre hielo, te caíste y rompiste el celular de un cliente al que intentabas ayudar",
+    "📫 El quitanieves que manejabas golpeó un buzón escondido bajo la nieve. Pagaste uno nuevo",
+    "🧊 Se te congelaron las tuberías del puesto de vino caliente. Perdiste toda la mercancía y pagaste al plomero",
+    "🎻 Tocando guitarra, se te rompió una cuerda y saltó a la comida de un puesto cercano. Repusiste la comida",
+    "🥶 Te dio hipotermia por estar paleando nieve y gastaste lo ganado en medicinas",
+    "🚙 El coche que estabas estacionando rozó una columna oculta por la nieve. Tuviste que pagar el rayón",
+    "🌡️ El sistema de calefacción que 'reparaste' volvió a fallar. Tuviste que devolver el dinero y pagar una multa",
+    "🪴 Rompiste tres macetas de nochebuenas raras en la floristería. Te las cobraron al triple",
+    "🚒 Tu puesto de castañas se incendió levemente. Tuviste que pagar los daños al pavimento",
+    "🔋 Se te acabó la batería del coche repartiendo paquetes y tuviste que pagar una grúa en medio de la nada"
 ];

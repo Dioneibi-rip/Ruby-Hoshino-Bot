@@ -125,31 +125,27 @@ global.taguser = '@' + m.sender.split("@")[0]
 var more = String.fromCharCode(8206)
 global.readMore = more.repeat(850)
 
-global.packsticker = `╭━━꯭━⵿─꯭─「 ☾ 」─꯭─⵿━꯭━━╮
-│ ░ 𝗕𖦹𝘁: ${botname}
-│ ░ 𝗨𝘀𝗲𝗿: ${nombre}
-╰━━꯭━⵿─꯭─「 ${fecha} 」─꯭─⵿━꯭━━╯`
+global.packsticker = `${nombre}`
+global.packsticker2 = `𝚁𝚄𝙱𝚈 𝙱𝙾𝚃 𝙼𝙳 ˃ 𖥦 ˂`
 
 global.rcanal = {
   contextInfo: {
+    mentionedJid: [], 
     isForwarded: true,
+    forwardingScore: 999,
     forwardedNewsletterMessageInfo: {
-      newsletterJid: channelRD.id,
-      serverMessageId: 100,
-      newsletterName: channelRD.name,
+      newsletterJid: '120363335626706839@newsletter',
+      newsletterName: '⏤͟͞ू⃪፝͜⁞⟡『 𝐓͢ᴇ𝙖፝ᴍ⃨ 𝘾𝒉꯭𝐚𝑛𝑛𝒆𝑙: 𝑹ᴜ⃜ɓ𝑦-𝑯ᴏ𝒔𝑯𝙞꯭𝑛𝒐 』࿐⟡',
+      serverMessageId: -1
     },
     externalAdReply: {
-      showAdAttribution: true,
-      title: botname,
+      title: packname,
       body: dev,
-      mediaUrl: null,
-      description: null,
-      previewType: "PHOTO",
-      thumbnail: global.icono,
-      sourceUrl: global.redes,
+      thumbnail: icons,
+      sourceUrl: redes,
       mediaType: 1,
       renderLargerThumbnail: false
-    },
+    }
   }
 }
 
@@ -163,4 +159,3 @@ async function getRandomChannel() {
   let name = canalNombreM[randomIndex]
   return { id, name }
 }
-

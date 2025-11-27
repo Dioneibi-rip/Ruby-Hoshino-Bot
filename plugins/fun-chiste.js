@@ -2,9 +2,16 @@ const { generateWAMessageFromContent, proto } = (await import('@whiskeysockets/b
 
 var handler = async (m, { conn, text}) => {
 
-conn.reply(m.chat, `${emoji2} Buscando un chiste, espere un momento...`, m)
+conn.reply(m.chat, `⏳ Buscando un chiste...`, m)
 
-conn.reply(m.chat, `*┏━_͜͡-͜͡-͜͡-͜͡-͜͡-͜͡-͜͡⚘-͜͡-͜͡-͜͡-͜͡-͜͡-͜͡-͜͡⚘-͜͡-͜͡-͜͡-͜͡-͜͡-͜͡-͜͡⚘-͜͡-͜͡-͜͡-͜͡-͜͡-͜͡_͜͡━┓*\n\n❥ *"${pickRandom(global.chiste)}"*\n\n*┗━_͜͡-͜͡-͜͡-͜͡-͜͡-͜͡-͜͡⚘-͜͡-͜͡-͜͡-͜͡-͜͡-͜͡-͜͡⚘-͜͡-͜͡-͜͡-͜͡-͜͡-͜͡-͜͡⚘-͜͡-͜͡-͜͡-͜͡-͜͡-͜͡_͜͡━┛*`, m)
+let chiste = pickRandom(global.chiste)
+
+let newChiste = `
+╭━━━[ 🤣 *CHISTE* ]━━━╮
+│${chiste}
+╰━━━━━━━━━━━━━━━━━━━━╯
+`
+conn.reply(m.chat, newChiste, m)
 
 }
 handler.help = ['chiste']
@@ -17,9 +24,29 @@ handler.register = true
 
 export default handler
 
-let hasil = Math.floor(Math.random() * 5000)
 function pickRandom(list) {
 return list[Math.floor(list.length * Math.random())]
 }
 
-global.chiste = ["¿Cuál es el último animal que subió al arca de Noé? El del-fin..", "¿Cómo se dice pañuelo en japonés? Saka-moko", "¿Cómo se dice disparo en árabe? Ahí-va-la-bala..", "¿Qué le dice un gusano a otro gusano? Voy a dar una vuelta a la manzana.", "Un gato empieza a ladrar en el tejado de una casa. Otro gato, sorprendido, le dice: Estás loco gato, ¿por qué ladras en vez de maullar? El gatito le responde: ¿A caso no puedo aprender otro idioma?", "El doctor le dice al paciente: respire profundo que lo voy a auscultar. El paciente le responde: doctor, ¿de quién me va a ocultar si no le debo a nadie?\nSale el doctor después de un parto y el padre de la criatura le pregunta: ¿Doctor cómo salió todo? El doctor le dice: todo salió bien, pero tuvimos que colocarle oxígeno al bebé. El padre, horrorizado, le dice: pero doctor, nosotros queríamos ponerle Gabriel..", "Un pez le pregunta a otro pez: ¿qué hace tu mamá? Este le contesta: Nada, ¿y la tuya qué hace? Nada también.", "¿Cuál es el colmo de Aladdín? Tener mal genio", "El profesor le dice al estudiante después de haberle corregido la tarea: Tu trabajo me ha conmovido. El estudiante, sorprendido, le pregunta: ¿Y eso por qué profesor? El profesor con cara de burla le dice: Porque me dio mucha pena.", "Le dice el niño a la madre: Mamá, no quiero jugar más con Pedrito. La madre le pregunta al niño: ¿Por qué no quieres jugar más con él? Porque cuando jugamos a los tacos de madera y le pego con uno en la cabeza, de repente se pone a llorar.", "A Juanito le dice la maestra: Juanito, ¿qué harías si te estuvieses ahogando en la piscina? Juanito le responde: Me pondría a llorar mucho para desahogarme.", "Hijo, me veo gorda, fea y vieja. ¿Qué tengo hijo, qué tengo? Mamá, tienes toda la razón.", "¿Cómo se dice pelo sucio en chino? Chin cham pu.", "Había una vez un niño tan, tan, tan despistado que... ¡da igual, me he olvidado del chiste!", "Una amiga le dice a otra amiga: ¿Qué tal va la vida de casada? Pues no me puedo quejar, dice ella. ¿O sea que va muy bien, no? No, no me puedo quejar porque mi marido está aquí al lado.", "¿Por qué las focas miran siempre hacia arriba? ¡Porque ahí están los focos!", "Camarero, ese filete tiene muchos nervios. Pues normal, es la primera vez que se lo comen.", "¿Cómo se llama el primo de Bruce Lee? Broco Lee.", "Una madre le dice a su hijo: Jaimito, me ha dicho un pajarito que te drogas. La que te drogas eres tú, que hablas con pajaritos."]
+global.chiste = [
+    "¿Qué le dice un semáforo a otro? ¡No me mires, que me estoy cambiando!",
+    "Papá, ¿qué se siente tener un hijo tan guapo? \n- No sé hijo, pregúntale a tu abuelo.",
+    "¿Por qué los pájaros vuelan hacia el sur en invierno? \n- ¡Porque es demasiado lejos para caminar!",
+    "Un pez le dice al otro: '¿Qué hace tu papá?' \n- 'Nada. ¿Y el tuyo?' \n- 'Nada también.'",
+    "¿Cuál es el café más peligroso del mundo? \n- El ex-preso.",
+    "Mi jefe me dijo: '¡Vístase para el trabajo que quiere, no para el que tiene!' \n- Al día siguiente me presenté vestido de Batman.",
+    "¿Qué es un punto verde en una esquina? \n- Un guisante castigado.",
+    "Entra un hombre a una óptica y le dice al vendedor: 'Quiero unas gafas'. \n- El vendedor pregunta: '¿Para el sol?' \n- Y el hombre responde: 'No, ¡para mí!'",
+    "¿Qué le dice una impresora a otra? \n- '¿Esa hoja es tuya o es impresión mía?'",
+    "¿Cómo se queda un mago después de comer? \n- Magordito.",
+    "Jaimito, ¿cuánto es 2x2? \n- Empate. \n- ¿Y 2x1? \n- ¡Oferta!",
+    "Oye, ¿cuál es tu plato favorito y por qué? \n- Pues el hondo, porque cabe más comida.",
+    "Me robaron todas las sillas de mi casa. No saben cómo me siento.",
+    "¿Qué hace una abeja en un gimnasio? \n- ¡Zum-ba!",
+    "¿Sabes por qué el mar no se seca? \n- Porque no tiene toalla.",
+    "Le dice un amigo a otro: 'Ayer me compré un reloj de pulsera.' \n- '¿Qué marca?' \n- 'Pues la hora.'",
+    "¿Para qué va una caja al gimnasio? \n- Para hacerse caja fuerte.",
+    "Si los zombies se descomponen con el tiempo, ¿eso es un apocalipsis zombie o un 'zombiodegradable'?",
+    "¿Qué le dice una pared a otra pared? \n- Nos vemos en la esquina.",
+    "¿Por qué el libro de matemáticas se suicidó? \n- Porque tenía demasiados problemas."
+];

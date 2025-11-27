@@ -7,38 +7,29 @@ import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
 import failureHandler from './lib/respuesta.js';
-
 const { proto } = (await import('@whiskeysockets/baileys')).default
 const isNumber = x => typeof x === 'number' && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(function () {
 clearTimeout(this)
 resolve()
 }, ms))
-
 export async function handler(chatUpdate) {
 this.msgqueque = this.msgqueque || []
 this.uptime = this.uptime || Date.now()
-if (!chatUpdate)
-return
+if (!chatUpdate) return
 this.pushMessage(chatUpdate.messages).catch(console.error)
 let m = chatUpdate.messages[chatUpdate.messages.length - 1]
-if (!m)
-return;
-if (global.db.data == null)
-await global.loadDatabase()
+if (!m) return;
+if (global.db.data == null) await global.loadDatabase()
 let sender;
 try {
 m = smsg(this, m) || m
-if (!m)
-return
-
-
+if (!m) return
 if (m.isGroup) {
 const chat = global.db.data.chats[m.chat];
 if (chat?.primaryBot) {
 const universalWords = ['resetbot', 'resetprimario', 'botreset'];
 const firstWord = m.text ? m.text.trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '') : '';
-
 if (!universalWords.includes(firstWord)) {
 if (this?.user?.jid !== chat.primaryBot) {
 return;
@@ -47,108 +38,83 @@ return;
 }
 }
 sender = m.isGroup ? (m.key.participant ? m.key.participant : m.sender) : m.key.remoteJid;
-
-const groupMetadata_lid = m.isGroup ? { ...(this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}), ...(((this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants) && { participants: ((this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants || []).map(p => ({ ...p, id: p.jid, jid: p.jid, lid: p.lid })) }) } : {}
-const participants_lid = ((m.isGroup ? groupMetadata_lid.participants : []) || []).map(participant => ({ id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin }))
-if (m.isGroup && sender.endsWith('@lid')) {
-const participantInfo = participants_lid.find(p => p.lid === sender);
-if (participantInfo && participantInfo.jid) {
-sender = participantInfo.jid; 
+const groupMetadata = m.isGroup ? { ...(this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}), ...(((this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants) && { participants: ((this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants || []).map(p => ({ ...p, id: p.jid, jid: p.jid, lid: p.lid })) }) } : {}
+const participants = ((m.isGroup ? groupMetadata.participants : []) || []).map(participant => ({ id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin }))
+if (m.isGroup) {
+if (sender && sender.endsWith('@lid')) {
+const pInfo = participants.find(p => p.lid === sender);
+if (pInfo && pInfo.id) {
+sender = pInfo.id;
+if (m.key) m.key.participant = pInfo.id;
+try { m.sender = pInfo.id } catch (e) {}
 }
 }
-
+if (m.quoted && m.quoted.sender && m.quoted.sender.endsWith('@lid')) {
+const pInfo = participants.find(p => p.lid === m.quoted.sender);
+if (pInfo && pInfo.id) {
+if (m.quoted.key) m.quoted.key.participant = pInfo.id;
+try { m.quoted.sender = pInfo.id } catch (e) {}
+}
+}
+if (m.mentionedJid && m.mentionedJid.length > 0) {
+const normalizedMentions = m.mentionedJid.map(jid => {
+if (jid.endsWith('@lid')) {
+const pInfo = participants.find(p => p.lid === jid);
+return (pInfo && pInfo.id) ? pInfo.id : jid;
+}
+return jid;
+});
+try { m.mentionedJid = normalizedMentions } catch (e) {}
+}
+}
 m.exp = 0
 m.coin = false
 try {
-let user = global.db.data.users[sender];
-if (typeof user !== 'object') global.db.data.users[sender] = {};
+let user = global.db.data.users[sender]
+if (typeof user !== 'object')
+global.db.data.users[sender] = {}
 if (user) {
-Object.assign(user, {
-exp: isNumber(user.exp) ? user.exp : 0,
-coin: isNumber(user.coin) ? user.coin : 10,
-bank: isNumber(user.bank) ? user.bank : 0,
-joincount: isNumber(user.joincount) ? user.joincount : 1,
-diamond: isNumber(user.diamond) ? user.diamond : 3,
-emerald: isNumber(user.emerald) ? user.emerald : 0, 
-iron: isNumber(user.iron) ? user.iron : 0, 
-gold: isNumber(user.gold) ? user.gold : 0, 
-coal: isNumber(user.coal) ? user.coal : 0, 
-stone: isNumber(user.stone) ? user.stone : 0, 
-candies: isNumber(user.candies) ? user.candies : 0, 
-gifts: isNumber(user.gifts) ? user.gifts : 0, 
-lastadventure: isNumber(user.lastadventure) ? user.lastadventure : 0,
-lastclaim: isNumber(user.lastclaim) ? user.lastclaim : 0,
-health: isNumber(user.health) ? user.health : 100,
-crime: isNumber(user.crime) ? user.crime : 0,
-lastcofre: isNumber(user.lastcofre) ? user.lastcofre : 0,
-lastdiamantes: isNumber(user.lastdiamantes) ? user.lastdiamantes : 0,
-lastpago: isNumber(user.lastpago) ? user.lastpago : 0,
-lastcode: isNumber(user.lastcode) ? user.lastcode : 0,
-lastcodereg: isNumber(user.lastcodereg) ? user.lastcodereg : 0,
-lastduel: isNumber(user.lastduel) ? user.lastduel : 0,
-lastmining: isNumber(user.lastmining) ? user.lastmining : 0,
-muto: 'muto' in user ? user.muto : false,
-premium: 'premium' in user ? user.premium : false,
-premiumTime: user.premium ? user.premiumTime || 0 : 0,
-registered: 'registered' in user ? user.registered : false,
-genre: user.genre || '',
-birth: user.birth || '',
-marry: user.marry || '',
-description: user.description || '',
-packstickers: user.packstickers || null,
-name: user.name || m.name,
-age: isNumber(user.age) ? user.age : -1,
-regTime: isNumber(user.regTime) ? user.regTime : -1,
-afk: isNumber(user.afk) ? user.afk : -1,
-afkReason: user.afkReason || '',
-role: user.role || 'Nuv',
-banned: 'banned' in user ? user.banned : false,
-useDocument: 'useDocument' in user ? user.useDocument : false,
-level: isNumber(user.level) ? user.level : 0,
-warn: isNumber(user.warn) ? user.warn : 0,
-
-equipment: user.equipment || {
-weapon: 'none',
-armor: 'none',
-tool: 'none',
-weapon_durability: isNumber(user.equipment.weapon_durability) ? user.equipment.weapon_durability : 0,
-armor_durability: isNumber(user.equipment.armor_durability) ? user.equipment.armor_durability : 0,
-},
-inventory: user.inventory || {
-health_potion: 0,
-luck_potion: 0,
-escape_amulet: 0,
-lockpick: 0,
-mysterious_chest: 0,
-},
-materials: user.materials || {
-wood: 0,
-gem: 0,
-goblin_skin: 0,
-orc_bone: 0,
-slime_goo: 0,
-wolf_fur: 0,
-harpy_feather: 0,
-chitin_shell: 0,
-lich_phylactery: 0
-},
-status: user.status || {
-is_jailed: false,
-jailed_until: 0,
-is_lucky: false,
-lucky_until: 0,
-},
-});
-} else {
-global.db.data.users[sender] = {
-exp: 0, coin: 10, bank: 0, joincount: 1, diamond: 3, emerald: 0, iron: 0, gold: 0, coal: 0, stone: 0, candies: 0, gifts: 0, lastadventure: 0, health: 100, lastclaim: 0, lastcofre: 0, lastdiamantes: 0, lastcode: 0, lastduel: 0, lastpago: 0, lastmining: 0, lastcodereg: 0, muto: false, registered: false, genre: '', birth: '', marry: '', description: '', packstickers: null, name: m.name, age: -1, regTime: -1, afk: -1, afkReason: '', banned: false, useDocument: false, level: 0, role: 'Nuv', premium: false, premiumTime: 0, warn: 0,
-equipment: { weapon: 'none', armor: 'none', tool: 'none', weapon_durability: 0, armor_durability: 0 },
-inventory: { health_potion: 0, luck_potion: 0, escape_amulet: 0, lockpick: 0, mysterious_chest: 0 },
-materials: { wood: 0, gem: 0, goblin_skin: 0, orc_bone: 0, slime_goo: 0, wolf_fur: 0, harpy_feather: 0, chitin_shell: 0, lich_phylactery: 0 },
-status: { is_jailed: false, jailed_until: 0, is_lucky: false, lucky_until: 0 },
-};
+if (!isNumber(user.exp)) user.exp = 0
+if (!isNumber(user.coin)) user.coin = 10
+if (!isNumber(user.joincount)) user.joincount = 1
+if (!isNumber(user.diamond)) user.diamond = 3
+if (!isNumber(user.lastadventure)) user.lastadventure = 0
+if (!isNumber(user.lastclaim)) user.lastclaim = 0
+if (!isNumber(user.health)) user.health = 100
+if (!isNumber(user.crime)) user.crime = 0
+if (!isNumber(user.lastcofre)) user.lastcofre = 0
+if (!isNumber(user.lastdiamantes)) user.lastdiamantes = 0
+if (!isNumber(user.lastpago)) user.lastpago = 0
+if (!isNumber(user.lastcode)) user.lastcode = 0
+if (!isNumber(user.lastcodereg)) user.lastcodereg = 0
+if (!isNumber(user.lastduel)) user.lastduel = 0
+if (!isNumber(user.lastmining)) user.lastmining = 0
+if (!('muto' in user)) user.muto = false
+if (!('premium' in user)) user.premium = false
+if (!user.premium) user.premiumTime = 0
+if (!('registered' in user)) user.registered = false
+if (!('genre' in user)) user.genre = ''
+if (!('birth' in user)) user.birth = ''
+if (!('marry' in user)) user.marry = ''
+if (!('description' in user)) user.description = ''
+if (!('packstickers' in user)) user.packstickers = null
+if (!user.registered) {
+if (!('name' in user)) user.name = m.name
+if (!isNumber(user.age)) user.age = -1
+if (!isNumber(user.regTime)) user.regTime = -1
 }
-
+if (!isNumber(user.afk)) user.afk = -1
+if (!('afkReason' in user)) user.afkReason = ''
+if (!('role' in user)) user.role = 'Nuv'
+if (!('banned' in user)) user.banned = false
+if (!('useDocument' in user)) user.useDocument = false
+if (!isNumber(user.level)) user.level = 0
+if (!isNumber(user.bank)) user.bank = 0
+if (!isNumber(user.warn)) user.warn = 0
+} else
+global.db.data.users[sender] = {
+exp: 0, coin: 10, joincount: 1, diamond: 3, lastadventure: 0, health: 100, lastclaim: 0, lastcofre: 0, lastdiamantes: 0, lastcode: 0, lastduel: 0, lastpago: 0, lastmining: 0, lastcodereg: 0, muto: false, registered: false, genre: '', birth: '', marry: '', description: '', packstickers: null, name: m.name, age: -1, regTime: -1, afk: -1, afkReason: '', banned: false, useDocument: false, bank: 0, level: 0, role: 'Nuv', premium: false, premiumTime: 0,
+}
 let chat = global.db.data.chats[m.chat]
 if (typeof chat !== 'object')
 global.db.data.chats[m.chat] = {}
@@ -200,22 +166,17 @@ self: false, restrict: true, jadibotmd: true, antiPrivate: false, moneda: 'Coins
 } catch (e) {
 console.error(e)
 }
-
 if (opts['nyimak']) return
 if (!m.fromMe && opts['self']) return
 if (opts['swonly' && m.chat !== 'status@broadcast']) return
 if (typeof m.text !== 'string')
 m.text = ''
-
 const _user = global.db.data.users[sender]
-const groupMetadata = m.isGroup ? { ...(this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}), ...(((this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants) && { participants: ((this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants || []).map(p => ({ ...p, id: p.jid, jid: p.jid, lid: p.lid })) }) } : {}
-const participants = ((m.isGroup ? groupMetadata.participants : []) || []).map(participant => ({ id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin }))
 const userGroup = (m.isGroup ? participants.find((u) => this.decodeJid(u.jid) === sender) : {}) || {}
 const botGroup = (m.isGroup ? participants.find((u) => this.decodeJid(u.jid) == this.user.jid) : {}) || {}
 const isRAdmin = userGroup?.admin == "superadmin" || false
 const isAdmin = isRAdmin || userGroup?.admin == "admin" || false
 const isBotAdmin = botGroup?.admin || false
-
 const senderNum = sender.split('@')[0];
 const isROwner = [...global.owner.map(([number]) => number), this.user.jid.split('@')[0]].includes(senderNum);
 const isOwner = isROwner || m.fromMe
@@ -233,6 +194,7 @@ await delay(time)
 }, time)
 }
 if (m.isBaileys) { return }
+m.exp += Math.ceil(Math.random() * 10)
 let usedPrefix
 const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins')
 for (let name in global.plugins) {
@@ -269,7 +231,6 @@ continue
 }
 if (typeof plugin !== 'function') continue
 if ((usedPrefix = (match[0] || '')[0])) {
-
 let noPrefix = m.text.replace(usedPrefix, '')
 let [command, ...args] = noPrefix.trim().split` `.filter(v => v)
 args = args || []
@@ -285,15 +246,12 @@ global.comando = command
 if ((m.id.startsWith('NJX-') || (m.id.startsWith('BAE5') && m.id.length === 16) || (m.id.startsWith('B24E') && m.id.length === 20))) return
 if (!isAccept) { continue }
 m.plugin = name
-
 let chat = global.db.data.chats[m.chat] || {};
 const isBotBannedInThisChat = chat.bannedBots && chat.bannedBots.includes(this.user.jid);
 const unbanCommandFiles = ['grupo-unbanchat.js'];
-
 if (isBotBannedInThisChat && !unbanCommandFiles.includes(name)) {
 return;
 }
-
 if (m.chat in global.db.data.chats || sender in global.db.data.users) {
 let chat = global.db.data.chats[m.chat]
 let user = global.db.data.users[sender]
@@ -319,7 +277,6 @@ let adminMode = global.db.data.chats[m.chat].modoadmin
 if (adminMode && m.isGroup && !isAdmin && !isOwner && !isROwner) {
 return
 }
-
 if (plugin.rowner && plugin.owner && !(isROwner || isOwner)) {
 fail('owner', m, this)
 continue
@@ -402,11 +359,12 @@ const quequeIndex = this.msgqueque.indexOf(m.id || m.key.id)
 if (quequeIndex !== -1) this.msgqueque.splice(quequeIndex, 1)
 }
 let user, stats = global.db.data.stats
-if (m) { let utente = global.db.data.users[sender]
+if (m) {
+let utente = global.db.data.users[sender]
 if (utente && utente.muto == true) {
 let bang = m.key.id
 let cancellazzione = m.key.participant
-await this.sendMessage(m.chat, { delete: { remoteJid: m.chat, fromMe: false, id: bang, participant: cancellazzione }})
+await this.sendMessage(m.chat, { delete: { remoteJid: m.chat, fromMe: false, id: bang, participant: cancellazzione } })
 }
 if (sender && (user = global.db.data.users[sender])) {
 user.exp += m.exp
@@ -433,10 +391,10 @@ stat.lastSuccess = now
 }
 try {
 if (!opts['noprint']) await (await import(`./lib/print.js`)).default(m, this)
-} catch (e) { console.log(m, m.quoted, e) }
+} catch (e) {
+console.log(chalk.red('Error en print.js'))
+}
 let settingsREAD = global.db.data.settings[this.user.jid] || {}
-// if (settingsREAD.autoread) await this.readMessages([m.key]) 
-
 }
 }
 global.dfail = (type, m, conn) => { failureHandler(type, conn, m); };
@@ -444,7 +402,7 @@ const file = global.__filename(import.meta.url, true);
 watchFile(file, async () => {
 unwatchFile(file);
 console.log(chalk.green('Actualizando "handler.js"'));
-if (global.conns && global.conns.length > 0 ) {
+if (global.conns && global.conns.length > 0) {
 const users = [...new Set([...global.conns.filter((conn) => conn.user && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED).map((conn) => conn)])];
 for (const userr of users) { userr.subreloadHandler(false) }
 }

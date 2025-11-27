@@ -1,38 +1,43 @@
+import translate from '@vitalets/google-translate-api';
 import fetch from 'node-fetch';
-
-let handler = async (m, { text }) => {
-  if (!text) {
-    m.reply(`${emoji} Por favor, proporciona el termino de búsqueda que deseas realizar a *Google*.`);
-    return;
+const handler = async (m, {args, usedPrefix, command}) => {
+  const msg = `👑 *Uso correcto del comando ${usedPrefix + command} (idioma) (texto)*\n*Ejemplo:*\n*${usedPrefix + command} es Hello*\n\n*Conoce los idiomas admitidos en:*\n*- https://cloud.google.com/translate/docs/languages*`;
+  if (!args || !args[0]) return m.reply(msg);
+  let lang = args[0];
+  let text = args.slice(1).join(' ');
+  const defaultLang = 'es';
+  if ((args[0] || '').length !== 2) {
+    lang = defaultLang;
+    text = args.join(' ');
   }
-
-  const apiUrl = `https://delirius-apiofc.vercel.app/search/googlesearch?query=${encodeURIComponent(text)}`;
-
+  if (!text && m.quoted && m.quoted.text) text = m.quoted.text;
   try {
-    const response = await fetch(apiUrl);
-    const result = await response.json();
-
-    if (!result.status) {
-      m.reply('Error al realizar la búsqueda.');
-      return;
+    conn.reply(m.chat, wait, m, {
+    contextInfo: { externalAdReply :{ mediaUrl: null, mediaType: 1, showAdAttribution: true,
+    title: packname,
+    body: wm,
+    previewType: 0, thumbnail: icons,
+    sourceUrl: redes }}})
+    const result = await translate(`${text}`, {to: lang, autoCorrect: true});
+    await m.reply('*Traducción:* ' + result.text);
+  } catch {
+    try {
+    conn.reply(m.chat, wait, m, {
+    contextInfo: { externalAdReply :{ mediaUrl: null, mediaType: 1, showAdAttribution: true,
+    title: packname,
+    body: wm,
+    previewType: 0, thumbnail: icons,
+    sourceUrl: redes }}})
+      const lol = await fetch(`https://api.lolhuman.xyz/api/translate/auto/${lang}?apikey=${lolkeysapi}&text=${text}`);
+      const loll = await lol.json();
+      const result2 = loll.result.translated;
+      await m.reply('*Traducción:* ' + result2);
+    } catch {
+      await m.reply('✨️ *Ocurrió Un Error*');
     }
-
-    let replyMessage = `${emoji2} Resultados de la búsqueda:\n\n`;
-    result.data.slice(0, 1).forEach((item, index) => {
-      replyMessage += `☁️ *${index + 1}. ${item.title}*\n`;
-      replyMessage += `📰 *${item.description}*\n`;
-      replyMessage += `🔗 URL: ${item.url}`;
-    });
-
-m.react('✅')
-
-    m.reply(replyMessage);
-  } catch (error) {
-    console.error(`${msm} Error al realizar la solicitud a la API:`, error);
-    m.reply(`${msm} Ocurrió un error al obtener los resultados.`);
   }
 };
-
-handler.command = ['google'];
-
+handler.command = ['translate','traducir','trad'];
+handler.group = true;
+handler.register = true
 export default handler;

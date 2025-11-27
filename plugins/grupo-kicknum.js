@@ -34,6 +34,6 @@ const handler = async (m, { conn, args, participants, command }) => {
 
 handler.command = ['kicknum', 'listnum', 'listanum']
 handler.group = true
-handler.botAdmin = true // Tú puedes quitar esta línea si no quieres validación
+handler.botAdmin = true
 
 export default handler
