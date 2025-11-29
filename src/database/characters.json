@@ -1,2070 +1,2070 @@
 [
-   {
-      "id": "1",
-      "name": "Aika Sano",
-      "gender": "Mujer",
-      "value": "2200",
-      "source": "Ane wa Yanmama Junyuu-chuu",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742690379398.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742690401622.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742690416897.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/fyd68k.mp4",
-         "https://files.catbox.moe/l2txfh.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "2",
-      "name": "Mariya Mikhailovna Kujou",
-      "gender": "Mujer",
-      "value": "2060",
-      "source": "Tokidoki Bosotto Russia-go de Dereru Tonari no Alya-san",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742699105347.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742698851202.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742699105347.jpeg"
-      ],
-      "vid": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704584808.mp4",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704604513.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "3",
-      "name": "Mikasa Ackerman",
-      "gender": "Mujer",
-      "value": "1870",
-      "source": "Attack on Titan (Shingeki no Kyojin)",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704905218.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704915798.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704921942.jpeg"
-      ],
-      "vid": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704947621.mp4",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704940238.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "4",
-      "name": "Izuku Midoriya",
-      "gender": "Hombre",
-      "value": "1700",
-      "source": "My Hero Academia",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704995584.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705001309.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705005753.jpeg"
-      ],
-      "vid": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705018012.mp4",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705012304.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "5",
-      "name": "Misa Amane",
-      "gender": "Mujer",
-      "value": "1900",
-      "source": "Death Note",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705040586.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705047683.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705058827.jpeg"
-      ],
-      "vid": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705330136.mp4",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705334100.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "6",
-      "name": "Asuna Yuuki",
-      "gender": "Mujer",
-      "value": "1960",
-      "source": "Sword Art Online",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704670236.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704661356.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704654811.jpeg"
-      ],
-      "vid": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705250183.mp4",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705278781.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "7",
-      "name": "Erza Scarlet",
-      "gender": "Mujer",
-      "value": "1890",
-      "source": "Fairy Tail",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705567193.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705584165.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705597070.jpeg"
-      ],
-      "vid": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705629597.mp4",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705638604.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "8",
-      "name": "Kurumi Tokisaki",
-      "gender": "Mujer",
-      "value": "2090",
-      "source": "Date A live",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703264755.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703280299.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703286891.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/hylgd2.mp4",
-         "https://files.catbox.moe/516xac.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "9",
-      "name": "Momo Deviluke",
-      "gender": "Mujer",
-      "value": "1000",
-      "source": "To Love Ru",
-      "img": [
-         "https://files.catbox.moe/hnrpb4.jpg",
-         "https://files.catbox.moe/gufek6.jpg",
-         "https://files.catbox.moe/3p7fwt.jpg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "10",
-      "name": "Nino Nakano",
-      "gender": "Mujer",
-      "value": "2100",
-      "source": "Gotoubun no Hanayome",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703603140.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703599114.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703603140.jpeg"
-      ],
-      "vid": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703675449.mp4",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703667641.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "11",
-      "name": "Ryo Yamada",
-      "gender": "Mujer",
-      "value": "1920",
-      "source": "Bocchi the Rock",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1747288621187.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1747288609986.jpeg",
-         "https://files.catbox.moe/1icdxd.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/9rwy3g.mp4",
-         "https://files.catbox.moe/enavfp.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "12",
-      "name": "Sumi Sakurasawa",
-      "gender": "Mujer",
-      "value": "1900",
-      "source": "Rent a Girlfriend",
-      "img": [
-         "https://files.catbox.moe/b94meg.jpg",
-         "https://files.catbox.moe/u4f5xl.jpg",
-         "https://files.catbox.moe/qmjabr.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/life34.mp4",
-         "https://files.catbox.moe/ds7mta.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "13",
-      "name": "Umaru Doma",
-      "gender": "Mujer",
-      "value": "1900",
-      "source": "Himouto! Umaru-chan",
-      "img": [
-         "https://files.catbox.moe/8e24l4.jpg",
-         "https://files.catbox.moe/8dnp1r.jpg",
-         "https://files.catbox.moe/bhvatf.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/ob5hwu.mp4",
-         "https://files.catbox.moe/mce2ug.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "14",
-      "name": "Chizuru Mizuhara",
-      "gender": "Mujer",
-      "value": "1940",
-      "source": "Rent a Girlfriend",
-      "img": [
-         "https://files.catbox.moe/2i4fhq.jpg",
-         "https://files.catbox.moe/jvo5sw.jpg",
-         "https://files.catbox.moe/el9gci.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/p7putk.mp4",
-         "https://files.catbox.moe/dkt3t4.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "15",
-      "name": "Makima",
-      "gender": "Mujer",
-      "value": "1950",
-      "source": "Chainsaw Man",
-      "img": [
-         "https://files.catbox.moe/uphhjx.jpg",
-         "https://files.catbox.moe/vs9k7k.jpg",
-         "https://files.catbox.moe/hqrurr.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/lmz562.mp4",
-         "https://files.catbox.moe/0g6dab.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "16",
-      "name": "Power",
-      "gender": "Mujer",
-      "value": "1850",
-      "source": "Chainsaw Man",
-      "img": [
-         "https://files.catbox.moe/uwc0qu.jpg",
-         "https://files.catbox.moe/vtpfja.jpg",
-         "https://files.catbox.moe/phvp4x.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/tlrm2h.mp4",
-         "https://files.catbox.moe/gnm3i6.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "17",
-      "name": "Yuliet Persia",
-      "gender": "Mujer",
-      "value": "1900",
-      "source": "Kishuku Gakkou no Juliet",
-      "img": [
-         "https://files.catbox.moe/0lvcm5.jpg",
-         "https://files.catbox.moe/m3j9jx.jpg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703178806.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/xmil5a.mp4",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703182248.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "18",
-      "name": "Kisara",
-      "gender": "Mujer",
-      "value": "1940",
-      "source": "Engage Kiss",
-      "img": [
-         "https://files.catbox.moe/yb9cd1.jpg",
-         "https://files.catbox.moe/r8cdr9.jpg",
-         "https://files.catbox.moe/2nwdjr.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/zv4t2r.mp4",
-         "https://files.catbox.moe/c7pmwj.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "19",
-      "name": "Raphtalia",
-      "gender": "Mujer",
-      "value": "1945",
-      "source": "Tate no Yuusha no Nariagari",
-      "img": [
-         "https://files.catbox.moe/dieynb.jpg",
-         "https://files.catbox.moe/7phn5e.jpg",
-         "https://files.catbox.moe/tkquyv.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/ddrzjt.mp4",
-         "https://files.catbox.moe/6z2yci.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "20",
-      "name": "Ai Hoshino",
-      "gender": "Mujer",
-      "value": "1950",
-      "source": "Oshi no Ko",
-      "img": [
-         "https://files.catbox.moe/w680ix.jpg",
-         "https://files.catbox.moe/x0tbit.jpg",
-         "https://files.catbox.moe/5uaa4m.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/7orx6o.mp4",
-         "https://files.catbox.moe/o7tsc7.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "21",
-      "name": "Alisa Mikhailovna Kujou",
-      "gender": "Mujer",
-      "value": "2100",
-      "source": "Tokidoki Bosotto Russia-go de Dereru Tonari no Alya-san",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743039981280.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743039970478.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743039960772.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/e5neow.mp4",
-         "https://files.catbox.moe/yw5fb3.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "22",
-      "name": "Mukuro Hoshimiya",
-      "gender": "Mujer",
-      "value": "1960",
-      "source": "Date A Live",
-      "img": [
-         "https://files.catbox.moe/r8wufk.jpg",
-         "https://files.catbox.moe/a8eq0s.jpg",
-         "https://files.catbox.moe/212kcc.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/6c79ie.mp4",
-         "https://files.catbox.moe/4fstm1.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "23",
-      "name": "Pikachu",
-      "gender": "desconocido",
-      "value": "1800",
-      "source": "Pokemon",
-      "img": [
-         "https://files.catbox.moe/19v1oz.jpg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703372200.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703365355.jpeg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "24",
-      "name": "Fenrrys",
-      "gender": "Mujer",
-      "value": "1900",
-      "source": "Lv2 kara Cheat datta Motoy Uusha Kouho no Mattari Isekai Life",
-      "img": [
-         "https://files.catbox.moe/sev5eq.jpg",
-         "https://files.catbox.moe/8zam00.jpg",
-         "https://files.catbox.moe/cy428r.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/7ee3x5.mp4",
-         "https://files.catbox.moe/cm96rp.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "25",
-      "name": "Fern",
-      "gender": "Mujer",
-      "value": "1930",
-      "source": "Sousou no Frieren",
-      "img": [
-         "https://files.catbox.moe/1itvxu.jpg",
-         "https://files.catbox.moe/fm3ndt.jpg",
-         "https://files.catbox.moe/2q124i.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/fhhcgx.mp4",
-         "https://files.catbox.moe/5j1k8a.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "26",
-      "name": "Yelan",
-      "gender": "Mujer",
-      "value": "1920",
-      "source": "Geshin Impact",
-      "img": [
-         "https://files.catbox.moe/m6rw1x.jpg",
-         "https://files.catbox.moe/ljfa6q.jpg",
-         "https://files.catbox.moe/sxz9kc.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/pf52y9.mp4",
-         "https://files.catbox.moe/417iee.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "27",
-      "name": "Lloyd Frontera",
-      "gender": "Hombre",
-      "value": "1900",
-      "source": "The Greatest Estate Developer",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705446073.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705441166.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705436419.jpeg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "28",
-      "name": "Gotou Hitori",
-      "gender": "Mujer",
-      "value": "1995",
-      "source": "Bocchi the Rock!",
-      "img": [
-         "https://files.catbox.moe/krpuox.jpg",
-         "https://files.catbox.moe/iihqvh.jpg",
-         "https://files.catbox.moe/x5ph70.jpg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "29",
-      "name": "Hu Tao",
-      "gender": "Mujer",
-      "value": "1992",
-      "source": "Genshin Impact",
-      "img": [
-         "https://files.catbox.moe/sepzxn.jpg",
-         "https://files.catbox.moe/gjryw1.jpg",
-         "https://files.catbox.moe/qo8okk.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/u2cz65.mp4",
-         "https://files.catbox.moe/iaswzn.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "30",
-      "name": "Ayane Shirakawa",
-      "gender": "Mujer",
-      "value": "1997",
-      "source": "Overflow",
-      "img": [
-         "https://files.catbox.moe/06c7d5.jpg",
-         "https://files.catbox.moe/h82szt.jpg",
-         "https://files.catbox.moe/qubleg.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/gs8i2d.mp4",
-         "https://files.catbox.moe/52l5p9.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "31",
-      "name": "Kotone Shirakawa",
-      "gender": "Mujer",
-      "value": "1998",
-      "source": "Overflow",
-      "img": [
-         "https://files.catbox.moe/j609gs.jpg",
-         "https://files.catbox.moe/8xnp43.jpg",
-         "https://files.catbox.moe/84emtj.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/vmqvdf.mp4",
-         "https://files.catbox.moe/r2grl7.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "32",
-      "name": "Yuki Suou",
-      "gender": "Mujer",
-      "value": "2500",
-      "source": "Tokidoki Bosotto Russia-go de Dereru Tonari no Alya-san",
-      "img": [
-         "https://files.catbox.moe/4oj8si.jpg",
-         "https://files.catbox.moe/mwr4vz.jpg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705626076.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/0q8ei9.mp4",
-         "https://files.catbox.moe/2v8xk7.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "33",
-      "name": "Akaza Akari",
-      "gender": "Mujer",
-      "value": "1890",
-      "source": "Yuru Yuri",
-      "img": [
-         "https://files.catbox.moe/vw57ak.jpg",
-         "https://files.catbox.moe/ndr01w.png",
-         "https://files.catbox.moe/23kt0v.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/4pfv49.mp4",
-         "https://files.catbox.moe/q9fj6w.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "34",
-      "name": "Bulma",
-      "gender": "Mujer",
-      "value": "1890",
-      "source": "Dragon ball",
-      "img": [
-         "https://files.catbox.moe/5lctcx.jpg",
-         "https://files.catbox.moe/19jneh.jpg",
-         "https://files.catbox.moe/47f51d.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/5zc2bm.mp4",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705954195.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "35",
-      "name": "Ruby Hoshino",
-      "gender": "Mujer",
-      "value": "1920",
-      "source": "Oshi no Ko",
-      "img": [
-         "https://files.catbox.moe/fwqv8b.jpg",
-         "https://files.catbox.moe/dblfhj.jpg",
-         "https://files.catbox.moe/dvivmf.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/j85zzj.mp4",
-         "https://files.catbox.moe/pwol0x.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "36",
-      "name": "Cid Kagenou",
-      "gender": "Hombre",
-      "value": "1940",
-      "source": "Kage no Jitsuryokusha ni Naritakute!",
-      "img": [
-         "https://files.catbox.moe/xv0slf.jpg",
-         "https://files.catbox.moe/dyyo1q.jpg",
-         "https://files.catbox.moe/qc0gl0.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/gnbzme.mp4",
-         "https://files.catbox.moe/zan8i8.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "37",
-      "name": "Furina",
-      "gender": "Mujer",
-      "value": "1970",
-      "source": "Geshin Impact",
-      "img": [
-         "https://files.catbox.moe/4z51nd.jpg",
-         "https://files.catbox.moe/4m15ka.jpg",
-         "https://files.catbox.moe/kvuisc.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/5das1h.mp4",
-         "https://files.catbox.moe/eyn69l.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "38",
-      "name": "Sung Jin-woo",
-      "gender": "Hombre",
-      "value": "1960",
-      "source": "Solo Leveling",
-      "img": [
-         "https://files.catbox.moe/d42ftd.mp4",
-         "https://files.catbox.moe/ek082s.jpg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705949538.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/lrtrck.mp4",
-         "https://files.catbox.moe/d42ftd.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "39",
-      "name": "Shinra Kusakabe",
-      "gender": "Hombre",
-      "value": "1800",
-      "source": "Fire Force",
-      "img": [
-         "https://files.catbox.moe/x3xjya.jpg",
-         "https://files.catbox.moe/q6o1cs.jpg",
-         "https://files.catbox.moe/mn18g1.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/i0npod.mp4",
-         "https://files.catbox.moe/131x7l.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "40",
-      "name": "Alucard",
-      "gender": "Hombre",
-      "value": "1900",
-      "source": "Hellsing",
-      "img": [
-         "https://files.catbox.moe/sfnm7l.jpg",
-         "https://files.catbox.moe/x5rj1d.jpg",
-         "https://files.catbox.moe/sfnm7l.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/m6zq9x.mp4",
-         "https://files.catbox.moe/i3an5b.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "41",
-      "name": "Benimaru Shinmon",
-      "gender": "Hombre",
-      "value": "1800",
-      "source": "Fire Force",
-      "img": [
-         "https://files.catbox.moe/mwez4k.jpg",
-         "https://files.catbox.moe/g515kv.jpg",
-         "https://files.catbox.moe/rclp4y.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/l4jpl9.mp4",
-         "https://files.catbox.moe/na3lvl.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "42",
-      "name": "Light Yagami",
-      "gender": "Hombre",
-      "value": "1820",
-      "source": "Death Note",
-      "img": [
-         "https://files.catbox.moe/5ipqcs.jpg",
-         "https://files.catbox.moe/x7pyc2.jpg",
-         "https://files.catbox.moe/sewn9s.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/tff5c1.mp4",
-         "https://files.catbox.moe/nm46ye.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "43",
-      "name": "Rika Takanashi",
-      "gender": "Mujer",
-      "value": "1896",
-      "source": "Chūnibyō Demo Koi ga Shitai!",
-      "img": [
-         "https://files.catbox.moe/hm4h1t.jpg",
-         "https://files.catbox.moe/ei3tsm.jpg",
-         "https://files.catbox.moe/kkms3p.jpg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "44",
-      "name": "Yui",
-      "gender": "Mujer",
-      "value": "1900",
-      "source": "K-on",
-      "img": [
-         "https://files.catbox.moe/zsk6ae.jpg",
-         "https://files.catbox.moe/0woxlo.jpg",
-         "https://files.catbox.moe/0c5fm6.jpg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "45",
-      "name": "Thor",
-      "gender": "Hombre",
-      "value": "1720",
-      "source": "Record of Ragnarok",
-      "img": [
-         "https://files.catbox.moe/gmnp5h.jpeg",
-         "https://files.catbox.moe/bdgjxw.jpeg",
-         "https://files.catbox.moe/tyzwcg.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/bl4ksd.gif",
-         "https://files.catbox.moe/14fdpz.gif"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "46",
-      "name": "Brunhilde",
-      "gender": "mujer",
-      "value": "1840",
-      "source": "Record of Ragnarok",
-      "img": [
-         "https://files.catbox.moe/vf9bh4.jpg",
-         "https://files.catbox.moe/bnpb38.jpg",
-         "https://files.catbox.moe/nx406i.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/hm53g2.mp4",
-         "https://files.catbox.moe/xva9ay.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "47",
-      "name": "Yuugiri ",
-      "gender": "Mujer",
-      "value": "1880",
-      "source": "Engage Kiss",
-      "img": [
-         "https://files.catbox.moe/usdebr.jpeg",
-         "https://files.catbox.moe/drg723.jpeg",
-         "https://files.catbox.moe/dpk260.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/ko60m4.gif",
-         "https://files.catbox.moe/6pbfg7.gif"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "48",
-      "name": "Ayase Aragaki",
-      "gender": "Mujer",
-      "value": "1820",
-      "source": "Oreimo",
-      "img": [
-         "https://files.catbox.moe/pkz5vq.jpeg",
-         "https://files.catbox.moe/kq7c45.jpg",
-         "https://files.catbox.moe/0uf4sj.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/3xepj0.gif",
-         "https://files.catbox.moe/v7f0u8.gif"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "49",
-      "name": "Santo Grial, Sharon",
-      "gender": "Mujer",
-      "value": "1860",
-      "source": "Engage Kiss",
-      "img": [
-         "https://files.catbox.moe/65olp4.jpeg",
-         "https://files.catbox.moe/pesw6y.jpeg",
-         "https://files.catbox.moe/6yowcy.jpeg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "50",
-      "name": "Ogata, Kanna",
-      "gender": "Mujer",
-      "value": "1860",
-      "source": "Engage Kiss",
-      "img": [
-         "https://files.catbox.moe/d9hp42.jpeg",
-         "https://files.catbox.moe/wszgi8.jpeg",
-         "https://files.catbox.moe/owdue9.jpeg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "51",
-      "name": "Anri Teiri",
-      "gender": "Mujer",
-      "value": "1801",
-      "source": "Blue lock",
-      "img": [
-         "https://files.catbox.moe/z3pbn7.jpeg",
-         "https://files.catbox.moe/8h74yi.jpg",
-         "https://files.catbox.moe/qf9ih8.jpeg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "52",
-      "name": "Ogata, Shuu",
-      "gender": "Hombre",
-      "value": "1800",
-      "source": "Engage Kiss",
-      "img": [
-         "https://files.catbox.moe/y8dsdf.jpeg",
-         "https://files.catbox.moe/3x1ziz.jpeg",
-         "https://files.catbox.moe/xd0wew.jpeg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "53",
-      "name": "Apolo",
-      "gender": "Masculino",
-      "value": "1870",
-      "source": "Record Of Ragnarok",
-      "img": [
-         "https://files.catbox.moe/exs7w4.jpeg",
-         "https://files.catbox.moe/qnfnnw.jpeg",
-         "https://files.catbox.moe/zyl4wv.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/k9xeqk.webp",
-         "https://files.catbox.moe/5dtesn.webp"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "54",
-      "name": "Meliodas Liones",
-      "gender": "Hombre",
-      "value": "1810",
-      "source": "Nanatsu no Taizai",
-      "img": [
-         "https://files.catbox.moe/z6x32g.jpeg",
-         "https://files.catbox.moe/7zx2v2.jpg",
-         "https://files.catbox.moe/fda0vz.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/8tpm5g.webp",
-         "https://files.catbox.moe/ecixr2.webp"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "55",
-      "name": "Giyuu Tomioka",
-      "gender": "Hombre",
-      "value": "1760",
-      "source": "Kimetsu No Yaiba",
-      "img": [
-         "https://files.catbox.moe/6zzfgx.jpeg",
-         "https://files.catbox.moe/uo0ivp.jpg",
-         "https://files.catbox.moe/33tz7f.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/12kmnd.gif",
-         "https://files.catbox.moe/yv4aoe.gif"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "56",
-      "name": "Bakugou Katsuki",
-      "gender": "Hombre",
-      "value": "1780",
-      "source": "Boku no hero",
-      "img": [
-         "https://files.catbox.moe/8i4gmn.jpeg",
-         "https://files.catbox.moe/dphf7i.jpeg",
-         "https://files.catbox.moe/4fn3af.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/71zp61.webp",
-         "https://files.catbox.moe/lv7dzr.webp"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "57",
-      "name": "Satoru Gojo",
-      "gender": "Hombre",
-      "value": "1767",
-      "source": "Jujutsu kaisen",
-      "img": [
-         "https://files.catbox.moe/57ggyq.jpeg",
-         "https://files.catbox.moe/1tz4tw.jpeg",
-         "https://files.catbox.moe/6taggf.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/dmb5ev.webp",
-         "https://files.catbox.moe/9vd7uo.webp"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "58",
-      "name": "Yuuji Itadori",
-      "gender": "Hombre",
-      "value": "1810",
-      "source": "Jujutsu Kaisen",
-      "img": [
-         "https://files.catbox.moe/jozvlm.jpeg",
-         "https://files.catbox.moe/0uwsws.jpeg",
-         "https://files.catbox.moe/vyadyv.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/wk6z4w.gif",
-         "https://files.catbox.moe/qf4itq.gif"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "59",
-      "name": "Naruto Uzumaki",
-      "gender": "Hombre",
-      "value": "1860",
-      "source": "Naruto",
-      "img": [
-         "https://files.catbox.moe/b1fq0j.jpeg",
-         "https://files.catbox.moe/ai0ov9.jpeg",
-         "https://files.catbox.moe/q918px.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/a1g3v1.webp",
-         "https://files.catbox.moe/bv4m93.webp"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "60",
-      "name": "Violet Evergarden",
-      "gender": "Mujer",
-      "value": "1890",
-      "source": "Violet Evergarden",
-      "img": [
-         "https://files.catbox.moe/s56t63.jpeg",
-         "https://files.catbox.moe/sjj4js.jpeg",
-         "https://files.catbox.moe/hxsv7w.jpeg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/9yhxar.gif",
-         "https://files.catbox.moe/qmx5ue.gif"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "61",
-      "name": "Momo Ayase",
-      "gender": "Mujer",
-      "value": "1770",
-      "source": "Dan Dan, Dan",
-      "img": [
-         "https://files.catbox.moe/zufuyw.jpg",
-         "https://files.catbox.moe/helipx.jpg",
-         "https://files.catbox.moe/23evoj.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/nld3ko.mp4",
-         "https://files.catbox.moe/1k61x1.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "62",
-      "name": "Monkey D. Luffy",
-      "gender": "Hombre",
-      "value": "1740",
-      "source": "One Piece",
-      "img": [
-         "https://files.catbox.moe/9sa99o.jpg",
-         "https://files.catbox.moe/3o5g5n.jpg",
-         "https://files.catbox.moe/1yncok.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/uwnezk.mp4",
-         "https://files.catbox.moe/bswf4x.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "63",
-      "name": "Saitama",
-      "gender": "Hombre",
-      "value": "1850",
-      "source": "One Punch Man",
-      "img": [
-         "https://files.catbox.moe/72ekfi.jpg",
-         "https://files.catbox.moe/acds7v.jpg",
-         "https://files.catbox.moe/6dh6e6.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/20pe96.mp4",
-         "https://files.catbox.moe/7vx7b2.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "64",
-      "name": "Ban",
-      "gender": "Hombre",
-      "value": "1809",
-      "source": "Nanatsu no Taizai",
-      "img": [
-         "https://files.catbox.moe/78lvkj.jpg",
-         "https://files.catbox.moe/s8ac8e.jpg",
-         "https://files.catbox.moe/fpmz7l.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/uozupm.mp4",
-         "https://files.catbox.moe/6houco.mp4"
-      ],
-      "user": null,
-      "status": "libre",
-      "votes": 0
-   },
-   {
-      "id": "65",
-      "name": "Tatsumaki",
-      "gender": "Mujer",
-      "value": "1890",
-      "source": "One Punch Man",
-      "img": [
-         "https://files.catbox.moe/uytvlt.jpg",
-         "https://files.catbox.moe/wruyih.jpg",
-         "https://files.catbox.moe/to361f.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/ucbdq4.mp4",
-         "https://files.catbox.moe/4g0aee.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "66",
-      "name": "Reze",
-      "gender": "Mujer",
-      "value": "1865",
-      "source": "Chainsaw Man",
-      "img": [
-         "https://files.catbox.moe/uicn91.jpg",
-         "https://files.catbox.moe/iyw0r8.jpg",
-         "https://files.catbox.moe/ljgnao.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/br0c2j.mp4",
-         "https://files.catbox.moe/82ttpp.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "67",
-      "name": "Asa Mitaka",
-      "gender": "Mujer",
-      "value": "1870",
-      "source": "Chainsaw Man",
-      "img": [
-         "https://files.catbox.moe/djbfkc.jpg",
-         "https://files.catbox.moe/lfxeto.jpg",
-         "https://files.catbox.moe/dhjs6w.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/izgv1m.mp4",
-         "https://files.catbox.moe/pklel0.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "68",
-      "name": "Nari Seo",
-      "gender": "Mujer",
-      "value": "1901",
-      "source": "The Owner of a Building",
-      "img": [
-         "https://files.catbox.moe/3zfq9b.jpg",
-         "https://files.catbox.moe/37pjss.jpg",
-         "https://files.catbox.moe/c2w98h.jpg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "69",
-      "name": "Hari Seo",
-      "gender": "Mujer",
-      "value": "1890",
-      "source": "The Owner of a Building",
-      "img": [
-         "https://files.catbox.moe/1799xm.jpg",
-         "https://files.catbox.moe/44has5.jpg",
-         "https://files.catbox.moe/7cr9dk.jpg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "70",
-      "name": "Poseidón",
-      "gender": "Hombre",
-      "value": "1800",
-      "source": "Record Of Ragnarok",
-      "img": [
-         "https://files.catbox.moe/3uhrle.jpg",
-         "https://files.catbox.moe/dz5z8l.jpg",
-         "https://files.catbox.moe/nfgqdt.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/cyuo9z.mp4",
-         "https://files.catbox.moe/e3zhoh.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "71",
-      "name": "Göndull",
-      "gender": "Mujer",
-      "value": "1910",
-      "source": "Record Of Ragnarok",
-      "img": [
-         "https://files.catbox.moe/2x1mvi.jpg",
-         "https://files.catbox.moe/dgphsx.jpg",
-         "https://files.catbox.moe/h5paka.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/jzk8h9.mp4",
-         "https://files.catbox.moe/6n0kka.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "72",
-      "name": "Sophie Min",
-      "gender": "Mujer",
-      "value": "1940",
-      "source": "Silent War",
-      "img": [
-         "https://files.catbox.moe/hj4ltb.jpg",
-         "https://files.catbox.moe/lcnduf.jpg",
-         "https://files.catbox.moe/y9qb30.jpg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "73",
-      "name": "Anna Hong",
-      "gender": "Mujer",
-      "value": "1900",
-      "source": "Silent War",
-      "img": [
-         "https://files.catbox.moe/sas1og.jpg",
-         "https://files.catbox.moe/fcpmn5.jpg",
-         "https://files.catbox.moe/axja52.jpg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "74",
-      "name": "Lina Joo",
-      "gender": "Mujer",
-      "value": "1900",
-      "source": "Silent War",
-      "img": [
-         "https://files.catbox.moe/pw68r6.png",
-         "https://files.catbox.moe/9fxvuk.png",
-         "https://files.catbox.moe/mvcxb9.jpg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "75",
-      "name": "Dia Song",
-      "gender": "Mujer",
-      "value": "1920",
-      "source": "Silent War",
-      "img": [
-         "https://files.catbox.moe/ys5mth.jpg",
-         "https://files.catbox.moe/onvj42.jpg",
-         "https://files.catbox.moe/3mpb74.jpg"
-      ],
-      "vid": [],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "76",
-      "name": "Shinobu Kocho",
-      "gender": "Mujer",
-      "value": "1780",
-      "source": "Kimetsu No Yaiba",
-      "img": [
-         "https://files.catbox.moe/yeoxn0.jpg",
-         "https://files.catbox.moe/gkh9f8.jpg",
-         "https://files.catbox.moe/81saxb.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/7b4n64.mp4",
-         "https://files.catbox.moe/ahv62h.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "77",
-      "name": "Zenitsu Agatsuma",
-      "gender": "Hombre",
-      "value": "1730",
-      "source": "Kimetsu No Yaiba",
-      "img": [
-         "https://files.catbox.moe/qso5kn.jpg",
-         "https://files.catbox.moe/o0e1s7.jpg",
-         "https://files.catbox.moe/v386sk.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/rp1xc7.mp4",
-         "https://files.catbox.moe/mjngvs.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "78",
-      "name": "Kanae Kocho",
-      "gender": "Mujer",
-      "value": "1720",
-      "source": "Kimetsu no yaiba",
-      "img": [
-         "https://files.catbox.moe/7mny8p.jpg",
-         "https://files.catbox.moe/xcb001.jpg",
-         "https://files.catbox.moe/r6gqc7.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/27ct3p.mp4",
-         "https://files.catbox.moe/4ilbh9.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "79",
-      "name": "Gyomei Himejima",
-      "gender": "Hombre",
-      "value": "1680",
-      "source": "Kimetsu No Yaiba",
-      "img": [
-         "https://files.catbox.moe/vn804s.jpg",
-         "https://files.catbox.moe/sd4ajt.jpg",
-         "https://files.catbox.moe/ckcxbf.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/hhbvmc.mp4",
-         "https://files.catbox.moe/cwyuu7.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "80",
-      "name": "Shoto todoroki",
-      "gender": "Hombre",
-      "value": "1780",
-      "source": "Boku no hero",
-      "img": [
-         "https://files.catbox.moe/g4slf2.jpg",
-         "https://files.catbox.moe/peuhrp.jpg",
-         "https://files.catbox.moe/hb9toq.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/ggq6ei.mp4",
-         "https://files.catbox.moe/2rq066.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "81",
-      "name": "Momo Yaoyorozu",
-      "gender": "Mujer",
-      "value": "1790",
-      "source": "Boku no hero",
-      "img": [
-         "https://files.catbox.moe/mt346i.jpg",
-         "https://files.catbox.moe/w4xenb.jpg",
-         "https://files.catbox.moe/86chbq.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/046i5e.mp4",
-         "https://files.catbox.moe/htuf0w.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "82",
-      "name": "Dabi",
-      "gender": "Hombre",
-      "value": "1760",
-      "source": "Boku no hero",
-      "img": [
-         "https://files.catbox.moe/g69yzf.jpg",
-         "https://files.catbox.moe/aysqxi.jpg",
-         "https://files.catbox.moe/vf247a.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/fwloem.mp4",
-         "https://files.catbox.moe/0fi570.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "83",
-      "name": "Himiko Toga",
-      "gender": "Mujer",
-      "value": "1890",
-      "source": "Boku no hero",
-      "img": [
-         "https://files.catbox.moe/bmk7lq.jpg",
-         "https://files.catbox.moe/l0aro5.jpg",
-         "https://files.catbox.moe/u693p5.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/4jmnxn.mp4",
-         "https://files.catbox.moe/cf6j5e.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "84",
-      "name": "Izuku Midoriya",
-      "gender": "Hombre",
-      "value": "1820",
-      "source": "Boku no hero",
-      "img": [
-         "https://files.catbox.moe/p742xf.jpg",
-         "https://files.catbox.moe/7fxkc2.jpg",
-         "https://files.catbox.moe/gjpw4o.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/uhl3wp.mp4",
-         "https://files.catbox.moe/l5zgaj.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "85",
-      "name": "Ochako Uraraka",
-      "gender": "Mujer",
-      "value": "1830",
-      "source": "Boku no hero",
-      "img": [
-         "https://files.catbox.moe/oj8var.jpg",
-         "https://files.catbox.moe/dqpbyf.jpg",
-         "https://files.catbox.moe/od6fc6.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/rtaetj.mp4",
-         "https://files.catbox.moe/gtzawo.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "86",
-      "name": "Denki Kaminari",
-      "gender": "Hombre",
-      "value": "1780",
-      "source": "Boku no hero",
-      "img": [
-         "https://files.catbox.moe/b1k3lg.jpg",
-         "https://files.catbox.moe/2e0zai.jpg",
-         "https://files.catbox.moe/y3j39i.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/jhorsp.mp4",
-         "https://files.catbox.moe/s68x28.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "87",
-      "name": "Maki Zenin",
-      "gender": "Mujer",
-      "value": "1780",
-      "source": "Jujutsu Kaisen",
-      "img": [
-         "https://files.catbox.moe/t563z0.jpg",
-         "https://files.catbox.moe/gw5p4g.jpg",
-         "https://files.catbox.moe/1abgvv.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/k1xmh8.mp4",
-         "https://files.catbox.moe/rnv2mk.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "88",
-      "name": "Megumi Fushiguro",
-      "gender": "Hombre",
-      "value": "1790",
-      "source": "Jujutsu Kaisen",
-      "img": [
-         "https://files.catbox.moe/wvlxi4.jpg",
-         "https://files.catbox.moe/0ka861.jpg",
-         "https://files.catbox.moe/9noev9.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/cb5uco.mp4",
-         "https://files.catbox.moe/wbrp0q.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "89",
-      "name": "Komi-San",
-      "gender": "Mujer",
-      "value": "1900",
-      "source": "Komi-san wa, Komyushō desu",
-      "img": [
-         "https://files.catbox.moe/5txidh.jpg",
-         "https://files.catbox.moe/ktr51j.jpg",
-         "https://files.catbox.moe/wygubi.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/sxl0zr.mp4",
-         "https://files.catbox.moe/6ep9bv.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "90",
-      "name": "Suguru Geto",
-      "gender": "Hombre",
-      "value": "1780",
-      "source": "Jujutsu Kaisen",
-      "img": [
-         "https://files.catbox.moe/8156zw.jpg",
-         "https://files.catbox.moe/d0849t.jpg",
-         "https://files.catbox.moe/5lma23.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/kkex3d.mp4",
-         "https://files.catbox.moe/sg2lnz.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "91",
-      "name": "Kyoko Hori",
-      "gender": "Mujer",
-      "value": "1900",
-      "source": "Horimiya",
-      "img": [
-         "https://files.catbox.moe/ehak2n.jpg",
-         "https://files.catbox.moe/00e3jn.jpg",
-         "https://files.catbox.moe/a6pvgr.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/2nfcug.mp4",
-         "https://files.catbox.moe/i45wsv.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "92",
-      "name": "Izumi Miyamura",
-      "gender": "Hombre",
-      "value": "1890",
-      "source": "Horimiya",
-      "img": [
-         "https://files.catbox.moe/nl75o3.jpg",
-         "https://files.catbox.moe/pp32e3.jpg",
-         "https://files.catbox.moe/zlr27c.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/dfk65h.mp4",
-         "https://files.catbox.moe/hxr2yc.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "93",
-      "name": "Rio Futaba",
-      "gender": "Mujer",
-      "value": "1900",
-      "source": "Seishun Buta Yarou wa Bunny Girl Senpai no Yume wo Minai",
-      "img": [
-         "https://files.catbox.moe/pmnslg.jpg",
-         "https://files.catbox.moe/5nhdw3.jpg",
-         "https://files.catbox.moe/uayzlc.png"
-      ],
-      "vid": [
-         "https://files.catbox.moe/x092bd.mp4",
-         "https://files.catbox.moe/yv8t48.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "94",
-      "name": "Akane Hououji",
-      "gender": "Mujer",
-      "value": "1901",
-      "source": "Megami No Cafe Terrace",
-      "img": [
-         "https://files.catbox.moe/uvesel.jpg",
-         "https://files.catbox.moe/lg0cjm.jpg",
-         "https://files.catbox.moe/0tfx0b.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/r12sx3.mp4",
-         "https://files.catbox.moe/qmlf9t.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "95",
-      "name": "Mai Sakurajima",
-      "gender": "Mujer",
-      "value": "1903",
-      "source": "Seishun Buta Yarou wa Bunny Girl Senpai no Yume wo Minai",
-      "img": [
-         "https://files.catbox.moe/92ypqu.jpg",
-         "https://files.catbox.moe/7albja.jpg",
-         "https://files.catbox.moe/2gx96m.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/ehp7f6.mp4",
-         "https://files.catbox.moe/yklp4p.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "96",
-      "name": "Yumeko Jabami",
-      "gender": "Mujer",
-      "value": "1870",
-      "source": "Kakegurui",
-      "img": [
-         "https://files.catbox.moe/ovyiqx.jpg",
-         "https://files.catbox.moe/fh8qig.jpg",
-         "https://files.catbox.moe/hhrmwy.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/eo4n59.mp4",
-         "https://files.catbox.moe/4q928r.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "97",
-      "name": "Diane",
-      "gender": "Mujer",
-      "value": "1850",
-      "source": "Nanatsu no Taizai",
-      "img": [
-         "https://files.catbox.moe/yeyaka.jpg",
-         "https://files.catbox.moe/6t7he8.jpg",
-         "https://files.catbox.moe/d8qjcv.png"
-      ],
-      "vid": [
-         "https://files.catbox.moe/o71xfg.mp4",
-         "https://files.catbox.moe/sb5rpb.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "98",
-      "name": "Killua Zoldyck",
-      "gender": "Hombre",
-      "value": "1852",
-      "source": "Hunter x Hunter",
-      "img": [
-         "https://files.catbox.moe/o47ubx.jpg",
-         "https://files.catbox.moe/nm6yjb.jpg",
-         "https://files.catbox.moe/87n4w3.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/jxhqar.mp4",
-         "https://files.catbox.moe/ckwrg3.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "99",
-      "name": "Itachi Uchiha",
-      "gender": "Hombre",
-      "value": "1904",
-      "source": "Naruto",
-      "img": [
-         "https://files.catbox.moe/dsy0za.png",
-         "https://files.catbox.moe/zfv6a2.jpg",
-         "https://files.catbox.moe/5j4hmh.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/kc8o06.mp4",
-         "https://files.catbox.moe/tsxf3s.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "100",
-      "name": "Hinata Hyuga",
-      "gender": "Mujer",
-      "value": "1954",
-      "source": "Naruto",
-      "img": [
-         "https://files.catbox.moe/u04t39.jpg",
-         "https://files.catbox.moe/1q68ip.jpg",
-         "https://files.catbox.moe/zd3pxi.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/7twuiv.mp4",
-         "https://files.catbox.moe/dy1hue.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "101",
-      "name": "Frieren",
-      "gender": "Mujer",
-      "value": "1954",
-      "source": "Sousou no Frieren",
-      "img": [
-         "https://files.catbox.moe/3z2pna.jpg",
-         "https://files.catbox.moe/5a6b8i.jpg",
-         "https://files.catbox.moe/c2mm6t.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/q6aus9.mp4",
-         "https://files.catbox.moe/8u6qqv.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "102",
-      "name": "Albedo",
-      "gender": "Mujer",
-      "value": "1944",
-      "source": "Overlord",
-      "img": [
-         "https://files.catbox.moe/3gx7bo.png",
-         "https://files.catbox.moe/bz2829.png",
-         "https://files.catbox.moe/nzfa27.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/6vlgyr.mp4",
-         "https://files.catbox.moe/l73m9a.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "103",
-      "name": "Ado",
-      "gender": "Mujer",
-      "value": "1952",
-      "source": "Vocaloid",
-      "img": [
-         "https://files.catbox.moe/58ajtk.jpg",
-         "https://files.catbox.moe/3end08.jpg",
-         "https://files.catbox.moe/dq9696.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/1x0qa0.mp4",
-         "https://files.catbox.moe/bgehqc.mp4"
-      ],
-      "user": null,
-      "status": "libre",
-      "votes": 0
-   },
-   {
-      "id": "104",
-      "name": "Hatsune Miku",
-      "gender": "Mujer",
-      "value": "1976",
-      "source": "Vocaloid",
-      "img": [
-         "https://files.catbox.moe/i0vaku.jpg",
-         "https://files.catbox.moe/fyr1xu.jpg",
-         "https://files.catbox.moe/qasix6.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/de6ztq.mp4",
-         "https://files.catbox.moe/0kig2x.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "105",
-      "name": "Nibelcole",
-      "gender": "Mujer",
-      "value": "1943",
-      "source": "Date a Live",
-      "img": [
-         "https://files.catbox.moe/wllfmi.jpg",
-         "https://files.catbox.moe/9j6bcs.jpg",
-         "https://files.catbox.moe/1l7la9.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/en6hex.mp4",
-         "https://files.catbox.moe/en6hex.mp4"
-      ],
-      "user": null,
-      "status": "libre",
-      "votes": 0
-   },
-   {
-      "id": "106",
-      "name": "Akane Kurokawa",
-      "gender": "Mujer",
-      "value": "1943",
-      "source": "Oshi no ko",
-      "img": [
-         "https://files.catbox.moe/96vl9t.jpg",
-         "https://files.catbox.moe/ng3z2k.jpg",
-         "https://files.catbox.moe/xj5t08.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/90cb3w.mp4",
-         "https://files.catbox.moe/a8u70w.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "107",
-      "name": "Akito Yamada",
-      "gender": "Hombre",
-      "value": "1892",
-      "source": "Yamada Kun to lvl999",
-      "img": [
-         "https://files.catbox.moe/w84gtr.jpg",
-         "https://files.catbox.moe/p3dy92.png",
-         "https://files.catbox.moe/9y26yf.png"
-      ],
-      "vid": [
-         "https://files.catbox.moe/zte6ph.mp4",
-         "https://files.catbox.moe/njwvbf.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "108",
-      "name": "Manjiro Sano",
-      "gender": "Hombre",
-      "value": "1893",
-      "source": "Tokyo Revengers",
-      "img": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742706993234.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742706983607.jpeg",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742706979359.jpeg"
-      ],
-      "vid": [
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742707004965.mp4",
-         "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742707000831.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "109",
-      "name": "Marín Kitagawa",
-      "gender": "Mujer",
-      "value": "1932",
-      "source": "My dress-up darling",
-      "img": [
-         "https://files.catbox.moe/3y8jpa.jpg",
-         "https://files.catbox.moe/zs1eb7.jpg",
-         "https://files.catbox.moe/xaqp4d.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/hozy21.mp4",
-         "https://files.catbox.moe/xu5qqv.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "110",
-      "name": "Kento Nanami",
-      "gender": "Hombre",
-      "value": "1897",
-      "source": "Jujutsu Kaisen",
-      "img": [
-         "https://files.catbox.moe/h7ajb1.jpg",
-         "https://files.catbox.moe/hl0vnr.jpg",
-         "https://files.catbox.moe/vxmfti.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/ln0hse.mp4",
-         "https://files.catbox.moe/vvfomx.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
-   {
-      "id": "111",
-      "name": "Yuki Tsukumo",
-      "gender": "Mujer",
-      "value": "1894",
-      "source": "Jujutsu Kaisen",
-      "img": [
-         "https://files.catbox.moe/860yos.jpg",
-         "https://files.catbox.moe/aa1258.jpg",
-         "https://files.catbox.moe/qubm1l.jpg"
-      ],
-      "vid": [
-         "https://files.catbox.moe/l7ew10.mp4",
-         "https://files.catbox.moe/opg66k.mp4"
-      ],
-      "user": null,
-      "status": "Libre",
-      "votes": 0
-   },
+  {
+    "id": "1",
+    "name": "Aika Sano",
+    "gender": "Mujer",
+    "value": "7500",
+    "source": "Ane wa Yanmama Junyuu-chuu",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742690379398.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742690401622.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742690416897.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/fyd68k.mp4",
+      "https://files.catbox.moe/l2txfh.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "2",
+    "name": "Mariya Mikhailovna Kujou",
+    "gender": "Mujer",
+    "value": "12400",
+    "source": "Tokidoki Bosotto Russia-go de Dereru Tonari no Alya-san",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742699105347.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742698851202.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742699105347.jpeg"
+    ],
+    "vid": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704584808.mp4",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704604513.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "3",
+    "name": "Mikasa Ackerman",
+    "gender": "Mujer",
+    "value": "13850",
+    "source": "Attack on Titan (Shingeki no Kyojin)",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704905218.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704915798.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704921942.jpeg"
+    ],
+    "vid": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704947621.mp4",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704940238.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "4",
+    "name": "Izuku Midoriya",
+    "gender": "Hombre",
+    "value": "12500",
+    "source": "My Hero Academia",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704995584.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705001309.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705005753.jpeg"
+    ],
+    "vid": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705018012.mp4",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705012304.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "5",
+    "name": "Misa Amane",
+    "gender": "Mujer",
+    "value": "11200",
+    "source": "Death Note",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705040586.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705047683.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705058827.jpeg"
+    ],
+    "vid": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705330136.mp4",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705334100.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "6",
+    "name": "Asuna Yuuki",
+    "gender": "Mujer",
+    "value": "13900",
+    "source": "Sword Art Online",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704670236.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704661356.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704654811.jpeg"
+    ],
+    "vid": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705250183.mp4",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705278781.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "7",
+    "name": "Erza Scarlet",
+    "gender": "Mujer",
+    "value": "13750",
+    "source": "Fairy Tail",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705567193.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705584165.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705597070.jpeg"
+    ],
+    "vid": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705629597.mp4",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705638604.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "8",
+    "name": "Kurumi Tokisaki",
+    "gender": "Mujer",
+    "value": "14800",
+    "source": "Date A live",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703264755.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703280299.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703286891.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/hylgd2.mp4",
+      "https://files.catbox.moe/516xac.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "9",
+    "name": "Momo Deviluke",
+    "gender": "Mujer",
+    "value": "11900",
+    "source": "To Love Ru",
+    "img": [
+      "https://files.catbox.moe/hnrpb4.jpg",
+      "https://files.catbox.moe/gufek6.jpg",
+      "https://files.catbox.moe/3p7fwt.jpg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "10",
+    "name": "Nino Nakano",
+    "gender": "Mujer",
+    "value": "13600",
+    "source": "Gotoubun no Hanayome",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703603140.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703599114.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703603140.jpeg"
+    ],
+    "vid": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703675449.mp4",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703667641.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "11",
+    "name": "Ryo Yamada",
+    "gender": "Mujer",
+    "value": "10500",
+    "source": "Bocchi the Rock",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1747288621187.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1747288609986.jpeg",
+      "https://files.catbox.moe/1icdxd.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/9rwy3g.mp4",
+      "https://files.catbox.moe/enavfp.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "12",
+    "name": "Sumi Sakurasawa",
+    "gender": "Mujer",
+    "value": "10800",
+    "source": "Rent a Girlfriend",
+    "img": [
+      "https://files.catbox.moe/b94meg.jpg",
+      "https://files.catbox.moe/u4f5xl.jpg",
+      "https://files.catbox.moe/qmjabr.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/life34.mp4",
+      "https://files.catbox.moe/ds7mta.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "13",
+    "name": "Umaru Doma",
+    "gender": "Mujer",
+    "value": "10200",
+    "source": "Himouto! Umaru-chan",
+    "img": [
+      "https://files.catbox.moe/8e24l4.jpg",
+      "https://files.catbox.moe/8dnp1r.jpg",
+      "https://files.catbox.moe/bhvatf.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/ob5hwu.mp4",
+      "https://files.catbox.moe/mce2ug.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "14",
+    "name": "Chizuru Mizuhara",
+    "gender": "Mujer",
+    "value": "12900",
+    "source": "Rent a Girlfriend",
+    "img": [
+      "https://files.catbox.moe/2i4fhq.jpg",
+      "https://files.catbox.moe/jvo5sw.jpg",
+      "https://files.catbox.moe/el9gci.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/p7putk.mp4",
+      "https://files.catbox.moe/dkt3t4.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "15",
+    "name": "Makima",
+    "gender": "Mujer",
+    "value": "14190",
+    "source": "Chainsaw Man",
+    "img": [
+      "https://files.catbox.moe/uphhjx.jpg",
+      "https://files.catbox.moe/vs9k7k.jpg",
+      "https://files.catbox.moe/hqrurr.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/lmz562.mp4",
+      "https://files.catbox.moe/0g6dab.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "16",
+    "name": "Power",
+    "gender": "Mujer",
+    "value": "13600",
+    "source": "Chainsaw Man",
+    "img": [
+      "https://files.catbox.moe/uwc0qu.jpg",
+      "https://files.catbox.moe/vtpfja.jpg",
+      "https://files.catbox.moe/phvp4x.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/tlrm2h.mp4",
+      "https://files.catbox.moe/gnm3i6.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "17",
+    "name": "Yuliet Persia",
+    "gender": "Mujer",
+    "value": "9500",
+    "source": "Kishuku Gakkou no Juliet",
+    "img": [
+      "https://files.catbox.moe/0lvcm5.jpg",
+      "https://files.catbox.moe/m3j9jx.jpg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703178806.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/xmil5a.mp4",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703182248.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "18",
+    "name": "Kisara",
+    "gender": "Mujer",
+    "value": "10500",
+    "source": "Engage Kiss",
+    "img": [
+      "https://files.catbox.moe/yb9cd1.jpg",
+      "https://files.catbox.moe/r8cdr9.jpg",
+      "https://files.catbox.moe/2nwdjr.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/zv4t2r.mp4",
+      "https://files.catbox.moe/c7pmwj.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "19",
+    "name": "Raphtalia",
+    "gender": "Mujer",
+    "value": "12800",
+    "source": "Tate no Yuusha no Nariagari",
+    "img": [
+      "https://files.catbox.moe/dieynb.jpg",
+      "https://files.catbox.moe/7phn5e.jpg",
+      "https://files.catbox.moe/tkquyv.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/ddrzjt.mp4",
+      "https://files.catbox.moe/6z2yci.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "20",
+    "name": "Ai Hoshino",
+    "gender": "Mujer",
+    "value": "14350",
+    "source": "Oshi no Ko",
+    "img": [
+      "https://files.catbox.moe/w680ix.jpg",
+      "https://files.catbox.moe/x0tbit.jpg",
+      "https://files.catbox.moe/5uaa4m.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/7orx6o.mp4",
+      "https://files.catbox.moe/o7tsc7.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "21",
+    "name": "Alisa Mikhailovna Kujou",
+    "gender": "Mujer",
+    "value": "12600",
+    "source": "Tokidoki Bosotto Russia-go de Dereru Tonari no Alya-san",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743039981280.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743039970478.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743039960772.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/e5neow.mp4",
+      "https://files.catbox.moe/yw5fb3.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "22",
+    "name": "Mukuro Hoshimiya",
+    "gender": "Mujer",
+    "value": "11500",
+    "source": "Date A Live",
+    "img": [
+      "https://files.catbox.moe/r8wufk.jpg",
+      "https://files.catbox.moe/a8eq0s.jpg",
+      "https://files.catbox.moe/212kcc.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/6c79ie.mp4",
+      "https://files.catbox.moe/4fstm1.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "23",
+    "name": "Pikachu",
+    "gender": "desconocido",
+    "value": "13500",
+    "source": "Pokemon",
+    "img": [
+      "https://files.catbox.moe/19v1oz.jpg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703372200.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703365355.jpeg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "24",
+    "name": "Fenrrys",
+    "gender": "Mujer",
+    "value": "9200",
+    "source": "Lv2 kara Cheat datta Motoy Uusha Kouho no Mattari Isekai Life",
+    "img": [
+      "https://files.catbox.moe/sev5eq.jpg",
+      "https://files.catbox.moe/8zam00.jpg",
+      "https://files.catbox.moe/cy428r.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/7ee3x5.mp4",
+      "https://files.catbox.moe/cm96rp.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "25",
+    "name": "Fern",
+    "gender": "Mujer",
+    "value": "13200",
+    "source": "Sousou no Frieren",
+    "img": [
+      "https://files.catbox.moe/1itvxu.jpg",
+      "https://files.catbox.moe/fm3ndt.jpg",
+      "https://files.catbox.moe/2q124i.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/fhhcgx.mp4",
+      "https://files.catbox.moe/5j1k8a.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "26",
+    "name": "Yelan",
+    "gender": "Mujer",
+    "value": "13700",
+    "source": "Geshin Impact",
+    "img": [
+      "https://files.catbox.moe/m6rw1x.jpg",
+      "https://files.catbox.moe/ljfa6q.jpg",
+      "https://files.catbox.moe/sxz9kc.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/pf52y9.mp4",
+      "https://files.catbox.moe/417iee.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "27",
+    "name": "Lloyd Frontera",
+    "gender": "Hombre",
+    "value": "11000",
+    "source": "The Greatest Estate Developer",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705446073.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705441166.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705436419.jpeg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "28",
+    "name": "Gotou Hitori",
+    "gender": "Mujer",
+    "value": "12800",
+    "source": "Bocchi the Rock!",
+    "img": [
+      "https://files.catbox.moe/krpuox.jpg",
+      "https://files.catbox.moe/iihqvh.jpg",
+      "https://files.catbox.moe/x5ph70.jpg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "29",
+    "name": "Hu Tao",
+    "gender": "Mujer",
+    "value": "14100",
+    "source": "Genshin Impact",
+    "img": [
+      "https://files.catbox.moe/sepzxn.jpg",
+      "https://files.catbox.moe/gjryw1.jpg",
+      "https://files.catbox.moe/qo8okk.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/u2cz65.mp4",
+      "https://files.catbox.moe/iaswzn.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "30",
+    "name": "Ayane Shirakawa",
+    "gender": "Mujer",
+    "value": "8200",
+    "source": "Overflow",
+    "img": [
+      "https://files.catbox.moe/06c7d5.jpg",
+      "https://files.catbox.moe/h82szt.jpg",
+      "https://files.catbox.moe/qubleg.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/gs8i2d.mp4",
+      "https://files.catbox.moe/52l5p9.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "31",
+    "name": "Kotone Shirakawa",
+    "gender": "Mujer",
+    "value": "8300",
+    "source": "Overflow",
+    "img": [
+      "https://files.catbox.moe/j609gs.jpg",
+      "https://files.catbox.moe/8xnp43.jpg",
+      "https://files.catbox.moe/84emtj.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/vmqvdf.mp4",
+      "https://files.catbox.moe/r2grl7.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "32",
+    "name": "Yuki Suou",
+    "gender": "Mujer",
+    "value": "11900",
+    "source": "Tokidoki Bosotto Russia-go de Dereru Tonari no Alya-san",
+    "img": [
+      "https://files.catbox.moe/4oj8si.jpg",
+      "https://files.catbox.moe/mwr4vz.jpg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705626076.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/0q8ei9.mp4",
+      "https://files.catbox.moe/2v8xk7.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "33",
+    "name": "Akaza Akari",
+    "gender": "Mujer",
+    "value": "8900",
+    "source": "Yuru Yuri",
+    "img": [
+      "https://files.catbox.moe/vw57ak.jpg",
+      "https://files.catbox.moe/ndr01w.png",
+      "https://files.catbox.moe/23kt0v.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/4pfv49.mp4",
+      "https://files.catbox.moe/q9fj6w.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "34",
+    "name": "Bulma",
+    "gender": "Mujer",
+    "value": "12800",
+    "source": "Dragon ball",
+    "img": [
+      "https://files.catbox.moe/5lctcx.jpg",
+      "https://files.catbox.moe/19jneh.jpg",
+      "https://files.catbox.moe/47f51d.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/5zc2bm.mp4",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705954195.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "35",
+    "name": "Ruby Hoshino",
+    "gender": "Mujer",
+    "value": "13400",
+    "source": "Oshi no Ko",
+    "img": [
+      "https://files.catbox.moe/fwqv8b.jpg",
+      "https://files.catbox.moe/dblfhj.jpg",
+      "https://files.catbox.moe/dvivmf.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/j85zzj.mp4",
+      "https://files.catbox.moe/pwol0x.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "36",
+    "name": "Cid Kagenou",
+    "gender": "Hombre",
+    "value": "11900",
+    "source": "Kage no Jitsuryokusha ni Naritakute!",
+    "img": [
+      "https://files.catbox.moe/xv0slf.jpg",
+      "https://files.catbox.moe/dyyo1q.jpg",
+      "https://files.catbox.moe/qc0gl0.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/gnbzme.mp4",
+      "https://files.catbox.moe/zan8i8.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "37",
+    "name": "Furina",
+    "gender": "Mujer",
+    "value": "14200",
+    "source": "Geshin Impact",
+    "img": [
+      "https://files.catbox.moe/4z51nd.jpg",
+      "https://files.catbox.moe/4m15ka.jpg",
+      "https://files.catbox.moe/kvuisc.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/5das1h.mp4",
+      "https://files.catbox.moe/eyn69l.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "38",
+    "name": "Sung Jin-woo",
+    "gender": "Hombre",
+    "value": "12800",
+    "source": "Solo Leveling",
+    "img": [
+      "https://files.catbox.moe/d42ftd.mp4",
+      "https://files.catbox.moe/ek082s.jpg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742705949538.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/lrtrck.mp4",
+      "https://files.catbox.moe/d42ftd.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "39",
+    "name": "Shinra Kusakabe",
+    "gender": "Hombre",
+    "value": "11500",
+    "source": "Fire Force",
+    "img": [
+      "https://files.catbox.moe/x3xjya.jpg",
+      "https://files.catbox.moe/q6o1cs.jpg",
+      "https://files.catbox.moe/mn18g1.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/i0npod.mp4",
+      "https://files.catbox.moe/131x7l.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "40",
+    "name": "Alucard",
+    "gender": "Hombre",
+    "value": "12200",
+    "source": "Hellsing",
+    "img": [
+      "https://files.catbox.moe/sfnm7l.jpg",
+      "https://files.catbox.moe/x5rj1d.jpg",
+      "https://files.catbox.moe/sfnm7l.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/m6zq9x.mp4",
+      "https://files.catbox.moe/i3an5b.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "41",
+    "name": "Benimaru Shinmon",
+    "gender": "Hombre",
+    "value": "11800",
+    "source": "Fire Force",
+    "img": [
+      "https://files.catbox.moe/mwez4k.jpg",
+      "https://files.catbox.moe/g515kv.jpg",
+      "https://files.catbox.moe/rclp4y.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/l4jpl9.mp4",
+      "https://files.catbox.moe/na3lvl.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "42",
+    "name": "Light Yagami",
+    "gender": "Hombre",
+    "value": "12500",
+    "source": "Death Note",
+    "img": [
+      "https://files.catbox.moe/5ipqcs.jpg",
+      "https://files.catbox.moe/x7pyc2.jpg",
+      "https://files.catbox.moe/sewn9s.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/tff5c1.mp4",
+      "https://files.catbox.moe/nm46ye.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "43",
+    "name": "Rika Takanashi",
+    "gender": "Mujer",
+    "value": "11200",
+    "source": "Chūnibyō Demo Koi ga Shitai!",
+    "img": [
+      "https://files.catbox.moe/hm4h1t.jpg",
+      "https://files.catbox.moe/ei3tsm.jpg",
+      "https://files.catbox.moe/kkms3p.jpg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "44",
+    "name": "Yui",
+    "gender": "Mujer",
+    "value": "10800",
+    "source": "K-on",
+    "img": [
+      "https://files.catbox.moe/zsk6ae.jpg",
+      "https://files.catbox.moe/0woxlo.jpg",
+      "https://files.catbox.moe/0c5fm6.jpg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "45",
+    "name": "Thor",
+    "gender": "Hombre",
+    "value": "11400",
+    "source": "Record of Ragnarok",
+    "img": [
+      "https://files.catbox.moe/gmnp5h.jpeg",
+      "https://files.catbox.moe/bdgjxw.jpeg",
+      "https://files.catbox.moe/tyzwcg.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/bl4ksd.gif",
+      "https://files.catbox.moe/14fdpz.gif"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "46",
+    "name": "Brunhilde",
+    "gender": "mujer",
+    "value": "11276",
+    "source": "Record of Ragnarok",
+    "img": [
+      "https://files.catbox.moe/vf9bh4.jpg",
+      "https://files.catbox.moe/bnpb38.jpg",
+      "https://files.catbox.moe/nx406i.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/hm53g2.mp4",
+      "https://files.catbox.moe/xva9ay.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "47",
+    "name": "Yuugiri ",
+    "gender": "Mujer",
+    "value": "8500",
+    "source": "Engage Kiss",
+    "img": [
+      "https://files.catbox.moe/usdebr.jpeg",
+      "https://files.catbox.moe/drg723.jpeg",
+      "https://files.catbox.moe/dpk260.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/ko60m4.gif",
+      "https://files.catbox.moe/6pbfg7.gif"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "48",
+    "name": "Ayase Aragaki",
+    "gender": "Mujer",
+    "value": "9500",
+    "source": "Oreimo",
+    "img": [
+      "https://files.catbox.moe/pkz5vq.jpeg",
+      "https://files.catbox.moe/kq7c45.jpg",
+      "https://files.catbox.moe/0uf4sj.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/3xepj0.gif",
+      "https://files.catbox.moe/v7f0u8.gif"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "49",
+    "name": "Santo Grial, Sharon",
+    "gender": "Mujer",
+    "value": "8900",
+    "source": "Engage Kiss",
+    "img": [
+      "https://files.catbox.moe/65olp4.jpeg",
+      "https://files.catbox.moe/pesw6y.jpeg",
+      "https://files.catbox.moe/6yowcy.jpeg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "50",
+    "name": "Ogata, Kanna",
+    "gender": "Mujer",
+    "value": "11209",
+    "source": "Engage Kiss",
+    "img": [
+      "https://files.catbox.moe/d9hp42.jpeg",
+      "https://files.catbox.moe/wszgi8.jpeg",
+      "https://files.catbox.moe/owdue9.jpeg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "51",
+    "name": "Anri Teiri",
+    "gender": "Mujer",
+    "value": "9800",
+    "source": "Blue lock",
+    "img": [
+      "https://files.catbox.moe/z3pbn7.jpeg",
+      "https://files.catbox.moe/8h74yi.jpg",
+      "https://files.catbox.moe/qf9ih8.jpeg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "52",
+    "name": "Ogata, Shuu",
+    "gender": "Hombre",
+    "value": "8400",
+    "source": "Engage Kiss",
+    "img": [
+      "https://files.catbox.moe/y8dsdf.jpeg",
+      "https://files.catbox.moe/3x1ziz.jpeg",
+      "https://files.catbox.moe/xd0wew.jpeg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "53",
+    "name": "Apolo",
+    "gender": "Masculino",
+    "value": "10500",
+    "source": "Record Of Ragnarok",
+    "img": [
+      "https://files.catbox.moe/exs7w4.jpeg",
+      "https://files.catbox.moe/qnfnnw.jpeg",
+      "https://files.catbox.moe/zyl4wv.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/k9xeqk.webp",
+      "https://files.catbox.moe/5dtesn.webp"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "54",
+    "name": "Meliodas Liones",
+    "gender": "Hombre",
+    "value": "12700",
+    "source": "Nanatsu no Taizai",
+    "img": [
+      "https://files.catbox.moe/z6x32g.jpeg",
+      "https://files.catbox.moe/7zx2v2.jpg",
+      "https://files.catbox.moe/fda0vz.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/8tpm5g.webp",
+      "https://files.catbox.moe/ecixr2.webp"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "55",
+    "name": "Giyuu Tomioka",
+    "gender": "Hombre",
+    "value": "13400",
+    "source": "Kimetsu No Yaiba",
+    "img": [
+      "https://files.catbox.moe/6zzfgx.jpeg",
+      "https://files.catbox.moe/uo0ivp.jpg",
+      "https://files.catbox.moe/33tz7f.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/12kmnd.gif",
+      "https://files.catbox.moe/yv4aoe.gif"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "56",
+    "name": "Bakugou Katsuki",
+    "gender": "Hombre",
+    "value": "12900",
+    "source": "Boku no hero",
+    "img": [
+      "https://files.catbox.moe/8i4gmn.jpeg",
+      "https://files.catbox.moe/dphf7i.jpeg",
+      "https://files.catbox.moe/4fn3af.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/71zp61.webp",
+      "https://files.catbox.moe/lv7dzr.webp"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "57",
+    "name": "Satoru Gojo",
+    "gender": "Hombre",
+    "value": "14800",
+    "source": "Jujutsu kaisen",
+    "img": [
+      "https://files.catbox.moe/57ggyq.jpeg",
+      "https://files.catbox.moe/1tz4tw.jpeg",
+      "https://files.catbox.moe/6taggf.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/dmb5ev.webp",
+      "https://files.catbox.moe/9vd7uo.webp"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "58",
+    "name": "Yuuji Itadori",
+    "gender": "Hombre",
+    "value": "12800",
+    "source": "Jujutsu Kaisen",
+    "img": [
+      "https://files.catbox.moe/jozvlm.jpeg",
+      "https://files.catbox.moe/0uwsws.jpeg",
+      "https://files.catbox.moe/vyadyv.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/wk6z4w.gif",
+      "https://files.catbox.moe/qf4itq.gif"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "59",
+    "name": "Naruto Uzumaki",
+    "gender": "Hombre",
+    "value": "14900",
+    "source": "Naruto",
+    "img": [
+      "https://files.catbox.moe/b1fq0j.jpeg",
+      "https://files.catbox.moe/ai0ov9.jpeg",
+      "https://files.catbox.moe/q918px.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/a1g3v1.webp",
+      "https://files.catbox.moe/bv4m93.webp"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "60",
+    "name": "Violet Evergarden",
+    "gender": "Mujer",
+    "value": "13100",
+    "source": "Violet Evergarden",
+    "img": [
+      "https://files.catbox.moe/s56t63.jpeg",
+      "https://files.catbox.moe/sjj4js.jpeg",
+      "https://files.catbox.moe/hxsv7w.jpeg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/9yhxar.gif",
+      "https://files.catbox.moe/qmx5ue.gif"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "61",
+    "name": "Momo Ayase",
+    "gender": "Mujer",
+    "value": "11500",
+    "source": "Dan Dan, Dan",
+    "img": [
+      "https://files.catbox.moe/zufuyw.jpg",
+      "https://files.catbox.moe/helipx.jpg",
+      "https://files.catbox.moe/23evoj.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/nld3ko.mp4",
+      "https://files.catbox.moe/1k61x1.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "62",
+    "name": "Monkey D. Luffy",
+    "gender": "Hombre",
+    "value": "14950",
+    "source": "One Piece",
+    "img": [
+      "https://files.catbox.moe/9sa99o.jpg",
+      "https://files.catbox.moe/3o5g5n.jpg",
+      "https://files.catbox.moe/1yncok.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/uwnezk.mp4",
+      "https://files.catbox.moe/bswf4x.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "63",
+    "name": "Saitama",
+    "gender": "Hombre",
+    "value": "14200",
+    "source": "One Punch Man",
+    "img": [
+      "https://files.catbox.moe/72ekfi.jpg",
+      "https://files.catbox.moe/acds7v.jpg",
+      "https://files.catbox.moe/6dh6e6.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/20pe96.mp4",
+      "https://files.catbox.moe/7vx7b2.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "64",
+    "name": "Ban",
+    "gender": "Hombre",
+    "value": "14187",
+    "source": "Nanatsu no Taizai",
+    "img": [
+      "https://files.catbox.moe/78lvkj.jpg",
+      "https://files.catbox.moe/s8ac8e.jpg",
+      "https://files.catbox.moe/fpmz7l.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/uozupm.mp4",
+      "https://files.catbox.moe/6houco.mp4"
+    ],
+    "user": null,
+    "status": "libre",
+    "votes": 0
+  },
+  {
+    "id": "65",
+    "name": "Tatsumaki",
+    "gender": "Mujer",
+    "value": "13600",
+    "source": "One Punch Man",
+    "img": [
+      "https://files.catbox.moe/uytvlt.jpg",
+      "https://files.catbox.moe/wruyih.jpg",
+      "https://files.catbox.moe/to361f.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/ucbdq4.mp4",
+      "https://files.catbox.moe/4g0aee.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "66",
+    "name": "Reze",
+    "gender": "Mujer",
+    "value": "12500",
+    "source": "Chainsaw Man",
+    "img": [
+      "https://files.catbox.moe/uicn91.jpg",
+      "https://files.catbox.moe/iyw0r8.jpg",
+      "https://files.catbox.moe/ljgnao.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/br0c2j.mp4",
+      "https://files.catbox.moe/82ttpp.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "67",
+    "name": "Asa Mitaka",
+    "gender": "Mujer",
+    "value": "12800",
+    "source": "Chainsaw Man",
+    "img": [
+      "https://files.catbox.moe/djbfkc.jpg",
+      "https://files.catbox.moe/lfxeto.jpg",
+      "https://files.catbox.moe/dhjs6w.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/izgv1m.mp4",
+      "https://files.catbox.moe/pklel0.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "68",
+    "name": "Nari Seo",
+    "gender": "Mujer",
+    "value": "6500",
+    "source": "The Owner of a Building",
+    "img": [
+      "https://files.catbox.moe/3zfq9b.jpg",
+      "https://files.catbox.moe/37pjss.jpg",
+      "https://files.catbox.moe/c2w98h.jpg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "69",
+    "name": "Hari Seo",
+    "gender": "Mujer",
+    "value": "6400",
+    "source": "The Owner of a Building",
+    "img": [
+      "https://files.catbox.moe/1799xm.jpg",
+      "https://files.catbox.moe/44has5.jpg",
+      "https://files.catbox.moe/7cr9dk.jpg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "70",
+    "name": "Poseidón",
+    "gender": "Hombre",
+    "value": "11900",
+    "source": "Record Of Ragnarok",
+    "img": [
+      "https://files.catbox.moe/3uhrle.jpg",
+      "https://files.catbox.moe/dz5z8l.jpg",
+      "https://files.catbox.moe/nfgqdt.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/cyuo9z.mp4",
+      "https://files.catbox.moe/e3zhoh.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "71",
+    "name": "Göndull",
+    "gender": "Mujer",
+    "value": "10500",
+    "source": "Record Of Ragnarok",
+    "img": [
+      "https://files.catbox.moe/2x1mvi.jpg",
+      "https://files.catbox.moe/dgphsx.jpg",
+      "https://files.catbox.moe/h5paka.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/jzk8h9.mp4",
+      "https://files.catbox.moe/6n0kka.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "72",
+    "name": "Sophie Min",
+    "gender": "Mujer",
+    "value": "7200",
+    "source": "Silent War",
+    "img": [
+      "https://files.catbox.moe/hj4ltb.jpg",
+      "https://files.catbox.moe/lcnduf.jpg",
+      "https://files.catbox.moe/y9qb30.jpg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "73",
+    "name": "Anna Hong",
+    "gender": "Mujer",
+    "value": "6800",
+    "source": "Silent War",
+    "img": [
+      "https://files.catbox.moe/sas1og.jpg",
+      "https://files.catbox.moe/fcpmn5.jpg",
+      "https://files.catbox.moe/axja52.jpg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "74",
+    "name": "Lina Joo",
+    "gender": "Mujer",
+    "value": "6900",
+    "source": "Silent War",
+    "img": [
+      "https://files.catbox.moe/pw68r6.png",
+      "https://files.catbox.moe/9fxvuk.png",
+      "https://files.catbox.moe/mvcxb9.jpg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "75",
+    "name": "Dia Song",
+    "gender": "Mujer",
+    "value": "6850",
+    "source": "Silent War",
+    "img": [
+      "https://files.catbox.moe/ys5mth.jpg",
+      "https://files.catbox.moe/onvj42.jpg",
+      "https://files.catbox.moe/3mpb74.jpg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "76",
+    "name": "Shinobu Kocho",
+    "gender": "Mujer",
+    "value": "13600",
+    "source": "Kimetsu No Yaiba",
+    "img": [
+      "https://files.catbox.moe/yeoxn0.jpg",
+      "https://files.catbox.moe/gkh9f8.jpg",
+      "https://files.catbox.moe/81saxb.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/7b4n64.mp4",
+      "https://files.catbox.moe/ahv62h.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "77",
+    "name": "Zenitsu Agatsuma",
+    "gender": "Hombre",
+    "value": "12400",
+    "source": "Kimetsu No Yaiba",
+    "img": [
+      "https://files.catbox.moe/qso5kn.jpg",
+      "https://files.catbox.moe/o0e1s7.jpg",
+      "https://files.catbox.moe/v386sk.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/rp1xc7.mp4",
+      "https://files.catbox.moe/mjngvs.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "78",
+    "name": "Kanae Kocho",
+    "gender": "Mujer",
+    "value": "11800",
+    "source": "Kimetsu no yaiba",
+    "img": [
+      "https://files.catbox.moe/7mny8p.jpg",
+      "https://files.catbox.moe/xcb001.jpg",
+      "https://files.catbox.moe/r6gqc7.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/27ct3p.mp4",
+      "https://files.catbox.moe/4ilbh9.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "79",
+    "name": "Gyomei Himejima",
+    "gender": "Hombre",
+    "value": "11500",
+    "source": "Kimetsu No Yaiba",
+    "img": [
+      "https://files.catbox.moe/vn804s.jpg",
+      "https://files.catbox.moe/sd4ajt.jpg",
+      "https://files.catbox.moe/ckcxbf.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/hhbvmc.mp4",
+      "https://files.catbox.moe/cwyuu7.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "80",
+    "name": "Shoto todoroki",
+    "gender": "Hombre",
+    "value": "13100",
+    "source": "Boku no hero",
+    "img": [
+      "https://files.catbox.moe/g4slf2.jpg",
+      "https://files.catbox.moe/peuhrp.jpg",
+      "https://files.catbox.moe/hb9toq.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/ggq6ei.mp4",
+      "https://files.catbox.moe/2rq066.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "81",
+    "name": "Momo Yaoyorozu",
+    "gender": "Mujer",
+    "value": "12200",
+    "source": "Boku no hero",
+    "img": [
+      "https://files.catbox.moe/mt346i.jpg",
+      "https://files.catbox.moe/w4xenb.jpg",
+      "https://files.catbox.moe/86chbq.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/046i5e.mp4",
+      "https://files.catbox.moe/htuf0w.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "82",
+    "name": "Dabi",
+    "gender": "Hombre",
+    "value": "11800",
+    "source": "Boku no hero",
+    "img": [
+      "https://files.catbox.moe/g69yzf.jpg",
+      "https://files.catbox.moe/aysqxi.jpg",
+      "https://files.catbox.moe/vf247a.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/fwloem.mp4",
+      "https://files.catbox.moe/0fi570.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "83",
+    "name": "Himiko Toga",
+    "gender": "Mujer",
+    "value": "12800",
+    "source": "Boku no hero",
+    "img": [
+      "https://files.catbox.moe/bmk7lq.jpg",
+      "https://files.catbox.moe/l0aro5.jpg",
+      "https://files.catbox.moe/u693p5.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/4jmnxn.mp4",
+      "https://files.catbox.moe/cf6j5e.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "84",
+    "name": "Izuku Midoriya",
+    "gender": "Hombre",
+    "value": "12900",
+    "source": "Boku no hero",
+    "img": [
+      "https://files.catbox.moe/p742xf.jpg",
+      "https://files.catbox.moe/7fxkc2.jpg",
+      "https://files.catbox.moe/gjpw4o.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/uhl3wp.mp4",
+      "https://files.catbox.moe/l5zgaj.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "85",
+    "name": "Ochako Uraraka",
+    "gender": "Mujer",
+    "value": "12500",
+    "source": "Boku no hero",
+    "img": [
+      "https://files.catbox.moe/oj8var.jpg",
+      "https://files.catbox.moe/dqpbyf.jpg",
+      "https://files.catbox.moe/od6fc6.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/rtaetj.mp4",
+      "https://files.catbox.moe/gtzawo.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "86",
+    "name": "Denki Kaminari",
+    "gender": "Hombre",
+    "value": "10500",
+    "source": "Boku no hero",
+    "img": [
+      "https://files.catbox.moe/b1k3lg.jpg",
+      "https://files.catbox.moe/2e0zai.jpg",
+      "https://files.catbox.moe/y3j39i.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/jhorsp.mp4",
+      "https://files.catbox.moe/s68x28.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "87",
+    "name": "Maki Zenin",
+    "gender": "Mujer",
+    "value": "12900",
+    "source": "Jujutsu Kaisen",
+    "img": [
+      "https://files.catbox.moe/t563z0.jpg",
+      "https://files.catbox.moe/gw5p4g.jpg",
+      "https://files.catbox.moe/1abgvv.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/k1xmh8.mp4",
+      "https://files.catbox.moe/rnv2mk.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "88",
+    "name": "Megumi Fushiguro",
+    "gender": "Hombre",
+    "value": "13100",
+    "source": "Jujutsu Kaisen",
+    "img": [
+      "https://files.catbox.moe/wvlxi4.jpg",
+      "https://files.catbox.moe/0ka861.jpg",
+      "https://files.catbox.moe/9noev9.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/cb5uco.mp4",
+      "https://files.catbox.moe/wbrp0q.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "89",
+    "name": "Komi-San",
+    "gender": "Mujer",
+    "value": "13200",
+    "source": "Komi-san wa, Komyushō desu",
+    "img": [
+      "https://files.catbox.moe/5txidh.jpg",
+      "https://files.catbox.moe/ktr51j.jpg",
+      "https://files.catbox.moe/wygubi.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/sxl0zr.mp4",
+      "https://files.catbox.moe/6ep9bv.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "90",
+    "name": "Suguru Geto",
+    "gender": "Hombre",
+    "value": "13800",
+    "source": "Jujutsu Kaisen",
+    "img": [
+      "https://files.catbox.moe/8156zw.jpg",
+      "https://files.catbox.moe/d0849t.jpg",
+      "https://files.catbox.moe/5lma23.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/kkex3d.mp4",
+      "https://files.catbox.moe/sg2lnz.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "91",
+    "name": "Kyoko Hori",
+    "gender": "Mujer",
+    "value": "12800",
+    "source": "Horimiya",
+    "img": [
+      "https://files.catbox.moe/ehak2n.jpg",
+      "https://files.catbox.moe/00e3jn.jpg",
+      "https://files.catbox.moe/a6pvgr.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/2nfcug.mp4",
+      "https://files.catbox.moe/i45wsv.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "92",
+    "name": "Izumi Miyamura",
+    "gender": "Hombre",
+    "value": "12600",
+    "source": "Horimiya",
+    "img": [
+      "https://files.catbox.moe/nl75o3.jpg",
+      "https://files.catbox.moe/pp32e3.jpg",
+      "https://files.catbox.moe/zlr27c.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/dfk65h.mp4",
+      "https://files.catbox.moe/hxr2yc.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "93",
+    "name": "Rio Futaba",
+    "gender": "Mujer",
+    "value": "11500",
+    "source": "Seishun Buta Yarou wa Bunny Girl Senpai no Yume wo Minai",
+    "img": [
+      "https://files.catbox.moe/pmnslg.jpg",
+      "https://files.catbox.moe/5nhdw3.jpg",
+      "https://files.catbox.moe/uayzlc.png"
+    ],
+    "vid": [
+      "https://files.catbox.moe/x092bd.mp4",
+      "https://files.catbox.moe/yv8t48.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "94",
+    "name": "Akane Hououji",
+    "gender": "Mujer",
+    "value": "9800",
+    "source": "Megami No Cafe Terrace",
+    "img": [
+      "https://files.catbox.moe/uvesel.jpg",
+      "https://files.catbox.moe/lg0cjm.jpg",
+      "https://files.catbox.moe/0tfx0b.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/r12sx3.mp4",
+      "https://files.catbox.moe/qmlf9t.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "95",
+    "name": "Mai Sakurajima",
+    "gender": "Mujer",
+    "value": "13500",
+    "source": "Seishun Buta Yarou wa Bunny Girl Senpai no Yume wo Minai",
+    "img": [
+      "https://files.catbox.moe/92ypqu.jpg",
+      "https://files.catbox.moe/7albja.jpg",
+      "https://files.catbox.moe/2gx96m.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/ehp7f6.mp4",
+      "https://files.catbox.moe/yklp4p.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "96",
+    "name": "Yumeko Jabami",
+    "gender": "Mujer",
+    "value": "12900",
+    "source": "Kakegurui",
+    "img": [
+      "https://files.catbox.moe/ovyiqx.jpg",
+      "https://files.catbox.moe/fh8qig.jpg",
+      "https://files.catbox.moe/hhrmwy.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/eo4n59.mp4",
+      "https://files.catbox.moe/4q928r.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "97",
+    "name": "Diane",
+    "gender": "Mujer",
+    "value": "11800",
+    "source": "Nanatsu no Taizai",
+    "img": [
+      "https://files.catbox.moe/yeyaka.jpg",
+      "https://files.catbox.moe/6t7he8.jpg",
+      "https://files.catbox.moe/d8qjcv.png"
+    ],
+    "vid": [
+      "https://files.catbox.moe/o71xfg.mp4",
+      "https://files.catbox.moe/sb5rpb.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "98",
+    "name": "Killua Zoldyck",
+    "gender": "Hombre",
+    "value": "13900",
+    "source": "Hunter x Hunter",
+    "img": [
+      "https://files.catbox.moe/o47ubx.jpg",
+      "https://files.catbox.moe/nm6yjb.jpg",
+      "https://files.catbox.moe/87n4w3.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/jxhqar.mp4",
+      "https://files.catbox.moe/ckwrg3.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "99",
+    "name": "Itachi Uchiha",
+    "gender": "Hombre",
+    "value": "14500",
+    "source": "Naruto",
+    "img": [
+      "https://files.catbox.moe/dsy0za.png",
+      "https://files.catbox.moe/zfv6a2.jpg",
+      "https://files.catbox.moe/5j4hmh.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/kc8o06.mp4",
+      "https://files.catbox.moe/tsxf3s.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "100",
+    "name": "Hinata Hyuga",
+    "gender": "Mujer",
+    "value": "14159",
+    "source": "Naruto",
+    "img": [
+      "https://files.catbox.moe/u04t39.jpg",
+      "https://files.catbox.moe/1q68ip.jpg",
+      "https://files.catbox.moe/zd3pxi.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/7twuiv.mp4",
+      "https://files.catbox.moe/dy1hue.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "101",
+    "name": "Frieren",
+    "gender": "Mujer",
+    "value": "14300",
+    "source": "Sousou no Frieren",
+    "img": [
+      "https://files.catbox.moe/3z2pna.jpg",
+      "https://files.catbox.moe/5a6b8i.jpg",
+      "https://files.catbox.moe/c2mm6t.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/q6aus9.mp4",
+      "https://files.catbox.moe/8u6qqv.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "102",
+    "name": "Albedo",
+    "gender": "Mujer",
+    "value": "14187",
+    "source": "Overlord",
+    "img": [
+      "https://files.catbox.moe/3gx7bo.png",
+      "https://files.catbox.moe/bz2829.png",
+      "https://files.catbox.moe/nzfa27.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/6vlgyr.mp4",
+      "https://files.catbox.moe/l73m9a.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "103",
+    "name": "Ado",
+    "gender": "Mujer",
+    "value": "12800",
+    "source": "Vocaloid",
+    "img": [
+      "https://files.catbox.moe/58ajtk.jpg",
+      "https://files.catbox.moe/3end08.jpg",
+      "https://files.catbox.moe/dq9696.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/1x0qa0.mp4",
+      "https://files.catbox.moe/bgehqc.mp4"
+    ],
+    "user": null,
+    "status": "libre",
+    "votes": 0
+  },
+  {
+    "id": "104",
+    "name": "Hatsune Miku",
+    "gender": "Mujer",
+    "value": "15000",
+    "source": "Vocaloid",
+    "img": [
+      "https://files.catbox.moe/i0vaku.jpg",
+      "https://files.catbox.moe/fyr1xu.jpg",
+      "https://files.catbox.moe/qasix6.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/de6ztq.mp4",
+      "https://files.catbox.moe/0kig2x.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "105",
+    "name": "Nibelcole",
+    "gender": "Mujer",
+    "value": "8500",
+    "source": "Date a Live",
+    "img": [
+      "https://files.catbox.moe/wllfmi.jpg",
+      "https://files.catbox.moe/9j6bcs.jpg",
+      "https://files.catbox.moe/1l7la9.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/en6hex.mp4",
+      "https://files.catbox.moe/en6hex.mp4"
+    ],
+    "user": null,
+    "status": "libre",
+    "votes": 0
+  },
+  {
+    "id": "106",
+    "name": "Akane Kurokawa",
+    "gender": "Mujer",
+    "value": "12700",
+    "source": "Oshi no ko",
+    "img": [
+      "https://files.catbox.moe/96vl9t.jpg",
+      "https://files.catbox.moe/ng3z2k.jpg",
+      "https://files.catbox.moe/xj5t08.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/90cb3w.mp4",
+      "https://files.catbox.moe/a8u70w.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "107",
+    "name": "Akito Yamada",
+    "gender": "Hombre",
+    "value": "11000",
+    "source": "Yamada Kun to lvl999",
+    "img": [
+      "https://files.catbox.moe/w84gtr.jpg",
+      "https://files.catbox.moe/p3dy92.png",
+      "https://files.catbox.moe/9y26yf.png"
+    ],
+    "vid": [
+      "https://files.catbox.moe/zte6ph.mp4",
+      "https://files.catbox.moe/njwvbf.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "108",
+    "name": "Manjiro Sano",
+    "gender": "Hombre",
+    "value": "13100",
+    "source": "Tokyo Revengers",
+    "img": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742706993234.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742706983607.jpeg",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742706979359.jpeg"
+    ],
+    "vid": [
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742707004965.mp4",
+      "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742707000831.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "109",
+    "name": "Marín Kitagawa",
+    "gender": "Mujer",
+    "value": "14200",
+    "source": "My dress-up darling",
+    "img": [
+      "https://files.catbox.moe/3y8jpa.jpg",
+      "https://files.catbox.moe/zs1eb7.jpg",
+      "https://files.catbox.moe/xaqp4d.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/hozy21.mp4",
+      "https://files.catbox.moe/xu5qqv.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "110",
+    "name": "Kento Nanami",
+    "gender": "Hombre",
+    "value": "13500",
+    "source": "Jujutsu Kaisen",
+    "img": [
+      "https://files.catbox.moe/h7ajb1.jpg",
+      "https://files.catbox.moe/hl0vnr.jpg",
+      "https://files.catbox.moe/vxmfti.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/ln0hse.mp4",
+      "https://files.catbox.moe/vvfomx.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
+  {
+    "id": "111",
+    "name": "Yuki Tsukumo",
+    "gender": "Mujer",
+    "value": "11900",
+    "source": "Jujutsu Kaisen",
+    "img": [
+      "https://files.catbox.moe/860yos.jpg",
+      "https://files.catbox.moe/aa1258.jpg",
+      "https://files.catbox.moe/qubm1l.jpg"
+    ],
+    "vid": [
+      "https://files.catbox.moe/l7ew10.mp4",
+      "https://files.catbox.moe/opg66k.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+  },
    {
       "id": "112",
       "name": "Mitsuri Kanroji",
       "gender": "Mujer",
-      "value": "1879",
+      "value": "14155",
       "source": "Kimetsu No Yaiba",
       "img": [
          "https://files.catbox.moe/n37zyl.jpg",
@@ -2083,7 +2083,7 @@
       "id": "113",
       "name": "Mao Mao",
       "gender": "Mujer",
-      "value": "1924",
+      "value": "13980",
       "source": "Kusuriya no Hitorigoto",
       "img": [
          "https://files.catbox.moe/itnsxc.jpg",
@@ -2102,7 +2102,7 @@
       "id": "114",
       "name": "Daki",
       "gender": "Mujer",
-      "value": "1896",
+      "value": "13250",
       "source": "Kimetsu No Yaiba",
       "img": [
          "https://files.catbox.moe/pply1f.jpg",
@@ -2121,7 +2121,7 @@
       "id": "115",
       "name": "Yor Forger",
       "gender": "Mujer",
-      "value": "1890",
+      "value": "14192",
       "source": "SPY X FAMILY",
       "img": [
          "https://files.catbox.moe/u9bnm6.jpg",
@@ -2140,7 +2140,7 @@
       "id": "116",
       "name": "Tsunade Senju",
       "gender": "Mujer",
-      "value": "1975",
+      "value": "13850",
       "source": "Naruto",
       "img": [
          "https://files.catbox.moe/wmmv2h.jpg",
@@ -2159,7 +2159,7 @@
       "id": "117",
       "name": "Sakura Haruno",
       "gender": "Mujer",
-      "value": "1890",
+      "value": "12900",
       "source": "Naruto",
       "img": [
          "https://files.catbox.moe/qlsbx4.jpg",
@@ -2178,7 +2178,7 @@
       "id": "118",
       "name": "Akame",
       "gender": "Mujer",
-      "value": "1990",
+      "value": "13400",
       "source": "Akame ga Kill",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742694710892.jpeg",
@@ -2197,7 +2197,7 @@
       "id": "119",
       "name": "Najenda",
       "gender": "Mujer",
-      "value": "1980",
+      "value": "9800",
       "source": "Akame ga Kill",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742699701102.jpeg",
@@ -2216,7 +2216,7 @@
       "id": "120",
       "name": "Mine",
       "gender": "Mujer",
-      "value": "1970",
+      "value": "11500",
       "source": "Akame ga Kill",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742702124860.jpeg",
@@ -2235,7 +2235,7 @@
       "id": "121",
       "name": "Leone",
       "gender": "Mujer",
-      "value": "1960",
+      "value": "12200",
       "source": "Akame ga Kill",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742710015102.jpeg",
@@ -2254,7 +2254,7 @@
       "id": "122",
       "name": "Tatsumi",
       "gender": "Hombre",
-      "value": "1950",
+      "value": "11800",
       "source": "Akame ga Kill",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742704067046.jpeg",
@@ -2273,7 +2273,7 @@
       "id": "123",
       "name": "Esdeath",
       "gender": "Mujer",
-      "value": "1980",
+      "value": "14160",
       "source": "Akame ga Kill",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742706074608.jpeg",
@@ -2292,7 +2292,7 @@
       "id": "124",
       "name": "Chelsea",
       "gender": "Mujer",
-      "value": "1970",
+      "value": "10800",
       "source": "Akame ga Kill",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742706585535.jpeg",
@@ -2311,7 +2311,7 @@
       "id": "125",
       "name": "Sheele",
       "gender": "Mujer",
-      "value": "1910",
+      "value": "9500",
       "source": "Akame ga Kill",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742706781186.jpeg",
@@ -2330,7 +2330,7 @@
       "id": "126",
       "name": "Kurome",
       "gender": "Mujer",
-      "value": "1910",
+      "value": "10200",
       "source": "Akame ga kill",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742707046158.jpeg",
@@ -2349,7 +2349,7 @@
       "id": "127",
       "name": "Susanoo",
       "gender": "Hombre",
-      "value": "1910",
+      "value": "8800",
       "source": "Akame ga kill",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742707140466.jpeg",
@@ -2368,7 +2368,7 @@
       "id": "128",
       "name": "Seryuu Ubiquitous",
       "gender": "Mujer",
-      "value": "1920",
+      "value": "7500",
       "source": "Akame ga kill",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742707341777.jpeg",
@@ -2387,7 +2387,7 @@
       "id": "129",
       "name": "Lubbock",
       "gender": "Hombre",
-      "value": "1910",
+      "value": "10500",
       "source": "Akame ga kill",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742707505669.jpeg",
@@ -2406,7 +2406,7 @@
       "id": "130",
       "name": "Miku Nakano",
       "gender": "Mujer",
-      "value": "1980",
+      "value": "14180",
       "source": "Gotoubun no Hanayome",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742709290420.jpeg",
@@ -2425,7 +2425,7 @@
       "id": "131",
       "name": "Ruka Sarashina",
       "gender": "Mujer",
-      "value": "1960",
+      "value": "12800",
       "source": "Kajono Okarishimasu",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742707919638.jpeg",
@@ -2444,7 +2444,7 @@
       "id": "132",
       "name": "Ayano Kimishima",
       "gender": "Mujer",
-      "value": "1890",
+      "value": "9500",
       "source": "Tokidoki Bosotto Russia-go de Dereru Tonari no Alya-san",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742708042526.jpeg",
@@ -2463,7 +2463,7 @@
       "id": "133",
       "name": "Kuroka",
       "gender": "Mujer",
-      "value": "1910",
+      "value": "11900",
       "source": "High School DxD",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742708243781.jpeg",
@@ -2482,7 +2482,7 @@
       "id": "134",
       "name": "Yotsuba Nakano",
       "gender": "Mujer",
-      "value": "1970",
+      "value": "13700",
       "source": "Gotoubun no Hanayome",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742708388454.jpeg",
@@ -2501,7 +2501,7 @@
       "id": "135",
       "name": "Artur Leywin",
       "gender": "Hombre",
-      "value": "1880",
+      "value": "12500",
       "source": "The Beginning After the End",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742706417738.jpeg",
@@ -2520,7 +2520,7 @@
       "id": "136",
       "name": "Ichika Nakano",
       "gender": "Mujer",
-      "value": "1970",
+      "value": "12800",
       "source": "Gotoubun no Hanayome",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703367912.jpeg",
@@ -2539,7 +2539,7 @@
       "id": "137",
       "name": "Tohka Yatogami",
       "gender": "Mujer",
-      "value": "1970",
+      "value": "13500",
       "source": "Date A Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742708843694.jpeg",
@@ -2558,7 +2558,7 @@
       "id": "138",
       "name": "Origami Tobiichi",
       "gender": "Mujer",
-      "value": "2200",
+      "value": "13100",
       "source": "Date A Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742709462782.jpeg",
@@ -2577,7 +2577,7 @@
       "id": "139",
       "name": "White Queen",
       "gender": "Mujer",
-      "value": "1950",
+      "value": "11500",
       "source": "Date A Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742709659395.jpeg",
@@ -2596,7 +2596,7 @@
       "id": "140",
       "name": "Kotori Itsuka",
       "gender": "Mujer",
-      "value": "1940",
+      "value": "12200",
       "source": "Date A Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742709838236.jpeg",
@@ -2615,7 +2615,7 @@
       "id": "141",
       "name": "Natsumi Kyouno",
       "gender": "Mujer",
-      "value": "1920",
+      "value": "10900",
       "source": "Date A Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742710057287.jpeg",
@@ -2634,7 +2634,7 @@
       "id": "142",
       "name": "Nia Honjou",
       "gender": "Mujer",
-      "value": "1900",
+      "value": "10800",
       "source": "Date A Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742710194926.jpeg",
@@ -2653,7 +2653,7 @@
       "id": "143",
       "name": "Venti",
       "gender": "Hombre",
-      "value": "1860",
+      "value": "13900",
       "source": "Geshin Impact",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742710722309.jpeg",
@@ -2672,7 +2672,7 @@
       "id": "144",
       "name": "Eula",
       "gender": "Mujer",
-      "value": "1980",
+      "value": "13800",
       "source": "Geshin Impact",
       "img": [
          "https://files.catbox.moe/ildc2d.jpg",
@@ -2691,7 +2691,7 @@
       "id": "145",
       "name": "Nilou",
       "gender": "Mujer",
-      "value": "1890",
+      "value": "13200",
       "source": "Geshin Impact",
       "img": [
          "https://files.catbox.moe/k6how5.jpg",
@@ -2710,7 +2710,7 @@
       "id": "146",
       "name": "Yae Miko",
       "gender": "Mujer",
-      "value": "1940",
+      "value": "14160",
       "source": "Geshin Impact",
       "img": [
          "https://files.catbox.moe/hun9fl.jpg",
@@ -2729,7 +2729,7 @@
       "id": "147",
       "name": "Destiny",
       "gender": "Mujer",
-      "value": "2200",
+      "value": "12500",
       "source": "Takt Op.Destiny",
       "img": [
          "https://files.catbox.moe/vg3bjk.jpg",
@@ -2748,7 +2748,7 @@
       "id": "148",
       "name": "Titan",
       "gender": "Mujer",
-      "value": "1940",
+      "value": "9000",
       "source": "Takt Op.Destiny",
       "img": [
          "https://files.catbox.moe/evy41c.jpg",
@@ -2767,7 +2767,7 @@
       "id": "149",
       "name": "Takt Asahina",
       "gender": "Hombre",
-      "value": "1910",
+      "value": "9500",
       "source": "Takt Op.Destiny",
       "img": [
          "https://files.catbox.moe/o22vt5.jpg",
@@ -2786,7 +2786,7 @@
       "id": "150",
       "name": "Valkyrie",
       "gender": "Mujer",
-      "value": "1840",
+      "value": "8500",
       "source": "Takt Op.Destiny",
       "img": [
          "https://files.catbox.moe/5zsuv9.jpg",
@@ -2805,7 +2805,7 @@
       "id": "151",
       "name": "Mahiru Shiina",
       "gender": "Mujer",
-      "value": "1960",
+      "value": "13900",
       "source": "Otonari no Tenshi-sama ni Itsunomanika Dame Ningen ni Sareteita Ken",
       "img": [
          "https://files.catbox.moe/s01djf.jpg",
@@ -2824,7 +2824,7 @@
       "id": "152",
       "name": "Anna Schneider",
       "gender": "Mujer",
-      "value": "1870",
+      "value": "8800",
       "source": "Takt Op.Destiny",
       "img": [
          "https://files.catbox.moe/1pk21p.jpg",
@@ -2843,7 +2843,7 @@
       "id": "153",
       "name": "Elfaria Albis Serfort",
       "gender": "Mujer",
-      "value": "1950",
+      "value": "11500",
       "source": "Tsue to Tsurugi no Wistoria",
       "img": [
          "https://files.catbox.moe/5gxx3y.jpg",
@@ -2862,7 +2862,7 @@
       "id": "154",
       "name": "Siesta",
       "gender": "Mujer",
-      "value": "2200",
+      "value": "13800",
       "source": "Tantei wa Mou, Shindeiru",
       "img": [
          "https://files.catbox.moe/9fd5q2.jpg",
@@ -2881,7 +2881,7 @@
       "id": "155",
       "name": "Nagisa Natsunagi",
       "gender": "Mujer",
-      "value": "1800",
+      "value": "11200",
       "source": "Tantei wa Mou, Shindeiru",
       "img": [
          "https://files.catbox.moe/tq59ys.jpg",
@@ -2900,7 +2900,7 @@
       "id": "156",
       "name": "Charlotte Arisaka Anderson",
       "gender": "mujer",
-      "value": "1800",
+      "value": "10500",
       "source": "Tantei wa Mou, Shindeiru",
       "img": [
          "https://files.catbox.moe/ibsh2t.jpg",
@@ -2919,7 +2919,7 @@
       "id": "157",
       "name": "Fuubi Kase",
       "gender": "Mujer",
-      "value": "1700",
+      "value": "8500",
       "source": "Tantei wa Mou, Shindeiru",
       "img": [
          "https://files.catbox.moe/js3x51.jpg",
@@ -2938,7 +2938,7 @@
       "id": "158",
       "name": "Yui Saikawa",
       "gender": "Mujer",
-      "value": "1800",
+      "value": "8900",
       "source": "Tantei wa Mou, Shindeiru",
       "img": [
          "https://files.catbox.moe/t9q4cd.jpg",
@@ -2957,7 +2957,7 @@
       "id": "159",
       "name": "Kimihiko Kimizuka",
       "gender": "Hombre",
-      "value": "1700",
+      "value": "8200",
       "source": "Tantei wa Mou, Shindeiru",
       "img": [
          "https://files.catbox.moe/cfwif8.jpg",
@@ -2976,7 +2976,7 @@
       "id": "160",
       "name": "Adam",
       "gender": "Hombre",
-      "value": "2060",
+      "value": "13950",
       "source": "Record Of Ragnarok",
       "img": [
          "https://files.catbox.moe/vy59uc.jpg",
@@ -2995,7 +2995,7 @@
       "id": "161",
       "name": "Eva",
       "gender": "Mujer",
-      "value": "1960",
+      "value": "9500",
       "source": "Record Of Ragnarok",
       "img": [
          "https://files.catbox.moe/va0yyi.jpg",
@@ -3014,7 +3014,7 @@
       "id": "162",
       "name": "Shogun Raiden",
       "gender": "Mujer",
-      "value": "1910",
+      "value": "14199",
       "source": "Genshin Impact",
       "img": [
          "https://files.catbox.moe/1mjli7.jpg",
@@ -3033,7 +3033,7 @@
       "id": "163",
       "name": "Rías Gremory",
       "gender": "Mujer",
-      "value": "1930",
+      "value": "14190",
       "source": "High School DxD",
       "img": [
          "https://files.catbox.moe/pqw872.jpg",
@@ -3052,7 +3052,7 @@
       "id": "164",
       "name": "Koneko Toujou",
       "gender": "Mujer",
-      "value": "1920",
+      "value": "12900",
       "source": "High School DxD",
       "img": [
          "https://files.catbox.moe/2t5y12.jpg",
@@ -3071,7 +3071,7 @@
       "id": "165",
       "name": "Rossweisse",
       "gender": "Mujer",
-      "value": "1880",
+      "value": "11500",
       "source": "High School DxD",
       "img": [
          "https://files.catbox.moe/74w797.jpg",
@@ -3090,7 +3090,7 @@
       "id": "166",
       "name": "Xenovia Quarta",
       "gender": "Mujer",
-      "value": "1880",
+      "value": "11800",
       "source": "High School DxD",
       "img": [
          "https://files.catbox.moe/qfuzxr.jpg",
@@ -3109,7 +3109,7 @@
       "id": "167",
       "name": "Grayfia Lucifuge",
       "gender": "Mujer",
-      "value": "1880",
+      "value": "10500",
       "source": "High School DxD",
       "img": [
          "https://files.catbox.moe/hcb24u.jpg",
@@ -3128,7 +3128,7 @@
       "id": "168",
       "name": "Yasaka",
       "gender": "Mujer",
-      "value": "1790",
+      "value": "10200",
       "source": "High School DxD",
       "img": [
          "https://files.catbox.moe/i98ujy.jpg",
@@ -3147,7 +3147,7 @@
       "id": "169",
       "name": "Irina Shidou",
       "gender": "Mujer",
-      "value": "1880",
+      "value": "10500",
       "source": "High School DxD",
       "img": [
          "https://files.catbox.moe/pz64y6.jpg",
@@ -3166,7 +3166,7 @@
       "id": "170",
       "name": "Kyouka Uzen",
       "gender": "Mujer",
-      "value": "1890",
+      "value": "14165",
       "source": "Mato Seihei no Slave",
       "img": [
          "https://files.catbox.moe/id16ks.jpg",
@@ -3185,7 +3185,7 @@
       "id": "171",
       "name": "Tenka Izumo",
       "gender": "Mujer",
-      "value": "1890",
+      "value": "14179",
       "source": "Mato Seihei no Slave",
       "img": [
          "https://files.catbox.moe/9228xi.jpg",
@@ -3204,7 +3204,7 @@
       "id": "172",
       "name": "Venelana Gremory",
       "gender": "Mujer",
-      "value": "1790",
+      "value": "9800",
       "source": "High School DxD",
       "img": [
          "https://files.catbox.moe/4pczsv.jpg",
@@ -3223,7 +3223,7 @@
       "id": "173",
       "name": "Asia Argento",
       "gender": "Mujer",
-      "value": "1890",
+      "value": "12100",
       "source": "High School DxD",
       "img": [
          "https://files.catbox.moe/4c0iwe.jpg",
@@ -3242,7 +3242,7 @@
       "id": "174",
       "name": "Issei Hyoudou",
       "gender": "Hombre",
-      "value": "1780",
+      "value": "12800",
       "source": "High School DxD",
       "img": [
          "https://files.catbox.moe/c1y802.jpg",
@@ -3261,7 +3261,7 @@
       "id": "175",
       "name": "Ren Yamashiro",
       "gender": "Mujer",
-      "value": "1890",
+      "value": "8500",
       "source": "Mato Seihei no Slave",
       "img": [
          "https://files.catbox.moe/mu3it8.jpg",
@@ -3280,7 +3280,7 @@
       "id": "176",
       "name": "Himari azuma",
       "gender": "Mujer",
-      "value": "1870",
+      "value": "8200",
       "source": "Mato Seihei no Slave",
       "img": [
          "https://files.catbox.moe/2pxydf.jpg",
@@ -3299,7 +3299,7 @@
       "id": "177",
       "name": "Vladilena Milizè",
       "gender": "Mujer",
-      "value": "1890",
+      "value": "12800",
       "source": "Eighty Six",
       "img": [
          "https://cdnmega.vercel.app/media/V9wzgYja@rMrj-FQpULzKG_DR1KRJ7haEg_WZz62t-lOGbh5SUu8",
@@ -3318,7 +3318,7 @@
       "id": "178",
       "name": "Kousaka, Kirino",
       "gender": "Mujer",
-      "value": "1700",
+      "value": "9500",
       "source": "Oreimo",
       "img": [
          "https://cdnmega.vercel.app/media/08ICnZgQ@CmYyvRY2k2KTQkZyhenYnF1lK81hBL0SMfdzwuXPlI8",
@@ -3337,7 +3337,7 @@
       "id": "179",
       "name": "Suzune Horikita",
       "gender": "Mujer",
-      "value": "1870",
+      "value": "11200",
       "source": "Class Room Elite",
       "img": [
          "https://files.catbox.moe/osfhla.jpg",
@@ -3356,7 +3356,7 @@
       "id": "180",
       "name": "Shinoa hiiragi",
       "gender": "Mujer",
-      "value": "1880",
+      "value": "11800",
       "source": "Owari no Seraph",
       "img": [
          "https://files.catbox.moe/olgggs.jpg",
@@ -3375,7 +3375,7 @@
       "id": "181",
       "name": "Suzu Hoshizuki",
       "gender": "Mujer",
-      "value": "2090",
+      "value": "7500",
       "source": "Kaede to Suzu",
       "img": [
          "https://files.catbox.moe/d3g208.jpg",
@@ -3394,7 +3394,7 @@
       "id": "182",
       "name": "Kaede Hoshizuki",
       "gender": "Mujer",
-      "value": "2090",
+      "value": "7500",
       "source": "Kaede to Suzu",
       "img": [
          "https://files.catbox.moe/kprem4.jpg",
@@ -3413,7 +3413,7 @@
       "id": "183",
       "name": "Yachiho Azuma",
       "gender": "Mujer",
-      "value": "1800",
+      "value": "7800",
       "source": "Mato Seihei no Slave",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742090237896.jpeg",
@@ -3432,7 +3432,7 @@
       "id": "184",
       "name": "Miku Izayoi",
       "gender": "Mujer",
-      "value": "1830",
+      "value": "9800",
       "source": "Date a Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742101324845.jpeg",
@@ -3451,7 +3451,7 @@
       "id": "185",
       "name": "Reine Murasame",
       "gender": "Mujer",
-      "value": "1900",
+      "value": "8900",
       "source": "Date a Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742102279257.jpeg",
@@ -3470,7 +3470,7 @@
       "id": "186",
       "name": "Mio Takamiya",
       "gender": "Mujer",
-      "value": "1800",
+      "value": "11500",
       "source": "Date a Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742102478329.jpeg",
@@ -3489,7 +3489,7 @@
       "id": "187",
       "name": "Ryouko kusakabe",
       "gender": "Mujer",
-      "value": "1830",
+      "value": "6000",
       "source": "Date a live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742102982578.jpeg",
@@ -3508,7 +3508,7 @@
       "id": "188",
       "name": "Yoshino Hinekaka",
       "gender": "Mujer",
-      "value": "1800",
+      "value": "9200",
       "source": "Date a Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742103397702.jpeg",
@@ -3527,7 +3527,7 @@
       "id": "189",
       "name": "Yuzuru Yamai",
       "gender": "Mujer",
-      "value": "1800",
+      "value": "8800",
       "source": "Date a Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742104020737.jpeg",
@@ -3546,7 +3546,7 @@
       "id": "190",
       "name": "Kaguya Yamai",
       "gender": "Mujer",
-      "value": "1800",
+      "value": "8800",
       "source": "Date a Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742104937309.jpeg",
@@ -3565,7 +3565,7 @@
       "id": "191",
       "name": "Ellen Mira Mathers",
       "gender": "Mujer",
-      "value": "1820",
+      "value": "6500",
       "source": "Date a Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742105670581.jpeg",
@@ -3584,7 +3584,7 @@
       "id": "192",
       "name": "Shidou Itsuka",
       "gender": "Hombre",
-      "value": "1700",
+      "value": "7000",
       "source": "Date a Live",
       "img": [
          "https://files.catbox.moe/te5bsk.jpg",
@@ -3603,7 +3603,7 @@
       "id": "193",
       "name": "Mayuri",
       "gender": "Mujer",
-      "value": "1840",
+      "value": "8500",
       "source": "Date a Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742106418707.jpeg",
@@ -3622,7 +3622,7 @@
       "id": "194",
       "name": "Rinne Sonogami",
       "gender": "Mujer",
-      "value": "1870",
+      "value": "8600",
       "source": "Date a Live",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742107481861.jpeg",
@@ -3641,7 +3641,7 @@
       "id": "195",
       "name": "Aashii kedarui",
       "gender": "Mujer",
-      "value": "1726",
+      "value": "8500",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742244091468.jpeg",
@@ -3657,7 +3657,7 @@
       "id": "196",
       "name": "Megumin",
       "gender": "Mujer",
-      "value": "1835",
+      "value": "14150",
       "source": "Konosuba",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742148356077.jpeg",
@@ -3676,7 +3676,7 @@
       "id": "197",
       "name": "Aqua",
       "gender": "Mujer",
-      "value": "1811",
+      "value": "13900",
       "source": "Konosuba",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742148914372.jpeg",
@@ -3695,7 +3695,7 @@
       "id": "198",
       "name": "Eris",
       "gender": "Mujer",
-      "value": "1935",
+      "value": "12500",
       "source": "Konosuba",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742149292226.jpeg",
@@ -3714,7 +3714,7 @@
       "id": "199",
       "name": "Vanir",
       "gender": "Hombre",
-      "value": "1647",
+      "value": "9500",
       "source": "Konosuba",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742160371877.jpeg",
@@ -3733,7 +3733,7 @@
       "id": "200",
       "name": "Komekko",
       "gender": "Mujer",
-      "value": "1514",
+      "value": "8000",
       "source": "Konosuba",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742160515084.jpeg",
@@ -3752,7 +3752,7 @@
       "id": "201",
       "name": "Arnes",
       "gender": "Mujer",
-      "value": "1285",
+      "value": "6000",
       "source": "Konosuba",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742160740729.jpeg",
@@ -3771,7 +3771,7 @@
       "id": "202",
       "name": "Chris",
       "gender": "Mujer",
-      "value": "1919",
+      "value": "11000",
       "source": "Konosuba",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742161142928.jpeg",
@@ -3790,7 +3790,7 @@
       "id": "203",
       "name": "Chomusuke",
       "gender": "Desconocido",
-      "value": "1839",
+      "value": "12000",
       "source": "konosuba",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742160941836.jpeg",
@@ -3809,7 +3809,7 @@
       "id": "204",
       "name": "Wiz",
       "gender": "Mujer",
-      "value": "1803",
+      "value": "11500",
       "source": "Konosuba",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742149159516.jpeg",
@@ -3828,7 +3828,7 @@
       "id": "205",
       "name": "Darkness",
       "gender": "Mujer",
-      "value": "1840",
+      "value": "13500",
       "source": "Konosuba",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742164304942.jpeg",
@@ -3847,7 +3847,7 @@
       "id": "206",
       "name": "Kasuma Satou",
       "gender": "Hombre",
-      "value": "1368",
+      "value": "12800",
       "source": "Konosuba",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742165262767.jpeg",
@@ -3866,7 +3866,7 @@
       "id": "207",
       "name": "Yunyun",
       "gender": "Mujer",
-      "value": "1983",
+      "value": "11200",
       "source": "Konosuba",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742165521281.jpeg",
@@ -3885,7 +3885,7 @@
       "id": "208",
       "name": "Ninym Ralei",
       "gender": "Mujer",
-      "value": "1987",
+      "value": "7500",
       "source": "Tensai Ouji no Akaji Kokka Saisei Jutsu",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742166162380.jpeg",
@@ -3904,7 +3904,7 @@
       "id": "209",
       "name": "Zenobia Marden",
       "gender": "Mujer",
-      "value": "1837",
+      "value": "5000",
       "source": "Tensai Ouji no Akaji Kokka Saisei Jutsu",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742171375643.jpeg",
@@ -3923,7 +3923,7 @@
       "id": "210",
       "name": "Lowellmina Earhwold",
       "gender": "Mujer",
-      "value": "1986",
+      "value": "6000",
       "source": "Tensai Ouji no Akaji Kokka Saisei Jutsu",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742172058024.jpeg",
@@ -3942,7 +3942,7 @@
       "id": "211",
       "name": "Falanya Elk Arbalest",
       "gender": "Mujer",
-      "value": "1778",
+      "value": "5500",
       "source": "Tensai Ouji no Akaji Kokka Saisei Jutsu",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742172702025.jpeg",
@@ -3961,7 +3961,7 @@
       "id": "212",
       "name": "Wein Salema Arbalest",
       "gender": "Hombre",
-      "value": "1305",
+      "value": "6500",
       "source": "Tensai Ouji no Akaji kokka Saisei Jutsu",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742173646311.jpeg",
@@ -3980,7 +3980,7 @@
       "id": "213",
       "name": "Ellen Joe",
       "gender": "Mujer",
-      "value": "1948",
+      "value": "13800",
       "source": "Zenless zone Zero",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742232387204.jpeg",
@@ -3999,7 +3999,7 @@
       "id": "214",
       "name": "Vermeil",
       "gender": "Mujer",
-      "value": "1943",
+      "value": "9500",
       "source": "Kinsou no Vermeil",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742232615129.jpeg",
@@ -4018,7 +4018,7 @@
       "id": "215",
       "name": "Nano Eiai",
       "gender": "Mujer",
-      "value": "1882",
+      "value": "10500",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742234138714.jpeg",
@@ -4037,7 +4037,7 @@
       "id": "216",
       "name": "Hakari Hanazono",
       "gender": "Mujer",
-      "value": "1890",
+      "value": "10000",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742235222116.jpeg",
@@ -4056,7 +4056,7 @@
       "id": "217",
       "name": "Karane Inda",
       "gender": "Mujer",
-      "value": "1782",
+      "value": "10200",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742235108951.jpeg",
@@ -4075,7 +4075,7 @@
       "id": "218",
       "name": "Shizuka Yoshimoto",
       "gender": "Mujer",
-      "value": "1703",
+      "value": "9000",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742236523479.jpeg",
@@ -4094,7 +4094,7 @@
       "id": "219",
       "name": "Hahari Hanazono",
       "gender": "Mujer",
-      "value": "1820",
+      "value": "9800",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742236903343.jpeg",
@@ -4113,7 +4113,7 @@
       "id": "220",
       "name": "Meme Kakure",
       "gender": "Mujer",
-      "value": "1748",
+      "value": "8800",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742238683678.jpeg",
@@ -4132,7 +4132,7 @@
       "id": "221",
       "name": "Rentarou Aijou",
       "gender": "Hombre",
-      "value": "1880",
+      "value": "8000",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742239319820.jpeg",
@@ -4151,7 +4151,7 @@
       "id": "222",
       "name": "Meí Meido",
       "gender": "Mujer",
-      "value": "1700",
+      "value": "8200",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742243224887.jpeg",
@@ -4170,7 +4170,7 @@
       "id": "223",
       "name": "Emily Kang",
       "gender": "Mujer",
-      "value": "1908",
+      "value": "6500",
       "source": "Circles",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742257223799.jpeg",
@@ -4186,7 +4186,7 @@
       "id": "224",
       "name": "Gina Baek",
       "gender": "Mujer",
-      "value": "1904",
+      "value": "5500",
       "source": "Circles",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742349016537.jpeg",
@@ -4202,7 +4202,7 @@
       "id": "225",
       "name": "Emma Kim",
       "gender": "Mujer",
-      "value": "1896",
+      "value": "5200",
       "source": "Circles",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742349530875.jpeg",
@@ -4218,7 +4218,7 @@
       "id": "226",
       "name": "Yelena Yerin",
       "gender": "Mujer",
-      "value": "1828",
+      "value": "6800",
       "source": "Circles",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742349816801.jpeg",
@@ -4234,7 +4234,7 @@
       "id": "227",
       "name": "Yaku Yakuzen",
       "gender": "Mujer",
-      "value": "1941",
+      "value": "7000",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742429727916.jpeg",
@@ -4250,7 +4250,7 @@
       "id": "228",
       "name": "Kusuri Yakuzen",
       "gender": "Mujer",
-      "value": "1655",
+      "value": "8300",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742430128402.jpeg",
@@ -4269,7 +4269,7 @@
       "id": "229",
       "name": "Tama Nekomari",
       "gender": "Mujer",
-      "value": "1602",
+      "value": "7800",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742431836232.jpeg",
@@ -4285,7 +4285,7 @@
       "id": "230",
       "name": "Momoha Bonnouji",
       "gender": "Mujer",
-      "value": "1767",
+      "value": "8100",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742432436230.jpeg",
@@ -4304,7 +4304,7 @@
       "id": "231",
       "name": "Mimimi Utsukushisugi",
       "gender": "Mujer",
-      "value": "1772",
+      "value": "8600",
       "source": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742435120182.jpeg",
@@ -4323,7 +4323,7 @@
       "id": "232",
       "name": "Sara Song",
       "gender": "Mujer",
-      "value": "1839",
+      "value": "5100",
       "source": "Circles",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742447193544.jpeg",
@@ -4339,7 +4339,7 @@
       "id": "233",
       "name": "Capitano",
       "gender": "Hombre",
-      "value": "1200",
+      "value": "12500",
       "source": "Geshin Impact",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742508023756.jpeg",
@@ -4355,7 +4355,7 @@
       "id": "234",
       "name": "Sōsuke Aizen",
       "gender": "Hombre",
-      "value": "1693",
+      "value": "13800",
       "source": "Bleach",
       "img": [
          "https://files.catbox.moe/qf45ap.jpg",
@@ -4371,7 +4371,7 @@
       "id": "235",
       "name": "Kokushibo",
       "gender": "Hombre",
-      "value": "1710",
+      "value": "11500",
       "source": "Demon Slayer",
       "img": [
          "https://files.catbox.moe/y77rbe.jpg",
@@ -4387,7 +4387,7 @@
       "id": "236",
       "name": "Mavuika",
       "gender": "Mujer",
-      "value": "1780",
+      "value": "13500",
       "source": "Geshin Impact",
       "img": [
          "https://files.catbox.moe/0mwj9u.jpeg",
@@ -4406,7 +4406,7 @@
       "id": "237",
       "name": "Sebastián Michaelis",
       "gender": "Hombre",
-      "value": "1500",
+      "value": "12000",
       "source": "Black Butler",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742710600212.jpeg",
@@ -4422,7 +4422,7 @@
       "id": "238",
       "name": "Natsumi",
       "gender": "Mujer",
-      "value": "1984",
+      "value": "4000",
       "source": "Shunka Shuutou",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742614713248.jpeg",
@@ -4441,7 +4441,7 @@
       "id": "239",
       "name": "Miharu Aragaki",
       "gender": "Mujer",
-      "value": "1869",
+      "value": "4200",
       "source": "Shunka Shuutou",
       "img": [
          "https://files.catbox.moe/pb14fk.jpg",
@@ -4460,7 +4460,7 @@
       "id": "240",
       "name": "Kurl Tepes",
       "gender": "Mujer",
-      "value": "1842",
+      "value": "11800",
       "source": "Owari no Seraph",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742615959663.jpeg",
@@ -4479,7 +4479,7 @@
       "id": "241",
       "name": "Itsuki Nakano",
       "gender": "Mujer",
-      "value": "1880",
+      "value": "13540",
       "source": "Gotoubun no Hanayome",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742703337365.jpeg",
@@ -4498,7 +4498,7 @@
       "id": "242",
       "name": "Kaguya Shinomiya",
       "gender": "Mujer",
-      "value": "1916",
+      "value": "14120",
       "source": "Kaguya-Sama",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742687771164.jpeg",
@@ -4517,7 +4517,7 @@
       "id": "243",
       "name": "Soi Fon",
       "gender": "Mujer",
-      "value": "1878",
+      "value": "11950",
       "source": "Bleach",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742740867362.jpeg",
@@ -4536,7 +4536,7 @@
       "id": "244",
       "name": "Son Goku",
       "gender": "Hombre",
-      "value": "1857",
+      "value": "15090",
       "source": "Dragón ball",
       "img": [
          "https://files.catbox.moe/1v15t7.jpg",
@@ -4552,7 +4552,7 @@
       "id": "245",
       "name": "Chi chi",
       "gender": "Mujer",
-      "value": "1874",
+      "value": "11200",
       "source": "Dragón ball",
       "img": [
          "https://files.catbox.moe/17d2bh.jpg",
@@ -4568,7 +4568,7 @@
       "id": "246",
       "name": "Cell",
       "gender": "Hombre",
-      "value": "1858",
+      "value": "12500",
       "source": "Dragón ball",
       "img": [
          "https://files.catbox.moe/iylzl4.jpg",
@@ -4584,7 +4584,7 @@
       "id": "247",
       "name": "Astolfo",
       "gender": "Hombre",
-      "value": "1609",
+      "value": "14120",
       "source": "fate",
       "img": [
          "https://files.catbox.moe/9k81u0.jpg",
@@ -4600,7 +4600,7 @@
       "id": "248",
       "name": "Kurosaki Ichigo",
       "gender": "Hombre",
-      "value": "1424",
+      "value": "14210",
       "source": "Bleach",
       "img": [
          "https://files.catbox.moe/unmjhb.jpeg",
@@ -4616,7 +4616,7 @@
       "id": "249",
       "name": "Kazuto Kirigaya",
       "gender": "Hombre",
-      "value": "1953",
+      "value": "13950",
       "source": "Sword Art Online",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742739789271.jpeg",
@@ -4635,7 +4635,7 @@
       "id": "250",
       "name": "Akeno Himejima",
       "gender": "Mujer",
-      "value": "1870",
+      "value": "13400",
       "source": "High School DxD",
       "img": [
          "https://files.catbox.moe/wyqqo0.jpg",
@@ -4654,7 +4654,7 @@
       "id": "251",
       "name": "Roxy Migurdia",
       "gender": "Mujer",
-      "value": "2048",
+      "value": "14185",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742785521927.jpeg",
@@ -4673,7 +4673,7 @@
       "id": "252",
       "name": "Orsted",
       "gender": "Hombre",
-      "value": "1935",
+      "value": "12800",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742786124522.jpeg",
@@ -4692,7 +4692,7 @@
       "id": "253",
       "name": "Eris Boreas Greyrat",
       "gender": "Mujer",
-      "value": "2041",
+      "value": "14160",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742786526694.jpeg",
@@ -4711,7 +4711,7 @@
       "id": "254",
       "name": "Rudeus Greyrat",
       "gender": "Hombre",
-      "value": "1988",
+      "value": "13800",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742785719007.jpeg",
@@ -4730,7 +4730,7 @@
       "id": "255",
       "name": "Sylphiette",
       "gender": "Mujer",
-      "value": "1969",
+      "value": "14050",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742785629780.jpeg",
@@ -4749,7 +4749,7 @@
       "id": "256",
       "name": "Rinia Dedoldia",
       "gender": "Mujer",
-      "value": "1896",
+      "value": "10500",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742785951042.jpeg",
@@ -4768,7 +4768,7 @@
       "id": "257",
       "name": "Pursena Adoldia",
       "gender": "Mujer",
-      "value": "1887",
+      "value": "10450",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742785894392.jpeg",
@@ -4787,7 +4787,7 @@
       "id": "258",
       "name": "Ghislaine Dedoldia",
       "gender": "Mujer",
-      "value": "1876",
+      "value": "13100",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742842481170.jpeg",
@@ -4803,7 +4803,7 @@
       "id": "259",
       "name": "Aisha Greyrat",
       "gender": "Mujer",
-      "value": "1901",
+      "value": "11800",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742843278893.jpeg",
@@ -4819,7 +4819,7 @@
       "id": "260",
       "name": "Lara Greyrat",
       "gender": "Mujer",
-      "value": "1886",
+      "value": "11200",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742843517322.jpeg",
@@ -4835,7 +4835,7 @@
       "id": "261",
       "name": "Christina Greyrat",
       "gender": "Mujer",
-      "value": "1866",
+      "value": "9800",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742844053135.jpeg",
@@ -4851,7 +4851,7 @@
       "id": "262",
       "name": "Kirino Nakatsukasa",
       "gender": "Mujer",
-      "value": "1937",
+      "value": "10900",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742844435702.jpeg",
@@ -4870,7 +4870,7 @@
       "id": "263",
       "name": "Rio",
       "gender": "Mujer",
-      "value": "1990",
+      "value": "13300",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742844765306.jpeg",
@@ -4889,7 +4889,7 @@
       "id": "264",
       "name": "Asuna",
       "gender": "Mujer",
-      "value": "1972",
+      "value": "14192",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742844974843.jpeg",
@@ -4908,7 +4908,7 @@
       "id": "265",
       "name": "Arisu",
       "gender": "Mujer",
-      "value": "1990",
+      "value": "13600",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742845396332.jpeg",
@@ -4927,7 +4927,7 @@
       "id": "266",
       "name": "Sara",
       "gender": "Mujer",
-      "value": "1978",
+      "value": "10200",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742845867524.jpeg",
@@ -4943,7 +4943,7 @@
       "id": "267",
       "name": "Karin",
       "gender": "Mujer",
-      "value": "1866",
+      "value": "14140",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742845909015.jpeg",
@@ -4962,7 +4962,7 @@
       "id": "268",
       "name": "Paul Greyrat",
       "gender": "Hombre",
-      "value": "1913",
+      "value": "11500",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742846504555.jpeg",
@@ -4978,7 +4978,7 @@
       "id": "269",
       "name": "Hoshino",
       "gender": "Mujer",
-      "value": "2031",
+      "value": "14000",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742846800940.jpeg",
@@ -4997,7 +4997,7 @@
       "id": "270",
       "name": "Aru",
       "gender": "Mujer",
-      "value": "1945",
+      "value": "13550",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742847777034.jpeg",
@@ -5016,7 +5016,7 @@
       "id": "271",
       "name": "Ars Greyrat",
       "gender": "Hombre",
-      "value": "1844",
+      "value": "8900",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742847913787.jpeg",
@@ -5032,7 +5032,7 @@
       "id": "272",
       "name": "Hina",
       "gender": "Mujer",
-      "value": "1932",
+      "value": "14180",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742848198557.jpeg",
@@ -5051,7 +5051,7 @@
       "id": "273",
       "name": "Lilya Greyrat",
       "gender": "Mujer",
-      "value": "1487",
+      "value": "10800",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742848459961.jpeg",
@@ -5070,7 +5070,7 @@
       "id": "274",
       "name": "Momoi",
       "gender": "Mujer",
-      "value": "1972",
+      "value": "12900",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742848822591.jpeg",
@@ -5089,7 +5089,7 @@
       "id": "275",
       "name": "Zenith Greyrat",
       "gender": "Mujer",
-      "value": "1952",
+      "value": "11300",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742849764781.jpeg",
@@ -5108,7 +5108,7 @@
       "id": "276",
       "name": "Ruijerd Superdia",
       "gender": "Hombre",
-      "value": "1938",
+      "value": "12400",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742850030730.jpeg",
@@ -5124,7 +5124,7 @@
       "id": "277",
       "name": "Shiroko Terror",
       "gender": "Mujer",
-      "value": "2125",
+      "value": "13750",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742849975116.jpeg",
@@ -5143,7 +5143,7 @@
       "id": "278",
       "name": "Norn Greyrat",
       "gender": "Mujer",
-      "value": "1419",
+      "value": "11600",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742851100454.jpeg",
@@ -5159,7 +5159,7 @@
       "id": "279",
       "name": "Ui",
       "gender": "Mujer",
-      "value": "1974",
+      "value": "13000",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742851876237.jpeg",
@@ -5175,7 +5175,7 @@
       "id": "280",
       "name": "Shizuka Nanahoshi",
       "gender": "Mujer",
-      "value": "1854",
+      "value": "11900",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742851753830.jpeg",
@@ -5191,7 +5191,7 @@
       "id": "281",
       "name": "Kisaki",
       "gender": "Mujer",
-      "value": "1883",
+      "value": "13850",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742852179599.jpeg",
@@ -5210,7 +5210,7 @@
       "id": "282",
       "name": "Lily Greyrat",
       "gender": "Mujer",
-      "value": "1942",
+      "value": "9200",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742852663949.jpeg",
@@ -5226,7 +5226,7 @@
       "id": "283",
       "name": "Atsuko",
       "gender": "Mujer",
-      "value": "1973",
+      "value": "12600",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742854221327.jpeg",
@@ -5245,7 +5245,7 @@
       "id": "284",
       "name": "Atoferatofe Rybak",
       "gender": "Mujer",
-      "value": "1703",
+      "value": "11200",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742855041762.jpeg",
@@ -5261,7 +5261,7 @@
       "id": "285",
       "name": "Shiroko",
       "gender": "Mujer",
-      "value": "2130",
+      "value": "13900",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742855245010.jpeg",
@@ -5280,7 +5280,7 @@
       "id": "286",
       "name": "Ariel Anemoi Asura",
       "gender": "Mujer",
-      "value": "1990",
+      "value": "11700",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742855531740.jpeg",
@@ -5296,7 +5296,7 @@
       "id": "287",
       "name": "Mimori",
       "gender": "Mujer",
-      "value": "1979",
+      "value": "11400",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742859710871.jpeg",
@@ -5312,7 +5312,7 @@
       "id": "288",
       "name": "Hasumi",
       "gender": "Mujer",
-      "value": "1912",
+      "value": "12500",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742861298998.jpeg",
@@ -5331,7 +5331,7 @@
       "id": "289",
       "name": "Elinalise Dragonroad",
       "gender": "Mujer",
-      "value": "1974",
+      "value": "12100",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742865261763.jpeg",
@@ -5350,7 +5350,7 @@
       "id": "290",
       "name": "Lucy Greyrat",
       "gender": "Mujer",
-      "value": "1833",
+      "value": "9600",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742877015625.jpeg",
@@ -5366,7 +5366,7 @@
       "id": "291",
       "name": "Soldat Heckler",
       "gender": "Hombre",
-      "value": "1872",
+      "value": "8800",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742877901721.jpeg",
@@ -5382,7 +5382,7 @@
       "id": "292",
       "name": "Kishirika Kishirisu",
       "gender": "Mujer",
-      "value": "1857",
+      "value": "10900",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742878527329.jpeg",
@@ -5398,7 +5398,7 @@
       "id": "293",
       "name": "Hilda Boreas Greyrat",
       "gender": "Mujer",
-      "value": "1938",
+      "value": "10100",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742879614100.jpeg",
@@ -5414,7 +5414,7 @@
       "id": "294",
       "name": "Asuma Toki",
       "gender": "Mujer",
-      "value": "1983",
+      "value": "13450",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742947416406.jpeg",
@@ -5433,7 +5433,7 @@
       "id": "295",
       "name": "Yuuka",
       "gender": "Mujer",
-      "value": "2000",
+      "value": "14170",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742956693990.jpeg",
@@ -5452,7 +5452,7 @@
       "id": "296",
       "name": "Shimiko Endo",
       "gender": "Mujer",
-      "value": "1913",
+      "value": "9500",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743040538346.jpeg",
@@ -5468,7 +5468,7 @@
       "id": "297",
       "name": "Plana",
       "gender": "Mujer",
-      "value": "1927",
+      "value": "13200",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743041124685.jpeg",
@@ -5487,7 +5487,7 @@
       "id": "298",
       "name": "Ako",
       "gender": "Mujer",
-      "value": "1895",
+      "value": "14110",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743041506142.jpeg",
@@ -5506,7 +5506,7 @@
       "id": "299",
       "name": "Akane",
       "gender": "Mujer",
-      "value": "1939",
+      "value": "12700",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743042043023.jpeg",
@@ -5525,7 +5525,7 @@
       "id": "300",
       "name": "Arona",
       "gender": "Mujer",
-      "value": "1992",
+      "value": "13100",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743042337435.jpeg",
@@ -5544,7 +5544,7 @@
       "id": "301",
       "name": "Ichika",
       "gender": "Mujer",
-      "value": "1970",
+      "value": "12300",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743042675766.jpeg",
@@ -5560,7 +5560,7 @@
       "id": "302",
       "name": "Serika",
       "gender": "Mujer",
-      "value": "2005",
+      "value": "12800",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743043080549.jpeg",
@@ -5579,7 +5579,7 @@
       "id": "303",
       "name": "Sakurako",
       "gender": "Mujer",
-      "value": "1912",
+      "value": "13050",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743043492637.jpeg",
@@ -5595,7 +5595,7 @@
       "id": "304",
       "name": "Midori",
       "gender": "Mujer",
-      "value": "1884",
+      "value": "12900",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743043742676.jpeg",
@@ -5614,7 +5614,7 @@
       "id": "305",
       "name": "Wakamo",
       "gender": "Mujer",
-      "value": "1961",
+      "value": "13700",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743043947870.jpeg",
@@ -5633,7 +5633,7 @@
       "id": "306",
       "name": "Koharu",
       "gender": "Mujer",
-      "value": "1910",
+      "value": "13500",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743044157502.jpeg",
@@ -5652,7 +5652,7 @@
       "id": "307",
       "name": "Kayoko",
       "gender": "Mujer",
-      "value": "2010",
+      "value": "13250",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743044573929.jpeg",
@@ -5671,7 +5671,7 @@
       "id": "308",
       "name": "Misaki",
       "gender": "Mujer",
-      "value": "1899",
+      "value": "12400",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743045363161.jpeg",
@@ -5687,7 +5687,7 @@
       "id": "309",
       "name": "Nonomi",
       "gender": "Mujer",
-      "value": "1942",
+      "value": "12600",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743045707818.jpeg",
@@ -5706,7 +5706,7 @@
       "id": "310",
       "name": "Yurizono Seia",
       "gender": "Mujer",
-      "value": "1992",
+      "value": "13400",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743046278633.jpeg",
@@ -5725,7 +5725,7 @@
       "id": "311",
       "name": "Hare",
       "gender": "Mujer",
-      "value": "1891",
+      "value": "11200",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743046910944.jpeg",
@@ -5744,7 +5744,7 @@
       "id": "312",
       "name": "Hanako",
       "gender": "Mujer",
-      "value": "1991",
+      "value": "13300",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743047644955.jpeg",
@@ -5763,7 +5763,7 @@
       "id": "313",
       "name": "Maki",
       "gender": "Mujer",
-      "value": "1905",
+      "value": "11900",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743051312782.jpeg",
@@ -5782,7 +5782,7 @@
       "id": "314 ",
       "name": "Iroha",
       "gender": "Mujer",
-      "value": "1915",
+      "value": "13600",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743051528321.jpeg",
@@ -5798,7 +5798,7 @@
       "id": "315",
       "name": "Koyuki",
       "gender": "Mujer",
-      "value": "2000",
+      "value": "13000",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743051976498.jpeg",
@@ -5817,7 +5817,7 @@
       "id": "316",
       "name": "Tsubaki Kasuga",
       "gender": "Mujer",
-      "value": "1966",
+      "value": "12200",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743052348382.jpeg",
@@ -5836,7 +5836,7 @@
       "id": "317",
       "name": "Mari",
       "gender": "Mujer",
-      "value": "1906",
+      "value": "12950",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743052593447.jpeg",
@@ -5855,7 +5855,7 @@
       "id": "318",
       "name": "Airi",
       "gender": "Mujer",
-      "value": "1895",
+      "value": "10700",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743091072508.jpeg",
@@ -5874,7 +5874,7 @@
       "id": "319",
       "name": "Mashiro Shizuyama",
       "gender": "Mujer",
-      "value": "1908",
+      "value": "11600",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743092087326.jpeg",
@@ -5893,7 +5893,7 @@
       "id": "320",
       "name": "Saori",
       "gender": "Mujer",
-      "value": "1952",
+      "value": "13150",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743092355800.jpeg",
@@ -5912,7 +5912,7 @@
       "id": "321",
       "name": "Neru",
       "gender": "Mujer",
-      "value": "1936",
+      "value": "12700",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743105993456.jpeg",
@@ -5928,7 +5928,7 @@
       "id": "322",
       "name": "Azusa",
       "gender": "Mujer",
-      "value": "2000",
+      "value": "13800",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742843509899.jpeg",
@@ -5947,7 +5947,7 @@
       "id": "323",
       "name": "Luke notos Greyrat",
       "gender": "Hombre",
-      "value": "1859",
+      "value": "8500",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743114282353.jpeg",
@@ -5963,7 +5963,7 @@
       "id": "324",
       "name": "Cliff Grimoire",
       "gender": "Hombre",
-      "value": "1852",
+      "value": "8700",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743114467511.jpeg",
@@ -5979,7 +5979,7 @@
       "id": "325",
       "name": "Hitogami",
       "gender": "Hombre",
-      "value": "1754",
+      "value": "11800",
       "source": "Mushoku Tensei",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743114616685.jpeg",
@@ -5995,7 +5995,7 @@
       "id": "326",
       "name": "Noa",
       "gender": "Mujer",
-      "value": "2003",
+      "value": "13700",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743121829613.jpeg",
@@ -6014,7 +6014,7 @@
       "id": "327",
       "name": "Nagisa Kirifuji",
       "gender": "Mujer",
-      "value": "1979",
+      "value": "13300",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743122419288.jpeg",
@@ -6033,7 +6033,7 @@
       "id": "328",
       "name": "Fuuka",
       "gender": "Mujer",
-      "value": "1963",
+      "value": "8400",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743122818319.jpeg",
@@ -6049,7 +6049,7 @@
       "id": "329",
       "name": "Yuzu",
       "gender": "Mujer",
-      "value": "1838",
+      "value": "6200",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743122952086.jpeg",
@@ -6065,7 +6065,7 @@
       "id": "330",
       "name": "Haruna",
       "gender": "Mujer",
-      "value": "1992",
+      "value": "8900",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743123133542.jpeg",
@@ -6084,7 +6084,7 @@
       "id": "331",
       "name": "Sora",
       "gender": "Mujer",
-      "value": "1854",
+      "value": "2500",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743123333265.jpeg",
@@ -6100,7 +6100,7 @@
       "id": "332",
       "name": "Suzumi",
       "gender": "Mujer",
-      "value": "1890",
+      "value": "1800",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743123483248.jpeg",
@@ -6116,7 +6116,7 @@
       "id": "333",
       "name": "Kokuriko",
       "gender": "Mujer",
-      "value": "1864",
+      "value": "2900",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743123682936.jpeg",
@@ -6132,7 +6132,7 @@
       "id": "334",
       "name": "Megu",
       "gender": "Mujer",
-      "value": "1886",
+      "value": "7100",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743123911356.jpeg",
@@ -6148,7 +6148,7 @@
       "id": "335",
       "name": "Miyu",
       "gender": "Mujer",
-      "value": "1915",
+      "value": "9200",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743124132518.jpeg",
@@ -6164,7 +6164,7 @@
       "id": "336",
       "name": "Miyako Tsukiyuki",
       "gender": "Mujer",
-      "value": "1966",
+      "value": "8950",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743124292886.jpeg",
@@ -6180,7 +6180,7 @@
       "id": "337",
       "name": "Kaho",
       "gender": "Mujer",
-      "value": "1875",
+      "value": "5800",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743125240342.jpeg",
@@ -6196,7 +6196,7 @@
       "id": "338",
       "name": "Himari",
       "gender": "Mujer",
-      "value": "1887",
+      "value": "11800",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743125533072.jpeg",
@@ -6212,7 +6212,7 @@
       "id": "339",
       "name": "Mika Misono",
       "gender": "Mujer",
-      "value": "2091",
+      "value": "14250",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743125673269.jpeg",
@@ -6231,7 +6231,7 @@
       "id": "340",
       "name": "Kaede",
       "gender": "Mujer",
-      "value": "1973",
+      "value": "3400",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743129810436.jpeg",
@@ -6247,7 +6247,7 @@
       "id": "341",
       "name": "Reisa",
       "gender": "Mujer",
-      "value": "1931",
+      "value": "5100",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743134047808.jpeg",
@@ -6266,7 +6266,7 @@
       "id": "342",
       "name": "Kazusa",
       "gender": "Mujer",
-      "value": "1897",
+      "value": "11500",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743134779942.jpeg",
@@ -6282,7 +6282,7 @@
       "id": "343",
       "name": "Mutsuki",
       "gender": "Mujer",
-      "value": "1897",
+      "value": "10800",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743134971513.jpeg",
@@ -6301,7 +6301,7 @@
       "id": "344",
       "name": "Hiyori Tsuchinaga",
       "gender": "Mujer",
-      "value": "1874",
+      "value": "7300",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743135509910.jpeg",
@@ -6317,7 +6317,7 @@
       "id": "345",
       "name": "Tsurugi",
       "gender": "Mujer",
-      "value": "1999",
+      "value": "8100",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743137059282.jpeg",
@@ -6333,7 +6333,7 @@
       "id": "346",
       "name": "Marina",
       "gender": "Mujer",
-      "value": "1889",
+      "value": "5900",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743137648193.jpeg",
@@ -6349,7 +6349,7 @@
       "id": "347",
       "name": "Shun",
       "gender": "Mujer",
-      "value": "1902",
+      "value": "8600",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743138031537.jpeg",
@@ -6365,7 +6365,7 @@
       "id": "348",
       "name": "Hinata Wakaba",
       "gender": "Mujer",
-      "value": "1151",
+      "value": "4800",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743138477000.jpeg",
@@ -6381,7 +6381,7 @@
       "id": "349",
       "name": "Chinatsu",
       "gender": "Mujer",
-      "value": "1962",
+      "value": "3900",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743139191015.jpeg",
@@ -6397,7 +6397,7 @@
       "id": "350",
       "name": "Hibiki Nekozuka",
       "gender": "Mujer",
-      "value": "1940",
+      "value": "7900",
       "source": "Blue Archive",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743139450813.jpeg",
@@ -6413,7 +6413,7 @@
       "id": "351",
       "name": "Ayaka",
       "gender": "Mujer",
-      "value": "2000",
+      "value": "6500",
       "source": "Seikatsu Shuukan",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743140066009.jpeg",
@@ -6429,7 +6429,7 @@
       "id": "352",
       "name": "Sora Kasugano",
       "gender": "Mujer",
-      "value": "2010",
+      "value": "12500",
       "source": "Yosuga no Sora",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743140334053.jpeg",
@@ -6448,7 +6448,7 @@
       "id": "353",
       "name": "Varesa",
       "gender": "Mujer",
-      "value": "1998",
+      "value": "4500",
       "source": "Genshin Impact",
       "img": [
           "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743172357430.jpeg",
@@ -6464,7 +6464,7 @@
       "id": "354",
       "name": "Shenhe",
       "gender": "Mujer",
-      "value": "1991",
+      "value": "13100",
       "source": "Genshin Impact",
       "img": [
           "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743173312871.jpeg",
@@ -6483,7 +6483,7 @@
       "id": "355",
       "name": "Coach",
       "gender": "Hombre",
-      "value": "1196",
+      "value": "7800",
       "source": "left 4 dead 2",
       "img": [
           "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743174109391.jpeg",
