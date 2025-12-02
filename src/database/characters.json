@@ -247,7 +247,7 @@
     "id": "14",
     "name": "Chizuru Mizuhara",
     "gender": "Mujer",
-    "value": "12900",
+    "value": "1",
     "source": "Rent a Girlfriend",
     "img": [
       "https://files.catbox.moe/2i4fhq.jpg",
@@ -637,7 +637,7 @@
     "id": "35",
     "name": "Ruby Hoshino",
     "gender": "Mujer",
-    "value": "13400",
+    "value": "20400",
     "source": "Oshi no Ko",
     "img": [
       "https://files.catbox.moe/fwqv8b.jpg",
@@ -1437,7 +1437,7 @@
     "id": "79",
     "name": "Gyomei Himejima",
     "gender": "Hombre",
-    "value": "11500",
+    "value": "12500",
     "source": "Kimetsu No Yaiba",
     "img": [
       "https://files.catbox.moe/vn804s.jpg",
@@ -2105,9 +2105,9 @@
       "value": "13250",
       "source": "Kimetsu No Yaiba",
       "img": [
-         "https://files.catbox.moe/pply1f.jpg",
-         "https://files.catbox.moe/r52hq9.jpg",
-         "https://files.catbox.moe/cinwuy.jpg"
+         "https://i.pinimg.com/originals/a3/9f/b1/a39fb1db47611b539331aa45891ef4e7.webp",
+         "https://i.pinimg.com/originals/9f/b7/8d/9fb78d118e0a632010fdda23c36c0179.jpg",
+         "https://i.pinimg.com/originals/6d/7c/9e/6d7c9e1a0ee985fe224d73a722e52dd7.jpg"
       ],
       "vid": [
          "https://files.catbox.moe/yq6ee2.mp4",
@@ -4371,8 +4371,8 @@
       "id": "235",
       "name": "Kokushibo",
       "gender": "Hombre",
-      "value": "11500",
-      "source": "Demon Slayer",
+      "value": "14500",
+      "source": "Kimetsu no Yaiba",
       "img": [
          "https://files.catbox.moe/y77rbe.jpg",
          "https://files.catbox.moe/cmokas.jpg",
@@ -6492,6 +6492,4577 @@
       ],
       "vid": [
           "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1743174676679.jpeg"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+  }, 
+   {
+      "id": "356",
+      "name": "William James Moriarty",
+      "gender": "Hombre",
+      "value": "11500",
+      "source": "Moriarty the Patriot",
+      "img": [
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/0f9a54476dc43b73650358270dab0b42.jpg",
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/Gulo9oYaEAAXbxs.jpg",
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/images.jpeg"
+      ],
+      "vid": [
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/3a038e7e12d8f8bf41c98be11368db4d.gif", 
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/tumblr_ebb516a8174651d6592a0d62daa97c90_a3b7da84_1280.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "357",
+      "name": "Osaka (Ayumu Kasuga)",
+      "gender": "Mujer",
+      "value": "13500",
+      "source": "Azumanga Daioh",
+      "img": [
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/OsakaAnimePNG.webp",
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/Azumanga_Daioh_episode_2_026_0001_400x400.jpg",
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/fda406e342b562ec2970b55a625408f2.jpg"
+      ],
+      "vid": [
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/osaka.gif", 
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/osaka-azumanga-daioh.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "358",
+      "name": "2B (YoRHa No.2 Type B)",
+      "gender": "Mujer",
+      "value": "14100",
+      "source": "Nier: Automata",
+      "img": [
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/%F0%9D%91%8C%F0%9D%91%9C%F0%9D%91%85%F0%9D%90%BB%F0%9D%91%8E%202-%F0%9D%91%94%F0%9D%91%9C%F0%9D%91%A2%20%F0%9D%90%B5-%F0%9D%91%94%F0%9D%91%8E%F0%9D%91%A1%F0%9D%91%8E.jpeg",
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/_%20(9).jpeg",
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/_%20(10).jpeg"
+      ],
+      "vid": [
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/2b.gif", 
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/tumblr_fd5046aed32620d72ca919e2c9f651a8_4eb65120_640.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "359",
+      "name": "Rem",
+      "gender": "Mujer",
+      "value": "13950",
+      "source": "Re:Zero",
+      "img": [
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/descarga.jpeg",
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/ymk9vy8rm60f1.jpeg",
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/1a94872b9c0ad664f1e2d222697a1c723860dd872e1049af1c445b4af4ebdbd8.jpg"
+      ],
+      "vid": [
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/rem-rezero.gif", 
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/Rem%20Rem%20Smiling%20GIF%20-%20Rem%20Rem%20Smiling%20Re%20Zero%20-%20Discover%20%26%20Share%20GIFs.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "360",
+      "name": "Emilia",
+      "gender": "Mujer",
+      "value": "12800",
+      "source": "Re:Zero",
+      "img": [
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/Emilia_-_Anime.webp",
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/plu-emilia-from-re-zero-by-iplu-de426sh-fullview.jpg",
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/how-adorable-and-beautiful-the-goddess-emilia-tan-looks-v0-1narux0e3she1%20-%202025-11-29T145043.811.jpg"
+      ],
+      "vid": [
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/emilia-re-zero.gif", 
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/Emilia%20Tan%20Smile%20GIF%20-%20Emilia%20Tan%20Smile%20Re%20Zero%20-%20Discover%20%26%20Share%20GIFs.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "361",
+      "name": "Ram",
+      "gender": "Mujer",
+      "value": "10500",
+      "source": "Re:Zero",
+      "img": [
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/images%20(1).jpeg",
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/media-i-think-ram-got-a-new-haircut-v0-v54jun1b4g4b1.jpg",
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/Ram.(Re_Zero).full.3254243.jpg"
+      ],
+      "vid": [
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/Ram%20Rezero%20GIF%20-%20Ram%20Rezero%20-%20Discover%20%26%20Share%20GIFs.gif", 
+         "https://github.com/Dioneibi-rip/imagenes/blob/main/_.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "362",
+      "name": "Ryomen Sukuna",
+      "gender": "Hombre",
+      "value": "13800",
+      "source": "Jujutsu Kaisen",
+      "img": [
+         "https://i.pinimg.com/736x/3f/30/28/3f3028148b1b2d0198f10457d9257070.jpg",
+         "https://i.pinimg.com/736x/e2/9e/33/e29e33f37c655dc075dde7d366bc44be.jpg",
+         "https://i.pinimg.com/736x/e9/f7/d0/e9f7d087d8703a13da9244df8222afb4.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/6e/22/63/6e226351c4248783f3bafd8b7275e223.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "363",
+      "name": "Toji Fushiguro",
+      "gender": "Hombre",
+      "value": "14050",
+      "source": "Jujutsu Kaisen",
+      "img": [
+         "https://i.pinimg.com/736x/0e/be/d8/0ebed899927920711239c2ccde4178eb.jpg",
+         "https://i.pinimg.com/474x/c2/c9/dd/c2c9ddfdee94e511761f950c12ae874d.jpg",
+         "https://i.pinimg.com/474x/a5/f4/e5/a5f4e599a076a3b9904cf1be82abe4f4.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/eb/6c/54/eb6c540ce7bcf7452df5710124eba311.gif", 
+         "https://i.pinimg.com/originals/57/8d/37/578d377a8cad2cd5a252f0df960c2f96.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "364",
+      "name": "Levi Ackerman",
+      "gender": "Hombre",
+      "value": "14200",
+      "source": "Attack on Titan",
+      "img": [
+         "https://i.pinimg.com/736x/e7/36/b4/e736b4cc6efdfb7b8c51423f3607ef7f.jpg",
+         "https://i.pinimg.com/736x/5a/9a/83/5a9a83f22096461861ab866e5a7caccc.jpg",
+         "https://i.pinimg.com/originals/e7/dd/2f/e7dd2f0e6f7d8a85e78731709f01b191.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/49/f4/30/49f4304e7320ea00db74b7da5cde223c.gif", 
+         "https://i.pinimg.com/originals/dd/da/91/ddda917c733db12e66414bc5ac82cd6f.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "365",
+      "name": "Eren Yeager",
+      "gender": "Hombre",
+      "value": "13600",
+      "source": "Attack on Titan",
+      "img": [
+         "https://i.pinimg.com/originals/2f/53/3c/2f533c5bdf61c6b28a2f842bf861e238.jpg",
+         "https://i.pinimg.com/originals/d3/06/2d/d3062d641ad1f162b6e9b63b3ff3216f.jpg",
+         "https://i.pinimg.com/originals/0f/90/3b/0f903bba25db0d7d91ea0ba7cdc1d213.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/1c/e4/a4/1ce4a455282c6898c5710c9c52cae893.gif", 
+         "https://i.pinimg.com/originals/6d/29/cc/6d29cc48ad122d9f1f3becb2c7b7b27d.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "366",
+      "name": "Roronoa Zoro",
+      "gender": "Hombre",
+      "value": "13900",
+      "source": "One Piece",
+      "img": [
+         "https://i.pinimg.com/originals/89/60/56/896056ec3e9dbe88f0a1fdf9f0fdfc17.jpg",
+         "https://i.pinimg.com/originals/b2/9a/94/b29a94256ec573a5cb7d02e136a008eb.jpg",
+         "https://i.pinimg.com/originals/a3/bc/6f/a3bc6f6218b7ec3ebc2fe7e426211e11.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ed/29/74/ed29741e2d0fb0ae214a333c69fd9b2e.gif", 
+         "https://i.pinimg.com/originals/6a/25/01/6a2501c723f2d8b8f5094e61f648367a.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "367",
+      "name": "Nami",
+      "gender": "Mujer",
+      "value": "13400",
+      "source": "One Piece",
+      "img": [
+         "https://i.pinimg.com/originals/39/d3/fd/39d3fdcba9ac60e2905196400bfa7e88.jpg",
+         "https://i.pinimg.com/originals/12/aa/c8/12aac8e3da43348e95ee066acac87e55.jpg",
+         "https://i.pinimg.com/originals/d8/65/63/d865637d5c422b5b51c14640441aadd9.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/07/d2/4f/07d24f472731c20c79a063d785d7e305.gif", 
+         "https://i.pinimg.com/originals/27/09/c0/2709c036447d6db3ae743748f50fdf83.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "368",
+      "name": "Nico Robin",
+      "gender": "Mujer",
+      "value": "13700",
+      "source": "One Piece",
+      "img": [
+         "https://i.pinimg.com/originals/04/0a/51/040a51f117407591ad7dcb2f5fe3757a.jpg",
+         "https://i.pinimg.com/originals/af/68/e4/af68e4a24ac233622e59f98dd84735bd.jpg",
+         "https://i.pinimg.com/originals/6a/0f/1b/6a0f1bd7654df87e6bbe8fed1019bdcf.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/1a/5d/38/1a5d3820c1a4c906f766434c3362b1f4.gif", 
+         "https://i.pinimg.com/originals/7d/71/29/7d7129e60b90c565d6a3ca8e5a7efcd8.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "369",
+      "name": "Boa Hancock",
+      "gender": "Mujer",
+      "value": "13200",
+      "source": "One Piece",
+      "img": [
+         "https://i.pinimg.com/originals/a9/af/41/a9af41224978f064317f6cd635940ae6.jpg",
+         "https://i.pinimg.com/originals/69/34/79/693479f51f26770e5961996fbb8ac3d3.jpg",
+         "https://i.pinimg.com/originals/b3/f3/cd/b3f3cd3b1b02c6e4595c803c7f1c843a.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/d4/ff/ec/d4ffeca78952957e0a65b4a80b4a4aef.gif", 
+         "https://i.pinimg.com/originals/75/7f/c2/757fc254a75ac5bb66250b6d8b9899bc.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "370",
+      "name": "Sanji",
+      "gender": "Hombre",
+      "value": "12800",
+      "source": "One Piece",
+      "img": [
+         "https://i.pinimg.com/originals/ef/4b/22/ef4b2250c712f4c191d742300763d548.jpg",
+         "https://i.pinimg.com/originals/58/c3/c9/58c3c924769cb0a5b0043bf02ca06305.jpg",
+         "https://i.pinimg.com/originals/75/aa/c7/75aac75973bfaefd1bdece6f1c10f410.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/22/0f/e1/220fe13722a6c38964cf248619d7732d.gif", 
+         "https://i.pinimg.com/originals/f3/53/9b/f3539bdd219ba27c3234006227ea8601.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "371",
+      "name": "Kakashi Hatake",
+      "gender": "Hombre",
+      "value": "13500",
+      "source": "Naruto",
+      "img": [
+         "https://i.pinimg.com/originals/01/bd/89/01bd89ef6f63e115075012bdeca8f5f9.jpg",
+         "https://i.pinimg.com/originals/56/76/b6/5676b6831922cac54e3d6d749422f067.jpg",
+         "https://i.pinimg.com/originals/c9/e3/d3/c9e3d390ab8b4e15281717d93bf44d03.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/31/76/93/317693bec81296315fb2cda228d8a2df.gif", 
+        "https://i.pinimg.com/originals/f7/48/e9/f748e966446975fb17f5ab9ceffd3135.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "372",
+      "name": "Sasuke Uchiha",
+      "gender": "Hombre",
+      "value": "13100",
+      "source": "Naruto",
+      "img": [
+         "https://i.pinimg.com/originals/0f/73/80/0f7380fd859dcfd0171e46764a65ae60.jpg",
+         "https://i.pinimg.com/originals/16/1a/87/161a87f0b7b464cbae76b375b4e494cd.jpg",
+         "https://i.pinimg.com/originals/4b/c8/19/4bc8192ebc5d6e55025821f0b839e673.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/46/17/bd/4617bdbb13507ab1085e69c1355bb6e3.gif",
+         "https://i.pinimg.com/originals/7e/4d/36/7e4d363dfc0cdf2f2ae9b8d16fb47c7d.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "373",
+      "name": "Jiraiya",
+      "gender": "Hombre",
+      "value": "11500",
+      "source": "Naruto",
+      "img": [
+         "https://i.pinimg.com/originals/33/29/9f/33299fa56af8052a8d8ec22ce5cd6805.jpg",
+         "https://i.pinimg.com/originals/55/58/5c/55585c21f79675418a9a4c9d7681a2e3.jpg",
+         "https://i.pinimg.com/originals/a5/c8/ef/a5c8ef31bb54464e56f8715b01420786.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/b6/48/b5/b648b5d4247134ec9563d0b08e3a11e9.gif",
+         "https://i.pinimg.com/originals/f1/c1/af/f1c1af8b904104882482529cabe1a682.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "374",
+      "name": "Rangiku Matsumoto",
+      "gender": "Mujer",
+      "value": "12900",
+      "source": "Bleach",
+      "img": [
+         "https://i.pinimg.com/originals/fd/85/93/fd859313ed5a47d321a12edcbc0f1e98.jpg",
+         "https://i.pinimg.com/originals/b0/30/d6/b030d68871262643e1cb313f5084f08b.jpg",
+         "https://i.pinimg.com/originals/10/49/de/1049dedc863a5b1c83fe106ad58480dc.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/48/2a/de/482ade62696d2b10f99cef448477ba43.gif", 
+         "https://i.pinimg.com/originals/6b/f5/7e/6bf57ef597f33ed6651ed3ae48fa2b35.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "375",
+      "name": "Yoruichi Shihouin",
+      "gender": "Mujer",
+      "value": "13600",
+      "source": "Bleach",
+      "img": [
+         "https://i.pinimg.com/originals/23/92/d1/2392d18484855105509cab15afe40232.jpg",
+         "https://i.pinimg.com/originals/f6/bd/cc/f6bdcc0e5acbe6e1a5f536ac66cfda50.jpg",
+         "https://i.pinimg.com/originals/c0/22/aa/c022aa4597fa2f6b709e3372deede86c.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ca/14/2d/ca142d49bcc53b64e080243d89193387.gif",
+         "https://i.pinimg.com/originals/54/6d/71/546d71090e89dda18a2b426b1af390f3.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "376",
+      "name": "Rukia Kuchiki",
+      "gender": "Mujer",
+      "value": "11800",
+      "source": "Bleach",
+      "img": [
+         "https://i.pinimg.com/originals/95/78/a3/9578a3240c2e02f2b9b956278d889163.jpg",
+         "https://i.pinimg.com/originals/c6/2b/b3/c62bb32fe422d6f8d6f941c8bcc9ee53.jpg",
+         "https://i.pinimg.com/originals/04/8f/36/048f362e43f01275cc77bbe72946f2df.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/be/f5/77/bef577a13ee2d8a6f016d60be4593f04.gif", 
+         "https://i.pinimg.com/originals/83/1e/51/831e51bd38c6fb2e852da586085b8806.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "377",
+      "name": "Neliel Tu Oderschvank",
+      "gender": "Mujer",
+      "value": "12500",
+      "source": "Bleach",
+      "img": [
+         "https://i.pinimg.com/originals/a8/5c/ef/a85cef481dc9ee3b9f1df9252545edd1.jpg",
+         "https://i.pinimg.com/originals/53/66/2f/53662f8a8fa86352e28907990bf71856.jpg",
+         "https://i.pinimg.com/originals/f6/0d/e0/f60de096d070e9143ccfd715a839434b.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/13/7a/de/137ade8cd2ff9c60d044d182f54ebc0d.gif",
+         "https://i.pinimg.com/originals/93/60/f3/9360f300c7e9c3438b053611762781da.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "378",
+      "name": "Kafka",
+      "gender": "Mujer",
+      "value": "14150",
+      "source": "Honkai Star Rail",
+      "img": [
+         "https://i.pinimg.com/originals/44/cc/8b/44cc8be7bc765175a5c5d1df0daaafc6.jpg",
+         "https://i.pinimg.com/originals/b0/55/d1/b055d196243a1114ca2381d4ef0784a3.jpg",
+         "https://i.pinimg.com/originals/83/53/0b/83530b00d03bb99dae51ae25ef62a30a.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ca/39/fc/ca39fc913f0fdd9990c3c5dc2f2401be.gif", 
+         "https://i.pinimg.com/originals/87/48/a9/8748a9d7e15cc4e5f09f70c6e91db9c1.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "379",
+      "name": "Silver Wolf",
+      "gender": "Mujer",
+      "value": "13200",
+      "source": "Honkai Star Rail",
+      "img": [
+         "https://i.pinimg.com/originals/5f/63/82/5f6382fee62ba8241ec79b81bf29f5ed.jpg",
+         "https://i.pinimg.com/originals/e9/e6/ed/e9e6ed80a81afd6c3532e07319696790.jpg",
+         "https://i.pinimg.com/originals/19/55/22/195522e614b0fbee3bc512667f25aa6b.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/13/c3/d6/13c3d6d30072b6817d2a9af47aabdc8c.gif",
+         "https://i.pinimg.com/originals/5c/e9/2e/5ce92e2a8399e067f50603b3a26f7e5c.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "380",
+      "name": "March 7th",
+      "gender": "Mujer",
+      "value": "9800",
+      "source": "Honkai Star Rail",
+      "img": [
+         "https://i.pinimg.com/originals/a2/64/41/a264411d5ac055b19ae8e13fac54e953.jpg",
+         "https://i.pinimg.com/originals/30/43/da/3043daccc6662e022f7b0a314d742e38.jpg",
+         "https://i.pinimg.com/originals/76/2f/91/762f91561964de9a891804ef76cc0ca2.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/e7/7d/ad/e77dadb058e0e545d703ff149078e1bb.gif",
+         "https://i.pinimg.com/originals/32/db/19/32db19513abaf94ff4aa86feeda99204.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "381",
+      "name": "Himeko",
+      "gender": "Mujer",
+      "value": "11200",
+      "source": "Honkai Star Rail",
+      "img": [
+         "https://i.pinimg.com/originals/1d/69/a9/1d69a946eb2664e588679b00e6922bbd.jpg",
+         "https://i.pinimg.com/originals/cf/61/1f/cf611fbbd70a053826728639d2dfcb12.jpg",
+         "https://i.pinimg.com/originals/24/03/f2/2403f280cd7ed1269e2f5112eb41a2e6.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/c6/89/09/c689090e4f26ff12554082dc365c448e.gif",
+         "https://i.pinimg.com/originals/e5/13/4d/e5134d96dbbda906c5cc2830a31f44a4.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "382",
+      "name": "Jingliu",
+      "gender": "Mujer",
+      "value": "12900",
+      "source": "Honkai Star Rail",
+      "img": [
+         "https://i.pinimg.com/originals/67/a4/3c/67a43c9b62a8dc959939b62e8f5e6fa8.jpg",
+         "https://i.pinimg.com/originals/aa/73/f8/aa73f820204a5764c29e46493a6a375a.jpg",
+         "https://i.pinimg.com/originals/57/82/bf/5782bfa95402504fb095f5b314bddf62.webp"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/f4/57/a8/f457a86d8a098d313514d3a740f4d0c3.gif", 
+         "https://i.pinimg.com/originals/9f/e0/1a/9fe01aacfebcc0e84e5b85ae3160eff1.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "383",
+      "name": "Zhongli",
+      "gender": "Hombre",
+      "value": "13800",
+      "source": "Genshin Impact",
+      "img": [
+         "https://i.pinimg.com/originals/8f/07/50/8f07502a7c6a46ceba1be1ae2d199c41.jpg",
+         "https://i.pinimg.com/originals/41/68/7f/41687fb8b00ec0da86c61ca1dac84d6d.jpg",
+         "https://i.pinimg.com/originals/1b/f3/0c/1bf30c662a572a5d105b6fa9df74f407.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/6f/40/e7/6f40e70292ace6f86b0be7aff0ec3ee8.gif",
+         "https://i.pinimg.com/originals/08/4e/61/084e618efcf30014f0bc51bf023ade19.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "384",
+      "name": "Nahida",
+      "gender": "Mujer",
+      "value": "13500",
+      "source": "Genshin Impact",
+      "img": [
+         "https://i.pinimg.com/originals/27/b3/cd/27b3cda378e4a4d408163ef9c6276881.jpg",
+         "https://i.pinimg.com/originals/05/a5/90/05a5900b7182723253bb3eb60f12cd94.jpg",
+         "https://i.pinimg.com/originals/85/b3/a3/85b3a3f79047e46bb2dfd640f1490bc7.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/b5/e9/6f/b5e96f4db8ade23db51c3f745e0e7856.gif",
+         "https://i.pinimg.com/originals/b6/c9/30/b6c93071cf42632198010db06d05e068.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "385",
+      "name": "Ganyu",
+      "gender": "Mujer",
+      "value": "13600",
+      "source": "Genshin Impact",
+      "img": [
+         "https://i.pinimg.com/originals/e0/53/5c/e0535c0f0bd332a7c7af833f7bd94cac.jpg",
+         "https://i.pinimg.com/originals/6f/b8/cd/6fb8cd3c58cd3b38e31ee7682b372856.jpg",
+         "https://i.pinimg.com/originals/0b/ea/10/0bea1087bedc6da9d7825391118b1d3d.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/40/f2/ea/40f2ea9616d734905531049e4ac8ac30.gif",
+         "https://i.pinimg.com/originals/64/1c/be/641cbe8c9894464c9dd337433966410e.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "386",
+      "name": "Keqing",
+      "gender": "Mujer",
+      "value": "12400",
+      "source": "Genshin Impact",
+      "img": [
+         "https://i.pinimg.com/originals/00/cd/71/00cd71549c67631e1d9d74f664e82120.png",
+         "https://i.pinimg.com/originals/d3/ea/d0/d3ead0ae17d94b1a78f369fa77a878f4.jpg",
+         "https://i.pinimg.com/originals/ea/d9/1d/ead91ddb3e8f0fbff9e7d4ca52855cec.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/0c/61/b2/0c61b2634d3092f92d3b37b7c6811c99.gif",
+         "https://i.pinimg.com/originals/94/69/9a/94699a06de365c1b98c08f2356ee2b0d.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "387",
+      "name": "Arlecchino",
+      "gender": "Mujer",
+      "value": "14050",
+      "source": "Genshin Impact",
+      "img": [
+         "https://i.pinimg.com/originals/a6/ad/29/a6ad293d72f8fcd7eb6f306435d0fb08.jpg",
+         "https://i.pinimg.com/originals/a9/0c/c9/a90cc9fa6852194427f171fba5f4eaa8.png",
+         "https://i.pinimg.com/originals/bc/a9/aa/bca9aa3f29cf3f829afb3585736a2caf.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/70/d1/9a/70d19a0a9e916c971dd5c1374182a79f.gif",
+         "https://i.pinimg.com/originals/71/0f/fb/710ffb9bd8716e01e6dd71f9245dc1a8.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "388",
+      "name": "Zero Two",
+      "gender": "Mujer",
+      "value": "14020",
+      "source": "Darling in the Franxx",
+      "img": [
+         "https://i.pinimg.com/originals/86/37/f4/8637f43fa8628afd8d3a49ede3b770f3.jpg",
+         "https://i.pinimg.com/originals/34/38/ca/3438ca3643795f3f88f58963e09c2605.jpg",
+         "https://i.pinimg.com/originals/be/5d/4f/be5d4fc9c6b591b94756bfca3ad4e01f.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/1a/ae/70/1aae706b178b1f0836c00c70cee1ebb5.gif",
+         "https://i.pinimg.com/originals/cb/df/06/cbdf066dcba7892e946627fb6500419b.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "389",
+      "name": "Asuka Langley Soryu",
+      "gender": "Mujer",
+      "value": "13850",
+      "source": "Neon Genesis Evangelion",
+      "img": [
+         "https://i.pinimg.com/originals/b6/c1/b5/b6c1b5faad9449646ccf7da484875015.jpg",
+         "https://i.pinimg.com/originals/a6/e6/59/a6e659beab261fa9e3678a71ee44be93.jpg",
+         "https://i.pinimg.com/originals/88/7a/ee/887aeef202fb8811803128d57d44887b.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/c1/61/8d/c1618df57cff263d2170ecdd44dc8c9b.gif",
+         "https://i.pinimg.com/originals/0f/d9/8b/0fd98b3f4b08afe14c053bd12bc9bf19.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "390",
+      "name": "Rei Ayanami",
+      "gender": "Mujer",
+      "value": "13400",
+      "source": "Neon Genesis Evangelion",
+      "img": [
+         "https://i.pinimg.com/originals/f9/ee/ef/f9eeefa81fee013faf45e34e52556e3b.jpg",
+         "https://i.pinimg.com/originals/d4/53/0f/d4530fcd258204721e8575b5cd4c4501.png",
+         "https://i.pinimg.com/originals/ec/67/dc/ec67dcaba97f789395e83e16b36a1d14.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/a8/93/90/a89390959d388c6b9b7762a01eaf39b6.gif", 
+         "https://i.pinimg.com/originals/47/19/8d/47198d32281132189cdef1048fa4541b.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "391",
+      "name": "Misato Katsuragi",
+      "gender": "Mujer",
+      "value": "12900",
+      "source": "Neon Genesis Evangelion",
+      "img": [
+         "https://i.pinimg.com/originals/81/40/df/8140dfc50f1eae5e63741fb12e335904.jpg",
+         "https://i.pinimg.com/originals/12/42/6a/12426ae87c796818df370cb2f8bbbed7.jpg",
+         "https://i.pinimg.com/originals/3a/50/b8/3a50b8f7c03d4a96a039f986930f8528.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/a6/a4/97/a6a4979f8fdb6526dcb01a99b036184d.gif",
+         "https://i.pinimg.com/originals/bc/26/d7/bc26d77fcf9ca42b928789da3f104bae.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "392",
+      "name": "Makise Kurisu",
+      "gender": "Mujer",
+      "value": "13950",
+      "source": "Steins;Gate",
+      "img": [
+         "https://i.pinimg.com/originals/6f/1b/53/6f1b539b1323e2b81157285c1e4be6df.jpg",
+         "https://i.pinimg.com/originals/2e/03/94/2e039409fd47e1dc96b3b0956e92de8f.jpg",
+         "https://i.pinimg.com/originals/55/f6/e7/55f6e73fad6fb0f6ea01dcdac39df8a0.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/8c/c6/69/8cc6695e2da2ecdda3628af5c34bdba5.gif",
+         "https://i.pinimg.com/originals/ae/5b/66/ae5b66373f286958671db3455bc538e5.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "393",
+      "name": "Rintarou Okabe",
+      "gender": "Hombre",
+      "value": "11200",
+      "source": "Steins;Gate",
+      "img": [
+         "https://i.pinimg.com/originals/48/68/19/4868191990a108b9a40f4687dc429b65.jpg",
+         "https://i.pinimg.com/originals/a5/3e/bc/a53ebc7164609cfa2c2e1768d0be4a58.jpg",
+         "https://i.pinimg.com/originals/bd/bc/b8/bdbcb86cbd2af0f9524ae12de81c6dc4.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/c0/72/c8/c072c8bd32ac0937128e13f5e148f96d.gif",
+         "https://i.pinimg.com/originals/42/e6/38/42e638a4d19b5531cac13d4fb7108ace.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "394",
+      "name": "C.C.",
+      "gender": "Mujer",
+      "value": "13300",
+      "source": "Code Geass",
+      "img": [
+         "https://i.pinimg.com/originals/01/a6/67/01a6674bf3a69377e0a559a7af0a486a.jpg",
+         "https://i.pinimg.com/originals/ea/94/92/ea9492f9a2bd6439c0ebe246de0ae5e6.jpg",
+         "https://i.pinimg.com/originals/4d/6c/2f/4d6c2f810ac349d7872d7d2ee93959f7.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/d5/5e/ab/d55eab376016dce6bd55b88b6e0b867b.gif", 
+         "https://i.pinimg.com/originals/5e/47/a7/5e47a701287325f07038628c2b48b811.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "395",
+      "name": "Lelouch Lamperouge",
+      "gender": "Hombre",
+      "value": "14100",
+      "source": "Code Geass",
+      "img": [
+         "https://i.pinimg.com/originals/b3/ec/2c/b3ec2c350eafdab61055934f47f05b02.jpg",
+         "https://i.pinimg.com/originals/17/51/c9/1751c98d175db4b96bf7b49681949129.jpg",
+         "https://i.pinimg.com/originals/f5/00/ec/f500ec847eab0f02b1ef0f368e219a8d.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/58/c4/b6/58c4b6a5eb589e6e1cdd0ad6b49c662d.gif", 
+         "https://i.pinimg.com/originals/11/90/e3/1190e30930a629e368b6579c3f112d24.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "396",
+      "name": "Kallen Stadtfeld",
+      "gender": "Mujer",
+      "value": "11500",
+      "source": "Code Geass",
+      "img": [
+         "https://i.pinimg.com/originals/9f/3e/da/9f3eda3dfe41b8d04db75510bc73a08c.jpg",
+         "https://i.pinimg.com/originals/d5/38/e2/d538e24958314a7675cde61d2a150413.jpg",
+         "https://i.pinimg.com/originals/70/2f/39/702f39f714876e832f2417702f76a62a.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/a6/ca/18/a6ca1871ea94b0c1f6ab1aa62c1e631c.gif",
+         "https://i.pinimg.com/originals/47/66/06/47660666afa6d084ea3d9a045bdc5183.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "397",
+      "name": "Holo",
+      "gender": "Mujer",
+      "value": "13100",
+      "source": "Spice and Wolf",
+      "img": [
+         "https://i.pinimg.com/originals/d2/9e/a8/d29ea8496567c004495318615f987d32.jpg",
+         "https://i.pinimg.com/originals/a1/22/f1/a122f18d4d8b126c025a6d1ded6e661e.jpg",
+         "https://i.pinimg.com/originals/05/38/97/053897e7ce7652fb4472260e5984c83c.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/9b/d0/36/9bd036e9a9fb6dbfb87d7f5ad5f39338.gif"
+         "https://i.pinimg.com/originals/b6/50/c8/b650c8aeb59d1ebaaf7cb409cf0571c7.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "398",
+      "name": "Chisato Nishikigi",
+      "gender": "Mujer",
+      "value": "12800",
+      "source": "Lycoris Recoil",
+      "img": [
+         "https://i.pinimg.com/originals/b5/9a/e0/b59ae018049c3f7d055f95bdd10fa54a.png",
+         "https://i.pinimg.com/originals/98/d2/8b/98d28bdfcfc865f87f1728dc80b18acc.jpg",
+         "https://i.pinimg.com/originals/61/9b/e6/619be669648c4d96531b3d8332ec2d75.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/85/c3/f4/85c3f40f9a2d552e45f21e2685050716.gif", 
+         "https://i.pinimg.com/originals/e6/af/67/e6af67f13ac7e0ca4139e2e608876792.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "399",
+      "name": "Takina Inoue",
+      "gender": "Mujer",
+      "value": "12400",
+      "source": "Lycoris Recoil",
+      "img": [
+         "https://i.pinimg.com/originals/3d/c5/d4/3dc5d408fcd9d10a59647283ba9332e5.jpg",
+         "https://i.pinimg.com/originals/f3/a4/a6/f3a4a69fe7de5d6dbe792af475563acd.jpg",
+         "https://i.pinimg.com/originals/a8/ac/6d/a8ac6d70c8bc81088883480ae832682d.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/13/79/fa/1379fa2704af56c8ba53982a7f4b67f8.gif", 
+         "https://i.pinimg.com/originals/ef/cf/cc/efcfcc057c251cb3bd4c96dc8dfd4c8c.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "400",
+      "name": "Lucy Heartfilia",
+      "gender": "Mujer",
+      "value": "12950",
+      "source": "Fairy Tail",
+      "img": [
+         "https://i.pinimg.com/originals/e9/71/14/e97114903966371dd90ad2afa2aa42a7.jpg",
+         "https://i.pinimg.com/originals/35/7c/3c/357c3c041550112335f3b9b934ea5682.png",
+         "https://i.pinimg.com/originals/e2/13/94/e21394d05259a2a2ff2c9515c82fe25e.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ad/ce/98/adce9838b7d6ad5c07468087dc53c5f4.gif",
+         "https://i.pinimg.com/originals/ef/e7/d2/efe7d22697abc83b634f1691b8f97913.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "401",
+      "name": "Mirajane Strauss",
+      "gender": "Mujer",
+      "value": "12200",
+      "source": "Fairy Tail",
+      "img": [
+         "https://i.pinimg.com/originals/08/ea/ae/08eaae9dc4683c8135963dd70d0f3f7f.jpg",
+         "https://i.pinimg.com/originals/f3/65/5b/f3655b3acb89d3f4aaa1e4eac9cd9e8c.jpg",
+         "https://i.pinimg.com/originals/ff/6a/ad/ff6aad39f0807d5c4d07851fe759a331.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/cf/0c/9b/cf0c9ba140ea76feca91d83ba201cdbe.gif", 
+         "https://i.pinimg.com/originals/28/5d/aa/285daad5f7dd6a49f57fae667ba08e15.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "402",
+      "name": "Juvia Lockser",
+      "gender": "Mujer",
+      "value": "11900",
+      "source": "Fairy Tail",
+      "img": [
+         "https://i.pinimg.com/originals/5a/66/58/5a6658768908c3342fcf03ed7f56519d.jpg",
+         "https://i.pinimg.com/originals/a2/87/0c/a2870c1fdcbe7555b5bf9f287d766407.jpg",
+         "https://i.pinimg.com/originals/7e/72/7d/7e727da18c3ba6fbc01870bfdf741b74.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/18/4c/6e/184c6e915a6f2ed8e70d1772a4122f0c.gif", 
+         "https://i.pinimg.com/originals/0d/54/e7/0d54e7c7f4acbff2dcfabcd66ffe91ad.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "403",
+      "name": "Saber (Artoria Pendragon)",
+      "gender": "Mujer",
+      "value": "14150",
+      "source": "Fate Series",
+      "img": [
+         "https://i.pinimg.com/originals/fe/73/c1/fe73c12bc662fc974648dab385874623.jpg",
+         "https://i.pinimg.com/originals/32/93/00/3293009115b0276af350bcf7714c325e.jpg",
+         "https://i.pinimg.com/originals/b3/02/73/b302739dae685df07a2be9776e0e9984.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/aa/13/20/aa13207e6e2903f972d5fdaaab0a5396.gif", 
+         "https://i.pinimg.com/originals/60/0c/50/600c50586c71b19516c3a8db1d0ce5de.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "404",
+      "name": "Rin Tohsaka",
+      "gender": "Mujer",
+      "value": "14000",
+      "source": "Fate Series",
+      "img": [
+         "https://i.pinimg.com/originals/46/93/9a/46939adb92bac7b75fa6f20349e0969d.jpg",
+         "https://i.pinimg.com/originals/7f/dd/15/7fdd15aea3516de36073d26791bf8d67.jpg",
+         "https://i.pinimg.com/originals/29/4b/99/294b990d0b0884fee2cbca67bf2bf535.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/9c/63/97/9c6397cc7fae71b83abbb157bcd0284f.gif", 
+         "https://i.pinimg.com/originals/f7/17/d8/f717d8f46146cfcc5f4c3a968eb043fd.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "405",
+      "name": "Ishtar",
+      "gender": "Mujer",
+      "value": "13600",
+      "source": "Fate Series",
+      "img": [
+         "https://i.pinimg.com/originals/ca/60/85/ca6085dc27bb01fb2b4502db977d5630.jpg",
+         "https://i.pinimg.com/originals/e9/dc/dd/e9dcdd2abefef8ead93c42766271a771.jpg",
+         "https://i.pinimg.com/originals/c1/63/80/c163803799adea27dfc1d51199621d5b.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/6c/d5/71/6cd5715cfb60b4b86a24ba1d045adcdc.gif", 
+         "https://i.pinimg.com/originals/f5/e4/d2/f5e4d2e4c293a05ddd933696be3133e7.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "406",
+      "name": "Mash Kyrielight",
+      "gender": "Mujer",
+      "value": "12500",
+      "source": "Fate/Grand Order",
+      "img": [
+         "https://i.pinimg.com/originals/ef/90/99/ef909902058c9e0fa888fdf1210d9e40.jpg",
+         "https://i.pinimg.com/originals/4e/5e/c5/4e5ec53abf2950230109cd0e3dd5146d.jpg",
+         "https://i.pinimg.com/originals/94/c6/19/94c619cc03f1d59ccedd084956e1d34b.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/70/b9/b5/70b9b510b94032cb5c88428010aaa07b.gif", 
+         "https://i.pinimg.com/originals/70/a8/e3/70a8e3839e6102de3cd5085b63148d50.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "407",
+      "name": "Scathach",
+      "gender": "Mujer",
+      "value": "13100",
+      "source": "Fate/Grand Order",
+      "img": [
+         "https://i.pinimg.com/originals/99/be/58/99be58cdea42a9edf75b2c97385afd77.jpg",
+         "https://i.pinimg.com/originals/a6/bb/7e/a6bb7e21949416425d49e1a9d3468bd4.jpg",
+         "https://i.pinimg.com/originals/7d/34/71/7d3471919be10470d2925a28f44f6a6b.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/e3/d0/1c/e3d01ccd5e7d95d6be9bbb3770fa6f1b.gif", 
+         "https://i.pinimg.com/originals/7e/12/86/7e1286a75b3806fd91e97fa788b9366b.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "408",
+      "name": "Jeanne d'Arc (Alter)",
+      "gender": "Mujer",
+      "value": "13800",
+      "source": "Fate/Grand Order",
+      "img": [
+         "https://i.pinimg.com/originals/c6/6f/7f/c66f7f958bda1185d20e447c0f4e92ff.jpg",
+         "https://i.pinimg.com/originals/91/8e/32/918e32c1a8939cbcc2b0c5eac7352c65.jpg",
+         "https://i.pinimg.com/originals/90/88/47/908847366ee3adc97eadcd363e41f0cb.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/03/7f/b8/037fb878e6f06468e208437ac4b9e2e3.gif", 
+         "https://i.pinimg.com/originals/95/6d/d0/956dd0537943cc5b0b7854110ba61079.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "409",
+      "name": "Anya Forger",
+      "gender": "Mujer",
+      "value": "13500",
+      "source": "SPY X FAMILY",
+      "img": [
+         "https://i.pinimg.com/originals/d8/54/5c/d8545ce898c488897e89eda898d2ac98.jpg",
+         "https://i.pinimg.com/originals/6f/b0/2e/6fb02e9254fbf6e0aa28242c3ec0b936.jpg",
+         "https://i.pinimg.com/originals/84/ae/a8/84aea8fdc3a37c1ca15a417ad2af2084.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/8e/74/80/8e74802ee2a3df7d3db9cde1d760800c.gif", 
+         "https://i.pinimg.com/originals/52/a0/94/52a0949db5a90b7da4f9bddcf66b2a0c.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "410",
+      "name": "Loid Forger",
+      "gender": "Hombre",
+      "value": "12900",
+      "source": "SPY X FAMILY",
+      "img": [
+         "https://i.pinimg.com/originals/e2/18/44/e218449f769691b1e0916aea5795dd39.jpg",
+         "https://i.pinimg.com/originals/2e/93/dd/2e93ddc6398564ff099cb6453962751c.png",
+         "https://i.pinimg.com/originals/0d/be/90/0dbe90d4e57c0bd3ff35c5149b82d5cf.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/04/f2/1a/04f21a5a2a6f36ecc3745ded9f1d0921.gif", 
+         "https://i.pinimg.com/originals/7a/96/05/7a9605dead948c4f0f5f01969245e53c.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "411",
+      "name": "Lucy",
+      "gender": "Mujer",
+      "value": "13300",
+      "source": "Cyberpunk: Edgerunners",
+      "img": [
+         "https://i.pinimg.com/originals/15/32/58/153258e920f5df9a7a0bbb5a5da08b63.jpg",
+         "https://i.pinimg.com/originals/fd/77/5b/fd775b56ed486acd4cbae578e94439e7.jpg",
+         "https://i.pinimg.com/originals/b8/23/e2/b823e22252c44fd8bc32b7ac7e0b252f.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ac/6a/8b/ac6a8b70741a580c33ebe393bbc2e13e.gif", 
+         "https://i.pinimg.com/originals/5c/af/67/5caf672dec0eda23e6b83ae02ded08e5.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "412",
+      "name": "Rebecca",
+      "gender": "Mujer",
+      "value": "13600",
+      "source": "Cyberpunk: Edgerunners",
+      "img": [
+         "https://i.pinimg.com/originals/5e/ab/69/5eab6975f33a1737e541d5686be726d6.jpg",
+         "https://i.pinimg.com/originals/b5/cd/e6/b5cde60cbb251577df5bf7f009ff2fe6.jpg",
+         "https://i.pinimg.com/originals/33/fa/bd/33fabdec91d682bc17df2b9b1ce8cd2e.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/28/43/4e/28434e3300da0b1d2032a49b5614e379.gif", 
+         "https://i.pinimg.com/originals/4a/85/05/4a85054e51b24628acfc6a29e8ff4855.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "413",
+      "name": "Guts",
+      "gender": "Hombre",
+      "value": "14200",
+      "source": "Berserk",
+      "img": [
+         "https://i.pinimg.com/originals/ac/de/b4/acdeb45b8989f5a0936ce140feff4ca7.png",
+         "https://i.pinimg.com/originals/a4/d9/37/a4d93717cf6e3488dde7dd7d520425bd.jpg",
+         "https://i.pinimg.com/originals/69/b7/c8/69b7c80deee6a7e78faf5056b3259506.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/b7/f9/17/b7f91763bb7e8a826d8176bf932508f2.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "414",
+      "name": "Griffith",
+      "gender": "Hombre",
+      "value": "13000",
+      "source": "Berserk",
+      "img": [
+         "https://i.pinimg.com/originals/e2/90/1b/e2901bff553104e60af63e50847a69d4.jpg",
+         "https://i.pinimg.com/originals/56/49/61/56496197a21829febecaf31f845962ed.jpg",
+         "https://i.pinimg.com/originals/1d/c5/6d/1dc56d0f3c1f6ac5bc8f44c3ecb2c595.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/4f/11/ce/4f11ce032b92df9bf4367ac0f16bd302.gif", 
+         "https://i.pinimg.com/originals/bd/53/82/bd538225f469de13ff4b4eb8baebc145.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "415",
+      "name": "Hitagi Senjougahara",
+      "gender": "Mujer",
+      "value": "12800",
+      "source": "Monogatari Series",
+      "img": [
+         "https://i.pinimg.com/originals/e6/a3/41/e6a341f906cc1d7f5c41cdcc54a5087a.jpg",
+         "https://i.pinimg.com/originals/1b/75/b7/1b75b7d24911e00dd48927c12ad81b0e.jpg",
+         "https://i.pinimg.com/originals/f7/ef/3b/f7ef3b7486045de44bc82f98847d2657.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/43/71/c4/4371c4d527ce400417b19a182b6c0127.gif", 
+         "https://i.pinimg.com/originals/a4/c2/e7/a4c2e7e7a60ce987dfde525afd38a18c.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "416",
+      "name": "Tsubasa Hanekawa",
+      "gender": "Mujer",
+      "value": "11900",
+      "source": "Monogatari Series",
+      "img": [
+         "https://i.pinimg.com/originals/34/54/74/345474015b7fc228d1511157d7a73668.jpg",
+         "https://i.pinimg.com/originals/74/b5/86/74b5866742ab0049a94053ebfcd014fd.jpg",
+         "https://i.pinimg.com/originals/ab/c2/ad/abc2adf155fb6e12b9c0ee957f33b6dd.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/93/f1/8c/93f18cf555f8169241cabc6cd8f5294f.gif",
+         "https://i.pinimg.com/originals/4a/1b/37/4a1b375fbaa8cd3374a8eb5bd7912ed7.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "417",
+      "name": "Shinobu Oshino",
+      "gender": "Mujer",
+      "value": "13100",
+      "source": "Monogatari Series",
+      "img": [
+         "https://i.pinimg.com/originals/09/f7/f3/09f7f30ef8fb0fe30a3921966e6c2a64.jpg",
+         "https://i.pinimg.com/originals/94/9f/6e/949f6eb7136909b6ad9fb6b047338adf.jpg",
+         "https://i.pinimg.com/originals/45/3c/e8/453ce8a936e07790a340b266fa4c139e.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/fa/e7/de/fae7de3bfa4d44802d0c24a6e09ee0a9.gif", 
+         "https://i.pinimg.com/originals/47/e4/da/47e4dacde7d52fed65027d4d90cfd4b1.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "418",
+      "name": "Kobeni Higashiyama",
+      "gender": "Mujer",
+      "value": "12200",
+      "source": "Chainsaw Man",
+      "img": [
+         "https://i.pinimg.com/originals/38/15/67/381567c5c972b6e079091b1367c5c1ce.jpg",
+         "https://i.pinimg.com/originals/d2/13/ae/d213aecb40ed385068a324bd1f786ee8.jpg",
+         "https://i.pinimg.com/originals/63/e6/67/63e667ea6c222242bff6b5bb1eabf028.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/f8/c5/55/f8c555ef991408ee6d9e25741087d8dc.gif", 
+         "https://i.pinimg.com/originals/f2/0e/a6/f20ea63431bb7985c8bf09f8cc2bd979.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "419",
+      "name": "Quanxi",
+      "gender": "Mujer",
+      "value": "11800",
+      "source": "Chainsaw Man",
+      "img": [
+         "https://i.pinimg.com/originals/4a/07/78/4a07788cae1e64dab5d33edaa1f87640.jpg",
+         "https://i.pinimg.com/originals/0b/59/a7/0b59a780092dca892d1fa1a0d612e6a3.jpg",
+         "https://i.pinimg.com/originals/ac/90/46/ac904619cb5e983453acaa25aafba561.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/72/c5/e4/72c5e4540d4376a3750694082d58fe79.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "420",
+      "name": "Rapi",
+      "gender": "Mujer",
+      "value": "13000",
+      "source": "Goddess of Victory: Nikke",
+      "img": [
+         "https://i.pinimg.com/originals/63/fc/d0/63fcd0ebf21d73fd2436364a7b6bf2f8.jpg",
+         "https://i.pinimg.com/originals/3c/56/bc/3c56bc11f86cc3592e9a4cd2d2a6b893.jpg",
+         "https://i.pinimg.com/originals/89/9a/35/899a357f27569b1ad166c360af18a127.jpg"
+      ],
+      "vid": [],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "421",
+      "name": "Anis",
+      "gender": "Mujer",
+      "value": "13600",
+      "source": "Goddess of Victory: Nikke",
+      "img": [
+         "https://i.pinimg.com/originals/66/2a/d2/662ad2bba03c5d4afd5db572e331f041.jpg",
+         "https://i.pinimg.com/originals/f5/97/7d/f5977d8fd4d7485f42a9b8106197a1ee.jpg",
+         "https://i.pinimg.com/originals/54/c6/89/54c6898a8bdcce07ec33ac9dcd1eec03.jpg"
+      ],
+      "vid": [],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "422",
+      "name": "Alice",
+      "gender": "Mujer",
+      "value": "13200",
+      "source": "Goddess of Victory: Nikke",
+      "img": [
+         "https://i.pinimg.com/originals/fc/7a/0b/fc7a0b345a3887b09cebd414e668afa3.jpg",
+         "https://i.pinimg.com/originals/c5/09/58/c50958ed76a64fc41e52b3cf3628b13c.jpg",
+         "https://i.pinimg.com/originals/11/9d/8e/119d8e9cfa2f86b52934aa81f5da8b8e.jpg"
+      ],
+      "vid": [],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "423",
+      "name": "Kaoru Waguri",
+      "gender": "Mujer",
+      "value": "14007",
+      "source": "Kaoru Hana wa Rin to Saku",
+      "img": [
+         "https://i.pinimg.com/originals/14/68/a6/1468a6e530e9a459d4d1cce604ccc8fe.jpg",
+         "https://i.pinimg.com/originals/8a/96/e2/8a96e2eb0a201f0a3ecc9936a682ffc7.jpg",
+         "https://i.pinimg.com/originals/39/ef/0d/39ef0d4c45c08c86b73bd5f29c5eb6d9.webp"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/e0/7c/ca/e07ccacd77f208f89572026f764964fa.gif",
+         "https://i.pinimg.com/originals/a2/a8/a9/a2a8a90329d7030440947c6e3a711a16.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "424",
+      "name": "Rintaro Tsumugi",
+      "gender": "Hombre",
+      "value": "12500",
+      "source": "Kaoru Hana wa Rin to Saku",
+      "img": [
+         "https://i.pinimg.com/originals/a2/0c/72/a20c725d4948a0eca3de6143cc2ce0c3.jpg",
+         "https://i.pinimg.com/originals/36/52/2e/36522e655833ba1c666e75b79b56ff3f.jpg",
+         "https://i.pinimg.com/originals/71/72/30/717230c72cc91242b09cefb7a69fc040.png"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/e3/2d/14/e32d14ba93e1ec7dbe912b7faa0293f3.gif",
+         "https://i.pinimg.com/originals/72/d2/9b/72d29b56c8ae8afda26e7cf518fc4bcb.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "425",
+      "name": "Subaru Hoshina",
+      "gender": "Mujer",
+      "value": "11500",
+      "source": "Kaoru Hana wa Rin to Saku",
+      "img": [
+         "https://i.pinimg.com/originals/79/f9/5a/79f95a4ae5ffb26c16e5c7ab017276f3.jpg",
+         "https://i.pinimg.com/originals/a7/b4/7c/a7b47c5dcd07b2da894fed8785093600.jpg",
+         "https://i.pinimg.com/originals/1e/e3/80/1ee380e6556447460f980578ecb3b13a.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/13/3e/10/133e10b593be5a911c582dd5440c9756.gif",
+         "https://i.pinimg.com/originals/06/f7/00/06f7000bb7630fdee363b2093b4c11c3.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "426",
+      "name": "Saku Natsusawa",
+      "gender": "Hombre",
+      "value": "10500",
+      "source": "Kaoru Hana wa Rin to Saku",
+      "img": [
+         "https://i.pinimg.com/originals/d0/09/fb/d009fbc292700c6b3a17cf770fa5762a.png",
+         "https://i.pinimg.com/originals/e4/43/ee/e443ee9007d051dfc07302bbd3efd4ef.jpg",
+         "https://i.pinimg.com/originals/bf/ad/2c/bfad2c1df2a3fb47def417dc280d4874.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/2d/ba/c1/2dbac188910d978e9d1fad502350d734.gif",
+         "https://i.pinimg.com/originals/27/e0/ca/27e0ca1ce977d828a7a131b0714d096e.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "427",
+      "name": "Shohei Usami",
+      "gender": "Hombre",
+      "value": "9500",
+      "source": "Kaoru Hana wa Rin to Saku",
+      "img": [
+         "https://i.pinimg.com/originals/4d/bf/9b/4dbf9b77eeedf2baf3db0adfae7f688e.jpg",
+         "https://i.pinimg.com/originals/83/0b/29/830b2925ffe9a8922f5191133fd6ae2f.jpg",
+         "https://i.pinimg.com/originals/d7/0a/1f/d70a1f5a94377dc003441de52949f4f3.jpg"
+      ],
+      "vid": [
+         "https://media1.tenor.com/m/n-D-bgepiZAAAAAC/usami-shohei-shohei-usami.gif",
+         "https://media1.tenor.com/m/u5B8CozIOi4AAAAd/usami-shohei-shohei-usami.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "428",
+      "name": "Ayato Yorita",
+      "gender": "Hombre",
+      "value": "9200",
+      "source": "Kaoru Hana wa Rin to Saku",
+      "img": [
+         "https://i.pinimg.com/originals/03/7a/92/037a92d73b56b5234ac674e99445ecb3.jpg",
+         "https://i.pinimg.com/originals/ac/d7/52/acd7525716b5f5b0188caa1a47391152.jpg",
+         "https://i.pinimg.com/originals/9f/3d/ee/9f3dee822985f8b8e98728393beb7d87.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/E-InZ6Q-Z9QAAAAM/kaoruhana-kaoru-hana.gif",
+         "https://media.tenor.com/qwdBAf9d0OsAAAAM/ayato-yorita-yorita-ayato.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "431",
+      "name": "Taro Sakamoto",
+      "gender": "Hombre",
+      "value": "13800",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/63/9c/c0/639cc0158b4c1a1a3137f742ccb76243.jpg",
+         "https://i.pinimg.com/originals/4f/e3/85/4fe385c8afc6905ca8efc74e4ad370a3.png",
+         "https://i.pinimg.com/originals/8f/1a/73/8f1a73b09176c51ba50adeeedd7efa82.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/EBDdDhJMI_EAAAAM/ramen-tonkotsu.gif",
+         "https://media.tenor.com/UyjSMAHUYpkAAAAM/deflecting-a-bullet-taro-sakamoto.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "432",
+      "name": "Shin Asakura",
+      "gender": "Hombre",
+      "value": "12900",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/91/99/c8/9199c8951122242e26ce9ebfed72a778.jpg",
+         "https://i.pinimg.com/originals/64/5e/3d/645e3d9bbfb2eacc3fa2201811d9f580.png",
+         "https://i.pinimg.com/originals/06/0e/f2/060ef21c44538a9d9cf8ead2f456f368.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/-B95Mj4D7DAAAAA1/determined-shin-asakura.webp",
+         "https://media.tenor.com/SanVxYMuCBwAAAAM/taking-a-shower-shin-asakura.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "433",
+      "name": "Lu Xiaotan",
+      "gender": "Mujer",
+      "value": "11500",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/ee/fd/b2/eefdb2109f74841cb8f4dc7bfb03d0e4.jpg",
+         "https://i.pinimg.com/originals/d4/76/79/d476793d190d2bbbe383f208426b114c.jpg",
+         "https://i.pinimg.com/originals/a8/77/4d/a8774dc5e82be08a73d1d361d566a019.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/8VqDv0GyIRQAAAAM/lu-sakadays.gif",
+         "https://media.tenor.com/hHQlgA6sRUIAAAAM/sakamoto-sakamoto-days.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "434",
+      "name": "Nagumo",
+      "gender": "Hombre",
+      "value": "14200",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/9f/1e/cd/9f1ecd2e47b6326c47caeb461caaebc1.jpg",
+         "https://i.pinimg.com/originals/67/08/a4/6708a4db404d71a52d02f125654ce5d7.jpg",
+         "https://i.pinimg.com/originals/89/90/19/8990192ac39f62b27a641a6d9e33037a.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/98/bf/9b/98bf9be79fcf1ebe0815ba7434be073b.gif",
+         "https://media.tenor.com/uJqS1r5hLsoAAAAM/nagumo-sakamoto-days.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "435",
+      "name": "Osaragi",
+      "gender": "Mujer",
+      "value": "13950",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/59/58/22/595822d8ec3dbd2de3eb56c15120b471.jpg",
+         "https://i.pinimg.com/originals/d0/d0/d5/d0d0d51d334e38d4c22948670acfb3f7.jpg",
+         "https://i.pinimg.com/originals/15/56/c4/1556c458ef41c3b2609594f25bec48ee.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/f6/7c/72/f67c723dbc1bf31062ada4604b9d4c5a.gif",
+         "https://i.pinimg.com/originals/55/36/d2/5536d27d7a30da5092ed8794c37ac86f.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "436",
+      "name": "Shishiba",
+      "gender": "Hombre",
+      "value": "13700",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/7a/93/e0/7a93e08ce93a0c2b0eef18988e4727bc.jpg",
+         "https://i.pinimg.com/originals/16/38/83/16388362183dbf46e65b585df3631681.png",
+         "https://i.pinimg.com/originals/9e/3c/c4/9e3cc4f3174b9044479efa4a0cc527bc.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/3ixISID7e5gAAAAM/sakamoto-days.gif",
+         "https://media.tenor.com/I_nkE-SVpDgAAAAM/shishiba-sakamoto-days.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "437",
+      "name": "Heisuke Mashimo",
+      "gender": "Hombre",
+      "value": "11200",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/2b/87/be/2b87be48ebe9001d34d9afa28d0a115e.jpg",
+         "https://i.pinimg.com/originals/b5/5f/30/b55f306bd062093ddccf26e83dae05cc.jpg",
+         "https://i.pinimg.com/originals/98/92/85/9892858e0fab9e9a328e53964eb88466.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/WSsy_RqphuAAAAA1/sakamoto-days.webp",
+         "https://media.tenor.com/JQ0O1hCwyg8AAAAM/firing-a-gun-heisuke-mashimo.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "438",
+      "name": "Gaku",
+      "gender": "Hombre",
+      "value": "13400",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/43/8e/e9/438ee9c601010fe5705055cda065ae83.jpg",
+         "https://i.pinimg.com/originals/d9/ca/df/d9cadf66bb3b5e597b632f92a0fa7262.jpg",
+         "https://i.pinimg.com/originals/e8/80/41/e880412e6ec2b48657546de54dfd0a6e.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/BJqDo1QpcOIAAAAM/sakamoto-days-gaku.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "439",
+      "name": "Kei Uzuki",
+      "gender": "Hombre",
+      "value": "13900",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/ff/83/ea/ff83eaabc18d96e34958fdae1e42aeac.jpg",
+         "https://i.pinimg.com/originals/72/14/14/7214145cad333fcb6b3c5e78c26169f5.jpg",
+         "https://i.pinimg.com/originals/a6/52/87/a65287d40cf161054b40aa540f360956.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/CFCZPFVp5D4AAAAM/sakamoto-days-slur.gif",
+         "https://media.tenor.com/VSmqztuDoM4AAAAM/sakamoto-days-slur.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "440",
+      "name": "Akira Akao",
+      "gender": "Mujer",
+      "value": "12600",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/26/c9/fc/26c9fc882c3a1b675d635d2e94a1d807.jpg",
+         "https://i.pinimg.com/originals/7b/02/b8/7b02b837e77f21a9f66972359f65c8f1.jpg",
+         "https://i.pinimg.com/originals/dc/e7/c7/dce7c7dd84a068cccb27b801f2837312.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/DLYaumynYFsAAAAM/akira-akao-full-auto.gif",
+         "https://media.tenor.com/ujDuovMEavwAAAAM/akira-akao-akira-akao-celebrate.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "441",
+      "name": "Rion Akao",
+      "gender": "Mujer",
+      "value": "13100",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/ec/41/67/ec41677805d26284489aac755246d035.jpg",
+         "https://i.pinimg.com/originals/2a/78/78/2a78780a1a0102615b97002544fc1e28.jpg",
+         "https://i.pinimg.com/originals/b9/88/45/b98845597fab5dc39995b02f506ec2a2.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/CWO_DcxerJ0AAAA1/the-order-sakamoto-days.webp",
+         "https://media.tenor.com/7OlgCoaAg-UAAAA1/the-order-sakamoto-days.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "442",
+      "name": "Takamura",
+      "gender": "Hombre",
+      "value": "14300",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/a7/8c/3c/a78c3cbceb056b4b99bf54fdf0f76d6e.jpg",
+         "https://i.pinimg.com/originals/e9/c7/21/e9c721452f0b8420874655cd2151c288.jpg",
+         "https://i.pinimg.com/originals/c4/9f/a7/c49fa75863ada72d52184d17338d91ee.png"
+      ],
+      "vid": [
+         "https://media.tenor.com/yMuJh6M_P0YAAAAM/takamura-mr-takamura.gif",
+         "https://media.tenor.com/YXGNe7ZCInUAAAA1/sakamoto-days-sakadays.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "443",
+      "name": "Hyo",
+      "gender": "Hombre",
+      "value": "12800",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/48/27/3b/48273b8fffee795c4381989091b7e8ff.png",
+         "https://i.pinimg.com/originals/6a/3f/e2/6a3fe2f668a111180a7e7f7ac60ff9cb.jpg",
+         "https://i.pinimg.com/originals/f3/84/cb/f384cb8946590ca400f802a4dc5796a7.png"
+      ],
+      "vid": [
+         "https://media.tenor.com/mLz4_D0DdnMAAAA1/hyo-sakamoto-days.webp",
+         "https://media.tenor.com/LNgIgJW3s-0AAAA1/sakamoto-days-sakadays.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "444",
+      "name": "Kanaguri",
+      "gender": "Hombre",
+      "value": "12700",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/6d/e5/9c/6de59c9bad1ce5e543ec47dc10d2f0d0.jpg",
+         "https://i.pinimg.com/originals/06/47/a7/0647a7aab79870372cac817896eea853.jpg",
+         "https://i.pinimg.com/originals/53/33/fe/5333fe758bf581067b8e53a851837456.png"
+      ],
+      "vid": [
+         "https://media.tenor.com/fDBx6P7vF2wAAAA1/kanaguri-sakamoto-days.webp",
+         "https://media.tenor.com/Tl24AD48EgkAAAAM/kanaguri-opening.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "445",
+      "name": "Kumanomi",
+      "gender": "Mujer",
+      "value": "13000",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/fb/50/cf/fb50cf4df6274408cf79b79f6efad098.jpg",
+         "https://i.pinimg.com/originals/07/92/a5/0792a5f4169229095d17d67cf89ba85c.jpg",
+         "https://i.pinimg.com/originals/07/c5/5e/07c55ead583a22e59dc96ce0c92ec7b8.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/jpTieUEgjkQAAAAM/gaku-kumanomi.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "446",
+      "name": "Haruma",
+      "gender": "Hombre",
+      "value": "12500",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/aa/96/97/aa9697b07d057439abb2ccc8da368cb5.png",
+         "https://i.pinimg.com/originals/fa/97/23/fa97231b2a3cd83eaca47dc6a4d278de.png",
+         "https://i.pinimg.com/originals/ea/6c/2a/ea6c2a6451a0fb479e20d8535f1a89dd.jpg"
+      ],
+      "vid": [],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "447",
+      "name": "Natsuki Seba",
+      "gender": "Hombre",
+      "value": "11500",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/d8/09/93/d80993c7b3164963fac819378c5fc614.png",
+         "https://i.pinimg.com/originals/cc/11/1d/cc111d53ef944787eb4960a0f56ac418.jpg",
+         "https://i.pinimg.com/originals/b2/2d/70/b22d7089c9a57d5115726024d2b53c7f.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/qXvzXHr5qTUAAAAM/taking-off-the-suit-natsuki-seba.gif",
+         "https://media.tenor.com/5nWiSYxcYEwAAAA1/natsuki-seba-seba-sakamoto-days.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "448",
+      "name": "Mafuyu Seba",
+      "gender": "Hombre",
+      "value": "11400",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/83/08/9c/83089c7f186f29a05ca2c3a774e6bc31.jpg",
+         "https://i.pinimg.com/originals/ee/55/cb/ee55cb7c44014ff7c7a3fee83e6a84db.jpg",
+         "https://i.pinimg.com/originals/3a/f4/fd/3af4fd5cf426dd826832b2d37eda9655.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/Ph9fMNhAz5EAAAA1/mafuyu-seba-seba-mafuyu.webp",
+         "https://media.tenor.com/sPsEwXu-TqAAAAAM/mafuyu-seba-sakamoto-days.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "449",
+      "name": "Aoi Sakamoto",
+      "gender": "Mujer",
+      "value": "9500",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/b3/0e/40/b30e4062756ecb5b411304ce3438c21b.jpg",
+         "https://i.pinimg.com/originals/b7/a0/bd/b7a0bd9acf2e869ac773b1460d44d50a.jpg",
+         "https://i.pinimg.com/originals/45/cd/80/45cd8074d8eb68ff82cb4a3189754fa1.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/MN-G-gVDmd0AAAAM/sakamoto-sakamoto-days.gif",
+         "https://tenor.com/es-DO/view/sakamoto-sakamoto-days-aoi-sakamoto-taro-anime-gif-5477928130400412817"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "450",
+      "name": "Hana Sakamoto",
+      "gender": "Mujer",
+      "value": "8800",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/72/2f/05/722f05580124ce2f21049375c0d942bb.png",
+         "https://i.pinimg.com/originals/2f/6d/b4/2f6db417f2d1363112ab4c63a14a4d59.jpg",
+         "https://i.pinimg.com/originals/6d/50/74/6d5074444243b77c02b5b227deeb4e3a.png"
+      ],
+      "vid": [
+         "https://media.tenor.com/J1vjZamNdyMAAAAM/hana-sakamoto-cute.gif",
+         "https://tenor.com/es-DO/view/hana-sakamoto-sakamoto-days-anime-cute-smile-gif-10208928611578666052"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "451",
+      "name": "Kamihate",
+      "gender": "Hombre",
+      "value": "11900",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/736x/c4/1c/7d/c41c7d0cac44d829d49b43409b37d2d8.jpg",
+         "https://i.pinimg.com/736x/f2/ec/01/f2ec0153f7845ac651ead8060ebeeb39.jpg"
+      ],
+      "vid": [],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "452",
+      "name": "Carolina Reaper",
+      "gender": "Hombre",
+      "value": "10800",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/f5/ab/d5/f5abd511f74f8eb00d4d4db158cddc35.jpg",
+         "https://i.pinimg.com/originals/ae/84/bf/ae84bf07f7173544440d0be33e3de7b3.jpg",
+         "https://i.pinimg.com/originals/28/6c/6e/286c6efdbb4f6c61699c791c4e0cba04.jpg"
+      ],
+      "vid": [],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "453",
+      "name": "Kashima",
+      "gender": "Hombre",
+      "value": "10200",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/d6/5e/93/d65e9347b5db7a3b0370af304dc29406.jpg",
+         "https://i.pinimg.com/originals/7b/b6/bf/7bb6bf4c71edd0238fb5356e7c3a1318.jpg",
+         "https://i.pinimg.com/originals/be/88/e9/be88e9ac03c6b37c0750e142beb8ae52.png"
+      ],
+      "vid": [
+         "https://media.tenor.com/h9o1nc25OskAAAAM/sakamoto-days.gif",
+         "https://media.tenor.com/FEbeT0SKBVEAAAAM/sakamoto-days-sakadays.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "454",
+      "name": "Uda",
+      "gender": "Hombre",
+      "value": "8900",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://static.wikia.nocookie.net/sakamoto-days/images/1/1d/Uda_%28Anime%29.jpg/revision/latest?cb=20250805024113"
+      ],
+      "vid": [],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "455",
+      "name": "Apart",
+      "gender": "Hombre",
+      "value": "9500",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/19/7b/7e/197b7e4830553a61ecfa54993600787a.jpg",
+         "https://i.pinimg.com/originals/89/42/3b/89423b299a6126aae604f8c8e6dd59ec.png",
+         "https://i.pinimg.com/originals/1c/70/41/1c704152ef955dcc88eb0af3e5e449c2.png"
+      ],
+      "vid": [
+         "https://media.tenor.com/NvJM00qvqwkAAAAM/sakamoto-days.gif",
+         "https://media.tenor.com/SKXBlluYWXcAAAA1/sakadays-sakamoto-days.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "456",
+      "name": "Saw",
+      "gender": "Hombre",
+      "value": "8600",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/736x/c4/e6/eb/c4e6eb601b89c4f0f6f067a3fc5f3f60.jpg",
+         "https://i.pinimg.com/736x/f7/84/2c/f7842c794a585b1c5f71c8c9a71361d9.jpg",
+         "https://i.pinimg.com/736x/ee/b8/02/eeb8026377ff1627216cf63ecb6bbe6d.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/bQnCrVZdGLgAAAAM/ready-to-throw-my-axe-saw.gif",
+         "https://media.tenor.com/IxJhzm2WTnwAAAAM/bleeding-nose-saw.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "457",
+      "name": "Boiled",
+      "gender": "Hombre",
+      "value": "8200",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/2c/b7/7e/2cb77e145cadbd9256c941cb2c8b6dff.jpg",
+         "https://i.pinimg.com/originals/d3/b9/33/d3b93334865dd5b42f23e9427150d2e0.jpg",
+         "https://i.pinimg.com/originals/b9/07/63/b907633905db14e7efb1f4c8395ff2c6.png"
+      ],
+      "vid": [
+         "https://media.tenor.com/Mjc27Aqhlb4AAAAM/sakamoto-days.gif",
+         "https://media.tenor.com/8otIoMVaX7sAAAA1/sakamoto-days-sakamoto.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "458",
+      "name": "Amane Yotsumura",
+      "gender": "Hombre",
+      "value": "11000",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/736x/36/ee/0c/36ee0c3563dc192f99531d7cd174a9e0.jpg",
+         "https://i.pinimg.com/originals/c1/98/fe/c198feda6db6d2c78acc6a6272861d01.png",
+         "https://i.pinimg.com/originals/4f/5c/7f/4f5c7f7d9b9fbc4105c80d60d0e2c059.jpg"
+      ],
+      "vid": [],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "459",
+      "name": "Kindaka",
+      "gender": "Hombre",
+      "value": "12500",
+      "source": "Sakamoto Days",
+      "img": [
+         "https://i.pinimg.com/originals/da/99/25/da99259af037cafd2fbe8d69c142d0ca.png",
+         "https://i.pinimg.com/originals/ab/cb/c2/abcbc2a6cb77fb3bb5ad2c768630d4c3.png",
+         "https://i.pinimg.com/originals/00/d5/f2/00d5f2efe84c9ee89395c65d09e73f84.jpg"
+      ],
+      "vid": [],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "460",
+      "name": "Tanjiro Kamado",
+      "gender": "Hombre",
+      "value": "14500",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/04/de/5c/04de5c4cfec208825a22875728235414.jpg",
+         "https://i.pinimg.com/originals/d5/d4/a2/d5d4a269e125df262288affbbe8faf9b.jpg",
+         "https://i.pinimg.com/originals/b6/a0/64/b6a064006e8965bdd40128bbc8618a54.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/63/cf/17/63cf171f6cb0cb552d198735a4e98b24.gif",
+         "https://i.pinimg.com/originals/c1/a8/df/c1a8dffe0c9e0c36019be23835809708.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "461",
+      "name": "Yoichi Isagi",
+      "gender": "Hombre",
+      "value": "14200",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/0f/61/ab/0f61abc2d945889d127263aa61be8e72.jpg",
+         "https://i.pinimg.com/originals/13/21/1b/13211b5e4e4a056646da67dacc87da75.jpg",
+         "https://i.pinimg.com/originals/16/b4/f1/16b4f16a9db8e3d1b276660716f626bc.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/94/da/29/94da29aa3a23842fe9b41601cb12f94b.gif",
+         "https://i.pinimg.com/originals/4e/98/ed/4e98ed37d7a8747864cc8018cd67bf9f.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "462",
+      "name": "Nezuko Kamado",
+      "gender": "Mujer",
+      "value": "14300",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/9e/51/3b/9e513b855ba34a211dd953eac194f314.jpg",
+         "https://i.pinimg.com/originals/8b/18/e2/8b18e281009b5a3f555ae0d951b35fa1.jpg",
+         "https://i.pinimg.com/originals/1f/41/5a/1f415a0f99be8b4bf003807f944f0bac.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/16/09/72/160972ecc7792ccbfef0b80d95c187a7.gif",
+         "https://i.pinimg.com/originals/0f/9c/3a/0f9c3a3e3244886cae29c6ad836d08ef.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "463",
+      "name": "Meguru Bachira",
+      "gender": "Hombre",
+      "value": "13800",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/29/e3/4f/29e34f7f8bdb50a14f29ad62c988a037.jpg",
+         "https://i.pinimg.com/originals/7e/b1/45/7eb145db5754005296c077052fc3e06d.jpg",
+         "https://i.pinimg.com/originals/21/41/cb/2141cbceb7dde84ab71a989f4ee71a10.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/42/ae/97/42ae9769d9ffe8e0be9a0e503f5f1f72.gif",
+         "https://i.pinimg.com/originals/32/cf/68/32cf683c402ab0e70e51c5e615160b60.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "464",
+      "name": "Inosuke Hashibira",
+      "gender": "Hombre",
+      "value": "12800",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/20/e1/17/20e117778e0aec6f3b5a7191d0a5b462.jpg",
+         "https://i.pinimg.com/originals/f7/37/ea/f737ea525783624fc27611780cbc24b8.jpg",
+         "https://i.pinimg.com/originals/ac/57/e8/ac57e8b87decd67cc7bddfa675f89029.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/6f/61/d6/6f61d67e624742eb2c78108580506880.gif",
+         "https://i.pinimg.com/originals/33/00/ad/3300ad7cfa4a6fba562b8f5abacf44b2.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "465",
+      "name": "Seishiro Nagi",
+      "gender": "Hombre",
+      "value": "13900",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/ac/b6/5d/acb65d27c2ecd63d4062d41e9706ad22.jpg",
+         "https://i.pinimg.com/originals/ae/71/85/ae7185e73742ce007273390cb3a205e4.jpg",
+         "https://i.pinimg.com/originals/bf/1e/aa/bf1eaa06ccf54e4f0daa24735e0c363b.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/7a/41/bb/7a41bb51fe3babe0c6cee161f85df62c.gif",
+         "https://i.pinimg.com/originals/5a/ed/45/5aed45c45d47c3b644ce9a0d61561e1b.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "466",
+      "name": "Kyojuro Rengoku",
+      "gender": "Hombre",
+      "value": "14800",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/7e/a8/6a/7ea86ac4b11b6ad49c68e471eb551d27.jpg",
+         "https://i.pinimg.com/originals/f6/37/2b/f6372b3cae43cbe9e56eda15f2877fee.jpg",
+         "https://i.pinimg.com/originals/f0/94/a2/f094a21f8965a9b7d6c1ac5dccd582b4.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/a8/ed/c4/a8edc4f4bbd71948b76fa35e2c98ce3b.gif",
+         "https://i.pinimg.com/originals/a7/f4/e2/a7f4e28cf5cbd24a8130d4d970c8174e.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "467",
+      "name": "Hyoma Chigiri",
+      "gender": "Hombre",
+      "value": "13500",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/b1/de/97/b1de97b0d5bd4f6f49cb6a311a263789.jpg",
+         "https://i.pinimg.com/originals/ca/cd/51/cacd518a852e6b2a364c1bf85e4f3d16.jpg",
+         "https://i.pinimg.com/originals/df/79/b6/df79b61fa0a9ae213a5305b30641cc43.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/94/9d/29/949d29492c40bd6715cea481e763c762.gif",
+         "https://i.pinimg.com/originals/53/5f/8a/535f8af3bd03c70c3792b6d7e2da4a6f.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "468",
+      "name": "Tengen Uzui",
+      "gender": "Hombre",
+      "value": "13900",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/33/ef/07/33ef07083eb82a6e314b32b2d6e72295.png",
+         "https://i.pinimg.com/originals/d9/df/d6/d9dfd67bd5fce338bdcde036dc050373.jpg",
+         "https://i.pinimg.com/originals/21/79/91/217991f1a29c9b6eb7c0a49efbc1bd01.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/bb/43/6b/bb436b014a9370147fdb7937cd626ead.gif",
+         "https://i.pinimg.com/originals/26/d0/84/26d0845b25001705b483360da4010e3d.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "469",
+      "name": "Rin Itoshi",
+      "gender": "Hombre",
+      "value": "14100",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/4f/33/47/4f334747e42c9d952e1270e50e4746c9.jpg",
+         "https://i.pinimg.com/originals/00/61/e4/0061e4d9196a217ee4f3002abba894f2.jpg",
+         "https://i.pinimg.com/originals/e6/ce/da/e6ceda5bc470cecde07c654133162c3a.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/88/28/18/882818659ff02a335e6410dbcc07a52a.gif",
+         "https://i.pinimg.com/originals/ee/75/29/ee7529262fdb6bd93deb57d17959898d.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "470",
+      "name": "Muichiro Tokito",
+      "gender": "Hombre",
+      "value": "13700",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/e3/c9/70/e3c9709a9b6db55812c2183fb73f71e3.jpg",
+         "https://i.pinimg.com/originals/23/0b/f5/230bf5e0a3d856b0321acadc18d400bb.jpg",
+         "https://i.pinimg.com/originals/b9/7a/1b/b97a1b4f1cb3882fe2ba648d0b23968a.png"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/dc/f3/7a/dcf37a91bd27c05db5cfa4906176513d.gif",
+         "https://i.pinimg.com/originals/7b/2c/02/7b2c02e86d333326655ee97ec23c2b33.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "471",
+      "name": "Rensuke Kunigami",
+      "gender": "Hombre",
+      "value": "12500",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/90/fb/51/90fb5122e2a4ef760b473dd216017a12.jpg",
+         "https://i.pinimg.com/originals/d6/b8/5b/d6b85b3ed7380472e24fbc73a8d1729e.jpg",
+         "https://i.pinimg.com/originals/22/12/8e/22128eddf5ed26baad3331ec2c95cc04.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ab/ed/6b/abed6b781ea87ddd067b180f43331427.gif",
+         "https://i.pinimg.com/originals/61/da/20/61da20cebb0c8ba70481a490686660ce.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "472",
+      "name": "Sanemi Shinazugawa",
+      "gender": "Hombre",
+      "value": "13600",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/41/5f/89/415f89e479ac1fc6d59b76b86c45d788.jpg",
+         "https://i.pinimg.com/originals/54/49/7f/54497f3c2cfb1a3467f996f942c4f812.jpg",
+         "https://i.pinimg.com/originals/eb/96/61/eb9661fac84e85e63dde1d927aa6be12.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/25/c6/c4/25c6c4bd661183bd93a25b4a14255813.gif",
+         "https://i.pinimg.com/originals/2c/99/33/2c9933d31253cccb1f150120516ea897.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "473",
+      "name": "Shouei Barou",
+      "gender": "Hombre",
+      "value": "13200",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/2a/db/5d/2adb5d14ee55a1e60cfcbf999b837fce.jpg",
+         "https://i.pinimg.com/originals/e9/0b/c2/e90bc290f1e63bf6f0a2f5044f4c81d9.jpg",
+         "https://i.pinimg.com/originals/3f/76/e4/3f76e4662be5d38ec910a1ed262fb0aa.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ea/42/f0/ea42f0fefcac8dbf48ebf21447c996fc.gif",
+         "https://i.pinimg.com/originals/d1/8a/22/d18a222425e6ca2a56122ebde057f833.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "474",
+      "name": "Obanai Iguro",
+      "gender": "Hombre",
+      "value": "13400",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/63/06/a1/6306a13b005fa5f01610c7ef13711885.jpg",
+         "https://i.pinimg.com/originals/5f/d3/e4/5fd3e4bed0a16b3b0815095e3b4579db.jpg",
+         "https://i.pinimg.com/originals/8e/1e/f1/8e1ef1e667877e89d365000aba338835.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/f6/7d/09/f67d09150f1336a4f9b3d9c8ed1dc686.gif",
+         "https://i.pinimg.com/originals/8a/a0/ba/8aa0ba208164be247d80d1b1d113a187.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "475",
+      "name": "Reo Mikage",
+      "gender": "Hombre",
+      "value": "12800",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/83/ff/e3/83ffe3dfc5bdf1e80dd23eff71a0b89f.jpg",
+         "https://i.pinimg.com/originals/ea/e2/d8/eae2d8369649ed56506fb57363a52ed6.jpg",
+         "https://i.pinimg.com/originals/0a/1a/35/0a1a35944770a78a1d7adb549b7e6235.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/14/48/03/1448035e9575d576c27367b4b105b486.gif",
+         "https://i.pinimg.com/originals/d8/ea/f7/d8eaf70c8483115e5927f6553651781f.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "476",
+      "name": "Muzan Kibutsuji",
+      "gender": "Hombre",
+      "value": "14800",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/ae/08/57/ae08572a48e198a9508688529b08d3c9.jpg",
+         "https://i.pinimg.com/originals/24/92/d4/2492d4a56c030207f0a777a834e41b6d.jpg",
+         "https://i.pinimg.com/originals/af/23/a3/af23a31276b55a0d02d618985a91fc3d.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/2a/e3/9f/2ae39fc2fefad38193a727e96fa617a0.gif",
+         "https://i.pinimg.com/originals/1d/84/f6/1d84f66de3570b22c3779d3f1bb4fd9e.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "477",
+      "name": "Sae Itoshi",
+      "gender": "Hombre",
+      "value": "14500",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/df/42/7a/df427a1543be669bf789abe26d39b2a6.jpg",
+         "https://i.pinimg.com/originals/c3/28/7a/c3287a08de42e5abbd126d8363b70fab.jpg",
+         "https://i.pinimg.com/originals/ca/51/e1/ca51e1a5ad3707e4a094e5497a9211a2.png"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/3c/c9/1e/3cc91eee3b2457a89612567bc0d2927b.gif",
+         "https://i.pinimg.com/originals/8c/56/ce/8c56cec962040750b1154f475f312ffd.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "478",
+      "name": "Akaza",
+      "gender": "Hombre",
+      "value": "14200",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/49/69/93/496993538417d5220e65320c736d9785.jpg",
+         "https://i.pinimg.com/originals/2d/e4/b8/2de4b863bca7d64bcc73786c9015e7fb.jpg",
+         "https://i.pinimg.com/originals/9f/ac/f5/9facf53589048cfe2184a3d328835e1c.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/9f/2a/f2/9f2af23d6c324ffdae0a8ae54a40904f.gif",
+         "https://i.pinimg.com/originals/ff/59/ae/ff59aeadd2d9f4fcb20e524e02185ee9.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "479",
+      "name": "Ryusei Shidou",
+      "gender": "Hombre",
+      "value": "13600",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/e6/26/6b/e6266b05d3177ddc552b0235fa801f67.jpg",
+         "https://i.pinimg.com/originals/8a/83/07/8a8307c07f370f75fecff4daf0ed255b.jpg",
+         "https://i.pinimg.com/originals/e8/75/4d/e8754d982607e432cd46893e8c363e96.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/f1/74/45/f1744507b66dc0f11d3ce9e257426c4f.gif",
+         "https://i.pinimg.com/originals/31/f0/61/31f0613f42ece662b879eaacb32429e3.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "480",
+      "name": "Douma",
+      "gender": "Hombre",
+      "value": "14300",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/00/cf/b4/00cfb49a23b8761476887c7da78a11dc.jpg",
+         "https://i.pinimg.com/originals/eb/47/a7/eb47a7b0c65977bc1bc9907bd68b198e.webp",
+         "https://i.pinimg.com/originals/68/61/67/686167094d4e78024b490b745dee373e.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/71/e7/53/71e7536b5a8fbee80aeb06901ba7833f.gif",
+         "https://i.pinimg.com/originals/22/3e/de/223ede060a5a58861b7a3ba1cdc5ee93.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "481",
+      "name": "Michael Kaiser",
+      "gender": "Hombre",
+      "value": "14400",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/37/bb/e7/37bbe7ccb5c8395949666a9c5d95fd98.jpg",
+         "https://i.pinimg.com/originals/73/ac/c8/73acc8590420048e2f686e7f15324c13.jpg",
+         "https://i.pinimg.com/originals/9e/9f/66/9e9f66e90efe97486b8c9668946a9740.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/95/13/c9/9513c90be5af985db65f85da4307ec44.gif",
+         "https://i.pinimg.com/originals/5d/f3/19/5df319d365cfbdae1373765e501ddf28.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "482",
+      "name": "Kanao Tsuyuri",
+      "gender": "Mujer",
+      "value": "12600",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/77/15/5d/77155dd82779e1d373f47e8af7517d49.jpg",
+         "https://i.pinimg.com/originals/2f/da/bd/2fdabddc82259aa6d8d6bb3aa7dabe49.webp",
+         "https://i.pinimg.com/originals/2f/2e/e4/2f2ee45223feb0453b28e397a3b9540f.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/0f/8c/21/0f8c218f209914af5545d57a14fc0935.gif",
+         "https://i.pinimg.com/originals/34/ee/45/34ee456c1106b0761df0e58b22526d01.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "483",
+      "name": "Jinpachi Ego",
+      "gender": "Hombre",
+      "value": "13000",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/60/08/85/600885c818ae1aefb75eb88a04d2ef45.jpg",
+         "https://i.pinimg.com/originals/17/ae/0c/17ae0ce7473d857dc48aaa8d3e4d0858.png",
+         "https://i.pinimg.com/originals/e6/92/e0/e692e0629ef548bb2be97ee504b76627.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/YVGjSKZ7vT0AAAAM/blue-lock-jinpachi-ego.gif",
+         "https://media.tenor.com/d3wlFm7y-zEAAAAM/blue-lock-jinpachi-ego.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "484",
+      "name": "Genya Shinazugawa",
+      "gender": "Hombre",
+      "value": "11500",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/4e/fb/91/4efb91894bde7b9b0ea18ea793ff6244.jpg",
+         "https://i.pinimg.com/originals/1d/f0/f1/1df0f1dcfda4ccf654860c09e3450d47.jpg",
+         "https://i.pinimg.com/originals/fc/e0/bf/fce0bfff23587dcd3d0b4b40538a0a82.png"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ff/ce/5f/ffce5f09d34c3cdea8b742e7823a63db.gif",
+         "https://i.pinimg.com/originals/93/65/ca/9365ca574f8bb9457a42a4f94acdbe61.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "485",
+      "name": "Tabito Karasu",
+      "gender": "Hombre",
+      "value": "12900",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/e9/81/90/e9819019952934c95811a69b82ae1c6e.jpg",
+         "https://i.pinimg.com/originals/4d/49/91/4d499172ff0251236b580aec78c9e65b.jpg",
+         "https://i.pinimg.com/originals/5a/d3/8b/5ad38b4c067ac9d6daf069d092c198bd.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/q_-IV18fNkUAAAAM/blue-lock-karasu-tabito.gif",
+         "https://media.tenor.com/JP4hCM9MsOQAAAAM/blue-lock-karasu-tabito.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "486",
+      "name": "Tamayo",
+      "gender": "Mujer",
+      "value": "11000",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/2f/f0/71/2ff0710e2c547333e03ef00ff9494014.jpg",
+         "https://i.pinimg.com/originals/dc/89/6b/dc896bd577dd4d7171ac44fd72ae5807.png",
+         "https://i.pinimg.com/originals/6d/56/2b/6d562bce04935cedd49de9078de1e9b6.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/f8/e7/f7/f8e7f7fbc7667e08c37f77c98c1c56e3.gif",
+         "https://i.pinimg.com/originals/ea/40/3b/ea403b76685c14cffe765ca72018b102.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "487",
+      "name": "Eita Otoya",
+      "gender": "Hombre",
+      "value": "12700",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/e3/49/98/e349989c7675482091f5570a38fdec75.jpg",
+         "https://i.pinimg.com/originals/70/fd/ee/70fdee5fa04fe57a181523648bd1f009.jpg",
+         "https://i.pinimg.com/originals/76/f7/06/76f706ab5286be1fc8e1f34c37b9bd08.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/cTBvuN1MrXgAAAAM/otoya-eita-blue-lock.gif",
+         "https://media.tenor.com/Upse2x28QCQAAAAM/blue-lock-eita-otoya.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "488",
+      "name": "Yushiro",
+      "gender": "Hombre",
+      "value": "9500",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/01/79/3c/01793c6d5449674980493cb49eee57e0.png",
+         "https://i.pinimg.com/originals/b0/01/5c/b0015ce93bac2fd23a5c8aaac37cbe25.jpg",
+         "https://i.pinimg.com/originals/25/d3/43/25d343ee95092b7833caee3be75631ad.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/8e/c1/3a/8ec13a3f1854c524adf7908ed5c3e8b8.gif",
+         "https://i.pinimg.com/originals/8f/19/7d/8f197dfec7d44dbd21345ffad4108dfd.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "489",
+      "name": "Kenyu Yukimiya",
+      "gender": "Hombre",
+      "value": "12800",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/e9/69/34/e969340c024c3566f7ac69ef18166150.jpg",
+         "https://i.pinimg.com/originals/c1/99/06/c19906bbce48077c709a956279b4e68d.jpg",
+         "https://i.pinimg.com/originals/42/04/17/42041797464e1104d6aae7a5c6ccb7ef.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/37/f0/e4/37f0e47587347a18e5d1ec0a6c0ed86f.gif",
+         "https://i.pinimg.com/originals/19/14/33/191433074f486314a29a84b93d32474c.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "490",
+      "name": "Rui",
+      "gender": "Hombre",
+      "value": "10500",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/8c/09/4b/8c094b887a4a4859e84af4cf7e0b4d40.jpg",
+         "https://i.pinimg.com/originals/ac/f4/59/acf45973b80a78f8f699f7507fc8ab71.jpg",
+         "https://i.pinimg.com/originals/3b/74/00/3b740069c8ad1b7e46a0ff59135b86d1.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/98/95/36/98953661f9516d66ded7bd5c5468c8b0.gif",
+         "https://i.pinimg.com/originals/e2/58/90/e25890b54c6494c52b05881e3fa09b30.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "491",
+      "name": "Gin Gagamaru",
+      "gender": "Hombre",
+      "value": "12200",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/88/79/dc/8879dc54bb7a61244d1648e7fff08218.jpg",
+         "https://i.pinimg.com/originals/3c/3e/d4/3c3ed428315fe7ac2980d3c62735a8c8.jpg",
+         "https://i.pinimg.com/originals/fe/94/6a/fe946a65cc2bb9182362fd38efa0cb62.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/bib_ty68K5IAAAAM/gagamaru-gagamaru-punch.gif",
+         "https://media.tenor.com/hQk-4i9dv-YAAAAM/bluelock-anime-team-z.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "492",
+      "name": "Enmu",
+      "gender": "Hombre",
+      "value": "10800",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/f5/50/ba/f550ba9677d26942aafafb88b46820d4.jpg",
+         "https://i.pinimg.com/originals/02/8e/4b/028e4b2c526eb59b7d61eaf70b41258c.jpg",
+         "https://i.pinimg.com/originals/88/47/75/8847751c2771ca68df8b1d423fec104a.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/b4/b3/39/b4b339d4272524cbb12eff83c2dc63ef.gif",
+         "https://i.pinimg.com/originals/aa/5b/7c/aa5b7cd43371ffa3364c0d4207540b94.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "493",
+      "name": "Jingo Raichi",
+      "gender": "Hombre",
+      "value": "10500",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/c9/25/90/c92590375ef9005aa7ac48d747187dc9.jpg",
+         "https://i.pinimg.com/originals/6d/7c/b7/6d7cb725e4da973de81cea83c0b8131e.jpg",
+         "https://i.pinimg.com/originals/b5/10/a6/b510a69643a2885058bf0e8951bdcea9.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/ie-2jR53djIAAAAM/jingo-raichi.gif",
+         "https://media.tenor.com/o9h2CvFUU44AAAAM/kuon-raichi.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "494",
+      "name": "Hantengu",
+      "gender": "Hombre",
+      "value": "13500",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/68/1d/fc/681dfca7075685cbb7e525a4224c9b2c.jpg",
+         "https://i.pinimg.com/originals/30/a9/a6/30a9a6698c2336f132b2c70e9dd22fac.jpg",
+         "https://i.pinimg.com/originals/f6/04/c5/f604c5d83bc5aa3a93e84a36d8f623aa.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/09/b3/ab/09b3abbc886c3c2deebc1e30a15f62cc.gif",
+         "https://i.pinimg.com/originals/a7/b1/e8/a7b1e8985b86e38b13318fbdab100afe.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "495",
+      "name": "Jyubei Aryu",
+      "gender": "Hombre",
+      "value": "11800",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/b0/73/68/b073684b969ca94fa651074aa35eb712.jpg",
+         "https://i.pinimg.com/originals/e9/10/6b/e9106b65b4e4f8e4860b1c52afa477a1.jpg",
+         "https://i.pinimg.com/originals/cd/bf/ef/cdbfef88f219e1e3006e665245b30855.png"
+      ],
+      "vid": [
+         "https://media.tenor.com/hDbRiyk83VAAAAA1/aryu-blue-lock.webp",
+         "https://media.tenor.com/g-I28SMCNLsAAAAM/aryu-jyubei.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "496",
+      "name": "Gyokko",
+      "gender": "Hombre",
+      "value": "13200",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/29/4b/13/294b13b0d9b049d3efc3198d06f933e9.jpg",
+         "https://i.pinimg.com/originals/9d/e0/f0/9de0f00261e5cfd6d04b8bf4d54459d7.jpg",
+         "https://i.pinimg.com/originals/27/4e/1e/274e1e08bdc9578cd511b31e6f222d09.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/7d/da/cc/7ddacc25f6bd6c03c27310771301cde0.gif",
+         "https://i.pinimg.com/originals/55/be/2b/55be2b9afdec36e83594fa52e71d3b0f.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "497",
+      "name": "Aoshi Tokimitsu",
+      "gender": "Hombre",
+      "value": "12000",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/4b/1c/e0/4b1ce078cafa076bec0526434ee003a6.png",
+         "https://i.pinimg.com/originals/68/19/1b/68191b14d44041487d14a91f54a292c6.jpg",
+         "https://i.pinimg.com/originals/c4/81/f0/c481f04ad15f228e1d39f41811feaea3.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/t7USJuLeHHkAAAAM/blue-lock-tokimitsu-aoshi.gif",
+         "https://media.tenor.com/BIyHMjjlWvoAAAAM/blue-lock-aoshi-tokimitsu.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "498",
+      "name": "Sabito",
+      "gender": "Hombre",
+      "value": "9000",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/95/be/02/95be025137d769b540b3da17c75a5bd9.jpg",
+         "https://i.pinimg.com/originals/67/a0/bd/67a0bda77a15281a1b6ad76c041e7757.jpg",
+         "https://i.pinimg.com/originals/f1/03/3b/f1033b4577daa54a3ec3e2b63a06dffe.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/b1/4c/04/b14c046510e8ac1abc709db51548e9c5.gif",
+         "https://i.pinimg.com/originals/d6/96/d6/d696d6b57dd917371922a9daa82311b0.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "499",
+      "name": "Oliver Aiku",
+      "gender": "Hombre",
+      "value": "13400",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/d5/af/72/d5af72712e565e13f2ee5fdcb90efca3.jpg",
+         "https://i.pinimg.com/originals/d2/c8/24/d2c824cdb2228474bae309cdc4020581.jpg",
+         "https://i.pinimg.com/originals/5d/76/e6/5d76e6d7967ef4e8d46834a63e83045d.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/eb/0e/24/eb0e244cb6bd807638e459c0e6352c28.gif",
+         "https://i.pinimg.com/originals/3d/f6/6c/3df66c70a69c35dda491c2db413b37cb.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "500",
+      "name": "Makomo",
+      "gender": "Mujer",
+      "value": "8500",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/85/75/6f/85756f493383fc48e2bcc27bbf9cb525.jpg",
+         "https://i.pinimg.com/originals/ed/6f/ac/ed6facfa70be47473987e945d7581b01.jpg",
+         "https://i.pinimg.com/originals/02/71/b1/0271b199986eadf0cdba06d0cbb84f44.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/a2/19/a6/a219a635a10d019b030d0c2fde5bd9f1.gif",
+         "https://i.pinimg.com/originals/0a/b6/40/0ab640011cb2aee019fc94241765fb05.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "501",
+      "name": "Noel Noa",
+      "gender": "Hombre",
+      "value": "15000",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/66/1d/ba/661dba2621b345fc020bda829922aac6.jpg",
+         "https://i.pinimg.com/originals/ee/a3/21/eea321edf37e5ff15a465e694672bb0b.jpg",
+         "https://i.pinimg.com/originals/75/ff/ef/75ffef7d5e97e7a87d2d6f7b85268af3.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/hf1VxI7QiQAAAAA1/noel-noa-noel.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "502",
+      "name": "Kagaya Ubuyashiki",
+      "gender": "Hombre",
+      "value": "12000",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/d6/94/b1/d694b1f5344f9b0c34b4348b98ac017e.jpg",
+         "https://i.pinimg.com/originals/d2/fa/9e/d2fa9e823dd8c989347bccf8fc9fa5d6.jpg",
+         "https://i.pinimg.com/originals/eb/ac/22/ebac22c61df624e9b3c158d8c0c2f332.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/dsgwx8PLxeoAAAA1/ubuyaxiqui.webp",
+         "https://media.tenor.com/BWXJxcwXCB0AAAAM/kimetsu-no-yaiba-mugen-train.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "503",
+      "name": "Alexis Ness",
+      "gender": "Hombre",
+      "value": "13100",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/7b/7b/e7/7b7be747053b62c44c68a879f3735947.jpg",
+         "https://i.pinimg.com/originals/42/d4/03/42d403be5a4fcf839e57f264aed22b43.jpg",
+         "https://i.pinimg.com/originals/7e/e3/6d/7ee36df91d2f95b14dcdc9a9ce13a3a9.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/64/f6/31/64f63111f30d66328fd00e50f6f8409d.gif",
+         "https://i.pinimg.com/originals/2d/1a/6d/2d1a6d3e029e3defdef96f00be3869cd.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "504",
+      "name": "Aoi Kanzaki",
+      "gender": "Mujer",
+      "value": "8000",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/fd/18/ef/fd18efa5fd002dbb2f657ad76ad14e0f.jpg",
+         "https://i.pinimg.com/originals/da/38/a3/da38a324ea269d263107c62f239befba.jpg",
+         "https://i.pinimg.com/originals/80/3b/4d/803b4dadd2097a08f2f45175d9b5bf18.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/af/f9/0e/aff90e5224f7926e1cd818ac4401afcc.gif",
+         "https://i.pinimg.com/originals/b4/0e/ba/b40eba8802503c7f2da07cc022e1f641.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "505",
+      "name": "Ikki Niko",
+      "gender": "Hombre",
+      "value": "11600",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/3c/10/e4/3c10e4c65583103ad02e2afdb5f0311b.jpg",
+         "https://i.pinimg.com/originals/68/71/81/687181e8a409395cb8c2d6fce016d77c.jpg",
+         "https://i.pinimg.com/originals/1c/eb/1e/1ceb1efc5e0f18aab9c5777bee47fb81.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/42/98/08/429808a6415e27e78a8c8468f6a61205.gif",
+         "https://media.tenor.com/ICHRVqGvR1UAAAAM/blue-lock-ikki-niko.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "506",
+      "name": "Senjuro Rengoku",
+      "gender": "Hombre",
+      "value": "6500",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/4f/ac/27/4fac2716b86e43172053ce34be8d362e.jpg",
+         "https://i.pinimg.com/originals/c8/72/8e/c8728e211a5123bcf386f4ad8eaa0e14.jpg",
+         "https://i.pinimg.com/originals/e2/49/57/e24957cb1467dfe42a360b00f3c45817.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/fe/33/d5/fe33d5f0bf9aa46d1c16718b3a3c3e59.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "507",
+      "name": "Zantetsu Tsurugi",
+      "gender": "Hombre",
+      "value": "11200",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/74/db/79/74db798292cd6195f44148cf48d993f3.jpg",
+         "https://i.pinimg.com/originals/a2/ff/56/a2ff56de088bc0f3d6dbc1216bc6ab60.jpg",
+         "https://i.pinimg.com/originals/1b/a9/89/1ba989af736e534cfddeb2de88885c60.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/XE6SwpAuMLMAAAAM/blue-lock-zantetsu.gif",
+         "https://media.tenor.com/BgLuL9GwY74AAAAM/zantetsu-tsurugi-zantetsu.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "508",
+      "name": "Suma",
+      "gender": "Mujer",
+      "value": "9500",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/b7/29/85/b729853bde1b4e6f00dd00f63159f443.jpg",
+         "https://i.pinimg.com/originals/74/fd/be/74fdbe648ceb16a6e36417aa5b5453f8.jpg",
+         "https://i.pinimg.com/originals/01/3e/b6/013eb60032a12b010c5850445923cd50.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/cd/4f/4d/cd4f4d8105b5e41a11203bba750f0160.gif",
+         "https://i.pinimg.com/originals/fa/9c/6c/fa9c6c5f66691f4a9c011baa9abf75f9.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "509",
+      "name": "Don Lorenzo",
+      "gender": "Hombre",
+      "value": "14250",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/0e/d5/60/0ed5608fb69fbb57dd04f09709e10781.jpg",
+         "https://i.pinimg.com/originals/73/cc/05/73cc0588c572042bf38094323e299390.jpg",
+         "https://i.pinimg.com/originals/70/f7/6f/70f76f9229b465a2f22358bd01b35a27.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/64/ef/73/64ef738cc972030b43629351cd418b4f.gif",
+         "https://i.pinimg.com/originals/a7/5a/f4/a75af44682836846c3b102ad40a43c85.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "510",
+      "name": "Makio",
+      "gender": "Mujer",
+      "value": "9200",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/01/bf/3d/01bf3dcbbb4c011fd4410d82265335ba.jpg",
+         "https://i.pinimg.com/originals/b7/85/cb/b785cbf7a2f5b3845ab948897d1f2c88.jpg",
+         "https://i.pinimg.com/originals/60/e5/8a/60e58abd5eef3598f0f6fc839e45dd6a.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/e8/0e/ca/e80eca743cbc6b1166f34b21cf40e471.gif",
+         "https://i.pinimg.com/originals/fa/9c/6c/fa9c6c5f66691f4a9c011baa9abf75f9.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "511",
+      "name": "Gurimu Igarashi",
+      "gender": "Hombre",
+      "value": "8500",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/f2/f1/28/f2f1282ee084e641dcfe7c72cb6c97ce.jpg",
+         "https://i.pinimg.com/originals/16/3d/0c/163d0c23e0b9772d04659f190b279284.jpg",
+         "https://i.pinimg.com/originals/11/74/a4/1174a40cf05aff6f91b0246dc84cfac0.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/NMlSjiAPiXgAAAAM/bluelock-anime-blue-lock-anime.gif",
+         "https://media.tenor.com/4VAWQNzxcBQAAAAM/bluelock-anime-blue-lock-anime.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "512",
+      "name": "Hinatsuru",
+      "gender": "Mujer",
+      "value": "9300",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/97/6c/65/976c651d92fded31eb658ce0c3f40b4e.jpg",
+         "https://i.pinimg.com/originals/d3/06/b6/d306b6ef42df0a554ef2b4cf59262f23.jpg",
+         "https://i.pinimg.com/originals/42/d3/d7/42d3d7cc35e723c1701e29589dcd45ea.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/fa/9c/6c/fa9c6c5f66691f4a9c011baa9abf75f9.gif",
+         "https://i.pinimg.com/originals/2c/21/f3/2c21f3c7604dc029c64b74bcacb80dcb.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "513",
+      "name": "Asahi Naruhaya",
+      "gender": "Hombre",
+      "value": "9000",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/fd/0f/ff/fd0fff01dc7ee3c1433bea7afc796fdf.jpg",
+         "https://i.pinimg.com/originals/0a/a7/14/0aa71473b3e05534d4a430ac6baa59a6.jpg",
+         "https://i.pinimg.com/originals/06/b3/67/06b3677eaca8fade8741b3ef709bfbec.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/aFK6Ge5ZYvAAAAA1/blue-lock-asahi-naruhaya.webp",
+         "https://media.tenor.com/PJyDCA3GeNEAAAAM/gaganaru-gagamaru-gin.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "514",
+      "name": "Hotaru Haganezuka",
+      "gender": "Hombre",
+      "value": "9800",
+      "source": "Kimetsu no Yaiba",
+      "img": [
+         "https://i.pinimg.com/originals/d6/8b/02/d68b02c902a1c943381a2468cfd88ffb.jpg",
+         "https://i.pinimg.com/originals/fb/64/87/fb6487fd8d1d14b094dbe47e6b1daff4.jpg",
+         "https://i.pinimg.com/originals/dc/c9/4b/dcc94bc013336bbcbf00bcd2deb94ce3.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/29/3c/10/293c1064c97c513d69b25dc00735a516.gif",
+         "https://i.pinimg.com/originals/84/a5/be/84a5bee3747263692a73b4dc76eb6918.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "515",
+      "name": "Wataru Kuon",
+      "gender": "Hombre",
+      "value": "9500",
+      "source": "Blue Lock",
+      "img": [
+         "https://i.pinimg.com/originals/e3/cc/7d/e3cc7d5e2ec22a9167840b08ca406b64.jpg",
+         "https://i.pinimg.com/originals/cc/d5/c9/ccd5c9269d0be35849d37017145035c4.jpg",
+         "https://i.pinimg.com/originals/6e/a3/3c/6ea33ce16e0a66e213b7dde0a3c7e94f.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/LJ0tIGCD5JkAAAA1/wataru-kuon-blue-lock.webp",
+         "https://media.tenor.com/KyDJF11mK5EAAAA1/kuon-wataru.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   }, 
+   {
+      "id": "516",
+      "name": "Vegeta",
+      "gender": "Hombre",
+      "value": "14900",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/2a/36/be/2a36bedf6424df092d2be27fc1fafc24.jpg",
+         "https://i.pinimg.com/originals/dc/35/8d/dc358d4220377b6ff2cdbe7e05bb9355.jpg",
+         "https://i.pinimg.com/originals/54/36/b6/5436b649d0c00fecccea18b690e0fd13.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ce/3f/71/ce3f71f032509d4969915044bfe6c6b7.gif",
+         "https://i.pinimg.com/originals/91/3f/2e/913f2e984cff22801ce5ea43c40eb564.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "517",
+      "name": "Son Gohan",
+      "gender": "Hombre",
+      "value": "14500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/6a/29/94/6a2994fadea9d48ce5bf0a1c0dc30a56.jpg",
+         "https://i.pinimg.com/originals/48/52/f3/4852f3e22a5ecf0a399c8c3a392dc0f5.jpg",
+         "https://i.pinimg.com/originals/aa/d0/25/aad02584b1d930f2177d0019dae5ae99.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/5f/dc/ba/5fdcbad9cb6c0ac08de70dafc93a2100.gif",
+         "https://i.pinimg.com/originals/ec/db/74/ecdb7406d5c429c64b1051acdb6ad56a.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "518",
+      "name": "Frezzer",
+      "gender": "Hombre",
+      "value": "14200",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/7a/06/e0/7a06e0466cbf4b86f2aee61b2a11b29a.jpg",
+         "https://i.pinimg.com/originals/6c/5f/aa/6c5faa1b67a2e0268c7feb94da8652df.jpg",
+         "https://i.pinimg.com/originals/33/d7/db/33d7dbf8cdb29b1ea6ef943cdb22b620.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/96/b3/83/96b383842bdbaea0fd916230f4bb5c92.gif",
+         "https://i.pinimg.com/originals/d0/21/43/d021430c4f722909566e0bedb624726b.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "519",
+      "name": "Piccolo",
+      "gender": "Hombre",
+      "value": "13500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/98/a8/78/98a878c832eaac7bf82a5015c4c18d45.jpg",
+         "https://i.pinimg.com/originals/ca/76/82/ca76823d6f8f77d6b2c0636adbd94f5d.jpg",
+         "https://i.pinimg.com/originals/3a/28/22/3a282271df92f1437435bc777bfb858c.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/56/45/0c/56450cca9bd76cd6311171cd9b00fb7e.gif",
+         "https://i.pinimg.com/originals/82/9d/02/829d022c1890e1285a7c7201f002af84.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "520",
+      "name": "Future Trunks",
+      "gender": "Hombre",
+      "value": "13900",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/d2/49/0d/d2490d18106cfd81b0f15f0528bf93b1.jpg",
+         "https://i.pinimg.com/originals/89/06/1a/89061ab197489510aef0867939274388.jpg",
+         "https://i.pinimg.com/originals/f7/32/ef/f732eff7c18b5264e8fbdf11c608170c.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/55/bf/0d/55bf0dc16d4dadcf32bfd6c2d246de91.gif",
+         "https://i.pinimg.com/originals/5b/ed/f7/5bedf7e7248c534c235fb3fba2ddea91.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "521",
+      "name": "Android 18",
+      "gender": "Mujer",
+      "value": "13800",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/79/4c/81/794c81ea4ca2bb49952ebb0b6fe354cf.jpg",
+         "https://i.pinimg.com/originals/36/8c/d1/368cd131398f4048a995c62ab9aae04a.jpg",
+         "https://i.pinimg.com/originals/cc/21/25/cc2125b83ba3f1be12c8f1e75f15d3ee.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/cc/c3/19/ccc319e145e1d2df33c2c4892bfbb355.gif",
+         "https://i.pinimg.com/originals/d1/65/0c/d1650cc0042e8ba423acff0e8f7d2621.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "522",
+      "name": "Krillin",
+      "gender": "Hombre",
+      "value": "11500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/db/4c/d6/db4cd6834bca66d9caa89da7ee832176.jpg",
+         "https://i.pinimg.com/originals/d7/cf/0c/d7cf0c80cd1adaf5570d6e4af45805d9.jpg",
+         "https://i.pinimg.com/originals/39/75/f5/3975f56604c6cf3f0e052601f375d1c9.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/53/69/d4/5369d4957f69f7ba0a1dac5af40c7c87.gif",
+         "https://i.pinimg.com/originals/6c/af/db/6cafdbed273545d1daf9e96b77b52223.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "523",
+      "name": "Majin Buu",
+      "gender": "Hombre",
+      "value": "12500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/5b/84/97/5b84970834caad99ae98d911a3bbb332.jpg",
+         "https://i.pinimg.com/originals/5d/f3/97/5df3975f26720122578ac9ca285453b0.jpg",
+         "https://i.pinimg.com/originals/9b/1a/0b/9b1a0bf3fdca305b1823458163a6d3b9.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/40/98/42/4098422b49e3077085a28578a35a2b05.gif",
+         "https://i.pinimg.com/originals/de/b6/84/deb68438a300d020fda1cde4baabe04d.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "524",
+      "name": "Beerus",
+      "gender": "Hombre",
+      "value": "14100",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/b4/33/61/b4336194140437ed60e5854f45b7d6bf.jpg",
+         "https://i.pinimg.com/originals/de/fe/bd/defebdfa7bf73f501dd44689966e18ee.jpg",
+         "https://i.pinimg.com/originals/c4/c6/e1/c4c6e175abd9fcba375d895fe87aaa61.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/a1/d6/24/a1d624aef459ef660dfb9f2134bde8ff.gif",
+         "https://i.pinimg.com/originals/08/35/9b/08359b6b10d16117c8f624895482bcb6.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "525",
+      "name": "Whis",
+      "gender": "Hombre",
+      "value": "13600",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/72/13/d7/7213d7879e9913a4d33e12ae6e7619dc.jpg",
+         "https://i.pinimg.com/originals/82/3f/1c/823f1c1325562eaa34e11fa43437af04.jpg",
+         "https://i.pinimg.com/originals/2d/2c/b1/2d2cb1a309473ae7bf3ab398080691e8.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/2a/e1/49/2ae14952bd554ede93e2b4e6c3d3f48d.gif",
+         "https://i.pinimg.com/originals/c5/ec/59/c5ec599941f17b33ed601af6342d824e.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "526",
+      "name": "Broly",
+      "gender": "Hombre",
+      "value": "14600",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/18/7e/35/187e357480cee4edaa281fed528a74c4.jpg",
+         "https://i.pinimg.com/originals/08/0e/88/080e88b268e5fed6e3ac6ab54726e535.jpg",
+         "https://i.pinimg.com/originals/2e/43/a0/2e43a0c75e9eea7e4237ade7841b609a.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ea/b9/67/eab967f308c14cdd14d6d85012593d61.gif",
+         "https://i.pinimg.com/originals/59/68/bb/5968bbf5bc8c4e985bb2d73037d421dd.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "527",
+      "name": "Goku Black",
+      "gender": "Hombre",
+      "value": "14300",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/c9/19/ed/c919ed8acb6f34b98f9ab88100da313c.jpg",
+         "https://i.pinimg.com/originals/69/9a/75/699a75f40da61ea5d83912236d3af6ac.jpg",
+         "https://i.pinimg.com/originals/9f/83/2f/9f832f9d95dc2029835347bc01529674.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/55/18/16/551816013c03e57b423db438e62bd2ff.gif",
+         "https://i.pinimg.com/originals/de/c3/46/dec3465b3ad85f041130ce2f99b02b64.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "528",
+      "name": "Android 17",
+      "gender": "Hombre",
+      "value": "12800",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/5c/af/59/5caf59b602c5a9942227268a81a95845.jpg",
+         "https://i.pinimg.com/originals/da/4c/31/da4c31567bb5dae43982c181bf1f11f7.jpg",
+         "https://i.pinimg.com/originals/e0/ff/0a/e0ff0a5a008b8896bd42bec28ccf38bd.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/7a/b8/fe/7ab8fec0e8cae8a3f63a3c1a91109c5f.gif",
+         "https://i.pinimg.com/originals/2f/af/19/2faf19691511acbcfb9677c1e0f1d972.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "529",
+      "name": "Master Roshi",
+      "gender": "Hombre",
+      "value": "11000",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/38/5d/fe/385dfe41dd8e53bdf215768caffb93f1.jpg",
+         "https://i.pinimg.com/originals/e6/eb/c2/e6ebc2f77f7599947b2991a53591e605.jpg",
+         "https://i.pinimg.com/originals/16/9b/5e/169b5ed5ac4f62ec75bb4066f76a0c62.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/8e/b4/40/8eb4407960ca26b7d4b64571115a8730.gif",
+         "https://i.pinimg.com/originals/b0/c1/95/b0c1953f033522531739ec2b3c85e53b.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "530",
+      "name": "Videl",
+      "gender": "Mujer",
+      "value": "11800",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/d7/43/6d/d7436dac89b266292746e07cb49eb5b9.jpg",
+         "https://i.pinimg.com/originals/a9/48/c0/a948c0f649c12ab1ab09d81ab73bb3c8.png",
+         "https://i.pinimg.com/originals/98/97/cb/9897cbff5aa632a05fe7040d9cd7c03f.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/b7/11/99/b71199a31d53a5690dcd23715a4c06d4.gif",
+         "https://i.pinimg.com/originals/f7/8b/3f/f78b3f7c33c6d6f0f9feb2501100fed7.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "531",
+      "name": "Bardock",
+      "gender": "Hombre",
+      "value": "13400",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/56/db/2a/56db2a5dfe92db8414d0ef0c7f0a4b90.jpg",
+         "https://i.pinimg.com/originals/7f/4c/10/7f4c1036e20c2021291035484d13725d.jpg",
+         "https://i.pinimg.com/originals/16/5a/da/165adad7a763d9c6196a0eca07943024.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/89/ef/09/89ef097864e156f00bcbcdb6f92db3c8.gif",
+         "https://i.pinimg.com/originals/61/94/8a/61948a464bada98af022d9907cb15fba.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "532",
+      "name": "Vegito",
+      "gender": "Hombre",
+      "value": "14900",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/fc/30/df/fc30df93aa95b45b737791579d8d5646.jpg",
+         "https://i.pinimg.com/originals/fc/30/df/fc30df93aa95b45b737791579d8d5646.jpg",
+         "https://i.pinimg.com/originals/94/0d/8a/940d8ae5d835bf52c7ccfcadecc437f4.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ad/76/2d/ad762db3c6307671f50d4ddf16a160e8.gif",
+         "https://i.pinimg.com/originals/b6/85/fe/b685fe231295888944456d980ae953b6.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "533",
+      "name": "Gogeta",
+      "gender": "Hombre",
+      "value": "14950",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/91/0c/05/910c058921563c531655c74f45403634.jpg",
+         "https://i.pinimg.com/originals/f7/b1/93/f7b1934c8c31d7df4816e37196fd06bd.jpg",
+         "https://i.pinimg.com/originals/af/13/58/af1358551148a4f7bad711a114add4b5.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ec/f6/84/ecf6841c2610803559c41ba7c190db05.gif",
+         "https://i.pinimg.com/originals/c8/70/bb/c870bbcc35e57b25f403a40839cfbc1f.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "534",
+      "name": "Son Goten",
+      "gender": "Hombre",
+      "value": "10500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/26/cc/f1/26ccf1410d3b59865747f4163804ab29.jpg",
+         "https://i.pinimg.com/originals/07/9b/e9/079be9210755b39b850abd5d8d918e46.jpg",
+         "https://i.pinimg.com/originals/d4/e0/6c/d4e06cd5b36f188bf1c15ee1c1e03fd4.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/b4/ac/01/b4ac019264b05b72f2d344e3538eeb96.gif",
+         "https://i.pinimg.com/originals/5c/13/52/5c1352a5c40442481ccefbec38f2203a.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "535",
+      "name": "Trunks Briefs",
+      "gender": "Hombre",
+      "value": "10600",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/17/04/7a/17047add5c0f6a11acec7333e74818aa.png",
+         "https://i.pinimg.com/originals/23/a3/59/23a359102269cb187effdf11e430c09c.jpg",
+         "https://i.pinimg.com/originals/34/8f/01/348f014b07903bf0c5edd43f0e00669a.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/dd/a1/ff/dda1ff8fd9f365a11ee228cdd4b85e0d.gif",
+         "https://i.pinimg.com/originals/bc/3c/b9/bc3cb9ac4181cd7dbe6771f71183184a.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "536",
+      "name": "Tien Shinhan",
+      "gender": "Hombre",
+      "value": "9500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/f7/ed/9c/f7ed9ce105a766949d0cb4236d3002df.jpg",
+         "https://i.pinimg.com/originals/84/8b/c1/848bc1f35596cafa7111c1e8c389aced.png",
+         "https://i.pinimg.com/originals/61/d1/c4/61d1c4196f538c2828bf8fc21d8d9e98.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/df/be/24/dfbe241e96dbd1745b6418ab7125459a.gif",
+         "https://i.pinimg.com/originals/de/4a/c1/de4ac1b393615f7dc8b6cbdad9c706b2.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "537",
+      "name": "Yamcha",
+      "gender": "Hombre",
+      "value": "8500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/82/b7/2c/82b72c1a3c7098b3777e827392754a06.jpg",
+         "https://i.pinimg.com/originals/61/a6/64/61a664cd145b1fffff9f7315dd2afcd0.jpg",
+         "https://i.pinimg.com/originals/c9/ef/bc/c9efbc5dd8893e8a77c858bd4957a7e6.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/21/45/03/2145034d64bbf5ac3b756d8262efdbb9.gif",
+         "https://i.pinimg.com/originals/ee/5c/2a/ee5c2a8440c65b19cedf801da9d25051.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "538",
+      "name": "Jiren",
+      "gender": "Hombre",
+      "value": "13300",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/90/10/85/901085bc978bd95d82e34429998da70e.jpg",
+         "https://i.pinimg.com/originals/49/e3/3a/49e33a398f14d3ed7b719133b29d3ab6.jpg",
+         "https://i.pinimg.com/originals/d2/36/71/d236717a4ff8a0cb328b2f1d0d902082.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/2a/56/4e/2a564eccc43233218f33d00c0debfc29.gif",
+         "https://i.pinimg.com/originals/02/20/99/022099c65504b9f36505ed6ccfa67790.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "539",
+      "name": "Caulifla",
+      "gender": "Mujer",
+      "value": "12100",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/67/91/b0/6791b0e42f91cb89f635c17190a0d1c2.jpg",
+         "https://i.pinimg.com/originals/82/d2/7e/82d27e5e554e462ab806dd2d41e80b2a.jpg",
+         "https://i.pinimg.com/originals/dd/20/ab/dd20ab221a91138518f6826de7275db5.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/1f/3f/72/1f3f72b8380bce16bf0b6a3f0d07b95a.gif",
+         "https://i.pinimg.com/originals/ca/9d/5f/ca9d5fd9865159c932f433c6671e3670.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "540",
+      "name": "Kale",
+      "gender": "Mujer",
+      "value": "11900",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/dd/d9/68/ddd9683fefb47862084bf63ea400ddde.jpg",
+         "https://i.pinimg.com/originals/92/76/88/927688a1c698f12cb8857db8c60fe3fa.jpg",
+         "https://i.pinimg.com/originals/71/ad/48/71ad489524ce93dae3558a8077f47511.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/f8/2a/55/f82a55ed346d79083220155001b77f66.gif",
+         "https://i.pinimg.com/originals/bf/e1/5c/bfe15cc04fc4176639f8a7f9d0dcaa69.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "541",
+      "name": "Kefla",
+      "gender": "Mujer",
+      "value": "12800",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/736x/18/70/42/187042a1b395ff530214a7375c808383.jpg",
+         "https://i.pinimg.com/originals/3b/19/be/3b19be9a10fabd5d6c075e1377637eb5.jpg",
+         "https://i.pinimg.com/736x/bd/fd/62/bdfd622ae1a773423bbf6979157c9a93.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/57/17/d8/5717d88eddc2066de617cef68c958d15.gif",
+         "https://i.pinimg.com/originals/a3/01/48/a30148c456aa3e57143d825b5073086e.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "542",
+      "name": "Zamasu",
+      "gender": "Hombre",
+      "value": "11900",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/15/d7/8f/15d78f6919fc82ae057f3f6d4b710ada.jpg",
+         "https://i.pinimg.com/originals/5f/7c/12/5f7c12c58e9867d5c6064d1c1c4ee725.jpg",
+         "https://i.pinimg.com/originals/fe/5d/4d/fe5d4d2053ac9ee1a8ee9aca40acc1e3.png"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/78/f0/ae/78f0ae9f4b386ad9579bac21c359c87e.gif",
+         "https://i.pinimg.com/originals/2e/32/f8/2e32f823dc65c8224331e049c8d59410.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "543",
+      "name": "Cooler",
+      "gender": "Hombre",
+      "value": "11500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/3c/83/66/3c8366e5841d11d57b20b2e4a4e6c10d.png",
+         "https://i.pinimg.com/originals/d2/d9/cc/d2d9cc58538acfdc49e6cb9fdca6772c.jpg",
+         "https://i.pinimg.com/originals/4b/3f/96/4b3f961741b625ebddb7896a440ae3e1.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/94/68/d6/9468d67d782b62d429461a0a30284506.gif",
+         "https://i.pinimg.com/originals/c8/50/5a/c8505aa2a42f13b5ed3aa3cab0a07971.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "544",
+      "name": "Janemba",
+      "gender": "Hombre",
+      "value": "11800",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/39/95/5b/39955bf55569ed73710f59836a72081f.jpg",
+         "https://i.pinimg.com/originals/7d/5e/5e/7d5e5e0dd82fcef6f0c383e66312151d.jpg",
+         "https://i.pinimg.com/originals/6f/39/ba/6f39baa95b0474dc50f1d0047b08eb91.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/9d/d6/d3/9dd6d39eab00df6347b8418950fb4a0a.gif",
+         "https://i.pinimg.com/originals/59/2e/ab/592eabc45f90b4e7723555de15056e14.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "545",
+      "name": "Android 16",
+      "gender": "Hombre",
+      "value": "10200",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/ad/65/cc/ad65cca5c03525b7bd3510fc806db6dc.jpg",
+         "https://i.pinimg.com/originals/58/90/c8/5890c8454856b259c9fbcba37e45419a.jpg",
+         "https://i.pinimg.com/originals/56/cf/5a/56cf5aefdb81fe24e8376e2bf5f16bae.png"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/85/82/0c/85820c24342ccc619a1a544df5a3dbdc.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "546",
+      "name": "Raditz",
+      "gender": "Hombre",
+      "value": "9200",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/f8/fb/98/f8fb98eb3cfc6f52148c73e0f988563d.jpg",
+         "https://i.pinimg.com/originals/aa/f2/5e/aaf25ed4fb8e2dc00519347e3441b30c.jpg",
+         "https://i.pinimg.com/originals/46/61/d4/4661d4ddb2a859a29c8a9450526f6653.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ef/b1/23/efb123954aae56891d1940842fbc2453.gif",
+         "https://i.pinimg.com/originals/6e/66/3e/6e663e4305c4ad6a7e146ecd08738d94.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "547",
+      "name": "Nappa",
+      "gender": "Hombre",
+      "value": "8800",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/9d/90/47/9d9047e63b837f8034dc2b00ad7a1b5b.jpg",
+         "https://i.pinimg.com/originals/d7/8e/57/d78e570c6c213a16f5220578e66a06da.jpg",
+         "https://i.pinimg.com/originals/44/bc/20/44bc2046ac8040785d5f90daa1782e7a.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/51/a8/c5/51a8c5169db92284221a15490d46c8af.gif",
+         "https://i.pinimg.com/originals/f5/89/f4/f589f4333f48737dfde0a78cb3c066ed.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "548",
+      "name": "Mr. Satan",
+      "gender": "Hombre",
+      "value": "9000",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/a6/98/52/a6985292c3c76afeff03d624e56e4dc3.jpg",
+         "https://i.pinimg.com/originals/4a/6a/e2/4a6ae26e6571620a2f7e7079761889d1.jpg",
+         "https://i.pinimg.com/originals/b4/0f/3f/b40f3fe4d9a56ac4a3c3b1d77057daed.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/24/dd/78/24dd78cbcfc7dd840601e5c4f33cb48d.gif",
+         "https://i.pinimg.com/originals/8a/0a/67/8a0a670b28ed48ed85f2f7908485e4e8.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "549",
+      "name": "Pan",
+      "gender": "Mujer",
+      "value": "9500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/89/67/ed/8967ed5069d7689fa5df6b88d4f4150a.jpg",
+         "https://i.pinimg.com/originals/40/da/28/40da2810ecd60683594a0c6b869b3b73.webp",
+         "https://i.pinimg.com/originals/bb/de/32/bbde325d11e65222280963f3d37fd1a1.webp"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/70/d7/9d/70d79d2781ceb82d55927452979432d7.gif",
+         "https://i.pinimg.com/originals/50/e5/fa/50e5fa6c80bb5140e240991253c82fc7.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "550",
+      "name": "Cheelai",
+      "gender": "Mujer",
+      "value": "10800",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/79/99/83/79998349b7c3a07c872f90c027831b4a.jpg",
+         "https://i.pinimg.com/originals/cd/31/c4/cd31c47b23b02a4199aa062b8998c51d.jpg",
+         "https://i.pinimg.com/originals/cd/f1/9a/cdf19a1f2ab5879b6cadc93a713d01e4.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/bb/27/c4/bb27c42e55f46351db163cfa43985b86.gif",
+         "https://i.pinimg.com/originals/8b/f8/d0/8bf8d097b15f1c87b6d7cebe814b9c3e.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "551",
+      "name": "Launch",
+      "gender": "Mujer",
+      "value": "9800",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/6b/8f/d8/6b8fd8dcbcfbe1b231c945b14153eec8.jpg",
+         "https://i.pinimg.com/originals/0e/6d/38/0e6d386c4262c0071ce771cb9c82d6da.jpg",
+         "https://i.pinimg.com/originals/d6/6e/cb/d66ecb4459602e519bfa80ee083bd425.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/c0/f9/a8/c0f9a8a6e63973f4fc46cc5bfef70ae6.gif",
+         "https://i.pinimg.com/originals/73/e2/d0/73e2d0e3a4bdb1a8bc49a44fe3b2cc46.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "552",
+      "name": "Zarbon",
+      "gender": "Hombre",
+      "value": "8500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/e0/1c/f6/e01cf68acde175d8376e007e8593484a.jpg",
+         "https://i.pinimg.com/originals/0c/0f/0e/0c0f0e5f34e3b9fcfdfa84aa3c21e41b.jpg",
+         "https://i.pinimg.com/originals/40/4b/60/404b6002e08beb9f9a72e50a074d9998.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/58/6c/2a/586c2a90b1e235542e08766c227950e2.gif",
+         "https://i.pinimg.com/originals/c9/21/ed/c921ed2530ef996c31ee3f16b0e7a9b1.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "553",
+      "name": "Dodoria",
+      "gender": "Hombre",
+      "value": "7500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/c1/9e/42/c19e42d8d465c3af9b53e2f925d87e42.jpg",
+         "https://i.pinimg.com/originals/f7/2b/d7/f72bd78f4f3038c367b32172a594ba08.jpg",
+         "https://i.pinimg.com/originals/4e/d4/3f/4ed43fe954dd46686f1b6592fb506025.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/tONKeO7aUk0AAAAM/dodoria-laugh.gif",
+         "https://media.tenor.com/TIasRi_1bJgAAAAM/dokkan-dodoria.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "554",
+      "name": "Captain Ginyu",
+      "gender": "Hombre",
+      "value": "9900",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/f1/85/8d/f1858d031ea53c2030cd4284f59f0007.jpg",
+         "https://i.pinimg.com/originals/f0/54/d5/f054d57efdb5a90d13505f41113dc969.png",
+         "https://i.pinimg.com/originals/78/8d/c7/788dc79951880027c56c55c96585bd16.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/eb/f2/33/ebf233562f154f8b012bde9736b2d269.gif",
+         "https://media.tenor.com/2EZU_wsnMiEAAAAM/ginyu-dbz.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "555",
+      "name": "Jeice",
+      "gender": "Hombre",
+      "value": "9200",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/f3/ef/bb/f3efbbacd373669ced7aa2af8f04d6f4.jpg",
+         "https://i.pinimg.com/originals/9e/c6/94/9ec69432ce509975c968c9f85dc6df21.jpg",
+         "https://i.pinimg.com/originals/5e/08/99/5e0899f9fce5ce5a3929767530daee6d.png"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/17/23/c2/1723c2b650845f20fb6650ab289d2918.gif",
+         "https://media.tenor.com/k8eQER3x92YAAAAM/jeice-jayce.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "556",
+      "name": "Burter",
+      "gender": "Hombre",
+      "value": "8500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/0f/67/2a/0f672a3c579ba4a3e3288bb396ea8d7b.jpg",
+         "https://i.pinimg.com/originals/26/d2/dc/26d2dc198bd469929684f7069783d457.jpg",
+         "https://i.pinimg.com/originals/3a/9f/46/3a9f4617ce64daab372d8d4c7406c4d2.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/fe/f7/e0/fef7e08d66cbb26fcf59691ab5a85f76.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "557",
+      "name": "Recoome",
+      "gender": "Hombre",
+      "value": "8600",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/07/90/e8/0790e81e4c49472413dfc6e5d8bc2424.jpg",
+         "https://i.pinimg.com/originals/b4/34/2b/b4342b6a914fbd5de9b6efa5d47f30a5.jpg",
+         "https://i.pinimg.com/originals/ce/27/c2/ce27c2c027d414f770677f80e3582f4f.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/YbGWRZXlzBcAAAAM/teamfourstar-dbz-abridged.gif",
+         "https://media.tenor.com/kExngmHBWcIAAAAM/recoome-burter.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "558",
+      "name": "Guldo",
+      "gender": "Hombre",
+      "value": "7000",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/37/6b/4b/376b4bab0e94e665a2bee650570d9990.jpg",
+         "https://i.pinimg.com/originals/f2/dc/fc/f2dcfc9ca39d42ae179ce91b068aa773.jpg",
+         "https://i.pinimg.com/originals/79/16/85/791685481e1427daa946799123209e22.webp"
+      ],
+      "vid": [
+         "https://media.tenor.com/WN9Ln_eKG6oAAAAM/ginyu-force-pose.gif",
+         "https://media.tenor.com/llCQ__TmRbsAAAAM/guldo-genu.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "559",
+      "name": "Android 21",
+      "gender": "Mujer",
+      "value": "13100",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/46/7b/81/467b813215e8239cd43435e112752735.jpg",
+         "https://i.pinimg.com/originals/05/9c/99/059c99a6e6765004ace1f3e5d02ad522.jpg",
+         "https://i.pinimg.com/originals/5d/da/6e/5dda6e045753b698030e693963988255.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/23/56/43/23564356dd4c869dbc4ffa3df328a21b.gif",
+         "https://i.pinimg.com/originals/bf/9f/c9/bf9fc9a3cb4d0d29ad9102033c1cc20c.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "560",
+      "name": "Towa",
+      "gender": "Mujer",
+      "value": "11500",
+      "source": "Dragon Ball",
+      "img": [
+         "https://i.pinimg.com/originals/28/09/25/2809258363d69eba8e24122d37fbe0e3.jpg",
+         "https://i.pinimg.com/originals/ba/67/4d/ba674d96636d806a8b700cc4984ee35b.jpg",
+         "https://i.pinimg.com/originals/61/bf/d6/61bfd659dee1b44ebfaf469def2f2e28.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/WhtAxJF0agwAAAAM/towa-bardock.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   }, 
+   {
+      "id": "561",
+      "name": "Shigeo Kageyama",
+      "gender": "Hombre",
+      "value": "14200",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/b1/45/9c/b1459ce4372afa510d875dead032a537.jpg",
+         "https://i.pinimg.com/originals/08/22/9d/08229d9a1c4274dda34a0c92d89a15d8.png",
+         "https://i.pinimg.com/originals/a6/30/e3/a630e3e95624bec0221668d888d53b34.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/c8/1c/55/c81c558ff52706cb288fe3e0da852428.gif",
+         "https://i.pinimg.com/originals/6b/8d/1f/6b8d1fc902c6008680c40d04456eaa6f.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "562",
+      "name": "Arataka Reigen",
+      "gender": "Hombre",
+      "value": "14500",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/ec/30/e2/ec30e2ac0f29364f93c88ed402758264.jpg",
+         "https://i.pinimg.com/originals/f0/ad/c8/f0adc83d6c3cc5d22c31024af9ac466a.jpg",
+         "https://i.pinimg.com/originals/d7/c6/da/d7c6da15698fb6419c88ba356f62825f.png"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/98/07/98/980798382f03485b636b2e8175a97b2a.gif",
+         "https://i.pinimg.com/originals/0d/d0/8c/0dd08c2ec524b8b29750ba8e8e57c482.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "563",
+      "name": "Senku Ishigami",
+      "gender": "Hombre",
+      "value": "14400",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/62/e4/66/62e46621f0864320721262a90708e2a8.jpg",
+         "https://i.pinimg.com/originals/7c/b6/8b/7cb68bf255344047c4b10dfdc1f13c14.jpg",
+         "https://i.pinimg.com/originals/81/b7/cd/81b7cd49ed4178c48d86c0855eb53d4d.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/8a/50/fd/8a50fdea91cf9c94a367902baffadadd.gif",
+         "https://i.pinimg.com/originals/b3/f8/5d/b3f85d586f2a6e9c81b180533152c362.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "564",
+      "name": "Kohaku",
+      "gender": "Mujer",
+      "value": "13800",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/d2/39/c5/d239c53fcdec0b4250485f658695955d.jpg",
+         "https://i.pinimg.com/originals/a0/4c/7d/a04c7d1d1ca94950fcce5da750ab6f91.jpg",
+         "https://i.pinimg.com/originals/44/d8/3c/44d83c6ea1783f357c9aa58ae4a9d5ba.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/5c/e8/07/5ce807cbc393bf2cfdad037c3093f8c4.gif",
+         "https://media.tenor.com/oEpHnV4Q7pwAAAAM/what-don%27t-understand.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "565",
+      "name": "Ritsu Kageyama",
+      "gender": "Hombre",
+      "value": "12500",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/51/40/ef/5140ef3ed7fe239b9e7bacd5bea80166.jpg",
+         "https://i.pinimg.com/originals/4a/a1/4d/4aa14da99c88985f7f9f393e923dda59.jpg",
+         "https://i.pinimg.com/originals/1c/75/1c/1c751c31b8e5d70f93dea0d492600fb2.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/a2/94/e1/a294e17a8cad4a1eed20450fae38b6b0.gif",
+         "https://i.pinimg.com/originals/c4/e9/b1/c4e9b18bf3a06f0189d16243d86e2dc8.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "566",
+      "name": "Teruki Hanazawa",
+      "gender": "Hombre",
+      "value": "12800",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/18/b1/a6/18b1a6fe0c5799999809cf4249fece32.jpg",
+         "https://i.pinimg.com/originals/3a/0f/95/3a0f95d0bc92582523637631b67346b4.jpg",
+         "https://i.pinimg.com/originals/e1/20/bb/e120bbae515f0823ca9cc4d38af2eeee.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/33/04/07/330407d4f025e615a3a77be23111bead.gif",
+         "https://i.pinimg.com/originals/f6/c9/2a/f6c92a348c38ab3e2e2d2a048194201f.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "567",
+      "name": "Gen Asagiri",
+      "gender": "Hombre",
+      "value": "13900",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/48/54/b9/4854b9a513b675b53fbc5cf5a253655c.jpg",
+         "https://i.pinimg.com/originals/6c/1b/be/6c1bbe8182ef1eb6eec854583109034c.jpg",
+         "https://i.pinimg.com/originals/ca/7f/55/ca7f55c8c49cfa520bd49d9094933404.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/60/7e/7a/607e7ac95d28695439388e13ed184e2f.gif",
+         "https://i.pinimg.com/originals/90/7c/26/907c264e3f77a95e6d654a96fc9d290c.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "568",
+      "name": "Tsukasa Shishio",
+      "gender": "Hombre",
+      "value": "13500",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/40/c9/e9/40c9e919598ba2c383ff55ac382e961a.png",
+         "https://i.pinimg.com/originals/0f/15/67/0f1567dc9dae0e89aea2be58ba010a36.jpg",
+         "https://i.pinimg.com/originals/1a/c2/13/1ac2139a29a6baa0d78bf653f7692efb.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/51/96/e0/5196e0286ea9bc588569ed5b51c154db.gif",
+         "https://i.pinimg.com/originals/3d/6b/2a/3d6b2a469f0b681c3ce0f7ae6d00b7f5.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "569",
+      "name": "Ekubo",
+      "gender": "Hombre",
+      "value": "11500",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/7c/59/6b/7c596b6a71126019eb827bc9824a6a4b.jpg",
+         "https://i.pinimg.com/originals/f9/f0/b4/f9f0b4faf5645879493134dba12ad292.jpg",
+         "https://i.pinimg.com/originals/73/92/1f/73921fc3b1b764210ed9f0c94defb173.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/3f/91/24/3f91246b36047dbe4f99d6abea4c32c6.gif",
+         "https://i.pinimg.com/originals/ca/3f/ff/ca3fff8666ce276f5c973d7ee19848eb.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "570",
+      "name": "Chrome",
+      "gender": "Hombre",
+      "value": "12600",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/64/49/b4/6449b4d6c7f190bf586da234828bc264.jpg",
+         "https://i.pinimg.com/originals/58/49/6a/58496a837c2cf6da2d45f3dab6dd732e.png",
+         "https://i.pinimg.com/originals/74/fb/c3/74fbc34741ae43d10a8b706dd5badc40.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/S7Smafcm5JYAAAAM/dr-stone-chrome.gif",
+         "https://media.tenor.com/UQqJ-wBn_zEAAAAM/winking-wink.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "571",
+      "name": "Shou Suzuki",
+      "gender": "Hombre",
+      "value": "11900",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/45/0d/f0/450df0b5037c2a871a0961c085789a8c.jpg",
+         "https://i.pinimg.com/originals/d3/b3/6d/d3b36dacf6cc7e9f8740dbc81a1facea.jpg",
+         "https://i.pinimg.com/originals/82/f8/a5/82f8a5ac3e499764c0c75bd358ffb55b.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/15/9d/cb/159dcb8ba5e5fd8049e9aebd0364ab01.gif",
+         "https://media.tenor.com/FefXFFDj8VoAAAAM/mob-mob-psycho.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "572",
+      "name": "Katsuya Serizawa",
+      "gender": "Hombre",
+      "value": "11200",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/a9/5a/36/a95a367c02454b4d007db1fb86d04c63.jpg",
+         "https://i.pinimg.com/originals/ca/e8/05/cae805cb44c448d36b17b24ed796bca7.jpg",
+         "https://i.pinimg.com/originals/03/8d/d2/038dd289963e2eee33747f5030b02f0b.png"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/b4/ed/3a/b4ed3af20e44b768a83b0c9cb69e4b83.gif",
+         "https://i.pinimg.com/originals/c4/db/c7/c4dbc7efd3ca67dbd1f6a72e59ff6973.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "573",
+      "name": "Taiju Oki",
+      "gender": "Hombre",
+      "value": "11800",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/59/89/1d/59891d32540b1007332cfd9fcaf0448d.jpg",
+         "https://i.pinimg.com/originals/c2/6f/02/c26f0237df749a5c5933e5bf856c8a1f.jpg",
+         "https://i.pinimg.com/originals/66/bd/01/66bd01807cb841cf2a66fcbd5272e9ed.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ee/d2/77/eed277a3735ca0fe26446f50a9702121.gif",
+         "https://media.tenor.com/ngTuJVV1ijUAAAAM/taiju-drstone.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "574",
+      "name": "Yuzuriha Ogawa",
+      "gender": "Mujer",
+      "value": "11500",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/7a/1f/df/7a1fdf1654a106bc2c3371b61f17948d.jpg",
+         "https://i.pinimg.com/originals/0f/bd/81/0fbd8163a6f847404a3761cbc23f3b5a.jpg",
+         "https://i.pinimg.com/originals/06/5e/cb/065ecbd9e78553c0711d1e950d05072a.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/f6/41/93/f64193576fa4d02d893f923ad547fde0.gif",
+         "https://media.tenor.com/h1RBbRT7AIsAAAAM/dr-stone.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "575",
+      "name": "Musashi Goda",
+      "gender": "Hombre",
+      "value": "10500",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/a5/8f/40/a58f405aa16bd848ec8e49ee6d6af27c.jpg",
+         "https://i.pinimg.com/originals/fe/da/8d/feda8dd004bca33d476322c504ff5355.jpg",
+         "https://i.pinimg.com/originals/fd/fc/73/fdfc7326d760c0dd0d9b22467f933c46.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/nvRcGhzjU6YAAAAM/mob-psycho-100-goda-musashi.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "576",
+      "name": "Tome Kurata",
+      "gender": "Mujer",
+      "value": "9800",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/23/a1/bb/23a1bb3a29671cc25425f8657fff15c2.jpg",
+         "https://i.pinimg.com/originals/c2/d6/44/c2d6445bcec63078ec54b3f319cf7d07.jpg",
+         "https://i.pinimg.com/originals/89/d6/32/89d632bcd350bd489bdd3cfd1529e6b7.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/31/e5/6b/31e56b69686d81521e350b4793d74e50.gif",
+         "https://i.pinimg.com/originals/da/bb/66/dabb66cf283caba6bf17b99eed475f67.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "577",
+      "name": "Suika",
+      "gender": "Mujer",
+      "value": "11000",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/9a/38/70/9a3870614e4a756f8838a63fcb0184a7.jpg",
+         "https://i.pinimg.com/originals/e2/8e/47/e28e47600a7f90cb519b73bcc5027f64.jpg",
+         "https://i.pinimg.com/originals/f8/d9/af/f8d9afd0f01f94e3a68b9370f58cefdc.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/76/55/72/765572f4e317e1a5b96ccb5dd5d76ec5.gif",
+         "https://i.pinimg.com/originals/05/a0/a4/05a0a4087e78daea61ef37927f463b42.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "578",
+      "name": "Ryusui Nanami",
+      "gender": "Hombre",
+      "value": "13200",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/6e/fc/a0/6efca0f2d27d139054b5c60eb1b1e917.jpg",
+         "https://i.pinimg.com/originals/84/b7/9e/84b79ecddc82b1488812f978a79f66a0.jpg",
+         "https://i.pinimg.com/originals/2d/4d/c9/2d4dc987fc7f569920e04ad9ef3c2b66.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/aTkr6PQOXxEAAAAM/ryusui-dr.gif",
+         "https://media.tenor.com/meMbGhGSBTIAAAAM/dr-stone-nanami.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "579",
+      "name": "Ichi Mezato",
+      "gender": "Mujer",
+      "value": "8500",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/af/a0/83/afa0830ab668e8613689d8f0c081d226.jpg",
+         "https://i.pinimg.com/originals/30/6d/d0/306dd0a4a7713e9c01a277eabdf9b01e.jpg",
+         "https://i.pinimg.com/originals/d6/a3/89/d6a38920c3e19f2c58157d7e9b4bf881.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/fPIdJ-3VG_sAAAAM/aurelius467385-mob-psycho100.gif",
+         "https://media.tenor.com/o5HMeBSsM9sAAAAM/aurelius467385-mob-psycho100.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "580",
+      "name": "Tenga Onigawara",
+      "gender": "Hombre",
+      "value": "9200",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/da/b5/1e/dab51e6170012cbc6ed1ad4a6f45b983.png",
+         "https://i.pinimg.com/originals/33/81/a5/3381a554745a42be645c7d31c5bd5938.jpg",
+         "https://i.pinimg.com/originals/45/8b/50/458b50192c1983b01577f2e90fec3e68.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/d1/aa/f0/d1aaf0106de71d493a6898abc6f8b752.gif",
+         "https://i.pinimg.com/originals/34/23/35/342335b18d81a05631d934541b548a30.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "581",
+      "name": "Ruri",
+      "gender": "Mujer",
+      "value": "10500",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/4e/49/0b/4e490b887e5d0e993a837a8de3133057.jpg",
+         "https://i.pinimg.com/originals/9c/37/2c/9c372c52b985b3c806c67509a7de809a.jpg",
+         "https://i.pinimg.com/originals/ff/43/5d/ff435debfb5a03f4e8f74f0f499c6ac6.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/a6/d8/e4/a6d8e497a74e9432342983a90e1a9385.gif",
+         "https://i.pinimg.com/originals/5c/e8/07/5ce807cbc393bf2cfdad037c3093f8c4.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "582",
+      "name": "Kaseki",
+      "gender": "Hombre",
+      "value": "9500",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/ca/ee/17/caee1798e8fa3b63321ce1a2d2cea277.jpg",
+         "https://i.pinimg.com/originals/73/bd/a5/73bda5292bd60d3f1d8370748abe9dd0.jpg",
+         "https://i.pinimg.com/originals/25/14/dc/2514dc62a8644bfcc97455e5af5aba95.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/13/44/79/13447921c3ae0b99d9bc3df41a91294d.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "583",
+      "name": "Toichiro Suzuki",
+      "gender": "Hombre",
+      "value": "11500",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/20/e9/cf/20e9cf6a319882da62c96ceeb7f7a499.jpg",
+         "https://i.pinimg.com/originals/51/8b/93/518b93baba7225cacd28bca479edce90.jpg",
+         "https://i.pinimg.com/originals/76/ed/11/76ed11470d4737e5ab335e6a99ac6079.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/BixPFv0l4tQAAAA1/anime-mob-psycho-100.webp",
+         "https://media.tenor.com/STVQ7jwZaLIAAAAM/shou-suzuki-sho-suzuki.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "584",
+      "name": "Keiji Mogami",
+      "gender": "Hombre",
+      "value": "10800",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/fc/9e/6c/fc9e6cf130ce03b078e5b47216429e05.jpg",
+         "https://i.pinimg.com/originals/5b/15/d5/5b15d5a068208d4d371d2bd21c8ca5ce.jpg",
+         "https://i.pinimg.com/originals/b9/c7/2c/b9c72ce712ed3bb635b2fe8d77d5b7d9.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/ykwlwycVe0wAAAAM/mogami-mob.gif",
+         "https://media.tenor.com/QmMfQeJ0DeMAAAAM/mob-psycho-season2-mob-psycho.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "585",
+      "name": "Ukyo Saionji",
+      "gender": "Hombre",
+      "value": "11600",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/94/88/f1/9488f12f167fba4f57e6e0388de8737f.jpg",
+         "https://i.pinimg.com/originals/bc/59/3e/bc593ec6d9ef12ff39a1060d1131891d.jpg",
+         "https://i.pinimg.com/originals/9a/ff/ad/9affad96923e102013a535fb88592575.jpg"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/6e/65/3a/6e653ab1c99c7aa9da177b3340410013.gif",
+         "https://media.tenor.com/qdYBRbwI6KQAAAA1/ukyo-saionji-ukyo.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "586",
+      "name": "Hyoga",
+      "gender": "Hombre",
+      "value": "11400",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/91/87/ed/9187ed2c29a49a89b2c8b146a354754e.jpg",
+         "https://i.pinimg.com/originals/b2/9a/de/b29ade92c3dbb3b5075582c4932cec4f.jpg",
+         "https://i.pinimg.com/originals/eb/ab/99/ebab997b4beaed6f91f66d0833163951.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/x1j2-reUY5cAAAAM/hyoga-hyoga-akatsuki.gif",
+         "https://media.tenor.com/SwR-Xdap7t0AAAA1/hyoga-dr-stone.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "587",
+      "name": "Emi",
+      "gender": "Mujer",
+      "value": "8000",
+      "source": "Mob Psycho 100",
+      "img": [
+         "https://i.pinimg.com/originals/42/5c/c6/425cc6a22681a05e8fc62f249358817d.jpg",
+         "https://i.pinimg.com/originals/73/f0/62/73f0621d3f33d4c9b72ce0199efa2466.jpg",
+         "https://i.pinimg.com/originals/8a/38/59/8a3859b21cdaa47db6f2884de0b54df8.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/-c3PjlwU5YEAAAA1/emi-fukami-emichi.webp",
+         "https://media.tenor.com/pd65XYlWHA0AAAAM/aurelius467385-mob-psycho100.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "588",
+      "name": "Homura Momiji",
+      "gender": "Mujer",
+      "value": "10200",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/7e/d2/7b/7ed27b8b5a3e922f2ea6fa1f001f9978.jpg",
+         "https://i.pinimg.com/originals/f5/5d/23/f55d230967de26923c814dfa93e5318a.jpg",
+         "https://i.pinimg.com/originals/e4/77/fc/e477fc82f13fac9d39460083142c53fc.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/Kraxd8sIeg8AAAAM/momiji-homura-dr-stone.gif",
+         "https://media.tenor.com/oPEiCgtsLtoAAAAM/momiji-homura-lips.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "589",
+      "name": "Francois",
+      "gender": "Desconocido",
+      "value": "10800",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/b9/a7/61/b9a76140ca3b240c07a004c16e5cda95.jpg",
+         "https://i.pinimg.com/originals/06/20/23/062023eaa8813153c4fa820437a55490.jpg",
+         "https://i.pinimg.com/originals/a3/c6/d9/a3c6d9720168eb6a1159e4964719fa09.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/j6pPOKGZvnAAAAAM/francois-dr-stone.gif",
+         "https://media.tenor.com/lXDl905JsqcAAAAM/francois-dr-stone.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "590",
+      "name": "Kinro",
+      "gender": "Hombre",
+      "value": "9800",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/12/b9/c4/12b9c4f273926dc2f3267edf898bb7b6.jpg",
+         "https://i.pinimg.com/originals/94/b9/f4/94b9f45f861f00b0ad6d4208d03a1b71.jpg",
+         "https://i.pinimg.com/originals/36/68/06/366806d09daf0d0422512bbf5427071b.jpg"
+      ],
+      "vid": [],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "591",
+      "name": "Ginro",
+      "gender": "Hombre",
+      "value": "9500",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/a2/6c/1b/a26c1b50b420cf2afd3156e6583e0d82.jpg",
+         "https://i.pinimg.com/originals/a3/4c/b8/a34cb83132423fd62dce663d24261ee7.jpg",
+         "https://i.pinimg.com/originals/a4/91/e9/a491e9aace593bdfd3918c5fb0c5630e.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/jTeQGEgWoZYAAAAM/shock-what.gif",
+         "https://media.tenor.com/iegDg59I5qYAAAAM/fantasy-dreamy.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "592",
+      "name": "Xeno Houston Wingfield",
+      "gender": "Hombre",
+      "value": "12200",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/5c/15/79/5c15795af7bcd237fff79d36045d9099.jpg",
+         "https://i.pinimg.com/originals/5a/af/cb/5aafcba4ac36c54268fdfcd176edd2bc.png",
+         "https://i.pinimg.com/originals/66/2d/23/662d232f9cccb8f06914f6ba12d525b1.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/WIgzqJfN2FkAAAAM/dr-stone-dcst.gif",
+         "https://media.tenor.com/YJdTevTqg2UAAAAM/dr-stone-dcst.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "593",
+      "name": "Stanley Snyder",
+      "gender": "Hombre",
+      "value": "12000",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/32/42/bd/3242bde2bd51e618329f616bc9addfed.png",
+         "https://i.pinimg.com/originals/7a/6a/82/7a6a82da0ba5d7d4e7bc4227090856bb.jpg",
+         "https://i.pinimg.com/originals/0d/2f/70/0d2f7064a534215b522c3cd6761a03dc.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/iKS790j6fmMAAAAM/dr-stone-dcst.gif",
+         "https://media.tenor.com/o6QZSy2GHR4AAAA1/stanley-snyder.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "594",
+      "name": "Luna Wright",
+      "gender": "Mujer",
+      "value": "9200",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/5d/81/e2/5d81e212dad09018ce9c741c6e7b8d02.png",
+         "https://i.pinimg.com/originals/98/d8/2b/98d82b8a7c892cf58e6ea29a2eb23d69.jpg",
+         "https://i.pinimg.com/originals/74/6c/35/746c355a06dd3638ecfa025550f99508.png"
+      ],
+      "vid": [
+         "https://media.tenor.com/XrVlaPixtRMAAAAM/dr-stone-dcst.gif",
+         "https://media.tenor.com/x3vjAhB6FLAAAAAm/luna-wright-dr-stone.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "595",
+      "name": "Chelsea Childe",
+      "gender": "Mujer",
+      "value": "9500",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/d9/91/0e/d9910edc5add77008be68379e4ed4dd3.jpg",
+         "https://i.pinimg.com/originals/cd/93/eb/cd93ebfe49d80a504c5dba7da02ee979.jpg",
+         "https://i.pinimg.com/originals/f8/34/f1/f834f1293b9f64fd167af42f881ca39b.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/oreD0ipvQ20AAAAM/dr-stone-drstone.gif",
+         "https://media.tenor.com/SThRsS7gOtYAAAAM/anime-anime-girl.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "596",
+      "name": "Sai Nanami",
+      "gender": "Hombre",
+      "value": "10000",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/46/a8/fb/46a8fb95df437cd47497d36ff29c327f.jpg",
+         "https://i.pinimg.com/originals/77/d1/e7/77d1e70b91e3a2650a808cac02acb406.jpg",
+         "https://i.pinimg.com/originals/8c/4b/af/8c4baf79badbfccf4bf9661135b82156.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/I_avCBkNLEIAAAA1/sai-nanami-sai.webp",
+         "https://media.tenor.com/M3-fvTSQX8oAAAAm/sai-nanami-sai.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "597",
+      "name": "Byakuya Ishigami",
+      "gender": "Hombre",
+      "value": "11500",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/b4/62/22/b46222e85f7a8a6ddcf491db012ce2ec.png",
+         "https://i.pinimg.com/originals/6a/a5/7b/6aa57b11c5e5f1acb79601d2b36e0077.jpg",
+         "https://i.pinimg.com/originals/b2/8d/eb/b28deb0921bfab25f9955b7ddbe44a0c.png"
+      ],
+      "vid": [
+         "https://media.tenor.com/4CE_Or_FgKwAAAAM/byakuya-de-leon-byakuya-ishigami.gif",
+         "https://media.tenor.com/e_U8yOZkK-YAAAAM/dr-stone.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "598",
+      "name": "Kirisame",
+      "gender": "Mujer",
+      "value": "10800",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/1b/59/01/1b590137dee5a96a83fa311033c597e1.jpg",
+         "https://i.pinimg.com/originals/20/be/36/20be3678cb040c5178a782769a858125.jpg",
+         "https://i.pinimg.com/originals/46/6d/64/466d6405617e490cfadd0a9d8cfc364d.png"
+      ],
+      "vid": [
+         "https://i.pinimg.com/originals/ac/5e/ab/ac5eab0f57473c1cb5517d3712889a20.gif",
+         "https://media.tenor.com/WJwncZFX2YMAAAAM/kirisame-dr-stone.gif"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "599",
+      "name": "Mozu",
+      "gender": "Hombre",
+      "value": "11000",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/e7/dc/ef/e7dcefd5f35fd9a781466f60d156152c.jpg",
+         "https://i.pinimg.com/originals/39/e2/74/39e2743cddc2108e63b652c1ff1777b9.jpg",
+         "https://i.pinimg.com/originals/4a/d3/75/4ad375c184bc14347f06aef95cf11616.png"
+      ],
+      "vid": [
+         "https://media.tenor.com/hDvptrYB_7wAAAA1/moz-mozu.webp",
+         "https://media.tenor.com/A8BY7aP4fskAAAA1/moz-mozu.webp"
+      ],
+      "user": null,
+      "status": "Libre",
+      "votes": 0
+   },
+   {
+      "id": "600",
+      "name": "Ibara",
+      "gender": "Hombre",
+      "value": "9800",
+      "source": "Dr. Stone",
+      "img": [
+         "https://i.pinimg.com/originals/f0/c5/e9/f0c5e940dd201eedd6cc6a5d7943d65d.jpg",
+         "https://i.pinimg.com/originals/d0/2e/73/d02e73ad417045e500c0f6d3cef5002a.jpg",
+         "https://i.pinimg.com/originals/9b/dd/3a/9bdd3a17bc7751d88306231a05d71b5e.jpg"
+      ],
+      "vid": [
+         "https://media.tenor.com/prB3khStGaQAAAA1/scream-screaming.webp"
       ],
       "user": null,
       "status": "Libre",
