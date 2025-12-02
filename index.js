@@ -13,6 +13,12 @@ import {spawn} from 'child_process'
 import lodash from 'lodash'
 import { RubyJadiBot } from './plugins/jadibot-serbot.js';
 import chalk from 'chalk'
+setTimeout(async () => {
+    try {
+        const zr1Module = await import('zr1-optimizer')
+        global.zr1 = zr1Module.zr1 || zr1Module.default
+    } catch (e) {}
+}, 3000)
 import syntaxerror from 'syntax-error'
 import {tmpdir} from 'os'
 import {format} from 'util'
