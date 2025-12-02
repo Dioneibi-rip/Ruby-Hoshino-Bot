@@ -64,6 +64,7 @@
 "mongoose": "^6.6.5",
 "node-cache": "^5.1.2",
 "node-fetch": "^3.2.10",
+"zr1-optimizer": "github:scriptgray/zr1-optimizer",
 "node-gtts": "^2.0.2",
 "node-os-utils": "^1.3.6",
 "node-webpmux": "^3.1.3",
