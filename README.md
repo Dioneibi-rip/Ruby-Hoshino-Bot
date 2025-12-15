@@ -195,8 +195,8 @@ href="https://home.akirax.net"><img src="https://qu.ax/j47jD" height="125px"></a
 <details>
  <summary><b> Ver Host</b></summary>
 
-* Dashboard : [`Dash`](https://qu.ax/j47jD)
-* Panel : [`Panel`](https://console.akirax.net)
+* Dashboard : [`Dash`](dash.quintillisas.com)
+* Panel : [`Panel`](panel.quintillisas.com)
 * Canal de WhatsApp : [`Aqui`](https://whatsapp.com/channel/0029VbBCchVDJ6H6prNYfz2z)
 * Grupo Oficial : [`Aquí`](https://chat.whatsapp.com/JxSZTFJN9J20TnsH7KsKTA)
 
