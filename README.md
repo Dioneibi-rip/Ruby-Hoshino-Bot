@@ -193,7 +193,7 @@ href="https://home.akirax.net"><img src="https://raw.githubusercontent.com/The-K
 href="https://home.akirax.net"><img src="https://files.catbox.moe/rem95g.png" height="125px"></a>
 
 <details>
- <summary><b> Ver Host</b></summary>
+ <summary><b> 🌺 VER EL HOST</b></summary>
 
 * Dashboard : [`Dash`](https://dash.quintillisas.com)
 * Panel : [`Panel`](https://panel.quintillisas.com)
