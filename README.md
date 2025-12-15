@@ -197,8 +197,8 @@ href="https://home.akirax.net"><img src="https://files.catbox.moe/rem95g.png" he
 
 * Dashboard : [`Dash`](https://dash.quintillisas.com)
 * Panel : [`Panel`](https://panel.quintillisas.com)
-* Canal de WhatsApp : [`Aqui`](https://chat.whatsapp.com/DWnpVoJgxe25H9nXNCcfCn)
-* Grupo Oficial : [`Aquí`](https://whatsapp.com/channel/0029VbBBXTr5fM5flFaxsO06)
+* Canal de WhatsApp : [`Aqui`](https://whatsapp.com/channel/0029VbBBXTr5fM5flFaxsO06)
+* Grupo Oficial : [`Aquí`](https://chat.whatsapp.com/DWnpVoJgxe25H9nXNCcfCn)
 
 </details>
 
