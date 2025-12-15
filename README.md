@@ -170,7 +170,7 @@ grep -q 'bash\|wget' <(dpkg -l) || apt install -y bash wget && wget -O - https:/
 
 ---
 
-### **`USA A RUBY COMPLETAMENTE 24/7 EN AKIRAX HOST 🍉︎`**
+### **`AKIRAX HOST 🍉︎`**
 
 <a
 href="https://home.akirax.net"><img src="https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1748713078525.jpeg" height="125px"></a>
@@ -179,6 +179,23 @@ href="https://home.akirax.net"><img src="https://raw.githubusercontent.com/The-K
  <summary><b> 🍡 VER AKIRAX</b></summary>
 
 * Dashboard : [`Dash`](https://home.akirax.net)
+* Panel : [`Panel`](https://console.akirax.net)
+* Canal de WhatsApp : [`Aqui`](https://whatsapp.com/channel/0029VbBCchVDJ6H6prNYfz2z)
+* Grupo Oficial : [`Aquí`](https://chat.whatsapp.com/JxSZTFJN9J20TnsH7KsKTA)
+
+</details>
+
+---
+
+### **`ᨶ႒ᩚ quintillisas Host ᨶ႒ᩚ`**
+
+<a
+href="https://home.akirax.net"><img src="https://qu.ax/j47jD" height="125px"></a>
+
+<details>
+ <summary><b> Ver Host</b></summary>
+
+* Dashboard : [`Dash`](https://qu.ax/j47jD)
 * Panel : [`Panel`](https://console.akirax.net)
 * Canal de WhatsApp : [`Aqui`](https://whatsapp.com/channel/0029VbBCchVDJ6H6prNYfz2z)
 * Grupo Oficial : [`Aquí`](https://chat.whatsapp.com/JxSZTFJN9J20TnsH7KsKTA)
