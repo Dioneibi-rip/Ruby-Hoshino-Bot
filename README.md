@@ -190,7 +190,7 @@ href="https://home.akirax.net"><img src="https://raw.githubusercontent.com/The-K
 ### **`ᨶ႒ᩚ quintillisas Host ᨶ႒ᩚ`**
 
 <a
-href="https://home.akirax.net"><img src="https://files.catbox.moe/rem95g.png" height="125px"></a>
+href="https://dash.quintillisas.com"><img src="https://files.catbox.moe/rem95g.png" height="125px"></a>
 
 <details>
  <summary><b> 🌺 VER EL HOST</b></summary>
