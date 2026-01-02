@@ -1,39 +1,52 @@
 let handler = async (m, { conn }) => {
   const texto = `
-📥⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐝𝐞 𝐝𝐞𝐬𝐜𝐚𝐫𝐠𝐚𝐬 𝐩𝐚𝐫𝐚 𝐯𝐚𝐫𝐢𝐨𝐬 𝐚𝐫𝐜𝐡𝐢𝐯𝐨𝐬 📂⊹
+📥⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐝𝐞 𝐝𝐞𝐬𝐜𝐚𝐫𝐠𝐚𝐬 𝐩𝐚𝐫𝐚 𝐯𝐚𝐫𝐢𝐨𝐬 𝐚𝐫𝐜𝐡𝐢𝐯𝐨𝐬  📂⊹
 
-☕ *#tiktok • #tt*
+ㅤۚ𑁯ׂᰍ  ☕ ᳴   ׅ  ׄʚ   ̶ *#tiktok • #tt*
 > ✦ Descarga videos de TikTok.
-
-☕ *#mediafire • #mf*
+ㅤۚ𑁯ׂᰍ  ☕ ᳴   ׅ  ׄʚ   ̶ *#mediafire • #mf*
+> ✦ Descargar un archivo de MediaFire.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#tiktok • #tt*
+> ✦ Descarga videos de TikTok.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#mediafire • #mf*
 > ✦ Descargar archivos de MediaFire.
-
-☕ *#pinvid • #pinvideo* + [link]
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#pinvid • #pinvideo* + [enlace]
 > ✦ Descargar videos de Pinterest.
-
-☕ *#mega • #mg* + [link]
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#mega • #mg* + [enlace]
 > ✦ Descargar archivos de MEGA.
-
-☕ *#play • #play2*
-> ✦ Descargar música o video de YouTube.
-
-☕ *#ytmp3 • #ytmp4*
-> ✦ Descarga directa desde YouTube.
-
-☕ *#fb • #facebook*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#play • #play2*
+> ✦ Descargar música/video de YouTube.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ytmp3 • #ytmp4*
+> ✦ Descarga directa por url de YouTube.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#fb • #facebook*
 > ✦ Descargar videos de Facebook.
-
-☕ *#twitter • #x* + [link]
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#twitter • #x* + [link]
 > ✦ Descargar videos de Twitter/X.
-
-☕ *#ig • #instagram*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ig • #instagram*
 > ✦ Descargar contenido de Instagram.
-
-☕ *#terabox • #tb* + [link]
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#tts • #tiktoks* + [búsqueda]
+> ✦ Buscar videos de TikTok.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#terabox • #tb* + [enlace]
 > ✦ Descargar archivos de Terabox.
-
-☕ *#gdrive • #drive* + [link]
-> ✦ Descargar archivos de Google Drive.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#gdrive • #drive* + [enlace]
+> ✦ Descargar archivos desde Google Drive.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ttimg • #ttmp3* + <url>
+> ✦ Descargar fotos/audios de TikTok.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#gitclone* + <url>
+> ✦ Descargar repositorios desde GitHub.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#xvideosdl*
+> ✦ Descargar videos de Xvideos.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#xnxxdl*
+> ✦ Descargar videos de XNXX.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#apk • #modapk*
+> ✦ Descargar APKs (Aptoide).
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#tiktokrandom • #ttrandom*
+> ✦ Descargar video aleatorio de TikTok.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#npmdl • #npmdownloader*
+> ✦ Descargar paquetes desde NPMJs.
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#animelinks • #animedl*
+> ✦ Descargar enlaces disponibles de anime.
+╰──── ੈ₊˚༅༴╰────︶.︶ ⸙ ͛ ͎ ͛ ︶.︶ ੈ₊˚༅
   `.trim();
 
   await conn.sendMessage(
