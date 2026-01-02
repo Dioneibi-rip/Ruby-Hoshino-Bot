@@ -64,7 +64,7 @@ let handler = async (m, { conn }) => {
         },
       },
     },
-    { quoted: fcontact }
+    { quoted: fkontak }
   );
 };
 
