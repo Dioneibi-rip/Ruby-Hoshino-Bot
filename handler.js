@@ -193,7 +193,7 @@ if (queque.indexOf(previousID) === -1) clearInterval(this)
 await delay(time)
 }, time)
 }
-if (m.isBaileys) { return }
+// if (m.isBaileys) { return }
 m.exp += Math.ceil(Math.random() * 10)
 let usedPrefix
 const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins')
