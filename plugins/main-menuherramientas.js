@@ -4,8 +4,6 @@ let handler = async (m, { conn }) => {
 
 ⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#calcular • #calcular • #cal*  
 > ✦ Calcular todo tipo de ecuaciones.
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#tiempo • #clima*  
-> ✦ Ver el clima de un país.
 ⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#horario*  
 > ✦ Ver el horario global de los países.
 ⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#fake • #fakereply*  
