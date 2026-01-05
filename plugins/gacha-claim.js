@@ -45,7 +45,7 @@ let handler = async (m, { conn }) => {
 
     try {
         const characters = await loadCharacters();
-        const match = m.quoted.text.match(/𝙄𝘿:\s*\*([^\*]+)\*/i);
+        const match = m.quoted.text.match(/🆔.*?\*(\d+)\*/);
         if (!match) return conn.reply(m.chat, '⚠️ 𝗡𝗼 𝘀𝗲 𝗽𝘂𝗱𝗼 𝗱𝗲𝘁𝗲𝗰𝘁𝗮𝗿 𝗲𝗹 𝗜𝗗 𝗱𝗲𝗹 𝗽𝗲𝗿𝘀𝗼𝗻𝗮𝗷𝗲.', m);
 
         const id = match[1].trim();
