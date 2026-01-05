@@ -187,13 +187,13 @@ href="https://home.akirax.net"><img src="https://raw.githubusercontent.com/The-K
 
 ---
 
-### **`ᨶ႒ᩚ quintillisas Host ᨶ႒ᩚ`**
+### **`౨ৎ swallox Host ౨ৎ`**
 
 <a
-href="https://dash.swallox.com"><img src="https://files.catbox.moe/rem95g.png" height="125px"></a>
+href="https://dash.swallox.com"><img src="https://files.catbox.moe/znvqvz.png" height="125px"></a>
 
 <details>
- <summary><b> 🌺 VER EL HOST</b></summary>
+ <summary><b>  💨 VER HOST</b></summary>
 
 * Dashboard : [`Dash`](https://dash.swallox.com)
 * Panel : [`Panel`](https://panel.swallox.com)
