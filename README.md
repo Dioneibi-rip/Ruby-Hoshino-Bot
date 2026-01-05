@@ -190,15 +190,15 @@ href="https://home.akirax.net"><img src="https://raw.githubusercontent.com/The-K
 ### **`ᨶ႒ᩚ quintillisas Host ᨶ႒ᩚ`**
 
 <a
-href="https://dash.quintillisas.com"><img src="https://files.catbox.moe/rem95g.png" height="125px"></a>
+href="https://dash.swallox.com"><img src="https://files.catbox.moe/rem95g.png" height="125px"></a>
 
 <details>
  <summary><b> 🌺 VER EL HOST</b></summary>
 
-* Dashboard : [`Dash`](https://dash.quintillisas.com)
-* Panel : [`Panel`](https://panel.quintillisas.com)
-* Canal de WhatsApp : [`Aqui`](https://whatsapp.com/channel/0029VbBBXTr5fM5flFaxsO06)
-* Grupo Oficial : [`Aquí`](https://chat.whatsapp.com/DWnpVoJgxe25H9nXNCcfCn)
+* Dashboard : [`Dash`](https://dash.swallox.com)
+* Panel : [`Panel`](https://panel.swallox.com)
+* Canal de WhatsApp : [`Aqui`](https://whatsapp.com/channel/0029Vb6I6zTEQIanas9U0N2I)
+* Grupo Oficial : [`Aquí`](https://chat.whatsapp.com/Bzo7jcdivDGJc3thZrSyEC)
 
 </details>
 
