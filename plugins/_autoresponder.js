@@ -72,7 +72,7 @@ ${gif}
   await conn.sendMessage(m.chat, { text: resultado, mentions: [m.sender, mentionedJid] }, { quoted: m });
 };
 
-handler.command = /^duelo$/i;
+handler.command = ['duelo']
 handler.group = true;
-handler.money = true; // si usas sistema de economía
+
 export default handler;
