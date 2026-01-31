@@ -42,7 +42,6 @@ const iconUrls = [
   "https://files.catbox.moe/jobvjq.jpg", "https://files.catbox.moe/iph9xr.jpeg",
   "https://files.catbox.moe/z962x9.jpg", "https://files.catbox.moe/k8griq.jpeg",
   "https://files.catbox.moe/fslr4h.jpg", "https://files.catbox.moe/104xtw.jpeg",
-  "https://files.catbox.moe/ffkx61.jpg", "https://files.catbox.moe/pjuo2b.jpg",
   "https://files.catbox.moe/jobvjq.jpg",  "https://files.catbox.moe/7bn1pf.jpg",
   "https://files.catbox.moe/z962x9.jpg", "https://files.catbox.moe/fe6pw6.jpeg",
   "https://files.catbox.moe/fslr4h.jpg"
