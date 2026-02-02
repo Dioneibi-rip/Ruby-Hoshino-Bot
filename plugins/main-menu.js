@@ -717,7 +717,7 @@ let handler = async (m, { conn, args }) => {
 handler.help = ['menu'];
 handler.register = true;
 handler.tags = ['main'];
-handler.command = ['menuall', 'allmenu', 'allmenù'];
+handler.command = ['menu', 'help', 'ayuda'];
 
 export default handler;
 
