@@ -1,17 +1,17 @@
-<div align="center">
-  <img src="https://files.catbox.moe/91q106.jpg" alt="Banner Ruby Hoshino Bot" width="full">
+div align="center">
+  <img src="https://files.catbox.moe/91q106.jpg" alt="Banner Ruby Hoshino Bot" width="100%">
 </div>
 
 <div align="center">
-  <br>
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=E91E63&lines=BIENVENIDO+AL+REPOSITORIO;RUBY+HOSHINO+BOT;GRACIAS+POR+VISITAR+EL+REPOSITORIO;CREADO+CON+%E2%9D%A4%EF%B8%8F+POR+DIONEIBI;%C2%A1LA+BOT+MAS+LINDA;%F0%9F%92%96" alt="Typing SVG">
-  <br><br>
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=E91E63&center=true&vCenter=true&width=435&lines=BIENVENIDO+AL+REPOSITORIO;RUBY+HOSHINO+BOT;LA+IDOL+DEFINITIVA+EN+WHATSAPP;CREADO+CON+%E2%9D%A4%EF%B8%8F+POR+DIONEIBI;%C2%A1LA+BOT+MAS+LINDA!+%F0%9F%92%96" alt="Typing SVG">
   
   <p align="center">
-    <a href="https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot"><img src="https://img.shields.io/github/stars/Dioneibi-rip/Ruby-Hoshino-Bot?style=for-the-badge&logo=github&color=FF69B4" alt="GitHub stars"></a>
-    <a href="https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot/network/members"><img src="https://img.shields.io/github/forks/Dioneibi-rip/Ruby-Hoshino-Bot?style=for-the-badge&logo=github&color=DA70D6" alt="GitHub forks"></a>
-    <img src="https://img.shields.io/github/license/Dioneibi-rip/Ruby-Hoshino-Bot?style=for-the-badge&color=87CEEB" alt="License">
+    <a href="https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot"><img src="https://img.shields.io/github/stars/Dioneibi-rip/Ruby-Hoshino-Bot?style=for-the-badge&logo=github&color=ff4081" alt="GitHub stars"></a>
+    <a href="https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot/network/members"><img src="https://img.shields.io/github/forks/Dioneibi-rip/Ruby-Hoshino-Bot?style=for-the-badge&logo=github&color=d500f9" alt="GitHub forks"></a>
+    <img src="https://img.shields.io/github/license/Dioneibi-rip/Ruby-Hoshino-Bot?style=for-the-badge&color=f50057" alt="License">
+    <br>
     <a href="https://api.whatsapp.com/send/?phone=18294868853&text=Hola,+vengo+de+GitHub+y+necesito+soporte+con+Ruby+Bot&type=phone_number&app_absent=0"><img src="https://img.shields.io/badge/WhatsApp-Soporte-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Support WhatsApp"></a>
+    <a href="https://chat.whatsapp.com/K2CPrOTksiA36SW6k41yuR"><img src="https://img.shields.io/badge/Comunidad-Oficial-E91E63?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Grupo Oficial"></a>
   </p>
 
   <img src="https://files.catbox.moe/atnv7f.gif" alt="Ruby Hoshino Bot Preview" width="350"/>
@@ -19,18 +19,13 @@
 
 ---
 
-
 > [!WARNING]
-> **AVISO IMPORTANTE**  
-> Este bot no está hecho por `WhatsApp Inc.` Así que el mal uso del bot podría resultar en la `prohibición` de tu cuenta de `WhatsApp`. (Aunque tu cuenta de WhatsApp solo puede ser desbloqueada una vez).
-> No soy responsable de la prohibición de tu cuenta.
-> Úsalo bajo tu propio riesgo teniendo en cuenta esta advertencia.
+> **AVISO IMPORTANTE** > Este bot no está afiliado con `WhatsApp Inc.`. El uso indebido (spam, etc.) podría resultar en la `suspensión` de tu cuenta de WhatsApp.  
+> **Úsalo bajo tu propio riesgo y responsabilidad.** ¡Sé un usuario amable! 💖
 
+> **`Ruby Hoshino - Bot`** es una versión **personalizada** y editada de [Yuki Wa Bot](https://github.com/The-King-Destroy/YukiBot-MD), modificado con amor por **[Dioneibi-rip](https://github.com/Dioneibi-rip)**.  
 
-> **`Ruby Hoshino - Bot`** Es una versión **personalizada del trabajo original de [Yuki Wa Bot](https://github.com/The-King-Destroy/YukiBot-MD)**, Modificado por **[Dioneibi-rip](https://github.com/Dioneibi-rip)**.  
- ¡Úsalo con responsabilidad y diviértete! 💖
-
------
+---
 
 ### <img src="https://i.pinimg.com/originals/19/80/6e/19806e91932e6054965fc83b85241270.gif" alt="Prueba La Bot Aqui" width="42" height="42"> ¡Prueba el Bot en Acción!
 
