@@ -1,4 +1,4 @@
-div align="center">
+<div align="center">
   <img src="https://files.catbox.moe/91q106.jpg" alt="Banner Ruby Hoshino Bot" width="100%">
 </div>
 
@@ -38,7 +38,7 @@ div align="center">
 ## 🩵 **`INSTALACIÓN`**
 
 
-### 📥 NECESITAS INSTALAR UNAS DE ESTAS HERRAMIENTAS
+### 📥 NECESITAS INSTALAR UNA DE ESTAS HERRAMIENTAS
 
 
 <p align="center">
