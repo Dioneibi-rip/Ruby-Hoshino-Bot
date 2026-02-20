@@ -698,7 +698,7 @@ let handler = async (m, { conn, args }) => {
                 serverMessageId: -1,
             },
             externalAdReply: {
-                title: 'ׄ⏤͟͟͞͞◯⃞ 🎄 𝐑υ𝐛ყ 𝐇ᨵׁׅׅ𝐬𝐡𝐢𝐧ᨵׁׅׅ𖹭 𝐁ᨵׁׅׅ𝐭 𝐌𝐃 ིྀ 🍧',
+                title: 'ׄ⏤͟͟͞͞◯⃞ 🍓 𝐑υ𝐛ყ 𝐇ᨵׁׅׅ𝐬𝐡𝐢𝐧ᨵׁׅׅ𖹭 𝐁ᨵׁׅׅ𝐭 𝐌𝐃 ིྀ 🍧',
                 body: dev,
                 thumbnail: icons,
                 sourceUrl: redes,
