@@ -95,7 +95,7 @@ let handler = async (m, { conn, command, usedPrefix, args, text, isOwner }) => {
         const headerText = `*${toFancy("SUB-BOTS CONECTADOS")}* ✨\n\n${toFancy("Total Activos:")} ${users.length}\n${users.length > 0 ? '───────────────\n' : ''}${finalMessage}`
 
         let mediaMessage = await prepareWAMessageMedia({ 
-            image: { url: 'https://files.catbox.moe/65rdkc.jpg' } 
+            image: { url: 'https://files.catbox.moe/slm5bs.jpeg' } 
         }, { upload: conn.waUploadToServer })
 
         let msg = generateWAMessageFromContent(m.chat, {
