@@ -30,21 +30,20 @@ global.getBuffer = async function getBuffer(url, options) {
 }
 
 const iconUrls = [
-  "https://files.catbox.moe/ahp3bc.jpeg", "https://files.catbox.moe/ffkx61.jpg",
-  "https://files.catbox.moe/uc272d.webp", "https://files.catbox.moe/nuoard.jpg",
-  "https://files.catbox.moe/edsflw.jpg", "https://files.catbox.moe/nuoard.jpg",
-  "https://files.catbox.moe/ilkgfh.webp", "https://files.catbox.moe/fslr4h.jpg",
-  "https://files.catbox.moe/k25pcl.jpg",  "https://files.catbox.moe/5qglcn.jpg",
-  "https://files.catbox.moe/nvhomc.jpeg",  "https://files.catbox.moe/d81jgr.jpg",
-  "https://files.catbox.moe/k25pcl.jpg",  "https://files.catbox.moe/6x9q51.jpg",
-  "https://files.catbox.moe/i7vsnr.jpg",  "https://files.catbox.moe/e9zgbu.jpg",
-  "https://files.catbox.moe/nuoard.jpg", "https://files.catbox.moe/jm6j5b.jpeg",
-  "https://files.catbox.moe/jobvjq.jpg", "https://files.catbox.moe/iph9xr.jpeg",
-  "https://files.catbox.moe/z962x9.jpg", "https://files.catbox.moe/k8griq.jpeg",
-  "https://files.catbox.moe/fslr4h.jpg", "https://files.catbox.moe/104xtw.jpeg",
-  "https://files.catbox.moe/jobvjq.jpg",  "https://files.catbox.moe/7bn1pf.jpg",
-  "https://files.catbox.moe/z962x9.jpg", "https://files.catbox.moe/fe6pw6.jpeg",
-  "https://files.catbox.moe/fslr4h.jpg"
+  "https://files.catbox.moe/ahp3bc.jpg",
+  "https://files.catbox.moe/uc272d.webp",
+  "https://files.catbox.moe/edsflw.jpg", 
+  "https://files.catbox.moe/ilkgfh.webp",
+  "https://files.catbox.moe/k25pcl.jpg",
+  "https://files.catbox.moe/d81jgr.jpg",
+  "https://files.catbox.moe/k25pcl.jpg", 
+  "https://files.catbox.moe/i7vsnr.jpg", 
+  "https://files.catbox.moe/nuoard.jpg",
+  "https://files.catbox.moe/iph9xr.jpeg",
+  "https://files.catbox.moe/k8griq.jpeg",
+  "https://files.catbox.moe/fslr4h.jpg",
+  "https://files.catbox.moe/7bn1pf.jpg",
+  "https://files.catbox.moe/fe6pw6.jpeg"
 ]
 
 function pickRandom(list) {
