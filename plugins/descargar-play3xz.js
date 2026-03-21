@@ -1,128 +1,170 @@
-import fetch from "node-fetch"
-import yts from "yt-search"
+import axios from 'axios'
+import fs from 'fs'
+import yts from 'yt-search'
 
-const youtubeRegexID = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/
+const handler = async (m, { conn, args, usedPrefix, command }) => {
 
-const API_BASE = "https://api-sky.ultraplus.click"
-const API_KEY = "Russellxz"
-
-async function skyYT(url, format) {
-  const response = await fetch(`${API_BASE}/api/download/yt.php?url=${encodeURIComponent(url)}&format=${format}`, {
-    headers: { 
-      Authorization: `Bearer ${API_KEY}`,
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    },
-    timeout: 60000
-  })
-  
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`)
+  if (!args[0]) {
+    return conn.reply(
+      m.chat,
+      `🌾 *Ingresa el nombre o enlace de YouTube*\n\nEjemplo:\n${usedPrefix + command} yoasobi`,
+      m
+    )
   }
-  
-  const data = await response.json()
-  
-  if (!data || data.status !== "true" || !data.data) {
-    throw new Error(data?.error || "Error en la API Sky")
-  }
-  
-  return data.data
-}
 
-const handler = async (m, { conn, text, command }) => {
   try {
-    if (!text.trim()) {
-      return conn.reply(m.chat, `✧ 𝙃𝙚𝙮! Debes escribir *el nombre o link* del video/audio para descargar.`, m)
+
+    await conn.sendMessage(m.chat, { react: { text: '🕔', key: m.key } })
+
+    const q = args.join(" ")
+    const search = await yts(q)
+    const v = search.videos[0]
+
+    if (!v) return conn.reply(m.chat, '*🪴 No se encontraron resultados*', m)
+
+    const videoUrl = v.url
+    const videoId = v.videoId
+
+    const formatViews = (n) => {
+      if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B'
+      if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M'
+      if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K'
+      return n.toString()
     }
 
-    await conn.sendMessage(m.chat, { react: { text: "⏳", key: m.key }})
+    const encabezado = `*┏━━━━❏*
+┃ \`Título\`: *${v.title}*
+┃ \`Autor\`: *${v.author.name}*
+┃ \`Duración\`: *${v.timestamp}*
+┃ \`Vistas\`: *${formatViews(v.views)}*
+┃ \`Enlace\`: *${videoUrl}*
+*┗━━❏*`
 
-    let videoIdToFind = text.match(youtubeRegexID) || null
-    let ytplay2 = await yts(videoIdToFind ? "https://youtu.be/" + videoIdToFind[1] : text)
+    await conn.sendMessage(
+      m.chat,
+      {
+        image: { url: v.thumbnail },
+        caption: encabezado
+      },
+      { quoted: m }
+    )
 
-    if (videoIdToFind) {
-      const videoId = videoIdToFind[1]
-      ytplay2 = ytplay2.all.find(item => item.videoId === videoId) || ytplay2.videos.find(item => item.videoId === videoId)
+    const validateUrl = async (url) => {
+      if (!url || typeof url !== 'string') return null
+      try {
+        const res = await axios.head(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0'
+          },
+          timeout: 5000
+        })
+        return (res.status >= 200 && res.status < 400) ? url : null
+      } catch {
+        return null
+      }
     }
 
-    ytplay2 = ytplay2.all?.[0] || ytplay2.videos?.[0] || ytplay2
-    if (!ytplay2) {
-      await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }})
-      return m.reply("⚠︎ No encontré resultados, intenta con otro nombre o link.")
-    }
+    const getFastestAudio = async () => {
 
-    let { title, thumbnail, timestamp, views, ago, url, author } = ytplay2
-    const vistas = formatViews(views)
-    const canal = author?.name || "Desconocido"
+      try {
+        const ryuResponse = await axios.get(`https://api.ryuzei.xyz/dl/ytmp3?url=${encodeURIComponent(videoUrl)}&key=Corvette`)
+        const ryuLink = ryuResponse.data.url
+        const ryuValid = await validateUrl(ryuLink)
+        if (ryuValid) return ryuValid
+      } catch {}
 
-    const infoMessage = `
-ㅤ۫ ㅤ  🦭 ୧   ˚ \`𝒅𝒆𝒔𝒄𝒂𝒓𝒈𝒂 𝒆𝒏 𝒄𝒂𝒎𝒊𝒏𝒐\` !  ୨ 𖹭  ִֶָ  
+      const apiSources = [
 
-᮫ؙܹ  ᳘︵᮫ּܹ࡛〫ࣥܳ⌒ؙ۫ ᮫ּ۪֯⏝ֺ࣯࠭۟ ᮫ּ〪࣭︶᮫ܹ᳟〫࠭߳፝֟᷼⏜᮫᮫ּ〪࣭࠭〬︵᮫ּ᳝̼࣪ 🍚⃘ᩚּ̟߲ ּ〪࣪︵᮫࣭࣪࠭ᰯּ〪࣪࠭⏜ְ࣮〫߳ ᮫ּׅ࣪۟︶᮫ܹׅ࠭〬 ᮫ּּ࣭᷼⏝ᩥ᮫〪ܹ۟࠭۟۟ ᮫ּؙ⌒᮫ܹ۫︵ᩝּּ۟࠭ ࣭۪۟
-> 🧊✿⃘࣪◌ ֪ \`𝗧𝗶́𝘁𝘂𝗹𝗼\` » *${title}*  
-> 🧊✿⃘࣪◌ ֪ \`𝗖𝗮𝗻𝗮𝗹\` » *${canal}*  
-> 🧊✿⃘࣪◌ ֪ \`𝗗𝘂𝗿𝗮𝗰𝗶𝗼́𝗻\` » *${timestamp}*  
-> 🧊✿⃘࣪◌ ֪ \`𝗩𝗶𝘀𝘁𝗮𝘀\` » *${vistas}*  
-> 🧊✿⃘࣪◌ ֪ \`𝗣𝘂𝗯𝗹𝗶𝗰𝗮𝗱𝗼\` » *${ago}*  
-> 🧊✿⃘࣪◌ ֪ \`𝗟𝗶𝗻𝗸\` » ${url} 
-ᓭ݄︢݃ୄᰰ𐨎 𝐢︩۪𝆬͡ꗜ፝֟͜͡ꗜ︪۪𝆬͡ 𝐢   ᅟᨳᩘ🧁ଓ   ᅟ 𝐢︩۪𝆬͡ꗜ፝֟͜͡ꗜ︪۪𝆬͡ 𝐢ୄᰰ𐨎ᓯ︢
+        {
+          name: 'BetaBotz',
+          fn: () => axios
+            .get(`https://api.betabotz.eu.org/api/download/ytmp3?url=${encodeURIComponent(videoUrl)}&apikey=Btz-b2H2x`)
+            .then(r => r.data.result?.mp3 || r.data.result?.download?.url)
+        },
 
-> 𐙚 🪵 ｡ Preparando tu descarga... ˙𐙚
-    `.trim()
+        {
+          name: 'Sylphy',
+          fn: () => axios
+            .get(`https://sylphy.xyz/download/v3/ytmp3?url=${videoId}&api_key=Killua-Wa`)
+            .then(r => r.data.result?.download?.url || r.data.result?.url)
+        },
 
-    const thumb = (await conn.getFile(thumbnail))?.data
-    await conn.reply(m.chat, infoMessage, m, {
-      contextInfo: {
-        externalAdReply: {
-          title: botname,
-          body: dev,
-          mediaType: 1,
-          thumbnail: thumb,
-          renderLargerThumbnail: true,
-          mediaUrl: url,
-          sourceUrl: url
+        {
+          name: 'Adonix',
+          fn: () => axios
+            .get(`https://api-adonix.ultraplus.click/download/ytaudio?apikey=Yuki-WaBot&url=${encodeURIComponent(videoUrl)}`)
+            .then(r => r.data?.result?.url || r.data?.data?.url || r.data?.url)
+        },
+
+        {
+          name: 'Vreden',
+          fn: () => axios
+            .get(`https://api.vreden.web.id/api/v1/download/youtube/audio?url=${encodeURIComponent(videoUrl)}`)
+            .then(r => r.data.result?.download?.url)
+        },
+
+        {
+          name: 'Stellar',
+          fn: () => axios
+            .get(`https://api.stellarwa.xyz/dl/ytdl?url=${encodeURIComponent(videoUrl)}&format=mp3&key=YukiWaBot`)
+            .then(r => r.data.result?.download || r.data.result)
+        }
+
+      ]
+
+      const errors = []
+
+      for (const api of apiSources) {
+        try {
+          const link = await api.fn()
+          const validLink = await validateUrl(link)
+          if (validLink) return validLink
+        } catch (e) {
+          errors.push(`${api.name}: ${e.message}`)
         }
       }
-    })
 
-    let audioData = null
-    try {
-      const d = await skyYT(url, "audio")
-      const mediaUrl = d.audio || d.video
-      if (mediaUrl) {
-        audioData = { link: mediaUrl, title: d.title || title }
-      }
-    } catch {}
-
-    if (!audioData) {
-      await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }})
-      return conn.reply(m.chat, "✦ No se pudo descargar el audio. Intenta más tarde.", m)
+      throw new Error(`Detalles:\n${errors.join('\n')}`)
     }
 
-    await conn.sendMessage(m.chat, {
-      audio: { url: audioData.link },
-      fileName: `${audioData.title || "music"}.mp3`,
-      mimetype: "audio/mpeg",
-      ptt: false
-    }, { quoted: m })
+    const downloadUrl = await getFastestAudio()
+    
+    const img = fs.readFileSync('./menu-imagen/shiina.png')
 
-    await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key }})
+    await conn.sendMessage(
+      m.chat,
+      {
+        image: img,
+        caption: "🎧 *Audio descargado, enviando archivo...*"
+      },
+      { quoted: m }
+    )
 
-  } catch (error) {
-    await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }})
-    return m.reply(`⚠︎ Error inesperado:\n\n${error}`)
+    await conn.sendMessage(
+      m.chat,
+      {
+        audio: { url: downloadUrl },
+        mimetype: 'audio/mpeg',
+        fileName: `${v.title}.mp3`
+      },
+      { quoted: m }
+    )
+
+    await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } })
+
+  } catch (e) {
+
+    await conn.reply(
+      m.chat,
+      `❌ *Error al descargar el audio*\n\n${e.message}`,
+      m
+    )
+
   }
 }
 
-handler.help = ["play3xz"]
-handler.tags = ["descargas"]
-handler.command = ["play3xz"]
+handler.help = ['play']
+handler.tags = ['descargas']
+handler.command = ['play']
 
 export default handler
-
-function formatViews(views) {
-  if (!views) return "No disponible"
-  if (views >= 1_000_000_000) return `${(views / 1_000_000_000).toFixed(1)}B`
-  if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`
-  if (views >= 1_000) return `${(views / 1_000).toFixed(1)}k`
-  return views.toString()
-    }
