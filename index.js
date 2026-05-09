@@ -33,6 +33,11 @@ const phoneUtil = PhoneNumberUtil.getInstance()
 const {DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser} = await import('@whiskeysockets/baileys')
 import readline, { createInterface } from 'readline'
 import NodeCache from 'node-cache'
+import { EventEmitter } from 'events'
+
+EventEmitter.defaultMaxListeners = 100
+process.setMaxListeners(100)
+
 const {CONNECTING} = ws
 const {chain} = lodash
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000
@@ -148,7 +153,7 @@ rl.close()
 addNumber = phoneNumber.replace(/\D/g, '')
 }
 setTimeout(async () => {
-if (conn.ws.readyState === ws.OPEN) {
+if (conn.ws && conn.ws.readyState === ws.OPEN) {
 let codeBot = await conn.requestPairingCode(addNumber)
 codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot
 console.log(chalk.bold.white(chalk.bgMagenta(`✧ CÓDIGO DE VINCULACIÓN ✧`)), chalk.bold.white(chalk.white(codeBot)))
@@ -180,7 +185,6 @@ let reason = new Boom(lastDisconnect?.error)?.output?.statusCode
 if (reason === DisconnectReason.badSession) {
 console.log(chalk.bold.red(`\n⚠ Sesión corrupta, borre ${global.Rubysessions}`))
 } else if (reason === DisconnectReason.connectionClosed || reason === DisconnectReason.connectionLost) {
-console.log(chalk.bold.cyan(`\n⚠ Conexión perdida, reconectando...`))
 await global.reloadHandler(true)
 } else if (reason === DisconnectReason.loggedOut) {
 console.log(chalk.bold.red(`\n⚠ Sesión cerrada.`))
