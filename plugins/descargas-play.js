@@ -54,7 +54,7 @@ title: botname,
 body: dev,
 mediaType: 1,
 thumbnail: thumbBuffer, 
-renderLargerThumbnail: true,
+renderLargerThumbnail: false,
 mediaUrl: url,
 sourceUrl: url
 }
