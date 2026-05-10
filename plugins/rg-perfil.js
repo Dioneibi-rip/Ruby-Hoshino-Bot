@@ -1,6 +1,27 @@
 import moment from 'moment-timezone'
 import PhoneNumber from 'awesome-phonenumber'
 import fetch from 'node-fetch'
+import fs from 'fs'
+import path from 'path'
+import { formatJobLine, ensureJobFields } from '../lib/rpg-jobs.js'
+
+const marriagesFile = path.resolve('src/database/casados.json')
+
+function loadMarriages() {
+  try {
+    if (!fs.existsSync(marriagesFile)) return {}
+    return JSON.parse(fs.readFileSync(marriagesFile, 'utf8')) || {}
+  } catch {
+    return {}
+  }
+}
+
+function resolvePartnerJid(userId, user) {
+  if (user?.marry) return user.marry
+  const marriages = loadMarriages()
+  if (marriages[userId]?.partner) return marriages[userId].partner
+  return null
+}
 
 let handler = async (m, { conn }) => {
   let userId
@@ -17,6 +38,8 @@ let handler = async (m, { conn }) => {
     return m.reply('⚠️ El usuario no existe en la base de datos.')
   }
 
+  ensureJobFields(user)
+
   try {
     let name
     try {
@@ -28,12 +51,12 @@ let handler = async (m, { conn }) => {
     let cumpleanos = user.birth || '𖠿 No especificado'
     let genero = user.genre || '𖠿 No especificado'
 
-    let parejaId = user.marry || null
+    let parejaId = resolvePartnerJid(userId, user)
     let parejaTag = '✘ Nadie'
     let mentions = [userId]
-    if (parejaId && global.db.data.users[parejaId]) {
+    if (parejaId) {
       parejaTag = `⚝ @${parejaId.split('@')[0]}`
-      mentions.push(parejaId)
+      if (/@s\.whatsapp\.net$/.test(parejaId)) mentions.push(parejaId)
     }
 
     let description = user.description || '˖ ࣪⊹ Ninguna descripción'
@@ -42,6 +65,7 @@ let handler = async (m, { conn }) => {
     let role = user.role || '✧ Sin rango'
     let coins = user.coin || 0
     let bankCoins = user.bank || 0
+    let jobLine = formatJobLine(user)
 
     let perfil = await conn.profilePictureUrl(userId, 'image')
       .catch(() => 'https://files.catbox.moe/xr2m6u.jpg')
@@ -64,6 +88,7 @@ let handler = async (m, { conn }) => {
 ⧉ 𖦹 𝖢𝗈𝗂𝗇𝗌 » ${coins.toLocaleString()} ${m.moneda}
 ⧉ 𖦹 𝖡𝖺𝗇𝗄 » ${bankCoins.toLocaleString()} ${m.moneda}
 ⧉ 𖦹 𝖯𝗋𝖾𝗆𝗂𝗎𝗆 » ${user.premium ? '✔ Activo' : '✘ Inactivo'}
+⧉ 𖦹 𝖳𝗋𝖺𝖻𝖺𝗃𝗈 » ${jobLine}
 ㅤㅤ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯  
 > ⋆｡°✩ 𝖯𝗋𝗈𝗉𝗂𝖾𝗍𝖺𝗋𝗂𝗈 ᴅᴇ ʟᴀ ʙᴏᴛ: ${dev} ⋆｡°✩
 `.trim()

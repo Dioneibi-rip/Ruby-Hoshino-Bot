@@ -23,7 +23,7 @@ let handler = async (m, { conn, text }) => {
     user.coin += codesDB[code].coin;
     codesDB[code].claimedBy.push(m.sender);
 
-    let remaining = 50 - codesDB[code].claimedBy.length;
+    let remaining = Math.max(0, 5 - codesDB[code].claimedBy.length);
 
     conn.reply(m.chat, `${emoji} Has canjeado el código con éxito. Has recibido ${codesDB[code].coin} ${m.moneda}.\nQuedan ${remaining} vacantes para canjear el código.`, m);
 }

@@ -18,79 +18,74 @@ var handler = async (m, { conn, text }) => {
         who = m.chat;
     }
 
-    if (!who) return conn.reply(m.chat, `${emoji} Por favor, ingrese el tag de algún usuario o responda a un mensaje.`, m);
+    if (!who) return conn.reply(m.chat, `⚠️ Por favor, etiqueta a alguien o responde a un mensaje para doxear.`, m);
 
     if (!userName) {
-        userName = text || 'Usuario desconocido';
+        userName = text || 'Desconocido';
     }
 
-    let start = `🧑‍💻 *Iniciando doxeo*...`;
-    let boost = `*${pickRandom(['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20'])}%*`;
-    let boost2 = `*${pickRandom(['21','22','23','24','25','26','27','28','29','30','31','32','33','34','35','36','37','38','39','40'])}%*`;
-    let boost3 = `*${pickRandom(['41','42','43','44','45','46','47','48','49','50','51','52','53','54','55','56','57','58','59','60'])}%*`;
-    let boost4 = `*${pickRandom(['61','62','63','64','65','66','67','68','69','70','71','72','73','74','75','76','77','78','79','80'])}%*`;
-    let boost5 = `*${pickRandom(['81','82','83','84','85','86','87','88','89','90','91','92','93','94','95','96','97','98','99','100'])}%*`;
+    const getRandomIP = () => `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+    const getRandomMAC = () => 'XX:XX:XX:XX:XX:XX'.replace(/X/g, () => '0123456789ABCDEF'[Math.floor(Math.random() * 16)]);
+    const getRandomPort = () => Math.floor(Math.random() * 65535);
+    const brands = ['Samsung Galaxy S23 Ultra', 'iPhone 15 Pro Max', 'Xiaomi 13 Pro', 'Google Pixel 8', 'Huawei P60 Pro', 'Motorola Edge 40'];
+    const os = ['Android 14', 'iOS 17.2', 'Windows 11 Mobile', 'HarmonyOS 4.0'];
+    const nets = ['Tigo', 'Claro', 'Movistar', 'Vodafone', 'AT&T', 'Starlink Enterprise'];
 
-    const { key } = await conn.sendMessage(m.chat, { text: `${start}` }, { quoted: m });
-    await delay(1000);
-    await conn.sendMessage(m.chat, { text: `${boost}`, edit: key });
-    await delay(1000);
-    await conn.sendMessage(m.chat, { text: `${boost2}`, edit: key });
-    await delay(1000);
-    await conn.sendMessage(m.chat, { text: `${boost3}`, edit: key });
-    await delay(1000);
-    await conn.sendMessage(m.chat, { text: `${boost4}`, edit: key });
-    await delay(1000);
-    await conn.sendMessage(m.chat, { text: `${boost5}`, edit: key });
+    let steps = [
+        `🔄 *Conectando al servidor satelital...*`,
+        `🔓 *Bypassing firewall del dispositivo...* [Success]`,
+        `💉 *Inyectando payload SQL en ${userName}...*`,
+        `📂 *Descifrando archivos locales (WhatsApp.db)...*`,
+        `☁️ *Extrayendo fotos de la galería privada...*`,
+        `📍 *Triangulando ubicación GPS precisa...*`
+    ];
+
+    const { key } = await conn.sendMessage(m.chat, { text: `💻 *INICIANDO PROTOCOLO DE DOXEO v9.2*...` }, { quoted: m });
+
+    for (let step of steps) {
+        await delay(800);
+        await conn.sendMessage(m.chat, { text: step, edit: key });
+    }
 
     let old = performance.now();
     let neww = performance.now();
-    let speed = `${neww - old}`;
-    let doxeo = `👤 *Persona doxeada* 
+    
+    let doxeo = `☠️ *REPORTE DE ACCESO FINALIZADO* ☠️
 
-📅 ${new Date().toLocaleDateString()}
-⏰ ${new Date().toLocaleTimeString()}
+👤 *Víctima:* ${userName}
+🆔 *ID:* @${who.split('@')[0]}
+📅 *Fecha:* ${new Date().toLocaleDateString()}
+⏰ *Hora:* ${new Date().toLocaleTimeString()}
 
-📢 Resultados:
+📡 *DATOS DE RED:*
+*IPv4 PÚBLICA:* ${getRandomIP()}
+*IPv4 PRIVADA:* 192.168.1.${Math.floor(Math.random() * 100)}
+*MAC ADDRESS:* ${getRandomMAC()}
+*PROVEEDOR (ISP):* ${pickRandom(nets)}
+*LATENCIA:* ${Math.floor(Math.random() * 100)}ms
+*DNS PRIMARIO:* 8.8.8.8 (Google)
+*PUERTOS ABIERTOS:* ${getRandomPort()}, 80, 443, 8080
 
-*Nombre:* ${userName}
-*Ip:* 92.28.211.234
-*N:* 43 7462
-*W:* 12.4893
-*SS NUMBER:* 6979191519182016
-*IPV6:* fe80::5dcd::ef69::fb22::d9888%12 
-*UPNP:* Enabled
-*DMZ:* 10.112.42.15
-*MAC:* 5A:78:3E:7E:00
-*ISP:* Ucom universal 
-*DNS:* 8.8.8.8
-*ALT DNS:* 1.1.1.1 
-*DNS SUFFIX:* Dlink
-*WAN:* 100.23.10.15
-*WAN TYPE:* private nat
-*GATEWAY:* 192.168.0.1
-*SUBNET MASK:* 255.255.0.255
-*UDP OPEN PORTS:* 8080, 80
-*TCP OPEN PORTS:* 443
-*ROUTER VENDEDOR:* ERICCSON
-*DEVICE VENDEDOR:* WIN32-X
-*CONNECTION TYPE:* TPLINK COMPANY
-*ICMPHOPS:* 192.168.0.1, 192.168.1.1, 100.73.43.4
-host-132.12.32.167.ucom.com
-host-132.12.111.ucom.com
-36.134.67.189, 216.239.78.11
-Sof02s32inf14.1e100.net
-*HTTP:* 192.168.3.1:433-->92.28.211.234:80
-*Http:* 192.168.625-->92.28.211.455:80
-*Http:* 192.168.817-->92.28.211.8:971
-*Upd:* 192.168.452-->92.28.211:7265288
-*Tcp:* 192.168.682-->92.28.211:62227.7
-*Tcp:* 192.168.725-->92.28.211:67wu2
-*Tcp:* 192.168.629-->92.28.211.167:8615
-*EXTERNAL MAC:* 6U:77:89:ER:O4
-*MODEM JUMPS:* 64`;
+📱 *DISPOSITIVO:*
+*MODELO:* ${pickRandom(brands)}
+*SISTEMA OS:* ${pickRandom(os)}
+*BATERÍA:* ${Math.floor(Math.random() * 100)}% 🔋
+*TIEMPO DE ACTIVIDAD:* ${Math.floor(Math.random() * 400)} horas
+*GPU:* Adreno ${Math.floor(Math.random() * 100) + 600} / Apple GPU
 
-    m.reply(doxeo, null, { mentions: conn.parseMention(doxeo) });
+📍 *UBICACIÓN ESTIMADA:*
+*LATITUD:* -${Math.random().toFixed(6)}
+*LONGITUD:* -${Math.random().toFixed(6)}
+*ZONA:* ${pickRandom(['Sótano de su casa', 'Casa de la abuela', 'Ciber café', 'Escuela pública', 'Baño'])}
+
+📂 *ARCHIVOS ENCONTRADOS:*
+*FOTOS:* ${Math.floor(Math.random() * 5000)}
+*CHATS:* ${Math.floor(Math.random() * 300)}
+*BUSQUEDAS DE GOOGLE:* "Cómo ser guapo", "Hack para free fire", "porno de enanos"
+
+⚠️ _El dispositivo ha sido infectado con éxito. Se recomienda formatear._`;
+
+    await conn.sendMessage(m.chat, { text: doxeo, edit: key, mentions: conn.parseMention(doxeo) });
 }
 
 handler.help = ['doxear'];

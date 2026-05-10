@@ -1,103 +1,128 @@
-import { promises as fs } from 'fs';
+import { loadHarem, findClaim } from '../lib/gacha-group.js'
+import { loadCharacters, normalizeCharacterId } from '../lib/gacha-characters.js'
+import { getExclusiveOwner } from '../lib/gacha-restrictions.js'
 
-const charactersFilePath = './src/database/characters.json';
-const haremFilePath = './src/database/harem.json';
+export const cooldowns = {}
 
-export const cooldowns = {};
+global.gachaCooldowns = global.gachaCooldowns || {}
+global.gachaCooldowns.rollwaifu = cooldowns
 
-global.activeRolls = global.activeRolls || {};
+global.activeRolls = global.activeRolls || {}
 
-async function loadCharacters() {
-    try {
-        const data = await fs.readFile(charactersFilePath, 'utf-8');
-        return JSON.parse(data);
-    } catch (error) {
-        throw new Error('❀ No se pudo cargar el archivo characters.json.');
+function formatUrl(url) {
+    if (!url) return url
+    url = url.trim()
+
+    if (url.includes('github.com') && url.includes('/blob/')) {
+        url = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/')
     }
-}
 
-async function saveCharacters(characters) {
-    try {
-        await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8');
-    } catch (error) {
-        throw new Error('❀ No se pudo guardar el archivo characters.json.');
+    if (url.includes('github.com') && url.includes('?raw=true')) {
+        url = url.replace('github.com', 'raw.githubusercontent.com').replace('?raw=true', '')
     }
-}
 
-async function loadHarem() {
-    try {
-        const data = await fs.readFile(haremFilePath, 'utf-8');
-        return JSON.parse(data);
-    } catch (error) {
-        return [];
+    if (url.includes('raw.github.com')) {
+        url = url.replace('raw.github.com', 'raw.githubusercontent.com')
     }
-}
 
-async function saveHarem(harem) {
-    try {
-        await fs.writeFile(haremFilePath, JSON.stringify(harem, null, 2), 'utf-8');
-    } catch (error) {
-        throw new Error('❀ No se pudo guardar el archivo harem.json.');
-    }
+    return url
 }
 
 let handler = async (m, { conn }) => {
-    const userId = m.sender;
-    const now = Date.now();
+    const userId = m.sender
+    const groupId = m.chat
+    const now = Date.now()
+    const key = `${groupId}:${userId}`
 
-    if (cooldowns[userId] && now < cooldowns[userId]) {
-        const remainingTime = Math.ceil((cooldowns[userId] - now) / 1000);
-        const minutes = Math.floor(remainingTime / 60);
-        const seconds = remainingTime % 60;
-        return await conn.reply(m.chat, `( ⸝⸝･̆⤚･̆⸝⸝) ¡𝗗𝗲𝗯𝗲𝘀 𝗲𝘀𝗽𝗲𝗿𝗮𝗿 *${minutes} minutos y ${seconds} segundos* 𝗽𝗮𝗿𝗮 𝘃𝗼𝗹𝘃𝗲𝗿 𝗮 𝘂𝘀𝗮𝗿 *#rw* 𝗱𝗲 𝗻𝘂𝗲𝘃𝗼.`, m);
+    for (const [rollKey, rollData] of Object.entries(global.activeRolls)) {
+        if (!rollData?.time || now - rollData.time > 3 * 60 * 1000) delete global.activeRolls[rollKey]
     }
+
+    if (cooldowns[key] && now < cooldowns[key]) {
+        const remainingTime = Math.ceil((cooldowns[key] - now) / 1000)
+        const minutes = Math.floor(remainingTime / 60)
+        const seconds = remainingTime % 60
+        return await conn.reply(m.chat, `( ⸝⸝･̆⤚･̆⸝⸝) ¡Debes esperar *${minutes} minutos y ${seconds} segundos* para volver a usar *#rollwaifu* en este grupo.`, m)
+    }
+
+    cooldowns[key] = now + 15 * 60 * 1000
 
     try {
-        const characters = await loadCharacters();
-        const randomCharacter = characters[Math.floor(Math.random() * characters.length)];
-        const randomImage = randomCharacter.img[Math.floor(Math.random() * randomCharacter.img.length)];
-
-        const harem = await loadHarem();
-        const userEntry = harem.find(entry => entry.characterId === randomCharacter.id);
+        const characters = await loadCharacters()
+        if (!characters.length) throw new Error('❀ No hay personajes disponibles para el gacha.')
         
-        // Formato para el estado (más limpio)
-        const statusMessage = randomCharacter.user 
-            ? `🚫 Ocupado (@${randomCharacter.user.split('@')[0]})` 
-            : '✅ Libre';
+        const randomCharacter = characters[Math.floor(Math.random() * characters.length)]
+        randomCharacter.id = normalizeCharacterId(randomCharacter.id)
+        
+        const imageList = Array.isArray(randomCharacter.img) ? randomCharacter.img : []
+        let randomImage = imageList[Math.floor(Math.random() * imageList.length)]
+        if (!randomImage) throw new Error(`❀ El personaje ${randomCharacter.name} no tiene imágenes válidas.`)
 
-        if (!randomCharacter.user) {
-            global.activeRolls[randomCharacter.id] = {
-                user: userId,
-                time: Date.now()
-            };
+        randomImage = formatUrl(randomImage)
+
+        if (randomImage.match(/\.webp($|\?)/i)) {
+            randomImage = `https://wsrv.nl/?url=${encodeURIComponent(randomImage)}&output=png`
         }
 
-        const message = `︵ᮬ⌒⏜︵፝֟ᮬ⏜︵ᮬ⌒⏜ᮬ
- ꒰͜  ✦ 𝐂𝐇𝐀𝐑𝐀𝐂𝐓𝐄𝐑 𝐑𝐎𝐋𝐋 ✦ ͜꒱
-⎯⎯⎯⎯⎯⎯  ׁ︩︪᷼  ᮫ ︪︩ໍ ܻ݊᷼🍂ܻ݊᷼ᩨᤢ ︩︪᷼ ᮫ ࣫⎯⎯⎯⎯⎯⎯⎯
+        const harem = await loadHarem()
+        const claimedInGroup = findClaim(harem, groupId, randomCharacter.id)
+        const exclusiveOwner = getExclusiveOwner(randomCharacter.id)
+        
+        let ownerName = 'Nadie'
+        if (claimedInGroup) {
+            ownerName = await conn.getName(claimedInGroup.userId)
+        } else if (exclusiveOwner) {
+            ownerName = await conn.getName(exclusiveOwner).catch(() => `@${exclusiveOwner.split('@')[0]}`)
+        }
 
-👤 𝐍𝐨𝐦𝐛𝐫𝐞 ╰┈➤ *${randomCharacter.name}*
-⚧ 𝐆𝐞𝐧𝐞𝐫𝐨 ╰┈➤ *${randomCharacter.gender}*
-🪙 𝐕𝐚𝐥𝐨𝐫   ╰┈➤ *${randomCharacter.value}*
-📊 𝐄𝐬𝐭𝐚𝐝𝐨  ╰┈➤ ${statusMessage}
-📖 𝐅𝐮𝐞𝐧𝐭𝐞  ╰┈➤ *${randomCharacter.source}*
-🆔 𝐈𝐃      ╰┈➤ *${randomCharacter.id}*
+        const statusText = claimedInGroup
+            ? '🚫 Ocupado'
+            : (exclusiveOwner ? '🔒 Exclusivo' : '✅ Libre')
 
-⎯⎯⎯⎯⎯⎯  ׁ︩︪᷼  ᮫ ︪︩ໍ ܻ݊᷼🍪ܻ݊᷼ᩨᤢ ︩︪᷼ ᮫ ࣫⎯⎯⎯⎯⎯⎯⎯`;
+        if (!claimedInGroup) {
+            const rollOwner = exclusiveOwner || userId
+            global.activeRolls[`${groupId}:${randomCharacter.id}`] = { user: rollOwner, time: Date.now() }
+        }
 
-        const mentions = statusMessage.includes('@') ? [randomCharacter.user] : [];
-        await conn.sendFile(m.chat, randomImage, `${randomCharacter.name}.jpg`, message, m, { mentions });
+        const message = `
+ㅤㅤ⏜⋮ㅤㅤ꒰ㅤ꒰ㅤㅤ𖹭⃞🎲⃞𖹭ㅤㅤ꒱ㅤ꒱ㅤㅤ⋮⏜
+꒰ㅤ꒰͡ㅤ 🄽🅄🄴🅅🄾 🄿🄴🅁🅂🄾🄽🄰🄹🄴ㅤㅤ͡꒱ㅤ꒱
 
-        cooldowns[userId] = now + 15 * 60 * 1000;
+▓𓏴𓏴 ۪ ֹ 🄽꯭🄾꯭🄼꯭🄱꯭🅁꯭🄴 :
+╰┈➤ ❝ ${randomCharacter.name} ❞
+
+▓𓏴𓏴 ۪ ֹ 🅅꯭🄰꯭🄻꯭🄾꯭🅁 :
+╰┈➤ 🪙 ${randomCharacter.value}
+
+▓𓏴𓏴 ۪ ֹ 🄴꯭🅂꯭🅃꯭🄰꯭🄳꯭🄾 :
+╰┈➤ ✨ ꯭${statusText}
+
+▓𓏴𓏴 ۪ ֹ 🄳꯭🅄꯭🄴꯭🄽꯭̃🄾 :
+╰┈➤ 👤 ${ownerName}
+
+▓𓏴𓏴 ۪ ֹ 🄵꯭🅄꯭🄴꯭🄽꯭🅃꯭🄴 :
+╰┈➤ 📖 ${randomCharacter.source}
+
+┉͜┄͜─┈┉⃛┄─꒰֟፝͡ 🅸🅳: ${randomCharacter.id} ꒱─┄⃨┉┈─͡┄͡┉
+ㅤㅤㅤㅤㅤㅤ© ᑲ᥆𝗍 𝗀ɑᥴ꯭hɑ 𝗌𝗒sł꯭ᥱꭑ꒱
+`
+
+        await conn.sendMessage(m.chat, {
+            image: { url: randomImage },
+            mimetype: "image/jpeg",
+            caption: message
+        }, { quoted: m })
 
     } catch (error) {
-        await conn.reply(m.chat, `✘ 𝗘𝗿𝗿𝗼𝗿 𝗮𝗹 𝗰𝗮𝗿𝗴𝗮𝗿 𝗲𝗹 𝗽𝗲𝗿𝘀𝗼𝗻𝗮𝗷𝗲: ${error.message}`, m);
+        delete cooldowns[key]
+        console.error(error)
+        await conn.reply(m.chat, `✘ Error al cargar el personaje: ${error.message}`, m)
     }
-};
+}
 
-handler.help = ['rw', 'rollwaifu'];
-handler.tags = ['gacha'];
-handler.command = ['rw', 'rollwaifu'];
-handler.group = true;
+handler.help = ['rw', 'rollwaifu']
+handler.tags = ['gacha']
+handler.command = ['rw', 'rollwaifu']
+handler.group = true
 
-export default handler;
+export default handler

@@ -1,44 +1,58 @@
-import db from '../lib/database.js';
-import MessageType from '@whiskeysockets/baileys';
-
-let impts = 0;
+import db from '../lib/database.js'
 
 let handler = async (m, { conn, text }) => {
-    let who;
+    let who
     if (m.isGroup) {
-        if (m.mentionedJid.length > 0) {
-            who = m.mentionedJid[0];
-        } else {
-            const quoted = m.quoted ? m.quoted.sender : null;
-            who = quoted ? quoted : m.chat;
-        }
+        who = m.mentionedJid[0] 
+            ? m.mentionedJid[0] 
+            : m.quoted 
+            ? m.quoted.sender 
+            : false
     } else {
-        who = m.chat;
+        who = m.chat
     }
 
-    if (!who) return m.reply(`${emoji} Por favor, menciona al usuario o cita un mensaje.`);
+    if (!who) return m.reply('⚠️ Menciona al usuario o cita un mensaje.')
 
-    let txt = text.replace('@' + who.split`@`[0], '').trim();
-    if (!txt) return m.reply(`${emoji} Por favor, ingresa la cantidad que deseas añadir.`);
-    if (isNaN(txt)) return m.reply(`${emoji2} sólo números.`);
+    // Resolver @lid
+    if (who.endsWith('@lid')) {
+        try {
+            const pp = await conn.groupMetadata(m.chat)
+            const dbUser = pp.participants.find(u => u.lid === who)
+            if (dbUser) who = dbUser.id
+        } catch {}
+    }
 
-    let dmt = parseInt(txt);
-    let coin = dmt;
-    let pjk = Math.ceil(dmt * impts);
-    coin += pjk;
+    let user = global.db.data.users[who]
+    if (!user) {
+        user = global.db.data.users[who] = { coin: 0, bank: 0 }
+    }
 
-    if (coin < 1) return m.reply(`${emoji2} Mínimo es *1*`);
+    let txt = text.replace('@' + who.split('@')[0], '').trim()
+    let dmt
 
-    let users = global.db.data.users;
-    users[who].coin += dmt;
+    if (txt.toLowerCase().includes('all') || txt.toLowerCase().includes('todo')) {
+        return m.reply('⚠️ Usa una cantidad válida. `all` no aplica para dar dinero.')
+    } else {
+        let cleanNum = txt.replace(/[^\d]/g, '')
+        if (!cleanNum) return m.reply('⚠️ Ingresa la cantidad a dar.')
+        dmt = parseInt(cleanNum)
+    }
 
-    m.reply(`💸 *Añadido:*
-» ${dmt} \n@${who.split('@')[0]}, recibiste ${dmt} 💸`, null, { mentions: [who] });
-};
+    if (dmt <= 0) return m.reply('⚠️ La cantidad debe ser mayor a 0.')
 
-handler.help = ['addcoins *<@user>*'];
-handler.tags = ['owner'];
-handler.command = ['añadircoin', 'addcoin', 'addcoins']; 
-handler.rowner = true;
+    user.coin += dmt
 
-export default handler;
+    m.reply(
+        `💰 *Dinero agregado*\n» ${dmt}\n👤 @${who.split('@')[0]}\n📥 Billetera`,
+        null,
+        { mentions: [who] }
+    )
+}
+
+handler.help = ['darcoin <@user> <cantidad>']
+handler.tags = ['owner']
+handler.command = ['darcoin', 'addcoin', 'givecoin']
+handler.rowner = true
+
+export default handler

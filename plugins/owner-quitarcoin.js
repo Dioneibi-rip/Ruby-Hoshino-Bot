@@ -1,50 +1,66 @@
-import db from '../lib/database.js';
-import MessageType from '@whiskeysockets/baileys';
-
-let impts = 0;
+import db from '../lib/database.js'
 
 let handler = async (m, { conn, text }) => {
-    let who;
+    let who
     if (m.isGroup) {
-        if (m.mentionedJid.length > 0) {
-            who = m.mentionedJid[0];
-        } else {
-            const quoted = m.quoted ? m.quoted.sender : null;
-            who = quoted ? quoted : m.chat;
-        }
+        who = m.mentionedJid[0] 
+            ? m.mentionedJid[0] 
+            : m.quoted 
+            ? m.quoted.sender 
+            : false
     } else {
-        who = m.chat;
+        who = m.chat
     }
 
-    if (!who) return m.reply(`${emoji} Por favor, menciona al usuario o cita un mensaje.`);
+    if (!who) return m.reply('⚠️ Menciona al usuario o cita un mensaje.')
 
-    let txt = text.replace('@' + who.split`@`[0], '').trim();
-    let dmt;
+    if (who.endsWith('@lid')) {
+        try {
+            const pp = await conn.groupMetadata(m.chat)
+            const dbUser = pp.participants.find(u => u.lid === who)
+            if (dbUser) who = dbUser.id
+        } catch {}
+    }
 
-    if (txt.toLowerCase() === 'all') {
-        dmt = global.db.data.users[who].coin;
+    let user = global.db.data.users[who]
+    if (!user) {
+        user = global.db.data.users[who] = { coin: 0, bank: 0 }
+    }
+
+    let txt = text.replace('@' + who.split('@')[0], '').trim()
+    let dmt
+
+    if (txt.toLowerCase().includes('all') || txt.toLowerCase().includes('todo')) {
+        dmt = (user.coin || 0) + (user.bank || 0)
     } else {
-        if (!txt) return m.reply(`${emoji} Por favor, ingresa la cantidad que deseas quitar.`);
-        if (isNaN(txt)) return m.reply(`${emoji2} sólo números.`);
-
-        dmt = parseInt(txt);
+        let cleanNum = txt.replace(/[^\d]/g, '')
+        if (!cleanNum) return m.reply('⚠️ Ingresa la cantidad a quitar.')
+        dmt = parseInt(cleanNum)
     }
 
-    let users = global.db.data.users;
+    let total = (user.coin || 0) + (user.bank || 0)
+    if (total < dmt)
+        return m.reply(`⚠️ No tiene suficiente dinero.\n💸 Billetera: ${user.coin}\n🏦 Banco: ${user.bank}`)
 
-    if (users[who].coin < dmt) {
-        return m.reply(`${emoji2} El usuario no tiene suficientes coin para quitar. Tiene ${users[who].coin} ${m.moneda}.`);
+    // 🔻 quitar primero de la billetera
+    if (user.coin >= dmt) {
+        user.coin -= dmt
+    } else {
+        let resto = dmt - user.coin
+        user.coin = 0
+        user.bank -= resto
     }
 
-    users[who].coin -= dmt;
+    m.reply(
+        `💸 *Dinero quitado*\n» ${dmt}\n👤 @${who.split('@')[0]}`,
+        null,
+        { mentions: [who] }
+    )
+}
 
-    m.reply(`💸 *Quitado:*
-» ${dmt} \n@${who.split('@')[0]}, te han quitado ${dmt} 💸`, null, { mentions: [who] });
-};
+handler.help = ['quitarcoin <@user> <cantidad|all>']
+handler.tags = ['owner']
+handler.command = ['quitarcoin', 'removecoin', 'removecoins']
+handler.rowner = true
 
-handler.help = ['quitarcoin *<@user>*', 'quitarcoin all'];
-handler.tags = ['owner'];
-handler.command = ['quitarcoin', 'removecoin', 'removecoins']; 
-handler.rowner = true;
-
-export default handler;
+export default handler

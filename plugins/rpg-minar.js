@@ -1,176 +1,83 @@
-let cooldowns = {}
-
-let handler = async (m, { conn }) => {
-  let user = global.db.data.users[m.sender];
+const handler = async (m, { conn }) => {
+  const user = global.db.data.users[m.sender];
   if (!user) return;
 
-  const tiempoMinar = 10 * 60 * 1000
-  let now = new Date()
+  const tiempoMinar = 10 * 60 * 1000;
+  const now = Date.now();
 
-  if (now - user.lastmiming < tiempoMinar) {
-    let restante = msToTime(user.lastmiming + tiempoMinar - now)
-    return conn.reply(m.chat, `⛏️ Aún te estás recuperando del último minado.\n⏳ Espera *${restante}* para volver a minar.`, m)
+  if (now - (user.lastmiming || 0) < tiempoMinar) {
+    const restante = msToTime((user.lastmiming + tiempoMinar) - now);
+    return conn.reply(m.chat, `⛏️ Aún te recuperas del último minado.\n⏳ Espera *${restante}*.`, m);
   }
 
-  const esEventoPositivo = Math.random() < 0.75
-  let resultado = ''
+  const bonus = user.premium ? 1.25 : 1;
+  const esEventoPositivo = Math.random() < (user.premium ? 0.86 : 0.78);
+  const evento = esEventoPositivo ? pickRandom(eventosBuenos) : pickRandom(eventosMalos);
+  const cambios = evento.cambios(bonus);
 
-  const eventosBuenos = [
-    {
-      texto: '✨ Encontraste una veta gigante de esmeraldas!',
-      cambios: () => ({
-        exp: r(250, 500),
-        coin: r(3000, 6000),
-        emerald: r(5, 10),
-        iron: r(20, 40),
-        gold: r(10, 30),
-        coal: r(40, 100),
-        stone: r(300, 800),
-      })
-    },
-    {
-      texto: '💰 Abriste un cofre abandonado lleno de recursos!',
-      cambios: () => ({
-        exp: r(300, 700),
-        coin: r(5000, 2999),
-        emerald: r(2, 6),
-        iron: r(10, 25),
-        gold: r(5, 15),
-        coal: r(30, 60),
-        stone: r(200, 500),
-      })
-    },
-    {
-      texto: '💎 Descubriste una cueva secreta con riquezas antiguas!',
-      cambios: () => ({
-        exp: r(500, 900),
-        coin: r(10000, 20000),
-        emerald: r(10, 20),
-        iron: r(30, 50),
-        gold: r(20, 40),
-        coal: r(60, 150),
-        stone: r(500, 1000),
-      })
-    },
-    {
-      texto: '🔨 Tus golpes fueron precisos y extrajiste muchos minerales!',
-      cambios: () => ({
-        exp: r(100, 300),
-        coin: r(1000, 3000),
-        emerald: r(1, 3),
-        iron: r(10, 20),
-        gold: r(5, 10),
-        coal: r(20, 50),
-        stone: r(200, 400),
-      })
-    },
-    {
-      texto: '🍀 Hoy fue tu día de suerte, encontraste un mineral raro!',
-      cambios: () => ({
-        exp: r(300, 600),
-        coin: r(6000, 10000),
-        emerald: r(4, 8),
-        iron: r(15, 30),
-        gold: r(10, 20),
-        coal: r(50, 90),
-        stone: r(300, 700),
-      })
-    }
-  ]
+  user.coin = Math.max(0, (user.coin || 0) + cambios.coin);
+  user.iron = Math.max(0, (user.iron || 0) + cambios.iron);
+  user.gold = Math.max(0, (user.gold || 0) + cambios.gold);
+  user.emerald = Math.max(0, (user.emerald || 0) + cambios.emerald);
+  user.coal = Math.max(0, (user.coal || 0) + cambios.coal);
+  user.stone = Math.max(0, (user.stone || 0) + cambios.stone);
+  user.exp = (user.exp || 0) + cambios.exp;
+  user.health = Math.max(0, (user.health || 100) - 10);
+  user.pickaxedurability = Math.max(0, (user.pickaxedurability || 100) - 8);
+  user.lastmiming = now;
 
-  const eventosMalos = [
-    {
-      texto: '💥 ¡Hubo una explosión dentro de la mina!',
-      cambios: () => ({
-        exp: r(50, 100),
-        coin: -r(1000, 2000),
-        emerald: -r(1, 2),
-        iron: -r(5, 10),
-        gold: -r(3, 6),
-        coal: -r(10, 20),
-        stone: -r(100, 200),
-      })
-    },
-    {
-      texto: '🥵 Te perdiste y no encontraste casi nada útil.',
-      cambios: () => ({
-        exp: r(30, 70),
-        coin: -r(500, 1500),
-        emerald: 0,
-        iron: r(1, 3),
-        gold: 0,
-        coal: r(5, 10),
-        stone: r(50, 100),
-      })
-    },
-    {
-      texto: '📉 Un derrumbe bloqueó el camino y perdiste parte del botín.',
-      cambios: () => ({
-        exp: r(70, 120),
-        coin: -r(2000, 2000),
-        emerald: -r(2, 4),
-        iron: -r(10, 20),
-        gold: -r(5, 10),
-        coal: -r(20, 40),
-        stone: -r(150, 300),
-      })
-    }
-  ]
-
-  const evento = esEventoPositivo
-    ? pickRandom(eventosBuenos)
-    : pickRandom(eventosMalos)
-
-  const cambios = evento.cambios()
-
-  user.coin = Math.max(0, user.coin + cambios.coin)
-  user.iron = Math.max(0, user.iron + cambios.iron)
-  user.gold = Math.max(0, user.gold + cambios.gold)
-  user.emerald = Math.max(0, user.emerald + cambios.emerald)
-  user.coal = Math.max(0, user.coal + cambios.coal)
-  user.stone = Math.max(0, user.stone + cambios.stone)
-  user.health = Math.max(0, user.health - 40)
-  user.pickaxedurability = Math.max(0, user.pickaxedurability - 20)
-  user.lastmiming = now * 1
-
-  resultado =
+  const resultado =
     `⛏️ *${evento.texto}*\n\n` +
-    `> *📦 Resultado del minado:*\n` +
-    `✨ *Exp:* ${cambios.exp}\n` +
-    `💸 *${m.moneda}:* ${formato(cambios.coin)}\n` +
-    `♦️ *Esmeralda:* ${formato(cambios.emerald)}\n` +
-    `🔩 *Hierro:* ${formato(cambios.iron)}\n` +
-    `🏅 *Oro:* ${formato(cambios.gold)}\n` +
-    `🕋 *Carbón:* ${formato(cambios.coal)}\n` +
-    `🪨 *Piedra:* ${formato(cambios.stone)}`
+    `✨ Exp: ${formato(cambios.exp)}\n` +
+    `💸 ${m.moneda}: ${formato(cambios.coin)}\n` +
+    `♦️ Esmeralda: ${formato(cambios.emerald)}\n` +
+    `🔩 Hierro: ${formato(cambios.iron)}\n` +
+    `🏅 Oro: ${formato(cambios.gold)}\n` +
+    `🕋 Carbón: ${formato(cambios.coal)}\n` +
+    `🪨 Piedra: ${formato(cambios.stone)}\n` +
+    `👑 Multiplicador premium: x${bonus}`;
 
-  let img = 'https://files.catbox.moe/qfx5pn.jpg'
-  await conn.sendFile(m.chat, img, 'minado.jpg', resultado, m)
-  await m.react('⛏️')
-}
+  await conn.sendFile(m.chat, 'https://files.catbox.moe/qfx5pn.jpg', 'minado.jpg', resultado, m);
+  await m.react('⛏️');
+};
 
-handler.help = ['minar']
-handler.tags = ['economy']
-handler.command = ['minar', 'miming', 'mine']
-handler.register = true
-handler.group = true
+handler.help = ['minar'];
+handler.tags = ['economy'];
+handler.command = ['minar', 'miming', 'mine'];
+handler.register = true;
+handler.group = true;
 
-export default handler
+export default handler;
+
+const eventosBuenos = [
+  { texto: '✨ Encontraste una veta de minerales.', cambios: (b) => ({ exp: n(300, 700, b), coin: n(4000, 9000, b), emerald: n(4, 8, b), iron: n(35, 80, b), gold: n(20, 40, b), coal: n(35, 80, b), stone: n(250, 550, b) }) },
+  { texto: '💰 Hallaste un cofre enterrado.', cambios: (b) => ({ exp: n(450, 900, b), coin: n(6500, 10000, b), emerald: n(6, 10, b), iron: n(45, 100, b), gold: n(25, 50, b), coal: n(40, 90, b), stone: n(300, 600, b) }) },
+  { texto: '💎 Cueva antigua descubierta.', cambios: (b) => ({ exp: n(600, 1200, b), coin: n(9000, 11000, b), emerald: n(8, 14, b), iron: n(55, 110, b), gold: n(30, 60, b), coal: n(45, 100, b), stone: n(350, 700, b) }) },
+];
+
+const eventosMalos = [
+  { texto: '💥 Pequeño derrumbe en la mina.', cambios: () => ({ exp: r(150, 320), coin: -r(1500, 3200), emerald: -r(0, 2), iron: -r(2, 8), gold: -r(1, 4), coal: -r(3, 10), stone: -r(20, 60) }) },
+  { texto: '🥵 Te perdiste buscando la salida.', cambios: () => ({ exp: r(120, 260), coin: -r(1200, 2800), emerald: 0, iron: r(0, 4), gold: 0, coal: r(2, 8), stone: r(15, 50) }) },
+];
 
 function r(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function n(min, max, bonus) {
+  return Math.floor(r(min, max) * bonus);
 }
 
 function formato(num) {
-  return num >= 0 ? `+${num}` : `-${Math.abs(num)}`
+  return num >= 0 ? `+${num}` : `-${Math.abs(num)}`;
 }
 
 function pickRandom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)]
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 function msToTime(duration) {
-  var seconds = Math.floor((duration / 1000) % 60),
-      minutes = Math.floor((duration / (1000 * 60)) % 60)
-  return `${minutes}m y ${seconds}s`
+  const seconds = Math.floor((duration / 1000) % 60);
+  const minutes = Math.floor((duration / (1000 * 60)) % 60);
+  return `${minutes}m y ${seconds}s`;
 }

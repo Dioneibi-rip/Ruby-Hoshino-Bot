@@ -33,7 +33,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 > Tu elección fue *${eleccion.toUpperCase()}*
 ✨ ¡La suerte estuvo de tu lado! ✨`, m);
   } else {
-    let perdida = Math.floor(cantidad + Math.random() * cantidad * 0.75);
+    let perdida = Math.floor(cantidad + Math.random() * cantidad * 1.15);
     user.coin -= perdida;
 
     return conn.reply(m.chat,

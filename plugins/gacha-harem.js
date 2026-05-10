@@ -1,88 +1,97 @@
-import { promises as fs } from 'fs'
+import { getUserClaims, loadHarem } from '../lib/gacha-group.js';
+import { loadCharacters, findCharacterById } from '../lib/gacha-characters.js';
 
-const charactersFilePath = './src/database/characters.json'
-const haremFilePath = './src/database/harem.json'
+function formatProtectionStatus(character) {
+  if (!character.protection || !character.protection.protected) {
+    return '';
+  }
 
-async function loadCharacters() {
-try {
-const data = await fs.readFile(charactersFilePath, 'utf-8')
-return JSON.parse(data)
-} catch (error) {
-throw new Error('❀ No se pudo cargar el archivo characters.json.')
-}
-}
+  if (Date.now() > character.protection.expiresAt) {
+    character.protection.protected = false;
+    return '';
+  }
 
-async function loadHarem() {
-try {
-const data = await fs.readFile(haremFilePath, 'utf-8')
-return JSON.parse(data)
-} catch (error) {
-return []
-}
+  const remaining = character.protection.expiresAt - Date.now();
+  const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (days > 0) return ` 🔒 ${days}d ${hours}h`;
+  if (hours > 0) return ` 🔒 ${hours}h ${minutes}m`;
+  return ` 🔒 ${Math.max(1, minutes)}m`;
 }
 
 let handler = async (m, { conn, args, participants }) => {
-try {
-const characters = await loadCharacters()
-const harem = await loadHarem()
-let rawUserId
+  try {
+    const characters = await loadCharacters();
+    const harem = await loadHarem();
+    let rawUserId;
 
-if (m.quoted && m.quoted.sender) {
-rawUserId = m.quoted.sender
-} else if (m.mentionedJid && m.mentionedJid[0]) {
-rawUserId = m.mentionedJid[0]
-} else if (args[0] && args[0].startsWith('@')) {
-rawUserId = args[0].replace('@', '') + '@s.whatsapp.net'
-} else {
-rawUserId = m.sender
-}
+    if (m.quoted && m.quoted.sender) {
+      rawUserId = m.quoted.sender;
+    } else if (m.mentionedJid && m.mentionedJid[0]) {
+      rawUserId = m.mentionedJid[0];
+    } else if (args[0] && /^@?\d{5,20}$/.test(args[0])) {
+      rawUserId = args[0].replace('@', '') + '@s.whatsapp.net';
+    } else {
+      rawUserId = m.sender;
+    }
 
-let userId = rawUserId
-if (rawUserId.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find(p => p.lid === rawUserId)
-if (pInfo && pInfo.id) userId = pInfo.id
-}
+    let userId = rawUserId;
+    if (m.isGroup && rawUserId && rawUserId.endsWith('@lid')) {
+      const pInfo = participants.find(p => p?.lid === rawUserId);
+      if (pInfo?.id) userId = pInfo.id;
+    }
 
-const userCharacters = characters.filter(character => character.user === userId)
+    const groupId = m.chat;
 
-if (userCharacters.length === 0) {
-await conn.reply(m.chat, '❀ No tiene personajes reclamados en tu harem.', m)
-return
-}
+    const userClaims = getUserClaims(harem, groupId, userId);
 
-let pageArg = args.find(arg => /^\d+$/.test(arg))
-const page = parseInt(pageArg) || 1
-const charactersPerPage = 50
-const totalCharacters = userCharacters.length
-const totalPages = Math.ceil(totalCharacters / charactersPerPage)
-const startIndex = (page - 1) * charactersPerPage
-const endIndex = Math.min(startIndex + charactersPerPage, totalCharacters)
+    if (userClaims.length === 0) {
+      await conn.reply(m.chat, '❀ No tienes personajes reclamados en este grupo.', m);
+      return;
+    }
 
-if (page < 1 || page > totalPages) {
-await conn.reply(m.chat, `❀ Página no válida. Hay un total de *${totalPages}* páginas.`, m)
-return
-}
+    let pageArg = args.find(arg => /^\d+$/.test(arg));
+    const page = parseInt(pageArg) || 1;
+    const charactersPerPage = 50;
+    const totalCharacters = userClaims.length;
+    const totalPages = Math.ceil(totalCharacters / charactersPerPage);
+    const startIndex = (page - 1) * charactersPerPage;
+    const endIndex = Math.min(startIndex + charactersPerPage, totalCharacters);
 
-let message = `✿ Personajes reclamados ✿\n`
-message += `⌦ Usuario: @${userId.split('@')[0]}\n`
-message += `♡ Personajes: *(${totalCharacters}):*\n\n`
+    if (page < 1 || page > totalPages) {
+      await conn.reply(m.chat, `❀ Página no válida. Hay un total de *${totalPages}* páginas.`, m);
+      return;
+    }
 
-for (let i = startIndex; i < endIndex; i++) {
-const character = userCharacters[i]
-message += `» *${character.name}* (*${character.value}*)\n`
-}
+    let message = `✿ Personajes reclamados en este grupo ✿\n`;
+    message += `⌦ Usuario: @${userId.split('@')[0]}\n`;
+    message += `♡ Personajes: *(${totalCharacters}):*\n\n`;
 
-message += `\n> ⌦ _Página *${page}* de *${totalPages}*_`
+    for (let i = startIndex; i < endIndex; i++) {
+      const charId = userClaims[i].characterId;
+      const character = findCharacterById(characters, charId);
+      const name = character ? character.name : `ID:${charId}`;
+      const value = character ? (character.value || '0') : '0';
+      
+      // Agregar estado de protección
+      const protectionStatus = formatProtectionStatus(userClaims[i]);
+      
+      message += `» *${name}* (*${value}*)${protectionStatus}\n`;
+    }
 
-await conn.reply(m.chat, message, m, { mentions: [userId] })
-} catch (error) {
-await conn.reply(m.chat, `✘ Error al cargar el harem: ${error.message}`, m)
-}
-}
+    message += `\n> ⌦ _Página *${page}* de *${totalPages}*_`;
 
-handler.help = ['harem [@usuario] [pagina]']
-handler.tags = ['anime']
-handler.command = ['harem', 'claims', 'waifus']
-handler.group = true
+    await conn.reply(m.chat, message, m, { mentions: [userId] });
+  } catch (error) {
+    await conn.reply(m.chat, `✘ Error al cargar el harem: ${error.message}`, m);
+  }
+};
 
-export default handler
+handler.help = ['harem [@usuario] [pagina]'];
+handler.tags = ['anime'];
+handler.command = ['harem', 'claims', 'waifus'];
+handler.group = true;
+
+export default handler;

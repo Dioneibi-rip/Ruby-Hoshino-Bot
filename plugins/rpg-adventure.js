@@ -26,14 +26,14 @@ let kingdoms = [
 'Reino de Elenaria'
 ];
 let randomKingdom = pickRandom(kingdoms);
-let coin = pickRandom([20, 5, 7, 8, 88, 40, 50, 70, 90, 999, 300]);
-let emerald = pickRandom([1, 5, 7, 8]);
+let coin = pickRandom([12000, 15000, 18000, 20000, 24000, 28000, 35000, 40000, 52000]);
+let emerald = pickRandom([4, 6, 8, 10, 12]);
 let iron = pickRandom([5, 6, 7, 9, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]);
-let gold = pickRandom([20, 5, 7, 8, 88, 40, 50]);
+let gold = pickRandom([25, 35, 45, 60, 75]);
 let coal = pickRandom([20, 5, 7, 8, 88, 40, 50, 80, 70, 60, 100, 120, 600, 700, 64]);
 let stone = pickRandom([200, 500, 700, 800, 900, 4000, 300]);
-let diamonds = pickRandom([1, 2, 3, 4, 5]);
-let exp = pickRandom([10, 20, 30, 40, 50]);
+let diamonds = pickRandom([6, 8, 10, 12, 14]);
+let exp = pickRandom([1200, 1600, 2200, 2800, 3400]);
 user.coin += coin;
 user.emerald += emerald;
 user.iron += iron;

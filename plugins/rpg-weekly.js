@@ -1,29 +1,32 @@
-const we = 5000;
-let handler = async (m, { conn }) => {
+const handler = async (m) => {
+  const user = global.db.data.users[m.sender] || {};
+  user.weekly = user.weekly || 0;
 
-    let user = global.db.data.users[m.sender] || {};
-    user.weekly = user.weekly || 0;
+  const cooldown = 7 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
 
-    const cooldown = 604800000; // 1 semana
+  if (now - user.weekly < cooldown) {
+    return m.reply(`🎁 Ya reclamaste tu semanal.\nVuelve en *${msToTime((user.weekly + cooldown) - now)}*`);
+  }
 
-    if (new Date - user.weekly < cooldown) {
-        return m.reply(`${emoji3} ¡Ya reclamaste tu regalo semanal! Vuelve en:\n *${msToTime((user.weekly + cooldown) - new Date())}*`);
-    }
+  const coinReward = user.premium ? 120000 : 75000;
+  const expReward = user.premium ? 12000 : 7000;
+  const diamondReward = user.premium ? 14 : 8;
 
-    let coinReward = pickRandom([1, 2, 3]);
-    let expReward = pickRandom([100, 200, 300]);
+  user.coin = (user.coin || 0) + coinReward;
+  user.exp = (user.exp || 0) + expReward;
+  user.diamond = (user.diamond || 0) + diamondReward;
+  user.diamonds = (user.diamonds || 0) + diamondReward;
+  user.weekly = now;
 
-    user.coin = (user.coin || 0) + coinReward;
-    user.exp = (user.exp || 0) + expReward;
-
-    m.reply(`
-🎁 ¡Ha pasado una semana! ¡Disfruta de tu regalo semanal!.
-
-💸 *${m.moneda}* : +${coinReward}
-✨ *Experiencia* : +${expReward}`);
-
-    user.weekly = new Date * 1;
-}
+  m.reply(
+    `🎁 *Recompensa semanal*\n\n` +
+      `💸 ${m.moneda}: *+${coinReward.toLocaleString()}*\n` +
+      `✨ Exp: *+${expReward.toLocaleString()}*\n` +
+      `💎 Diamantes: *+${diamondReward}*\n\n` +
+      `👑 Premium recibe más monedas, EXP y diamantes.`,
+  );
+};
 
 handler.help = ['weekly'];
 handler.tags = ['rpg'];
@@ -33,14 +36,9 @@ handler.register = true;
 
 export default handler;
 
-function pickRandom(list) {
-    return list[Math.floor(Math.random() * list.length)];
-}
-
 function msToTime(duration) {
-    var days = Math.floor(duration / (1000 * 60 * 60 * 24));
-    var hours = Math.floor((duration % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    var minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
-
-    return `${days} días ${hours} horas ${minutes} minutos`;
+  const days = Math.floor(duration / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((duration % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+  return `${days} días ${hours} horas ${minutes} minutos`;
 }

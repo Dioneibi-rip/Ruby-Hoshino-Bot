@@ -1,41 +1,40 @@
-const baseCoinReward = 20000;
-
-let handler = async (m, { conn }) => {
+let handler = async (m) => {
   let user = global.db.data.users[m.sender] || {};
   user.monthly = user.monthly || 0;
 
-  const cooldown = 604800000 * 4; // 4 semanas
-  let timeRemaining = user.monthly + cooldown - new Date();
+  const cooldown = 604800000 * 4;
+  const timeRemaining = user.monthly + cooldown - Date.now();
 
   if (timeRemaining > 0) {
     return m.reply(`${emoji3} ✿ Ya reclamaste tu *recompensa mensual* ✿\n⏳ Vuelve en *${msToTime(timeRemaining)}*`);
   }
 
-  let coinReward = pickRandom([20000, 25000, 30000, 35000, 40000]);
-  let expReward = pickRandom([4000, 5000, 6000, 7000, 8000]);
-  let diamondReward = pickRandom([5, 6, 7, 8, 9, 10]);
+  const premiumFactor = user.premium ? 1.3 : 1;
+  const coinReward = Math.floor(pickRandom([300000, 340000, 380000, 420000]) * premiumFactor);
+  const expReward = Math.floor(pickRandom([24000, 28000, 32000, 36000]) * premiumFactor);
+  const diamondReward = Math.floor(pickRandom([28, 34, 40, 46]) * premiumFactor);
 
   user.coin = (user.coin || 0) + coinReward;
   user.exp = (user.exp || 0) + expReward;
+  user.diamond = (user.diamond || 0) + diamondReward;
   user.diamonds = (user.diamonds || 0) + diamondReward;
-
   user.monthly = Date.now();
 
-  let mensaje = `
+  const mensaje = `
 ╭───────「  🎁 𝐌𝐄𝐍𝐒𝐔𝐀𝐋 - 𝐁𝐎𝐍𝐔𝐒 🎁 」───────
+│ ✿ ¡Has reclamado tu regalo mensual!
 │
-│ ✿ ¡𝙷𝚊𝚜 𝚛𝚎𝚌𝚕𝚊𝚖𝚊𝚍𝚘 𝚝𝚞 𝚁𝙴𝙶𝙰𝙻𝙾 𝙼𝙴𝙽𝚂𝚄𝙰𝙻!
-│
-│ 💸 ${m.moneda} : *+¥${coinReward.toLocaleString()}*
-│ ✨ Experiencia : *+${expReward} XP*
-│ 💎 Diamantes : *+${diamondReward}*
+│ 💸 ${m.moneda}: *+¥${coinReward.toLocaleString()}*
+│ ✨ Experiencia: *+${expReward.toLocaleString()} XP*
+│ 💎 Diamantes: *+${diamondReward}*
+│ 👑 Multiplicador premium: *x${premiumFactor}*
 ╰─────────────────────────────
 
 ⏳ Puedes volver a reclamarlo dentro de *4 semanas*
 `.trim();
 
   m.reply(mensaje);
-}
+};
 
 handler.help = ['mensual'];
 handler.tags = ['rpg'];

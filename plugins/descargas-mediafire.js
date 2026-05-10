@@ -1,42 +1,148 @@
-import fetch from 'node-fetch';
+import fetch from 'node-fetch'
+import cheerio from 'cheerio'
 
-const handler = async (m, { conn, args }) => {
-    if (!args[0]) throw '📎 *Por favor, proporciona un enlace válido de MediaFire.*\n\nEjemplo: `.mf https://www.mediafire.com/file/xxxxxx/archivo.apk/file`';
+const MEDIAFIRE_URL_REGEX = /^https?:\/\/(www\.)?mediafire\.com\//i
 
-    if (!args[0].includes('mediafire.com')) throw '❌ *Ese enlace no es válido de MediaFire.*';
+function normalizeUrl(url = '') {
+  if (!url) return null
+  if (url.startsWith('//')) return `https:${url}`
+  if (url.startsWith('/')) return `https://www.mediafire.com${url}`
+  return url
+}
 
-    try {
-        // Reacción estética
-        await conn.sendMessage(m.chat, { react: { text: '✨', key: m.key } });
+function decodeScrambledUrl(scrambled) {
+  if (!scrambled) return null
+  try {
+    return Buffer.from(scrambled, 'base64').toString('utf-8')
+  } catch {
+    return null
+  }
+}
 
-        let apiUrl = `https://api.sylphy.xyz/download/mediafire?url=${encodeURIComponent(args[0])}&apikey=sylph-30fc019324`;
+function pickFirst($, selectors = []) {
+  for (const selector of selectors) {
+    const value = $(selector).first().text().trim()
+    if (value) return value
+  }
+  return ''
+}
 
-        let res = await fetch(apiUrl);
-        let json = await res.json();
+function extractDownloadFromScripts(html = '') {
+  const patterns = [
+    /kNO\s*=\s*"([^"]+)"/i,
+    /href\s*=\s*"(https?:\\\/\\\/[^"]*download[^"]+)"/i,
+    /(https?:\/\/download\d+\.mediafire\.com\/[^"]+)/i,
+  ]
 
-        if (!json.status) throw '⚠️ *No se pudo descargar el archivo, revisa el enlace.*';
+  for (const pattern of patterns) {
+    const match = html.match(pattern)
+    if (!match?.[1]) continue
+    const candidate = match[1].replace(/\\\//g, '/')
+    return normalizeUrl(candidate)
+  }
 
-        let { filename, filesize, mimetype, dl_url } = json.data;
+  return null
+}
 
-        await conn.sendMessage(
-            m.chat,
-            {
-                document: { url: dl_url },
-                mimetype,
-                fileName: filename,
-                caption: `📂 *Nombre:* ${filename}\n📦 *Tamaño:* ${filesize}`
-            },
-            { quoted: m }
-        );
+async function mediafireScrape(url) {
+  const response = await fetch(url, {
+    redirect: 'follow',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+    },
+  })
 
-    } catch (err) {
-        console.error(err);
-        throw '❌ *Ocurrió un error al procesar tu solicitud.*';
+  if (!response.ok) {
+    throw new Error(`MediaFire respondió con estado ${response.status}`)
+  }
+
+  const html = await response.text()
+  const $ = cheerio.load(html)
+
+  const fileName = pickFirst($, ['.filename', '.dl-filename', 'h1.filename', '.file-title']) || $('title').text().split(' - ')[0].trim() || 'Unknown'
+  const fileSize = pickFirst($, ['.details > li:first-child > span', '.file_size', '.file-size', '.size']) || 'Unknown'
+
+  const downloadBtn = $('#downloadButton, a.input.popsok, a[data-scrambled-url]').first()
+  const downloadFromHref = normalizeUrl(downloadBtn.attr('href'))
+  const downloadFromScrambled = decodeScrambledUrl(downloadBtn.attr('data-scrambled-url'))
+  const downloadFromScript = extractDownloadFromScripts(html)
+
+  const downloadLink = downloadFromScrambled || downloadFromHref || downloadFromScript
+
+  const meta = {}
+  $('meta').each((_, element) => {
+    const name = $(element).attr('name') || $(element).attr('property')
+    const content = $(element).attr('content')
+    if (!name || !content || name === 'undefined') return
+    const key = name.includes(':') ? name.split(':').pop() : name
+    meta[key] = content
+  })
+
+  const extMatch = fileName.match(/\.([a-zA-Z0-9]+)$/)
+  const fileExtension = extMatch ? extMatch[1].toLowerCase() : ''
+  const mimeMap = {
+    zip: 'application/zip',
+    rar: 'application/x-rar-compressed',
+    mp4: 'video/mp4',
+    mp3: 'audio/mpeg',
+    pdf: 'application/pdf',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    txt: 'text/plain',
+    exe: 'application/x-msdownload',
+    apk: 'application/vnd.android.package-archive',
+  }
+
+  return {
+    fileName,
+    fileSize,
+    downloadLink,
+    mimeType: mimeMap[fileExtension] || 'application/octet-stream',
+    fileExtension,
+    meta,
+  }
+}
+
+let handler = async (m, { conn, text }) => {
+  if (!text) throw m.reply(`${emoji} Por favor, ingresa un link de mediafire.`)
+
+  const url = text.trim()
+  if (!MEDIAFIRE_URL_REGEX.test(url)) {
+    throw m.reply(`${emoji} Link inválido, debe ser de MediaFire.`)
+  }
+
+  await conn.sendMessage(m.chat, { react: { text: '🕒', key: m.key } })
+
+  try {
+    const data = await mediafireScrape(url)
+
+    if (!data?.downloadLink) {
+      throw new Error('No se pudo extraer el enlace de descarga.')
     }
-};
 
-handler.command = ['mf', 'mediafire'];
-handler.help = ['mediafire <url>'];
-handler.tags = ['descargas'];
+    await conn.sendFile(
+      m.chat,
+      data.downloadLink,
+      data.fileName || 'mediafire.file',
+      `乂  *¡MEDIAFIRE - DESCARGAS!*  乂\n\n✩ *Nombre* : ${data.fileName || 'Unknown'}\n✩ *Peso* : ${data.fileSize || 'Unknown'}\n✩ *MimeType* : ${data.mimeType || 'application/octet-stream'}\n> ${dev}`,
+      m,
+    )
 
-export default handler;
+    await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } })
+  } catch (error) {
+    console.error('MEDIAFIRE_ERROR:', error)
+    await conn.sendMessage(m.chat, { react: { text: '✖️', key: m.key } })
+    throw m.reply(`${emoji} Ocurrió un error al procesar el enlace de MediaFire.`)
+  }
+}
+
+handler.help = ['mediafire']
+handler.tags = ['descargas']
+handler.command = ['mf', 'mediafire']
+handler.register = true
+handler.group = true
+
+export default handler

@@ -1,5 +1,6 @@
 import db from '../lib/database.js';
 import moment from 'moment-timezone';
+import { formatJobLine, ensureJobFields } from '../lib/rpg-jobs.js';
 
 let handler = async (m, { conn, usedPrefix }) => {
     let who = m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
@@ -10,6 +11,7 @@ let handler = async (m, { conn, usedPrefix }) => {
 
     let img = 'https://qu.ax/fRMNm.jpg';
     let user = global.db.data.users[who];
+    ensureJobFields(user);
     let name = conn.getName(who);
 
     let premium = user.premium ? '✅' : '❌';
@@ -29,6 +31,7 @@ let handler = async (m, { conn, usedPrefix }) => {
                `┋ 🎁 *Regalos:* ${user.gifts || 0}\n` + 
                `┋ 🎟️ *Tokens:* ${user.joincount || 0}\n` +  
                `┋ ⚜️ *Premium:* ${premium}\n` + 
+               `┋ 💼 *Trabajo:* ${formatJobLine(user)}\n` + 
                `┋ ⏳ *Última Aventura:* ${user.lastAdventure ? moment(user.lastAdventure).fromNow() : 'Nunca'}\n` + 
                `┋ 📅 *Fecha:* ${new Date().toLocaleString('id-ID')}\n` +
                `╰━━━━━━━━━━━━⬣`;

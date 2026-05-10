@@ -1,4 +1,4 @@
-Process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0'
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0'
 import './settings.js'
 import { createRequire } from 'module'
 import { fileURLToPath, pathToFileURL } from 'url'

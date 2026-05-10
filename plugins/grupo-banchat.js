@@ -1,28 +1,48 @@
-let handler = async (m, { conn, isROwner }) => {
-    if (!isROwner && m.sender !== conn.user.jid) {
-        throw `Este comando solo puede ser utilizado por el creador o por el mismo bot.`;
-    }
+let handler = async (m, { conn, isROwner, args, usedPrefix }) => {
+  if (!isROwner && m.sender !== conn.user.jid) {
+    throw 'Este comando solo puede ser utilizado por el creador o por el mismo bot.'
+  }
 
-    if (!m.isGroup) throw `Este comando solo puede usarse en grupos.`;
+  if (!m.isGroup) throw 'Este comando solo puede usarse en grupos.'
 
-    let chat = global.db.data.chats[m.chat];
-    if (!chat) chat = global.db.data.chats[m.chat] = {};
-    
-    const botJid = conn.user.jid;
+  const chat = global.db.data.chats[m.chat] || (global.db.data.chats[m.chat] = {})
+  const botJid = conn.user.jid
+  chat.bannedBots = Array.isArray(chat.bannedBots) ? chat.bannedBots : []
 
-    if (!chat.bannedBots) chat.bannedBots = [];
+  const mode = (args[0] || 'silent').toLowerCase()
+  const allowedModes = ['silent', 'strict', 'status']
+  if (!allowedModes.includes(mode)) {
+    throw `Modo no válido. Usa: ${usedPrefix}banchat silent | strict | status`
+  }
 
-    if (chat.bannedBots.includes(botJid)) {
-        return m.reply('Este bot ya se encuentra baneado en este chat.');
-    }
+  if (mode === 'status') {
+    const active = chat.bannedBots.includes(botJid)
+    const activeMode = chat.banchatMode || 'silent'
+    return m.reply(`Estado banchat: *${active ? 'ACTIVO' : 'INACTIVO'}*\nModo: *${activeMode}*`)
+  }
 
-    chat.bannedBots.push(botJid);
-    m.reply(`✅ *Bot Baneado*\n\nA partir de ahora, este bot (${conn.user.name || 'este bot'}) dejará de responder a cualquier comando en este chat.\n\nPara desbanearlo, el propietario debe usar el comando #unbanchat.`);
-};
+  if (!chat.bannedBots.includes(botJid)) chat.bannedBots.push(botJid)
+  chat.banchatMode = mode
 
-handler.help = ['banchat'];
-handler.tags = ['owner'];
-handler.command = ['banchat'];
-handler.group = true;
+  // Respuesta discreta
+  await m.react('🔕')
 
-export default handler;
+  // Si el bot es admin, borra el comando para mayor discreción
+  try {
+    await conn.sendMessage(m.chat, {
+      delete: {
+        remoteJid: m.chat,
+        fromMe: false,
+        id: m.key.id,
+        participant: m.key.participant || m.sender,
+      },
+    })
+  } catch {}
+}
+
+handler.help = ['banchat [silent|strict|status]']
+handler.tags = ['owner']
+handler.command = ['banchat']
+handler.group = true
+
+export default handler
