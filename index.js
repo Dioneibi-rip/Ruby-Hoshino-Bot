@@ -251,17 +251,23 @@ console.log(chalk.bold.cyan(`✨ Cargando sub-Bots...`))
 const readRutaJadiBot = readdirSync(global.rutaJadiBot)
 if (readRutaJadiBot.length > 0) {
 const creds = 'creds.json'
-for (const gjbts of readRutaJadiBot) {
-const botPath = join(global.rutaJadiBot, gjbts)
-const readBotPath = readdirSync(botPath)
-if (readBotPath.includes(creds)) { 
+const subBotPaths = readRutaJadiBot
+.map(gjbts => join(global.rutaJadiBot, gjbts))
+.filter(botPath => {
+try { return statSync(botPath).isDirectory() && readdirSync(botPath).includes(creds) }
+catch { return false }
+})
+const batchSize = Math.max(1, Number(global.subBotLoadBatch || 3))
+for (let i = 0; i < subBotPaths.length; i += batchSize) {
+const batch = subBotPaths.slice(i, i + batchSize)
+await Promise.all(batch.map(async (botPath) => {
 try {
-RubyJadiBot({ pathRubyJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/', command: 'serbot' }) 
-await new Promise(resolve => setTimeout(resolve, 2500)); 
-} catch(e) { 
-console.log(chalk.red('Error cargando subbot:'), e) 
+await RubyJadiBot({ pathRubyJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/', command: 'serbot' })
+} catch(e) {
+console.log(chalk.red('Error cargando subbot:'), e)
 }
-}
+}))
+if (i + batchSize < subBotPaths.length) await new Promise(resolve => setTimeout(resolve, 500))
 }
 }
 }
