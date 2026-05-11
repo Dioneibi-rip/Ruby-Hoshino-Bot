@@ -87,14 +87,14 @@ const handler = async (m, { conn, text, command }) => {
       try { 
         const r = await ytmp3(url, title) 
         if (!r?.download?.url) throw new Error("Link caído") 
-        
+
         await conn.sendMessage(m.chat, { 
           audio: { url: r.download.url }, 
           fileName: `${r.metadata.title}.mp3`, 
           mimetype: "audio/mpeg", 
           ptt: false 
         }, { quoted: m }) 
-        
+
         await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key }}) 
       } catch (e) { 
         console.error(e) 
@@ -105,13 +105,13 @@ const handler = async (m, { conn, text, command }) => {
       try { 
         const r = await ytmp4(url, title) 
         if (!r?.download?.url) throw new Error("Link caído") 
-        
+
         const videoUrl = r.download.url 
         const tmpDir = join(process.cwd(), 'tmp') 
         if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir) 
-        
+
         const fileName = join(tmpDir, `${Date.now()}.mp4`) 
-        
+
         await new Promise((resolve, reject) => { 
           // Se corrigieron los backticks en el comando exec
           exec(`ffmpeg -i "${videoUrl}" -c:v copy -c:a aac -movflags +faststart "${fileName}"`, (err) => { 
@@ -119,16 +119,16 @@ const handler = async (m, { conn, text, command }) => {
             else resolve() 
           }) 
         }) 
-        
+
         if (!fs.existsSync(fileName)) throw new Error("Error en FFmpeg") 
-        
+
         await conn.sendMessage(m.chat, { 
           video: fs.readFileSync(fileName), 
           fileName: `${title}.mp4`, 
           caption: `${title}`, 
           mimetype: "video/mp4" 
         }, { quoted: m }) 
-        
+
         fs.unlinkSync(fileName) 
         await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key }}) 
       } catch (e) { 
@@ -156,6 +156,6 @@ function formatViews(views) {
   if (views >= 1_000_000_000) return `${(views / 1_000_000_000).toFixed(1)}B` 
   if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`
   if (views >= 1_000) return `${(views / 1_000).toFixed(1)}k`
-  
+
   return views.toString() 
 }
