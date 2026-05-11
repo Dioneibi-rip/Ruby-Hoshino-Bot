@@ -76,7 +76,7 @@ const handler = async (m, { conn, text, command }) => {
           body: typeof dev !== 'undefined' ? dev : 'Developer', 
           mediaType: 1, 
           thumbnail: thumbBuffer, 
-          renderLargerThumbnail: false, 
+          renderLargerThumbnail: true, 
           mediaUrl: url, 
           sourceUrl: url 
         } 
