@@ -236,7 +236,6 @@ for (const { name, plugin } of runtime.hooks) {
 if (!plugin || plugin.disabled) continue
 if (!opts['restrict'] && plugin.tags && plugin.tags.includes('admin')) continue
 const __filename = join(___dirname, name)
-if (typeof plugin.all === 'function') {
 try {
 await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename })
 } catch (e) { console.error(e) }
