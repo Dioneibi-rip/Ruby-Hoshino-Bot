@@ -232,18 +232,15 @@ const runtime = getPluginRuntimeCache(global.plugins)
 const basePrefix = this.prefix ? this.prefix : global.prefix
 const skippedPlugins = new Set()
 
-for (const { name, plugin } of runtime.all) {
+for (const { name, plugin } of runtime.hooks) {
 if (!plugin || plugin.disabled) continue
+if (!opts['restrict'] && plugin.tags && plugin.tags.includes('admin')) continue
 const __filename = join(___dirname, name)
 try {
 await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename })
 } catch (e) { console.error(e) }
 }
-
-for (const { name, plugin } of runtime.before) {
-if (!plugin || plugin.disabled) continue
-if (!opts['restrict'] && plugin.tags && plugin.tags.includes('admin')) continue
-const __filename = join(___dirname, name)
+if (typeof plugin.before === 'function') {
 const _prefix = plugin.customPrefix ? plugin.customPrefix : basePrefix
 const match = getPrefixMatch(_prefix, m.text)
 try {
@@ -252,6 +249,8 @@ match, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, 
 })) skippedPlugins.add(name)
 } catch (e) { console.error(e) }
 }
+}
+
 
 const baseMatch = getPrefixMatch(basePrefix, m.text)
 const parsedCommand = getCommandFromText(m.text, baseMatch)
