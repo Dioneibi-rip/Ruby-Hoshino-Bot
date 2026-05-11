@@ -402,7 +402,7 @@ console.log(chalk.red('Error en print.js'), e)
 }
 }
 }
-global.dfail = (type, m, conn) => { failureHandler(type, conn, m); };
+global.dfail = (type, m, conn) => failureHandler(type, conn, m);
 const file = global.__filename(import.meta.url, true);
 watchFile(file, async () => {
 unwatchFile(file);
