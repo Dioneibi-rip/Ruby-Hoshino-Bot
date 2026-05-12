@@ -62,7 +62,7 @@ businessOwnerJid: '0@s.whatsapp.net'
 },
 participant: '0@s.whatsapp.net'
 };
-} catch {}
+} catch (e) {}
 
 const imageUrl = 'https://files.catbox.moe/yenx0h.png';
 let media = await prepareWAMessageMedia(

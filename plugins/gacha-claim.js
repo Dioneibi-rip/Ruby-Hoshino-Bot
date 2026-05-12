@@ -21,7 +21,7 @@ async function loadClaimMessages() {
   try {
     const data = await fs.readFile('./src/database/userClaimConfig.json', 'utf-8');
     return JSON.parse(data);
-  } catch {
+  } catch (e) {
     return {};
   }
 }

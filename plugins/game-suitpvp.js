@@ -17,7 +17,7 @@ const handler = async (m, {conn, usedPrefix, text}) => {
 
   const id = 'suit_' + new Date() * 1;
   const caption = `🎮 Games - PVP - Games 🎮\n\n—◉ @${m.sender.split`@`[0]} Desafio @${userToChallenge.split`@`[0]} a un PVP de piedra, papel o tijera\n◉ Escribe "aceptar" para aceptar\n◉ Escribe "rechazar" para rechazar\nrespondiendo al mensaje`;
-  const imgplaygame = `https://www.merca2.es/wp-content/uploads/2020/05/Piedra-papel-o-tijera-0003318_1584-825x259.jpeg`;
+  const imgplaygame = `https://www.merca2.es/wp-content/uploads/2020/05/Piedra-papel-o-tijera-00033181584-825x259.jpeg`;
 
   conn.suit[id] = {
     chat: await conn.sendMessage(m.chat, {text: caption, mentions: [m.sender, userToChallenge]}, {caption}),

@@ -15,7 +15,7 @@ async function loadCharacters() {
   try {
     const data = await fs.readFile(charactersFilePath, 'utf-8');
     return JSON.parse(data);
-  } catch {
+  } catch (e) {
     throw new Error('No se pudo cargar el archivo characters.json.');
   }
 }
@@ -23,7 +23,7 @@ async function loadCharacters() {
 async function saveCharacters(characters) {
   try {
     await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8');
-  } catch {
+  } catch (e) {
     throw new Error('No se pudo guardar el archivo characters.json.');
   }
 }

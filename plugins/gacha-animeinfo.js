@@ -103,7 +103,7 @@ let handler = async (m, { conn, args }) => {
         try {
           const name = await conn.getName(claim.userId)
           status = `Reclamado por ${name}`
-        } catch {
+        } catch (e) {
           status = `Reclamado por @${String(claim.userId).split('@')[0]}`
         }
         mentionSet.add(claim.userId)

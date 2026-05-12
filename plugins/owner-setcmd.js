@@ -16,7 +16,7 @@ locked: false,
 }
 await conn.reply(m.chat, `${emoji} Comando guardado con exito.`, m)
 await m.react('✅')
-} catch {
+} catch (e) {
 await m.react('✖️')
 }}
 handler.help = ['cmd'].map(v => 'set' + v + ' *<texto>*')

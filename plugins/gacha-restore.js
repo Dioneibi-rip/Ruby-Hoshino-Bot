@@ -121,7 +121,7 @@ let handler = async (m, { conn, args, participants }) => {
 
     try {
       await conn.sendMessage(m.chat, { text: reply, mentions: [targetJid] }, { quoted: m });
-    } catch {
+    } catch (e) {
       m.reply(reply);
     }
   } catch (e) {

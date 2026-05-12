@@ -25,7 +25,7 @@ let handler = async (m, { conn }) => {
     await conn.sendFile(m.chat, media, 'thumbnail.jpg', txt, m, fkontak);
     
     await m.react(done);
-  } catch {
+  } catch (e) {
     await m.react(error);
   }
 };

@@ -91,7 +91,7 @@ const handler = async (m, { conn, text, command }) => {
       if (mediaUrl) {
         audioData = { link: mediaUrl, title: d.title || title }
       }
-    } catch {}
+    } catch (e) {}
 
     if (!audioData) {
       await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }})
@@ -121,8 +121,8 @@ export default handler
 
 function formatViews(views) {
   if (!views) return "No disponible"
-  if (views >= 1_000_000_000) return `${(views / 1_000_000_000).toFixed(1)}B`
-  if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`
-  if (views >= 1_000) return `${(views / 1_000).toFixed(1)}k`
+  if (views >= 1000000000) return `${(views / 1000000000).toFixed(1)}B`
+  if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`
+  if (views >= 1000) return `${(views / 1000).toFixed(1)}k`
   return views.toString()
     }

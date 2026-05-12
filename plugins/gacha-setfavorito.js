@@ -7,7 +7,7 @@ async function loadUserFavs() {
   try {
     const data = await fs.readFile(userFavFilePath, 'utf-8');
     return JSON.parse(data);
-  } catch {
+  } catch (e) {
     return {};
   }
 }

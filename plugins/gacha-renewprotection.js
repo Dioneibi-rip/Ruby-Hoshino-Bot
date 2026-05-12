@@ -10,10 +10,10 @@ import {
 
 const ALL_PATTERN = /^(all|todos|todo)$/i
 const COMMAND_PROTECTION_PRICES = {
-  '3d': 5_000,
-  '7d': 9_000,
-  '15d': 16_000,
-  '30d': 28_000
+  '3d': 5000,
+  '7d': 9000,
+  '15d': 16000,
+  '30d': 28000
 }
 
 function getUnitProtectionPrice(duration = '3d') {

@@ -59,10 +59,10 @@ let buffer=Buffer.from(response.data)
 try{
 buffer=await gifToMp4(buffer)
 await conn.sendMessage(m.chat,{video:buffer,gifPlayback:true,caption:caption,mimetype:'video/mp4'},{quoted:m})
-}catch{
+}catch (e) {
 throw new Error('fail')
 }
-}catch{
+}catch (e) {
 await conn.sendMessage(m.chat,{video:{url:randomGif},gifPlayback:true,caption:caption},{quoted:m})
 }
 }

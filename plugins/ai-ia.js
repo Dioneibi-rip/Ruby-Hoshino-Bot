@@ -18,7 +18,7 @@ const query = `${emoji} Descríbeme la imagen y detalla por qué actúan así. T
 const prompt = `${basePrompt}. La imagen que se analiza es: ${imageAnalysis.result}`
 const description = await luminsesi(query, username, prompt)
 await conn.reply(m.chat, description, m)
-} catch {
+} catch (e) {
 await m.react(error)
 await conn.reply(m.chat, '✘ ChatGpT no pudo analizar la imagen.', m)}
 } else {
@@ -31,7 +31,7 @@ const prompt = `${basePrompt}. Responde lo siguiente: ${query}`
 const response = await luminsesi(query, username, prompt)
 await conn.sendMessage(m.chat, {text: response, edit: key})
 await m.react(done)
-} catch {
+} catch (e) {
 await m.react(error)
 await conn.reply(m.chat, '✘ ChatGpT no puede responder a esa pregunta.', m)}}}
 

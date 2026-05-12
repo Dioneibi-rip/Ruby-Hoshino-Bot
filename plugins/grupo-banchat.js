@@ -37,7 +37,7 @@ let handler = async (m, { conn, isROwner, args, usedPrefix }) => {
         participant: m.key.participant || m.sender,
       },
     })
-  } catch {}
+  } catch (e) {}
 }
 
 handler.help = ['banchat [silent|strict|status]']

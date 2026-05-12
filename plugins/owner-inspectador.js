@@ -107,7 +107,7 @@ try {
 let res = text ? null : await conn.groupMetadata(m.chat)
 info = await MetadataGroupInfo(res) // Si el bot esta en el grupo
 console.log('Método de metadatos')
-} catch {
+} catch (e) {
 const inviteUrl = text?.match(/(?:https:\/\/)?(?:www\.)?(?:chat\.|wa\.)?whatsapp\.com\/(?:invite\/|joinchat\/)?([0-9A-Za-z]{22,24})/i)?.[1]
 //if (!inviteUrl &&) return await conn.reply(m.chat, "*Verifique que sea un enlace de grupo o comunidad de WhatsApp.*", m)
 let inviteInfo

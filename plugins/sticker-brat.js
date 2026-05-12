@@ -58,7 +58,7 @@ async function getEmojiImage(emoji = '') {
     const img = await Jimp.read(buf)
     emojiCache.set(emoji, img)
     return img
-  } catch {
+  } catch (e) {
     emojiCache.set(emoji, null)
     return null
   }
