@@ -43,8 +43,8 @@ let rtx = "*\n\n✐ Cσɳҽxισɳ SυႦ-Bσƚ Mσԃҽ QR\n\n✰ Con otro celul
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const pairingCodeRequests = global.pairingCodeRequests || (global.pairingCodeRequests = new Map())
-const PAIRING_CODE_TTL_MS = 45_000
-const PAIRING_CODE_COOLDOWN_MS = 60_000
+const PAIRING_CODE_TTL_MS = 45000
+const PAIRING_CODE_COOLDOWN_MS = 60000
 if (global.conns instanceof Array) console.log()
 else global.conns = []
 if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
@@ -97,7 +97,7 @@ if (!fs.existsSync(pathRubyJadiBot)){
 fs.mkdirSync(pathRubyJadiBot, { recursive: true })}
 try {
 args[0] && args[0] != undefined ? fs.writeFileSync(pathCreds, JSON.stringify(JSON.parse(Buffer.from(args[0], "base64").toString("utf-8")), null, '\t')) : ""
-} catch {
+} catch (e) {
 conn.reply(m.chat, `${emoji} Use correctamente el comando » ${usedPrefix + command} code`, m)
 return
 }
@@ -166,12 +166,12 @@ pairingCodeRequests.delete(subBotId)
 const destroySock = ({ removeSession = false } = {}) => {
 clearHealthMonitor()
 clearPairingCodeLock()
-try { sock.ws.close() } catch {}
-try { sock.ev.removeAllListeners() } catch {}
+try { sock.ws.close() } catch (e) {}
+try { sock.ev.removeAllListeners() } catch (e) {}
 removeSockFromPool(sock)
 if (global.subBotRegistry instanceof Map) global.subBotRegistry.delete(subBotId)
 if (removeSession) {
-try { fs.rmSync(pathRubyJadiBot, { recursive: true, force: true }) } catch {}
+try { fs.rmSync(pathRubyJadiBot, { recursive: true, force: true }) } catch (e) {}
 }
 }
 
@@ -187,8 +187,8 @@ console.error('⚠️ Nuevo error: ', e)
 if (restatConn) {
 const oldChats = sock.chats
 removeSockFromPool(sock)
-try { sock.ws.close() } catch { }
-try { sock.ev.removeAllListeners() } catch {}
+try { sock.ws.close() } catch (e) { }
+try { sock.ev.removeAllListeners() } catch (e) {}
 sock = makeWASocket(connectionOptions, { chats: oldChats })
 sock.subBotId = subBotId
 isInit = true

@@ -223,7 +223,7 @@ global.reloadHandler = async function(restatConn) {
 try { const Handler = await import(`./handler.js?update=${Date.now()}`).catch(console.error); if (Object.keys(Handler || {}).length) handler = Handler } catch (e) { console.error(e); }
 if (restatConn) {
 const oldChats = global.conn.chats
-try { global.conn.ws.close() } catch { }
+try { global.conn.ws.close() } catch (e) { }
 conn.ev.removeAllListeners()
 global.conn = makeWASocket(connectionOptions, { chats: oldChats })
 conn = global.conn
@@ -255,7 +255,7 @@ const subBotPaths = readRutaJadiBot
 .map(gjbts => join(global.rutaJadiBot, gjbts))
 .filter(botPath => {
 try { return statSync(botPath).isDirectory() && readdirSync(botPath).includes(creds) }
-catch { return false }
+catch (e) { return false }
 })
 const batchSize = Math.max(1, Number(global.subBotLoadBatch || 3))
 for (let i = 0; i < subBotPaths.length; i += batchSize) {
