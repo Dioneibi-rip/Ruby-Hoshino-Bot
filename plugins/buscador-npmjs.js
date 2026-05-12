@@ -31,7 +31,7 @@ return `《✧》 Scraper  -  Search 《✧》
 
 await conn.reply(m.chat, txt, m, fake)
 await m.react(done)
-} catch {
+} catch (e) {
 await conn.reply(m.chat, `${msm} Ocurrió un error.`, m)
 await m.react(error)
 }}

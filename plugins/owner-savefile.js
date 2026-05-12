@@ -6,7 +6,7 @@ if (!m.quoted.text) return m.reply(`${emoji2} Responde al mensaje.`)
 let path = `${text}.js`
 await fs.writeFileSync(path, m.quoted.text)
 m.reply(`${emoji} Guardado en *${path}*.`)
-} catch {
+} catch (e) {
 await m.reply(`Responde al mensaje.`)
 }}
 handler.tags = ['owner']

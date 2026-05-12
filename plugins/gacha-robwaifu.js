@@ -57,7 +57,7 @@ let handler = async (m, { conn, participants }) => {
         if (vUser) victimJid = vUser.id
       }
     }
-  } catch {}
+  } catch (e) {}
 
   const cooldownKey = `${groupId}:${userId}`
   if (cooldowns[cooldownKey] && now < cooldowns[cooldownKey]) {

@@ -20,7 +20,7 @@ txt += `> *${dev}*`
 
 await conn.sendMessage(m.chat, {text: txt, contextInfo: { forwardingScore: 999, isForwarded: true, forwardedNewsletterMessageInfo: { newsletterName: channelRD.name, newsletterJid: channelRD.id, }, externalAdReply: { title: packname, body: dev, thumbnailUrl: 'https://files.catbox.moe/467oad.jpg', sourceUrl: redes, mediaType: 1, renderLargerThumbnail: true }}}, {quoted: m})
 
-} catch {
+} catch (e) {
 await conn.reply(m.chat, `${msm} Ocurrió un error.`, m)
 await m.react(error)
 }}

@@ -20,7 +20,7 @@ let handler = async (m, { conn, text }) => {
             const pp = await conn.groupMetadata(m.chat)
             const dbUser = pp.participants.find(u => u.lid === who)
             if (dbUser) who = dbUser.id
-        } catch {}
+        } catch (e) {}
     }
 
     let user = global.db.data.users[who]

@@ -19,7 +19,7 @@ await m.react('✅')
 return conn.sendMessage(m.chat, { video: {url: url}, caption: ``, fileLength: `${text}`, mentions: [m.sender] }, { ephemeralExpiration: 24*3600, quoted: m })
 await m.react('✅')
 }
-} catch {
+} catch (e) {
 await m.react('✖️')
 }}
 handler.tags = ['tools']

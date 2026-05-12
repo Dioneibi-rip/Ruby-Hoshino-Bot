@@ -14,7 +14,7 @@ function decodeScrambledUrl(scrambled) {
   if (!scrambled) return null
   try {
     return Buffer.from(scrambled, 'base64').toString('utf-8')
-  } catch {
+  } catch (e) {
     return null
   }
 }

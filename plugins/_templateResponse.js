@@ -13,7 +13,7 @@ function resolveMessageId(message) {
 
   try {
     return JSON.parse(paramsJson).id;
-  } catch {
+  } catch (e) {
     return '';
   }
 }

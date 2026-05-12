@@ -3,7 +3,7 @@ let handler = async (m, { conn, text }) => {
      try {
                 await conn.updateProfileStatus(text).catch(_ => _)
                 conn.reply(m.chat, `${emoji} Info Cambiada Con Exito...`, m)
-} catch {
+} catch (e) {
        throw 'Well, Error Sis...'
      }
 }

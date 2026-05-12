@@ -38,7 +38,7 @@ let handler = async (m, { conn }) => {
 
   try {
     userName = await conn.getName(userId);
-  } catch {
+  } catch (e) {
     userName = userId;
   }
 
@@ -61,7 +61,7 @@ let handler = async (m, { conn }) => {
     let harem = [];
     try {
       harem = JSON.parse(await fs.readFile('./src/database/harem.json', 'utf-8'));
-    } catch {
+    } catch (e) {
       harem = [];
     }
     const userCharacters = harem.filter(c => c.groupId === groupId && isSameUserId(c.userId, userId));

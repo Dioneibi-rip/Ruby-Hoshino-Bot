@@ -4,13 +4,13 @@ const userConfigFile = './src/database/userClaimConfig.json';
 
 let handler = async (m, { args, command }) => {
     const userId = m.sender;
-    
+
     let config = {};
     try {
         const data = await fs.readFile(userConfigFile, 'utf-8');
         config = JSON.parse(data);
-    } catch { 
-        config = {}; 
+    } catch (e) {
+        config = {};
     }
 
     if (command === 'delclaimmsg') {

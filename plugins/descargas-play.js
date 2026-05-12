@@ -24,7 +24,7 @@ const handler = async (m, { conn, text, command }) => {
     if (match) {
       try {
         searchResult = await yts({ videoId: match[1] })
-      } catch {
+      } catch (e) {
         const s = await yts(text)
         searchResult = s.all[0]
       }
@@ -55,107 +55,107 @@ const handler = async (m, { conn, text, command }) => {
 𐙚 🪵 ｡ Preparando tu descarga... ˙𐙚`.trim()
 
     let thumbBuffer = null
-    try { 
-      thumbBuffer = (await conn.getFile(thumbnail))?.data 
-    } catch (e) { 
-      console.log("Error thumb") 
+    try {
+      thumbBuffer = (await conn.getFile(thumbnail))?.data
+    } catch (e) {
+      console.log("Error thumb")
     }
 
-    await conn.reply(m.chat, infoMessage, m, { 
-      contextInfo: { 
-        isForwarded: true, 
-        forwardingScore: 999, 
-        forwardedNewsletterMessageInfo: { 
-          newsletterJid: newsletterJid, 
-          newsletterName: newsletterName, 
-          serverMessageId: -1 
-        }, 
-        externalAdReply: { 
+    await conn.reply(m.chat, infoMessage, m, {
+      contextInfo: {
+        isForwarded: true,
+        forwardingScore: 999,
+        forwardedNewsletterMessageInfo: {
+          newsletterJid: newsletterJid,
+          newsletterName: newsletterName,
+          serverMessageId: -1
+        },
+        externalAdReply: {
           // Nota: Asegúrate de que 'botname' y 'dev' estén definidos en tu bot globalmente, si no, pon un string fijo.
-          title: typeof botname !== 'undefined' ? botname : 'Bot', 
-          body: typeof dev !== 'undefined' ? dev : 'Developer', 
-          mediaType: 1, 
-          thumbnail: thumbBuffer, 
-          renderLargerThumbnail: false, 
-          mediaUrl: url, 
-          sourceUrl: url 
-        } 
-      } 
+          title: typeof botname !== 'undefined' ? botname : 'Bot',
+          body: typeof dev !== 'undefined' ? dev : 'Developer',
+          mediaType: 1,
+          thumbnail: thumbBuffer,
+          renderLargerThumbnail: false,
+          mediaUrl: url,
+          sourceUrl: url
+        }
+      }
     })
 
-    if (["play", "yta", "ytmp3", "playaudio"].includes(command)) { 
-      try { 
-        const r = await ytmp3(url, title) 
-        if (!r?.download?.url) throw new Error("Link caído") 
+    if (["play", "yta", "ytmp3", "playaudio"].includes(command)) {
+      try {
+        const r = await ytmp3(url, title)
+        if (!r?.download?.url) throw new Error("Link caído")
 
-        await conn.sendMessage(m.chat, { 
-          audio: { url: r.download.url }, 
-          fileName: `${r.metadata.title}.mp3`, 
-          mimetype: "audio/mpeg", 
-          ptt: false 
-        }, { quoted: m }) 
+        await conn.sendMessage(m.chat, {
+          audio: { url: r.download.url },
+          fileName: `${r.metadata.title}.mp3`,
+          mimetype: "audio/mpeg",
+          ptt: false
+        }, { quoted: m })
 
-        await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key }}) 
-      } catch (e) { 
-        console.error(e) 
-        await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }}) 
-        m.reply("Error al descargar audio.") 
-      } 
-    } else if (["play2", "ytv", "ytmp4", "mp4"].includes(command)) { 
-      try { 
-        const r = await ytmp4(url, title) 
-        if (!r?.download?.url) throw new Error("Link caído") 
+        await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key }})
+      } catch (e) {
+        console.error(e)
+        await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }})
+        m.reply("Error al descargar audio.")
+      }
+    } else if (["play2", "ytv", "ytmp4", "mp4"].includes(command)) {
+      try {
+        const r = await ytmp4(url, title)
+        if (!r?.download?.url) throw new Error("Link caído")
 
-        const videoUrl = r.download.url 
-        const tmpDir = join(process.cwd(), 'tmp') 
-        if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir) 
+        const videoUrl = r.download.url
+        const tmpDir = join(process.cwd(), 'tmp')
+        if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir)
 
-        const fileName = join(tmpDir, `${Date.now()}.mp4`) 
+        const fileName = join(tmpDir, `${Date.now()}.mp4`)
 
-        await new Promise((resolve, reject) => { 
+        await new Promise((resolve, reject) => {
           // Se corrigieron los backticks en el comando exec
-          exec(`ffmpeg -i "${videoUrl}" -c:v copy -c:a aac -movflags +faststart "${fileName}"`, (err) => { 
-            if (err) reject(err) 
-            else resolve() 
-          }) 
-        }) 
+          exec(`ffmpeg -i "${videoUrl}" -c:v copy -c:a aac -movflags +faststart "${fileName}"`, (err) => {
+            if (err) reject(err)
+            else resolve()
+          })
+        })
 
-        if (!fs.existsSync(fileName)) throw new Error("Error en FFmpeg") 
+        if (!fs.existsSync(fileName)) throw new Error("Error en FFmpeg")
 
-        await conn.sendMessage(m.chat, { 
-          video: fs.readFileSync(fileName), 
-          fileName: `${title}.mp4`, 
-          caption: `${title}`, 
-          mimetype: "video/mp4" 
-        }, { quoted: m }) 
+        await conn.sendMessage(m.chat, {
+          video: fs.readFileSync(fileName),
+          fileName: `${title}.mp4`,
+          caption: `${title}`,
+          mimetype: "video/mp4"
+        }, { quoted: m })
 
-        fs.unlinkSync(fileName) 
-        await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key }}) 
-      } catch (e) { 
-        console.error(e) 
-        await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }}) 
-        return conn.reply(m.chat, "✦ No se pudo procesar el video. Intenta más tarde.", m) 
-      } 
-    } 
-  } catch (error) { 
-    console.error(error) 
-    await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }}) 
-    return m.reply("⚠︎ Error inesperado.") 
-  } 
+        fs.unlinkSync(fileName)
+        await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key }})
+      } catch (e) {
+        console.error(e)
+        await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }})
+        return conn.reply(m.chat, "✦ No se pudo procesar el video. Intenta más tarde.", m)
+      }
+    }
+  } catch (error) {
+    console.error(error)
+    await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }})
+    return m.reply("⚠︎ Error inesperado.")
+  }
 }
 
-handler.command = ["play", "yta", "ytmp3", "play2", "ytv", "ytmp4", "playaudio", "mp4"] 
-handler.help = ["play", "yta", "ytmp3", "play2", "ytv", "ytmp4", "playaudio", "mp4"] 
-handler.tags = ["descargas"] 
+handler.command = ["play", "yta", "ytmp3", "play2", "ytv", "ytmp4", "playaudio", "mp4"]
+handler.help = ["play", "yta", "ytmp3", "play2", "ytv", "ytmp4", "playaudio", "mp4"]
+handler.tags = ["descargas"]
 
-export default handler 
+export default handler
 
 // Se separaron correctamente los condicionales que estaban fusionados
-function formatViews(views) { 
-  if (!views) return "No disponible" 
-  if (views >= 1_000_000_000) return `${(views / 1_000_000_000).toFixed(1)}B` 
-  if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`
-  if (views >= 1_000) return `${(views / 1_000).toFixed(1)}k`
+function formatViews(views) {
+  if (!views) return "No disponible"
+  if (views >= 1000000000) return `${(views / 1000000000).toFixed(1)}B`
+  if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`
+  if (views >= 1000) return `${(views / 1000).toFixed(1)}k`
 
-  return views.toString() 
+  return views.toString()
 }

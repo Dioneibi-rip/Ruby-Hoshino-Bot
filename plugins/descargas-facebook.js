@@ -25,7 +25,7 @@ title: getMeta('og:title') || getMeta('twitter:title'),
 description: getMeta('og:description') || getMeta('twitter:description'),
 siteName: "Facebook"
 }
-} catch {
+} catch (e) {
 return { title: null, description: null, siteName: "Facebook" }
 }
 }

@@ -13,7 +13,7 @@ await conn.sendMessage(m.sender, {document: database, mimetype: 'application/jso
 await m.react(done)
 await conn.sendMessage(m.sender, {document: creds, mimetype: 'application/json', fileName: `creds.json`}, { quoted: fkontak })
 await m.react(done)
-} catch {
+} catch (e) {
 await m.react(error)
 conn.reply(m.chat, `${msm} Ocurrió un error.`, m)}}
 

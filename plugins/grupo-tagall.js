@@ -24,7 +24,7 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args, co
       },
       participant: '0@s.whatsapp.net'
     };
-  } catch {}
+  } catch (e) {}
 
   const mensaje = args.join` ` || 'Atención a todos';
 

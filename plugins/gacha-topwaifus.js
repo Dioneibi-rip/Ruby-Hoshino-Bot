@@ -7,7 +7,7 @@ async function loadCharacters() {
   try {
     const data = await fs.readFile(charactersFilePath, 'utf-8');
     return JSON.parse(data);
-  } catch {
+  } catch (e) {
     throw new Error('《✧》No se pudo cargar el archivo characters.json.');
   }
 }

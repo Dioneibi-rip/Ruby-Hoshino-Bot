@@ -8,7 +8,7 @@ function formatoFecha(fechaMs) {
   try {
     const fecha = new Date(fechaMs);
     return fecha.toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
-  } catch {
+  } catch (e) {
     return '-';
   }
 }
@@ -54,7 +54,7 @@ let handler = async (m, { conn, args }) => {
       let username;
       try {
         username = await conn.getName(vendedor);
-      } catch {
+      } catch (e) {
         username = `@${(vendedor || '').split('@')[0] || 'desconocido'}`;
       }
 

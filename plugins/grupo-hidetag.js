@@ -6,7 +6,7 @@ var handler = async (m, { conn, text, participants, isOwner, isAdmin }) => {
 
 if (!m.quoted && !text) return conn.reply(m.chat, `${emoji} Debes enviar un texto para hacer un tag.`, m)
 
-try { 
+try {
 
 let users = participants.map(u => conn.decodeJid(u.id))
 let q = m.quoted ? m.quoted : m || m.text || m.sender
@@ -14,11 +14,11 @@ let c = m.quoted ? await m.getQuotedObj() : m.msg || m.text || m.sender
 let msg = conn.cMod(m.chat, generateWAMessageFromContent(m.chat, { [m.quoted ? q.mtype : 'extendedTextMessage']: m.quoted ? c.message[q.mtype] : { text: '' || c }}, { quoted: null, userJid: conn.user.id }), text || q.text, conn.user.jid, { mentions: users })
 await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id })
 
-} catch {  
+} catch (e) {
 
 /**
 [ By @NeKosmic || https://github.com/NeKosmic/ ]
-**/  
+**/
 
 let users = participants.map(u => conn.decodeJid(u.id))
 let quoted = m.quoted ? m.quoted : m

@@ -19,7 +19,7 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
     try {
         let pp = await conn.profilePictureUrl(who[0], 'image');
         img = await (await fetch(pp)).buffer();
-    } catch {
+    } catch (e) {
         img = await (await fetch(defaultImage)).buffer();
     }
 

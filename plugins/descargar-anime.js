@@ -10,7 +10,7 @@ async function getLangs(episodes) {
             if (dl?.dl?.sub) langs.push("sub");
             if (dl?.dl?.dub) langs.push("dub");
             list.push({ ...ep, lang: langs });
-        } catch {
+        } catch (e) {
             list.push({ ...ep, lang: [] });
         }
     }
@@ -66,7 +66,7 @@ ${eps}
                 episodes,
                 key: sent.key,
                 downloading: false,
-                timeout: setTimeout(() => delete conn.anime[m.sender], 600_000) // 10 minutos
+                timeout: setTimeout(() => delete conn.anime[m.sender], 600000) // 10 minutos
             };
 
         } else {

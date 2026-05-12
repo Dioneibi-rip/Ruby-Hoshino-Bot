@@ -11,7 +11,7 @@ function loadMarriages() {
   try {
     if (!fs.existsSync(marriagesFile)) return {}
     return JSON.parse(fs.readFileSync(marriagesFile, 'utf8')) || {}
-  } catch {
+  } catch (e) {
     return {}
   }
 }
@@ -44,7 +44,7 @@ let handler = async (m, { conn }) => {
     let name
     try {
       name = await conn.getName(userId)
-    } catch {
+    } catch (e) {
       name = "𖤐 Sin Nombre 𖤐"
     }
 

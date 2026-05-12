@@ -34,7 +34,7 @@ let handler = async (m, { args, usedPrefix, command }) => {
 await conn.sendFile(m.chat, img, 'thumbnail.jpg', txt, m)
 await conn.sendFile(m.chat, await zipResponse.buffer(), filename, null, m)
 await m.react(done)
-  } catch {
+  } catch (e) {
 await m.react(error)
   }
 }
