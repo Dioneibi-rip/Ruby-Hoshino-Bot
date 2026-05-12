@@ -42,7 +42,9 @@ let rtx = "*\n\n✐ Cσɳҽxισɳ SυႦ-Bσƚ Mσԃҽ QR\n\n✰ Con otro celul
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const RubyJBOptions = {}
+const pairingCodeRequests = global.pairingCodeRequests || (global.pairingCodeRequests = new Map())
+const PAIRING_CODE_TTL_MS = 45000
+const PAIRING_CODE_COOLDOWN_MS = 60000
 if (global.conns instanceof Array) console.log()
 else global.conns = []
 if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
@@ -69,14 +71,8 @@ return conn.reply(m.chat, `${emoji} Ya tienes un *Sub-Bot* activo y estable.`, m
 if (!fs.existsSync(pathRubyJadiBot)){
 fs.mkdirSync(pathRubyJadiBot, { recursive: true })
 }
-RubyJBOptions.pathRubyJadiBot = pathRubyJadiBot
-RubyJBOptions.m = m
-RubyJBOptions.conn = conn
-RubyJBOptions.args = args
-RubyJBOptions.usedPrefix = usedPrefix
-RubyJBOptions.command = command
-RubyJBOptions.fromCommand = true
-RubyJadiBot(RubyJBOptions)
+const options = { pathRubyJadiBot, m, conn, args: [...args], usedPrefix, command, fromCommand: true }
+RubyJadiBot(options)
 global.db.data.users[m.sender].Subs = new Date * 1
 } 
 handler.help = ['qr', 'code']
@@ -101,7 +97,7 @@ if (!fs.existsSync(pathRubyJadiBot)){
 fs.mkdirSync(pathRubyJadiBot, { recursive: true })}
 try {
 args[0] && args[0] != undefined ? fs.writeFileSync(pathCreds, JSON.stringify(JSON.parse(Buffer.from(args[0], "base64").toString("utf-8")), null, '\t')) : ""
-} catch {
+} catch (e) {
 conn.reply(m.chat, `${emoji} Use correctamente el comando » ${usedPrefix + command} code`, m)
 return
 }
@@ -142,6 +138,10 @@ let healthInterval = null
 let reconnectAttempts = 0
 const MAX_RECONNECT_ATTEMPTS = subSocketCfg.maxReconnectAttempts ?? 6
 const RECONNECT_BASE_DELAY_MS = subSocketCfg.reconnectBaseDelayMs ?? 1500
+let pairingCodeSent = false
+let pairingCodeMessageKey = null
+let pairingCodeTimer = null
+let qrMessageSent = false
 
 const removeSockFromPool = (targetSock = sock) => {
 const i = global.conns.indexOf(targetSock)
@@ -157,14 +157,21 @@ healthInterval = null
 }
 }
 
+const clearPairingCodeLock = () => {
+if (pairingCodeTimer) clearTimeout(pairingCodeTimer)
+pairingCodeTimer = null
+pairingCodeRequests.delete(subBotId)
+}
+
 const destroySock = ({ removeSession = false } = {}) => {
 clearHealthMonitor()
-try { sock.ws.close() } catch {}
-try { sock.ev.removeAllListeners() } catch {}
+clearPairingCodeLock()
+try { sock.ws.close() } catch (e) {}
+try { sock.ev.removeAllListeners() } catch (e) {}
 removeSockFromPool(sock)
 if (global.subBotRegistry instanceof Map) global.subBotRegistry.delete(subBotId)
 if (removeSession) {
-try { fs.rmSync(pathRubyJadiBot, { recursive: true, force: true }) } catch {}
+try { fs.rmSync(pathRubyJadiBot, { recursive: true, force: true }) } catch (e) {}
 }
 }
 
@@ -180,8 +187,8 @@ console.error('⚠️ Nuevo error: ', e)
 if (restatConn) {
 const oldChats = sock.chats
 removeSockFromPool(sock)
-try { sock.ws.close() } catch { }
-try { sock.ev.removeAllListeners() } catch {}
+try { sock.ws.close() } catch (e) { }
+try { sock.ev.removeAllListeners() } catch (e) {}
 sock = makeWASocket(connectionOptions, { chats: oldChats })
 sock.subBotId = subBotId
 isInit = true
@@ -206,18 +213,30 @@ async function connectionUpdate(update) {
 const { connection, lastDisconnect, isNewLogin, qr } = update
 if (isNewLogin) sock.isInit = false
 if (qr && !mcode) {
+if (qrMessageSent) return
+qrMessageSent = true
 if (m?.chat) {
 txtQR = await conn.sendMessage(m.chat, { image: await qrcode.toBuffer(qr, { scale: 8 }), caption: rtx.trim()}, { quoted: m})
 } else {
-return 
+return
 }
 if (txtQR && txtQR.key) {
-setTimeout(() => { conn.sendMessage(m.sender, { delete: txtQR.key })}, 45000)
+setTimeout(() => { conn.sendMessage(m.chat, { delete: txtQR.key }).catch(() => {})}, PAIRING_CODE_TTL_MS)
 }
 return
 } 
 if (qr && mcode) {
-    const rawCode = await sock.requestPairingCode(m.sender.split`@`[0], "RUBYCHAN");
+    if (!m?.chat || pairingCodeSent) return
+    const now = Date.now()
+    const activeRequest = pairingCodeRequests.get(subBotId)
+    if (activeRequest && now - activeRequest.ts < PAIRING_CODE_COOLDOWN_MS) {
+        pairingCodeSent = true
+        pairingCodeMessageKey = activeRequest.key || null
+        return
+    }
+
+    pairingCodeSent = true
+    const rawCode = await sock.requestPairingCode(m.sender.split`@`[0], "RUBYCHAN")
 
     const formattedCode = rawCode.match(/.{1,4}/g)?.join("-") || rawCode
     const mediaMessage = await prepareWAMessageMedia({
@@ -229,7 +248,13 @@ if (qr && mcode) {
             message: {
                 interactiveMessage: proto.Message.InteractiveMessage.fromObject({
                     body: proto.Message.InteractiveMessage.Body.create({
-                        text: `*✨ ¡Tu código de vinculación está listo! ✨*\n\nUsa el siguiente código para conectarte como Sub-Bot:\n\n*Código:* ${formattedCode}\n\n> Haz clic en el botón de abajo para copiarlo fácilmente.`
+                        text: `*✨ ¡Tu código de vinculación está listo! ✨*
+
+Usa el siguiente código para conectarte como Sub-Bot:
+
+*Código:* ${formattedCode}
+
+> Haz clic en el botón de abajo para copiarlo fácilmente.`
                     }),
                     footer: proto.Message.InteractiveMessage.Footer.create({
                         text: "Este código expirará en 45 segundos."
@@ -253,15 +278,19 @@ if (qr && mcode) {
     }, { quoted: m })
 
     await conn.relayMessage(m.chat, interactivePayload.message, { messageId: interactivePayload.key.id })
-    console.log(`Código de vinculación enviado: ${rawCode}`);
+    pairingCodeMessageKey = interactivePayload.key
+    pairingCodeRequests.set(subBotId, { ts: now, key: pairingCodeMessageKey })
+    console.log(`Código de vinculación enviado: ${rawCode}`)
 
-    if (interactivePayload?.key) {
-        setTimeout(() => {
-            conn.sendMessage(m.chat, { delete: interactivePayload.key });
-        }, 45000);
+    if (pairingCodeMessageKey) {
+        pairingCodeTimer = setTimeout(() => {
+            conn.sendMessage(m.chat, { delete: pairingCodeMessageKey }).catch(() => {})
+            clearPairingCodeLock()
+        }, PAIRING_CODE_TTL_MS)
     }
-    return;
+    return
 }
+
 
 if (txtCode && txtCode.key) {
     setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key })}, 45000)
@@ -330,6 +359,7 @@ sock.isInit = true
 reconnectAttempts = 0
 if (!global.conns.includes(sock)) global.conns.push(sock)
 if (global.subBotRegistry instanceof Map) global.subBotRegistry.set(subBotId, { sock, connectedAt: Date.now() })
+clearPairingCodeLock()
 await joinChannels(sock)
 
 m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `@${m.sender.split('@')[0]}, genial ya eres parte de nuestra familia de Sub-Bots.`, mentions: [m.sender]}, { quoted: m }) : ''

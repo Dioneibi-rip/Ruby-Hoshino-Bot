@@ -7,6 +7,7 @@ import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
 import failureHandler from './lib/respuesta.js';
+import { getPluginRuntimeCache, getPrefixMatch, getCommandFromText, commandMatches } from './lib/pluginRuntimeCache.js'
 const { proto } = (await import('@whiskeysockets/baileys')).default
 const isNumber = x => typeof x === 'number' && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(function () {
@@ -226,50 +227,55 @@ if (idx !== -1) queque.splice(idx, 1)
 }, time)
 }
 m.exp += Math.ceil(Math.random() * 10)
-let usedPrefix
 const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins')
-for (let name in global.plugins) {
-let plugin = global.plugins[name]
-if (!plugin) continue
-if (plugin.disabled) continue
+const runtime = getPluginRuntimeCache(global.plugins)
+const basePrefix = this.prefix ? this.prefix : global.prefix
+const skippedPlugins = new Set()
+
+for (const { name, plugin } of runtime.hooks) {
+if (!plugin || plugin.disabled) continue
+if (!opts['restrict'] && plugin.tags && plugin.tags.includes('admin')) continue
 const __filename = join(___dirname, name)
 if (typeof plugin.all === 'function') {
 try {
 await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename })
 } catch (e) { console.error(e) }
 }
-if (!opts['restrict'] && plugin.tags && plugin.tags.includes('admin')) continue
-const str2Regex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
-let _prefix = plugin.customPrefix ? plugin.customPrefix : this.prefix ? this.prefix : global.prefix
-let match = (_prefix instanceof RegExp ? [[_prefix.exec(m.text), _prefix]] :
-Array.isArray(_prefix) ? _prefix.map(p => {
-let re = p instanceof RegExp ? p : new RegExp(str2Regex(p))
-return [re.exec(m.text), re]
-}) :
-typeof _prefix === 'string' ? [[new RegExp(str2Regex(_prefix)).exec(m.text), new RegExp(str2Regex(_prefix))]] : [[[], new RegExp]]
-).find(p => p[1])
 if (typeof plugin.before === 'function') {
+const _prefix = plugin.customPrefix ? plugin.customPrefix : basePrefix
+const match = getPrefixMatch(_prefix, m.text)
+try {
 if (await plugin.before.call(this, m, {
 match, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename
-})) continue
+})) skippedPlugins.add(name)
+} catch (e) { console.error(e) }
 }
-if (typeof plugin !== 'function') continue
-if (!(match && match[0])) continue
-if ((usedPrefix = (match[0] || '')[0])) {
-if (['>', '=>', '$'].includes(usedPrefix)) continue
-let noPrefix = m.text.replace(usedPrefix, '')
-let [command, ...args] = noPrefix.trim().split` `.filter(v => v)
-args = args || []
-let _args = noPrefix.trim().split` `.slice(1)
-let text = _args.join` `
-command = (command || '').toLowerCase()
-if (!/^[a-z0-9][\w-]*$/i.test(command)) continue
+}
+
+
+const baseMatch = getPrefixMatch(basePrefix, m.text)
+const parsedCommand = getCommandFromText(m.text, baseMatch)
+if (parsedCommand && (m.id && (m.id.startsWith('NJX-') || (m.id.startsWith('BAE5') && m.id.length === 16) || (m.id.startsWith('B24E') && m.id.length === 20)))) return
+const candidateMap = new Map()
+if (parsedCommand) {
+for (const entry of runtime.commandMap.get(parsedCommand.command) || []) candidateMap.set(entry.name, entry)
+}
+for (const entry of runtime.dynamicCommands) {
+if (parsedCommand || entry.plugin?.customPrefix) candidateMap.set(entry.name, entry)
+}
+const commandCandidates = [...candidateMap.values()].sort((a, b) => a.order - b.order)
+for (const { name, plugin } of commandCandidates) {
+if (!plugin || plugin.disabled || skippedPlugins.has(name)) continue
+if (!opts['restrict'] && plugin.tags && plugin.tags.includes('admin')) continue
+const __filename = join(___dirname, name)
+const _prefix = plugin.customPrefix ? plugin.customPrefix : basePrefix
+const match = plugin.customPrefix ? getPrefixMatch(_prefix, m.text) : baseMatch
+const commandInfo = plugin.customPrefix ? getCommandFromText(m.text, match) : parsedCommand
+if (!commandInfo) continue
+let { usedPrefix, noPrefix, command, args, _args, text } = commandInfo
 let fail = plugin.fail || global.dfail
-let isAccept = plugin.command instanceof RegExp ? plugin.command.test(command) :
-Array.isArray(plugin.command) ? plugin.command.some(cmd => cmd instanceof RegExp ? cmd.test(command) : cmd === command) :
-typeof plugin.command === 'string' ? plugin.command === command : false
+let isAccept = commandMatches(plugin.command, command)
 global.comando = command
-if ((m.id && (m.id.startsWith('NJX-') || (m.id.startsWith('BAE5') && m.id.length === 16) || (m.id.startsWith('B24E') && m.id.length === 20)))) return
 if (!isAccept) continue
 const disabledCommands = global.db.data.settings[this.user.jid]?.disabledCommands || []
 if (!isROwner && !isOwner && disabledCommands.includes(command)) {
@@ -350,7 +356,6 @@ await plugin.after.call(this, m, extra)
 if (m.coin) this.reply(m.chat, `❮✦❯ Utilizaste ${+m.coin} ${m.moneda}`, m)
 }
 break
-}
 }
 } catch (e) {
 console.error(e)

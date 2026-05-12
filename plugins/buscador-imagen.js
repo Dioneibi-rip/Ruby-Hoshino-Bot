@@ -1,13 +1,16 @@
-import {googleImage} from '@bochilteam/scraper';
-const handler = async (m, {conn, text, usedPrefix, command}) => {
+import gis from 'g-i-s';
+import { promisify } from 'util';
+
+const googleImageSearch = promisify(gis);
+
+const handler = async (m, {conn, text}) => {
 if (!text) return conn.reply(m.chat, `${emoji} Por favor, ingresa un término de búsqueda.`, m);
 await m.react(rwait)
 conn.reply(m.chat, '🍭 Descargando su imagen, espere un momento...', m)
-const res = await googleImage(text);
-const image = await res.getRandom();
-const link = image;
-const messages = [['Imagen 1', dev, await res.getRandom(),
-[[]], [[]], [[]], [[]]], ['Imagen 2', dev, await res.getRandom(), [[]], [[]], [[]], [[]]], ['Imagen 3', dev, await res.getRandom(), [[]], [[]], [[]], [[]]], ['Imagen 4', dev, await res.getRandom(), [[]], [[]], [[]], [[]]]]
+const results = await googleImageSearch(text).catch(() => [])
+const images = results.map(result => result?.url).filter(Boolean).slice(0, 4)
+if (!images.length) return conn.reply(m.chat, `${emoji2} No encontré imágenes para *${text}*.`, m)
+const messages = images.map((image, index) => [`Imagen ${index + 1}`, dev, image, [[]], [[]], [[]], [[]]])
 await conn.sendCarousel(m.chat, `${emoji} Resultado de ${text}`, '⪛✰ Imagen - Búsqueda ✰⪜', null, messages, m);
 };
 handler.help = ['imagen'];
