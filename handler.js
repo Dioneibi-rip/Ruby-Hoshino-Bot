@@ -231,11 +231,11 @@ const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './pl
 const runtime = getPluginRuntimeCache(global.plugins)
 const basePrefix = this.prefix ? this.prefix : global.prefix
 const skippedPlugins = new Set()
-
 for (const { name, plugin } of runtime.hooks) {
 if (!plugin || plugin.disabled) continue
 if (!opts['restrict'] && plugin.tags && plugin.tags.includes('admin')) continue
 const __filename = join(___dirname, name)
+if (typeof plugin.all === 'function') {
 try {
 await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename })
 } catch (e) { console.error(e) }
@@ -250,8 +250,6 @@ match, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, 
 } catch (e) { console.error(e) }
 }
 }
-
-
 const baseMatch = getPrefixMatch(basePrefix, m.text)
 const parsedCommand = getCommandFromText(m.text, baseMatch)
 if (parsedCommand && (m.id && (m.id.startsWith('NJX-') || (m.id.startsWith('BAE5') && m.id.length === 16) || (m.id.startsWith('B24E') && m.id.length === 20)))) return
@@ -335,7 +333,12 @@ let extra = {
 match, usedPrefix, noPrefix, _args, args, command, text, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename
 }
 try {
+let pluginFunc = typeof plugin === 'function' ? plugin : (plugin.default || plugin.handler || plugin);
+if (typeof pluginFunc === 'function') {
+await pluginFunc.call(this, m, extra)
+} else {
 await plugin.call(this, m, extra)
+}
 if (!isPrems) m.coin = m.coin || plugin.coin || false
 } catch (e) {
 m.error = e
