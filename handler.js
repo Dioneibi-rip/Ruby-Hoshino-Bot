@@ -18,6 +18,19 @@ global.uptimeStart = Date.now();
 const STALE_MESSAGE_WINDOW_MS = 10 * 60 * 1000
 const GROUP_METADATA_CACHE_TTL_MS = 2 * 60 * 1000
 global.groupMetadataCache = global.groupMetadataCache || new Map()
+
+const runWithTimeout = async (promise, timeoutMs, label = 'task') => {
+if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) return promise
+let timeoutId
+const timeoutPromise = new Promise((_, reject) => {
+  timeoutId = setTimeout(() => reject(new Error(`[timeout] ${label} exceeded ${timeoutMs}ms`)), timeoutMs)
+})
+try {
+  return await Promise.race([promise, timeoutPromise])
+} finally {
+  if (timeoutId) clearTimeout(timeoutId)
+}
+}
 export async function handler(chatUpdate) {
 this.msgqueque = this.msgqueque || []
 this.uptime = this.uptime || Date.now()
@@ -237,16 +250,16 @@ if (!opts['restrict'] && plugin.tags && plugin.tags.includes('admin')) continue
 const __filename = join(___dirname, name)
 if (typeof plugin.all === 'function') {
 try {
-await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename })
+await runWithTimeout(plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename }), Number(global.pluginAllTimeoutMs || 2500), `plugin.all:${name}`)
 } catch (e) { console.error(e) }
 }
 if (typeof plugin.before === 'function') {
 const _prefix = plugin.customPrefix ? plugin.customPrefix : basePrefix
 const match = getPrefixMatch(_prefix, m.text)
 try {
-if (await plugin.before.call(this, m, {
+if (await runWithTimeout(plugin.before.call(this, m, {
 match, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename
-})) skippedPlugins.add(name)
+}), Number(global.pluginBeforeTimeoutMs || 3000), `plugin.before:${name}`)) skippedPlugins.add(name)
 } catch (e) { console.error(e) }
 }
 }
@@ -335,9 +348,9 @@ match, usedPrefix, noPrefix, _args, args, command, text, conn: this, participant
 try {
 let pluginFunc = typeof plugin === 'function' ? plugin : (plugin.default || plugin.handler || plugin);
 if (typeof pluginFunc === 'function') {
-await pluginFunc.call(this, m, extra)
+await runWithTimeout(pluginFunc.call(this, m, extra), Number(global.pluginCommandTimeoutMs || 30000), `plugin.command:${name}`)
 } else {
-await plugin.call(this, m, extra)
+await runWithTimeout(plugin.call(this, m, extra), Number(global.pluginCommandTimeoutMs || 30000), `plugin.command:${name}`)
 }
 if (!isPrems) m.coin = m.coin || plugin.coin || false
 } catch (e) {
@@ -352,7 +365,7 @@ m.reply(text)
 } finally {
 if (typeof plugin.after === 'function') {
 try {
-await plugin.after.call(this, m, extra)
+await runWithTimeout(plugin.after.call(this, m, extra), Number(global.pluginAfterTimeoutMs || 4000), `plugin.after:${name}`)
 } catch (e) { console.error(e) }
 }
 if (m.coin) this.reply(m.chat, `❮✦❯ Utilizaste ${+m.coin} ${m.moneda}`, m)
