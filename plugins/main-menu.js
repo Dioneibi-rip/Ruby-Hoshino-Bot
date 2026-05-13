@@ -690,14 +690,7 @@ let handler = async (m, { conn, args }) => {
     await conn.reply(m.chat, '*ꪹ͜𓂃⌛͡𝗘𝗻𝘃𝗶𝗮𝗻𝗱𝗼 𝗠𝗲𝗻𝘂 𝗱𝗲 𝗹𝗮 𝗕𝗼𝘁....𓏲੭*', m, { 
         contextInfo: { 
             forwardingScore: 2022, 
-            isForwarded: true, 
-            externalAdReply: {
-                title: packname,
-                body: '¡𝙚𝙭𝙥𝙡𝙤𝙧𝙖 𝙡𝙖 𝙜𝙧𝙖𝙣 𝙫𝙖𝙧𝙞𝙚𝙙𝙖𝙙 𝙙𝙚 𝙘𝙤𝙢𝙖𝙣𝙙𝙤𝙨! (˵•̀ᴗ - ˵ )',
-                sourceUrl: redes,
-                thumbnail: icons, 
-            }
-        }
+            isForwarded: true}
     });
 
 
@@ -714,17 +707,7 @@ let handler = async (m, { conn, args }) => {
             forwardedNewsletterMessageInfo: {
                 newsletterJid: '120363335626706839@newsletter',
                 newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
-                serverMessageId: -1,
-            },
-            externalAdReply: {
-                title: 'ׄ⏤͟͟͞͞◯⃞ 🎄 𝐑υ𝐛ყ 𝐇ᨵׁׅׅ𝐬𝐡𝐢𝐧ᨵׁׅׅ𖹭 𝐁ᨵׁׅׅ𝐭 𝐌𝐃 ིྀ 🍧',
-                body: dev,
-                thumbnail: icons,
-                sourceUrl: redes,
-                mediaType: 1,
-                renderLargerThumbnail: false,
-            }
-        }
+                serverMessageId: -1}}
     }, { quoted: m });
 
 };

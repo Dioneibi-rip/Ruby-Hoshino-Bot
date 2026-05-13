@@ -36,14 +36,7 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
       image: { url: data5.icon },
       caption: txt,
       contextInfo: {
-        externalAdReply: {
-          title: 'ＤＥＳＣＡＲＧＡＳ ＡＰＫ',
-          body: toFancy('Descargas Rapidas'),
-          thumbnailUrl: data5.icon,
-          sourceUrl: global.channel || 'https://whatsapp.com/channel/0029Vag9VSI2ZjCocqa2lB1y',
-          mediaType: 1,
-          renderLargerThumbnail: false
-        }
+        
       }
     }, { quoted: m })
 

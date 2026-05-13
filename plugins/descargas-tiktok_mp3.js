@@ -12,14 +12,7 @@ conn.sendMessage(m.chat, { react: { text: "🕒", key: m.key } });
       mimetype: 'audio/mp4',
       fileName: `ttbykeni.mp3`,
       contextInfo: {
-        externalAdReply: {
-          showAdAttribution: true,
-          mediaType: 2,
-          mediaUrl: text,
-          title: dp.results.title,
-          sourceUrl: text,
-          thumbnail: await (await conn.getFile(dp.results.thumbnail)).data
-        }
+        
       }
     };
     await conn.sendMessage(m.chat, doc, { quoted: m })

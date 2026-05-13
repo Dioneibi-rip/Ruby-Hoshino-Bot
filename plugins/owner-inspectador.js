@@ -123,16 +123,7 @@ return
 }}}
 if (info) {
 await conn.sendMessage(m.chat, { text: info, contextInfo: {
-mentionedJid: conn.parseMention(info),
-externalAdReply: {
-title: `${emoji} Inspector de Grupos`,
-body: `${emoji2} ¡Super Inspectador!`,
-thumbnailUrl: pp ? pp : thumb,
-sourceUrl: args[0] ? args[0] : inviteCode ? `https://chat.whatsapp.com/${inviteCode}` : md,
-mediaType: 1,
-showAdAttribution: false,
-renderLargerThumbnail: false
-}}}, { quoted: fkontak })
+mentionedJid: conn.parseMention(info)}}, { quoted: fkontak })
 } else {
 // Manejo de enlaces de canales
 let newsletterInfo
@@ -149,16 +140,7 @@ pp = thumb
 }
 if (channelUrl && newsletterInfo) {
 await conn.sendMessage(m.chat, { text: caption, contextInfo: {
-mentionedJid: conn.parseMention(caption),
-externalAdReply: {
-title: `${emoji} Inspector de Canales`,
-body: `${emoji2} ¡Super Inspectador!`,
-thumbnailUrl: pp,
-sourceUrl: args[0],
-mediaType: 1,
-showAdAttribution: false,
-renderLargerThumbnail: false
-}}}, { quoted: fkontak })}
+mentionedJid: conn.parseMention(caption)}}, { quoted: fkontak })}
 newsletterInfo.id ? conn.sendMessage(m.chat, { text: newsletterInfo.id }, { quoted: null }) : ''
 } catch (e) {
 reportError(e)
@@ -283,15 +265,7 @@ const chtitle = await conn.newsletterMetadata(text.includes("@newsletter") ? "ji
 await conn.newsletterUpdatePicture(ch, media)
 // await conn.reply(m.chat, `${emoji} El bot ha cambiando la imagen del canal *${chtitle}* con éxito.`, m) 
 await conn.sendMessage(ch, { text: `${emoji} ${botname} ha cambiando la imagen del canal *${chtitle}* con éxito.`, contextInfo: {
-externalAdReply: {
-title: "【 🔔 𝐍𝐎𝐓𝐈𝐅𝐈𝐂𝐀𝐂𝐈𝐎́𝐍 🔔 】",
-body: '🍬 𝙽𝚞𝚎𝚟𝚊 𝚏𝚘𝚝𝚘 𝚙𝚊𝚛𝚊 𝚙𝚎𝚛𝚏𝚒𝚕 𝚍𝚎𝚕 𝚌𝚊𝚗𝚊𝚕.',
-thumbnailUrl: pp,
-sourceUrl: redes,
-mediaType: 1,
-showAdAttribution: false,
-renderLargerThumbnail: false
-}}}, { quoted: null })
+}}, { quoted: null })
 } catch (e) {
 reportError(e)
 }
@@ -312,15 +286,7 @@ const chtitle = await conn.newsletterMetadata(text.includes("@newsletter") ? "ji
 await conn.newsletterRemovePicture(ch)
 // await conn.reply(m.chat, `🍦 El bot ha eliminado la imagen del canal *${chtitle}* con éxito.`, m, rcanal) 
 await conn.sendMessage(ch, { text: `🍬 ${botname} ha eliminado la imagen del canal *${chtitle}* con éxito.`, contextInfo: {
-externalAdReply: {
-title: "【 🔔 𝐍𝐎𝐓𝐈𝐅𝐈𝐂𝐀𝐂𝐈𝐎́𝐍 🔔 】",
-body: '🍦 𝙵𝚘𝚝𝚘 𝚍𝚎 𝚙𝚎𝚛𝚏𝚕 𝚍𝚎𝚕 𝚌𝚊𝚗𝚊𝚕 𝚎𝚕𝚒𝚖𝚒𝚗𝚊𝚍𝚊.',
-thumbnailUrl: pp,
-sourceUrl: redes,
-mediaType: 1,
-showAdAttribution: false,
-renderLargerThumbnail: false
-}}}, { quoted: null })
+}}, { quoted: null })
 } catch (e) {
 reportError(e)
 }
@@ -404,15 +370,7 @@ const chtitle = await conn.newsletterMetadata(ch.includes("@newsletter") ? "jid"
 await conn.newsletterReactionMode(ch, mode)
 // await conn.reply(m.chat, `${emoji} El bot ha establecido el modo de reacciones como \`"${mode}"\` para el canal *${chtitle}*`, m)
 await conn.sendMessage(ch, { text: `${emoji} ${botname} ha establecido el modo de reacciones como \`"${mode}"\` para el canal *${chtitle}*`, contextInfo: {
-externalAdReply: {
-title: "【 🔔 𝐍𝐎𝐓𝐈𝐅𝐈𝐂𝐀𝐂𝐈𝐎́𝐍 🔔 】",
-body: '🍭 𝙰𝚓𝚞𝚜𝚝𝚎𝚜 𝚎𝚗 𝚛𝚎𝚊𝚌𝚌𝚒𝚘𝚗𝚎𝚜.',
-thumbnailUrl: pp,
-sourceUrl: redes,
-mediaType: 1,
-showAdAttribution: false,
-renderLargerThumbnail: false
-}}}, { quoted: null })
+}}, { quoted: null })
 } catch (e) {
 reportError(e)
 }
@@ -440,15 +398,7 @@ const chtitle = await conn.newsletterMetadata(text.includes("@newsletter") ? "ji
 await conn.newsletterUpdateName(ch, name)
 // await conn.reply(m.chat, `${emoji} El bot ha cambiado el nombre del canal *${name}*\n\n*Anterior nombre:* ${chtitle}\n*Nuevo nombre:* ${name}`, m) 
 await conn.sendMessage(ch, { text: `${emoji} ${botname} ha cambiado el nombre del canal *${name}*\n\n*Anterior nombre:* ${chtitle}\n*Nuevo nombre:* ${name}`, contextInfo: {
-externalAdReply: {
-title: "【 🔔 𝐍𝐎𝐓𝐈𝐅𝐈𝐂𝐀𝐂𝐈𝐎́𝐍 🔔 】",
-body: '🍧 𝚄𝚗 𝚗𝚞𝚎𝚟𝚘 𝚗𝚘𝚖𝚋𝚛𝚎 𝚙𝚊𝚛𝚊 𝚎𝚕 𝚌𝚊𝚗𝚊𝚕.',
-thumbnailUrl: pp,
-sourceUrl: redes,
-mediaType: 1,
-showAdAttribution: false,
-renderLargerThumbnail: false
-}}}, { quoted: null })
+}}, { quoted: null })
 } catch (e) {
 reportError(e)
 }
@@ -475,15 +425,7 @@ const chtitle = await conn.newsletterMetadata(text.includes("@newsletter") ? "ji
 await conn.newsletterUpdateDescription(ch, description)
 // await conn.reply(m.chat, `${emoji} El bot ha modificado la descripción del canal *${chtitle}*`, m) 
 await conn.sendMessage(ch, { text: `${emoji} ${botname} ha modificado la descripción del canal *${chtitle}*`, contextInfo: {
-externalAdReply: {
-title: "【 🔔 𝐍𝐎𝐓𝐈𝐅𝐈𝐂𝐀𝐂𝐈𝐎́𝐍 🔔 】",
-body: '🍨 𝚄𝚗𝚊 𝚗𝚞𝚎𝚟𝚊 𝚍𝚎𝚜𝚌𝚛𝚒𝚙𝚌𝚒𝚘́𝚗 𝚊𝚕 𝚌𝚊𝚗𝚊𝚕.',
-thumbnailUrl: pp,
-sourceUrl: redes,
-mediaType: 1,
-showAdAttribution: false,
-renderLargerThumbnail: false
-}}}, { quoted: null })
+}}, { quoted: null })
 } catch (e) {
 reportError(e)
 }

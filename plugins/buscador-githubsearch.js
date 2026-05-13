@@ -25,7 +25,7 @@ let str=results.map((repo,index)=>{return `
 `.trim()}).join('\n\n')
 let img=await(await fetch(json.items[0].owner.avatar_url)).buffer()
 let txtHeader=`✿ ㅤ ׄㅤ 🪷̸ㅤ ˒˓ㅤ 𓏸̶ ㅤ ׄ   ✿\n         \`\`\`G I T H U B   S E A R C H\`\`\`\n\n${str}\n\n 𖥻    ·  ˖ ࣪  𓈃    ${toFancy("Búsqueda Finalizada")}    ‧₊˚ ㅤ ☆`
-await conn.sendMessage(m.chat,{text:txtHeader,contextInfo:{externalAdReply:{title:'  ͟͞ Ｇ Ｉ Ｔ Ｈ Ｕ Ｂ ͟͞  ',body:dev||'Github Search Tool',thumbnail:img,sourceUrl:redes||repo.html_url,mediaType:1,renderLargerThumbnail:true}}},{quoted:m})
+await conn.sendMessage(m.chat,{text:txtHeader,contextInfo:{}},{quoted:m})
 await m.react(done)
 }catch(e){
 await m.react(error)

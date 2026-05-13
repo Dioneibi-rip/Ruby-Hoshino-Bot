@@ -69,18 +69,7 @@ const handler = async (m, { conn, text, command }) => {
           newsletterJid: newsletterJid,
           newsletterName: newsletterName,
           serverMessageId: -1
-        },
-        externalAdReply: {
-          // Nota: Asegúrate de que 'botname' y 'dev' estén definidos en tu bot globalmente, si no, pon un string fijo.
-          title: typeof botname !== 'undefined' ? botname : 'Bot',
-          body: typeof dev !== 'undefined' ? dev : 'Developer',
-          mediaType: 1,
-          thumbnail: thumbBuffer,
-          renderLargerThumbnail: false,
-          mediaUrl: url,
-          sourceUrl: url
-        }
-      }
+        }}
     })
 
     if (["play", "yta", "ytmp3", "playaudio"].includes(command)) {

@@ -72,15 +72,7 @@ const handler = async (m, { conn, text, command }) => {
     const thumb = (await conn.getFile(thumbnail))?.data
     await conn.reply(m.chat, infoMessage, m, {
       contextInfo: {
-        externalAdReply: {
-          title: botname,
-          body: dev,
-          mediaType: 1,
-          thumbnail: thumb,
-          renderLargerThumbnail: true,
-          mediaUrl: url,
-          sourceUrl: url
-        }
+        
       }
     })
 

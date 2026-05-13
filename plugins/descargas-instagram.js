@@ -18,14 +18,7 @@ if (!url.match(/instagram.com|instagr.am|ig.me/)) return conn.reply(m.chat, '�
 await conn.reply(m.chat, '⁖❤️꙰  *Descargando su video de Instagram*', m, {
 contextInfo: { 
 forwardingScore: 2022, 
-isForwarded: true, 
-externalAdReply: {
-title: packname || 'Ruby-Hoshino',
-body: '𝙄𝙉𝙎𝙏𝘼𝙂𝙍𝘼𝙈 - 𝘿𝙊𝙒𝙉𝙇𝙊𝘼𝘿',
-sourceUrl: redes || '',
-thumbnail: icons || null
-}
-}
+isForwarded: true}
 });
 
 m.react && m.react(rwait).catch(()=>{});
