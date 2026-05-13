@@ -28,16 +28,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
         let sentMessage = await conn.sendMessage(dari, {
             text: teks,
             contextInfo: {
-                mentionedJid: [dari],
-                externalAdReply: {
-                    title: 'R E S P U E S T A S',
-                    body: '¡Gracias por usar el servicio de confesiones!',
-                    mediaType: 1,
-                    renderLargerThumbnail: true,
-                    thumbnailUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIyz1dMPkZuNleUyfXPMsltHwKKdVddTf4-A&usqp=CAU',
-                    sourceUrl: channel,
-                }
-            }
+                mentionedJid: [dari]}
         });
         
         if (sentMessage) {

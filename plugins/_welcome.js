@@ -83,16 +83,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
                     mentionedJid: [userId],
                     isForwarded: true,
                     forwardingScore: 9999999,
-                    forwardedNewsletterMessageInfo: { newsletterJid: newsletterJid, newsletterName: newsletterName, serverMessageId: -1 },
-                    externalAdReply: {
-                        title: '  ͟͞ Ｗ Ｅ Ｌ Ｃ Ｏ Ｍ Ｅ ͟͞  ',
-                        body: `✧ ˖ ꒰ ${groupName} ꒱ ˖ ✧`,
-                        thumbnailUrl: getRandomIcono(),
-                        sourceUrl: global.redes || 'https://whatsapp.com/channel/0029Vag9VSI2ZjCocqa2lB1y',
-                        mediaType: 1,
-                        renderLargerThumbnail: false
-                    }
-                }
+                    forwardedNewsletterMessageInfo: { newsletterJid: newsletterJid, newsletterName: newsletterName, serverMessageId: -1 }}
             }, { quoted: null })
         }
 
@@ -133,16 +124,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
                     mentionedJid: [userId],
                     isForwarded: true,
                     forwardingScore: 9999999,
-                    forwardedNewsletterMessageInfo: { newsletterJid: newsletterJid, newsletterName: newsletterName, serverMessageId: -1 },
-                    externalAdReply: {
-                        title: '  ͟͞ Ａ Ｄ Ｉ Ｏ́ Ｓ ͟͞  ',
-                        body: `✧ ˖ ꒰ ${toFancy("Hasta la proxima")} ꒱ ˖ ✧`,
-                        thumbnailUrl: getRandomIcono(),
-                        sourceUrl: global.redes || 'https://whatsapp.com/channel/0029Vag9VSI2ZjCocqa2lB1y',
-                        mediaType: 1,
-                        renderLargerThumbnail: false
-                    }
-                }
+                    forwardedNewsletterMessageInfo: { newsletterJid: newsletterJid, newsletterName: newsletterName, serverMessageId: -1 }}
             }, { quoted: null })
         }
     }

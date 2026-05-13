@@ -104,14 +104,7 @@ let owner = `
 await conn.sendMessage(m.chat, {
 text: owner,
 contextInfo: {
-externalAdReply: {
-title: packname,
-body: dev,
-thumbnailUrl: banner,
-mediaType: 1,
-showAdAttribution: true,
-renderLargerThumbnail: true
-}
+
 }
 }, { quoted: m });
 };

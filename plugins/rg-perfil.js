@@ -98,15 +98,7 @@ let handler = async (m, { conn }) => {
       {
         text: profileText,
         contextInfo: {
-          mentionedJid: mentions,
-          externalAdReply: {
-            title: '𝘵𝘶 𝘱𝘦𝘳𝘧𝘪𝘭 (*•̀ᴗ•́*)و ̑̑',
-            body: "﹙𖤍﹚ 𝘪𝘯𝘧𝘰𝘳𝘮𝘢𝘤𝘪𝘰 𝘥𝘦𝘭 𝘶𝘴𝘶𝘢𝘳𝘪𝘰.",
-            thumbnailUrl: perfil,
-            mediaType: 1,
-            renderLargerThumbnail: true
-          }
-        }
+          mentionedJid: mentions}
       },
       { quoted: m }
     )

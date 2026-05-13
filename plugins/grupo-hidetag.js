@@ -40,7 +40,7 @@ conn.sendMessage(m.chat, { audio: mediax, mentions: users, mimetype: 'audio/mp4'
 var mediax = await quoted.download?.()
 conn.sendMessage(m.chat, {sticker: mediax, mentions: users}, { quoted: null })
 } else {
-await conn.relayMessage(m.chat, {extendedTextMessage:{text: `${masss}\n${htextos}\n`, ...{ contextInfo: { mentionedJid: users, externalAdReply: { thumbnail: icons, sourceUrl: redes }}}}}, {})
+await conn.relayMessage(m.chat, {extendedTextMessage:{text: `${masss}\n${htextos}\n`, ...{ contextInfo: { mentionedJid: users}}}}, {})
 }}
 
 }

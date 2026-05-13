@@ -58,15 +58,7 @@ forwardedNewsletterMessageInfo: {
 newsletterJid: channelRD,
 newsletterName: canalNombreM,
 serverMessageId: -1
-},
-externalAdReply: {
-title: packname,
-body: "💗 𓈒꒰ 𝘔𝘦𝘯𝘶 𝘦𝘯𝘷𝘪𝘢𝘥𝘰 ꒱",
-mediaType: 1,
-thumbnail: icons,
-renderLargerThumbnail: false
-}
-}
+}}
 },
 { quoted: m }
 )

@@ -41,16 +41,7 @@ text: aviso,
 contextInfo: {
 mentionedJid: [user],
 forwardingScore: 999,
-isForwarded: true,
-externalAdReply: {
-title: `⚡ 𝗔𝗡𝗧𝗜𝗟𝗜𝗡𝗞 𝗔𝗖𝗧𝗜𝗩𝗢 ⚡`,
-body: '¡NO ENVIES LINKS AQUI!',
-thumbnailUrl: 'https://i.pinimg.com/736x/ac/12/6f/ac126f05f2040dd944a4a9d653f84206.jpg',
-sourceUrl: 'https://whatsapp.com/channel/0029VakLbM76mYPPFL0IFI3P',
-mediaType: 1,
-renderLargerThumbnail: false
-}
-}
+isForwarded: true}
 }, { quoted: null });
 
 await conn.groupParticipantsUpdate(m.chat, [user], 'remove');

@@ -27,20 +27,7 @@ let handler = async (m, { conn }) => {
     image: { url: 'https://files.catbox.moe/61219t.png' },
     caption: texto,
     contextInfo: {
-      mentionedJid: [m.sender],
-      externalAdReply: {
-        title: '💫 Comandos de diferentes tipos generadores de stickers',
-        body: 'Crea y personaliza tus propios stickers',
-        thumbnailUrl: 'https://files.catbox.moe/hdr7oh.jpg',
-        mediaType: 1,
-        renderLargerThumbnail: false,
-        showAdAttribution: true,
-        mediaUrl: 'https://whatsapp.com/channel/0029VakLbM76mYPPFL0IFI3P',
-        sourceUrl: 'https://whatsapp.com/channel/0029VakLbM76mYPPFL0IFI3P',
-        newsletterJid: '120363335626706839@newsletter',
-        newsletterName: '⏤͟͞ू⃪፝͜⁞⟡『 𝙍𝙪𝙗𝙮 𝙃𝙤𝙨𝙝𝙞𝙣𝙤 𝘽𝙤𝙩 』࿐⟡'
-      }
-    }
+      mentionedJid: [m.sender]}
   }, { quoted: m });
 };
 

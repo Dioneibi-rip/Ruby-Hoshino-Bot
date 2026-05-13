@@ -146,21 +146,7 @@ global.rcanal = {
     forwardedNewsletterMessageInfo: {
       newsletterJid: channelRD.id,
       serverMessageId: 100,
-      newsletterName: channelRD.name,
-    },
-    externalAdReply: {
-      showAdAttribution: true,
-      title: botname,
-      body: dev,
-      mediaUrl: null,
-      description: null,
-      previewType: "PHOTO",
-      thumbnail: global.icono,
-      sourceUrl: global.redes,
-      mediaType: 1,
-      renderLargerThumbnail: false
-    },
-  }
+      newsletterName: channelRD.name}}
 }
 
 }

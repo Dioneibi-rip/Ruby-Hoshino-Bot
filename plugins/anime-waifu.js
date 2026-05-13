@@ -13,16 +13,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
         newsletterJid,
         newsletterName,
         serverMessageId: -1
-      },
-      externalAdReply: {
-        title: packname,
-        body: dev,
-        thumbnail: icons,
-        sourceUrl: redes,
-        mediaType: 1,
-        renderLargerThumbnail: false
-      }
-    };
+      }};
 
     await m.react('🌸');
     await conn.reply(m.chat, '🎀 *Buscando una waifu para ti... espera un momento~*', m, { contextInfo });

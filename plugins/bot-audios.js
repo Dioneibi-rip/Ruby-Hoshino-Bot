@@ -25,15 +25,7 @@ handler.all = async function (m) {
         await this.sendMessage(m.chat, { 
             audio: { url: vn }, 
             contextInfo: { 
-                "externalAdReply": { 
-                    "title": typeof packname != 'undefined' ? packname : 'Bot', 
-                    "body": typeof botname != 'undefined' ? botname : 'WhatsApp Bot', 
-                    "previewType": "PHOTO", 
-                    "thumbnailUrl": null,
-                    "thumbnail": typeof icons != 'undefined' ? icons : null, 
-                    "sourceUrl": typeof redes != 'undefined' ? redes : null, 
-                    "showAdAttribution": true
-                }
+                
             }, 
             ptt: true, 
             mimetype: 'audio/mpeg', 

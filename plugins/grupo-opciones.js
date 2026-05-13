@@ -46,16 +46,7 @@ const handler = async (m, { conn }) => {
   await conn.sendMessage(m.chat, {
     text,
     contextInfo: {
-      mentionedJid: [chat.botPrimario],
-      externalAdReply: {
-        title: `❖ ${groupName} ❖`,
-        body: '(◍•ᴗ•◍) 𝙲𝙾𝙽𝙵𝙸𝙶𝚄𝚁𝙰𝙲𝙸𝙾́𝙽 𝙳𝙴𝙻 𝙶𝚁𝚄𝙿𝙾',
-        thumbnailUrl: avatar,
-        mediaType: 1,
-        showAdAttribution: true,
-        renderLargerThumbnail: true
-      }
-    }
+      mentionedJid: [chat.botPrimario]}
   }, { quoted: m });
 };
 
