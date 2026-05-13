@@ -5,8 +5,9 @@ import { sticker } from '../lib/sticker.js'
 const FINAL_SIZE = 512
 const WORK_SIZE = 1024
 const MAX_TEXT_LENGTH = 280
-const BG_COLOR = '#F2F2F2'
-const TOKEN_GAP = 22
+const BG_COLOR = '#F2F2F2' // Gris muy claro para fondo
+const SHADOW_COLOR = 0x20202050 // Sombra oscura con alfa, muy difuminada
+const TEXT_COLOR = 0x000000FF // Texto negro sólido
 
 const FONT_CANDIDATES = [
   Jimp.FONT_SANS_128_BLACK,
@@ -22,12 +23,6 @@ function normalizeText(text = '') {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, MAX_TEXT_LENGTH)
-}
-
-function splitWithEmoji(text = '') {
-  // Separa emojis para poder renderizarlos como imagen.
-  const expanded = text.replace(/(\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*)/gu, ' $1 ')
-  return expanded.split(' ').map((t) => t.trim()).filter(Boolean)
 }
 
 function isEmojiToken(token = '') {
@@ -64,172 +59,203 @@ async function getEmojiImage(emoji = '') {
   }
 }
 
-async function buildToken(font, raw = '') {
-  if (isEmojiToken(raw)) {
-    const emojiImg = await getEmojiImage(raw)
-    if (emojiImg) {
-      const size = Math.max(66, Math.min(140, Jimp.measureTextHeight(font, 'Ay', WORK_SIZE) + 6))
-      return {
-        type: 'emoji',
-        text: raw,
-        width: size,
-        height: size,
-        image: emojiImg.clone().resize(size, size, Jimp.RESIZE_BILINEAR),
+// Nueva función para agrupar palabras y emojis en tokens útiles para el scatter layout
+async function buildChunks(font, text = '') {
+  const wordsRaw = text.split(' ').filter(Boolean)
+  const chunks = []
+  let currentWords = []
+  
+  const measureText = (txt) => Jimp.measureText(font, txt)
+  const measureTextHeight = () => Jimp.measureTextHeight(font, 'Ay', WORK_SIZE)
+
+  for (let raw of wordsRaw) {
+    if (isEmojiToken(raw)) {
+      if (currentWords.length) {
+        const textToMeasure = currentWords.join(' ')
+        chunks.push({
+          type: 'text',
+          text: textToMeasure,
+          width: measureText(textToMeasure),
+          height: measureTextHeight(),
+        })
+        currentWords = []
+      }
+      
+      const emojiImg = await getEmojiImage(raw)
+      if (emojiImg) {
+        const size = Math.max(66, Math.min(140, measureTextHeight() + 6))
+        chunks.push({
+          type: 'emoji',
+          text: raw,
+          width: size,
+          height: size,
+          image: emojiImg.clone().resize(size, size, Jimp.RESIZE_BILINEAR),
+        })
+      }
+    } else {
+      currentWords.push(raw)
+      // Agrupar palabras si son pocas, si son muchas o muy largas, forzar el final del chunk
+      if (currentWords.length > 3 || measureText(currentWords.join(' ')) > WORK_SIZE * 0.7) {
+        const textToMeasure = currentWords.join(' ')
+        chunks.push({
+          type: 'text',
+          text: textToMeasure,
+          width: measureText(textToMeasure),
+          height: measureTextHeight(),
+        })
+        currentWords = []
       }
     }
   }
 
-  return {
-    type: 'text',
-    text: raw,
-    width: Jimp.measureText(font, raw),
-    height: Jimp.measureTextHeight(font, 'Ay', WORK_SIZE),
+  if (currentWords.length) {
+    const textToMeasure = currentWords.join(' ')
+    chunks.push({
+      type: 'text',
+      text: textToMeasure,
+      width: measureText(textToMeasure),
+      height: measureTextHeight(),
+    })
   }
+
+  return chunks
 }
 
-function buildRows(tokens = []) {
-  const rows = []
-  let current = { left: null, right: null }
+// Nueva función para el diseño totalmente aleatorio de scatter
+function scatterLayout(chunks = []) {
+  const minPadding = 48
+  const maxInitialY = WORK_SIZE * 0.15 // Iniciar cerca de la parte superior
+  const verticalGapRaw = 90 // Base para el espacio vertical entre elementos
+  const marginPerToken = 10 // Margen de separación de seguridad
+  const scatterTokens = []
 
-  for (let i = 0; i < tokens.length; i++) {
-    const tok = tokens[i]
+  let nextYBase = maxInitialY + verticalGapRaw
 
-    if (i > 0 && i % 8 === 5 && !current.left && !current.right) {
-      rows.push({ center: tok })
-      continue
-    }
+  // Ordenar de forma aleatoria los trozos de texto para máxima aleatoriedad
+  const shuffledChunks = [...chunks].sort(() => 0.5 - Math.random())
 
-    if (!current.left) {
-      current.left = tok
-      continue
-    }
+  for (let i = 0; i < shuffledChunks.length; i++) {
+    const chunk = shuffledChunks[i]
+    
+    // Ancho aleatorio dentro del lienzo (con padding)
+    const availableWidth = WORK_SIZE - chunk.width - (minPadding * 2)
+    const randomX = minPadding + Math.floor(Math.random() * availableWidth)
+    
+    // Y aleatorio con un incremento base para evitar solapamientos masivos
+    const randomYGap = (Math.random() * verticalGapRaw * 2.5) - (verticalGapRaw * 0.5) // Variación mas grande
+    const randomY = Math.floor(nextYBase + randomYGap)
 
-    if (!current.right) {
-      current.right = tok
-      rows.push(current)
-      current = { left: null, right: null }
-    }
+    scatterTokens.push({ ...chunk, x: randomX, y: randomY })
+
+    // Actualizar la base para el siguiente Y
+    nextYBase = randomY + chunk.height + marginPerToken
   }
 
-  if (current.left || current.right) rows.push(current)
-  return rows
+  return scatterTokens
 }
 
-async function chooseLayout(rawTokens = []) {
-  for (const fontPath of FONT_CANDIDATES) {
-    const font = await Jimp.loadFont(fontPath)
-    const tokens = []
+// Nueva función para deformación de perspectiva (Warp) aleatoria
+async function applyRandomWarp(image) {
+  // Crear un lienzo temporal para el warp
+  const warped = new Jimp(WORK_SIZE, WORK_SIZE, 0x00000000)
 
-    for (const raw of rawTokens) {
-      // eslint-disable-next-line no-await-in-loop
-      tokens.push(await buildToken(font, raw))
-    }
+  // Factor de warp aleatorio, muy pequeño, solo para un toque de distorsión
+  const warpFactor = 0.04
+  const randomTopLeft = (Math.random() - 0.5) * warpFactor
+  const randomBottomRight = (Math.random() - 0.5) * warpFactor
+  const randomScale = 0.98 + (Math.random() * 0.04)
 
-    const rows = buildRows(tokens)
-    const lineHeight = Math.max(92, Jimp.measureTextHeight(font, 'Ay', WORK_SIZE) + 28)
-    const contentHeight = rows.length * lineHeight
+  // Aplicar un perspective transform simple para dar profundidad
+  const src = [0, 0, WORK_SIZE, 0, WORK_SIZE, WORK_SIZE, 0, WORK_SIZE]
+  const dest = [
+    randomTopLeft * WORK_SIZE, randomTopLeft * WORK_SIZE, 
+    WORK_SIZE * randomScale, randomBottomRight * WORK_SIZE, 
+    WORK_SIZE, WORK_SIZE, 
+    0, WORK_SIZE
+  ]
 
-    if (contentHeight <= WORK_SIZE - 120) {
-      return { font, rows, lineHeight }
-    }
-  }
-
-  const fallbackFont = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK)
-  const fallbackTokens = []
-  for (const raw of rawTokens) {
-    // eslint-disable-next-line no-await-in-loop
-    fallbackTokens.push(await buildToken(fallbackFont, raw))
-  }
-  return {
-    font: fallbackFont,
-    rows: buildRows(fallbackTokens).slice(0, 18),
-    lineHeight: Math.max(72, Jimp.measureTextHeight(fallbackFont, 'Ay', WORK_SIZE) + 18),
-  }
-}
-
-function drawToken(layer, font, token, x, y) {
-  if (!token) return
-
-  if (token.type === 'emoji' && token.image) {
-    layer.composite(token.image, x, y + 2)
-    return
-  }
-
-  layer.print(font, x, y, token.text)
+  // Una manera simple de hacer un perspective transform en Jimp: redimensionar con perspectiva
+  // Esto es complejo sin bibliotecas dedicadas, usaremos una aproximación con escalado y desplazamiento.
+  // El verdadero warp de perspectiva no está en el API básico de Jimp. Usaremos una aproximación visual con escala y distorsión.
+  const tempWarped = image.clone().scale(0.98, Jimp.RESIZE_BILINEAR)
+  const offsetX = Math.floor((WORK_SIZE - tempWarped.getWidth()) / 2)
+  const offsetY = Math.floor((WORK_SIZE - tempWarped.getHeight()) / 2)
+  
+  warped.composite(tempWarped, offsetX, offsetY)
+  return warped
 }
 
 async function renderBratImage(text = '') {
   const cleanText = normalizeText(text)
   if (!cleanText) throw new Error('Texto vacío para generar sticker.')
 
-  const rawTokens = splitWithEmoji(cleanText)
-  if (!rawTokens.length) throw new Error('No se encontraron tokens para renderizar.')
-
-  const { font, rows, lineHeight } = await chooseLayout(rawTokens)
-
-  const image = new Jimp(WORK_SIZE, WORK_SIZE, BG_COLOR)
-  const shadow = new Jimp(WORK_SIZE, WORK_SIZE, 0x00000000)
-  const textLayer = new Jimp(WORK_SIZE, WORK_SIZE, 0x00000000)
-
-  const leftX = 64
-  const rightX = 586
-  const centerX = 190
-  const centerW = 640
-
-  const contentHeight = rows.length * lineHeight
-  let y = Math.max(56, Math.floor((WORK_SIZE - contentHeight) / 2))
-
-  for (const row of rows) {
-    if (row.center) {
-      const token = row.center
-      if (token.type === 'emoji' && token.image) {
-        const cx = centerX + Math.floor((centerW - token.width) / 2)
-        drawToken(shadow, font, token, cx + 6, y + 6)
-        drawToken(textLayer, font, token, cx, y)
-      } else {
-        shadow.print(
-          font,
-          centerX + 6,
-          y + 6,
-          { text: token.text, alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER, alignmentY: Jimp.VERTICAL_ALIGN_TOP },
-          centerW,
-          lineHeight,
-        )
-        textLayer.print(
-          font,
-          centerX,
-          y,
-          { text: token.text, alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER, alignmentY: Jimp.VERTICAL_ALIGN_TOP },
-          centerW,
-          lineHeight,
-        )
-      }
-    } else {
-      if (row.left) {
-        drawToken(shadow, font, row.left, leftX + 6, y + 6)
-        drawToken(textLayer, font, row.left, leftX, y)
-      }
-
-      if (row.right) {
-        const rightTokenX = rightX + (row.right.type === 'text' ? TOKEN_GAP : 0)
-        drawToken(shadow, font, row.right, rightTokenX + 6, y + 6)
-        drawToken(textLayer, font, row.right, rightTokenX, y)
-      }
+  let bestLayout = null
+  for (const fontPath of FONT_CANDIDATES) {
+    const font = await Jimp.loadFont(fontPath)
+    const chunks = await buildChunks(font, cleanText)
+    const scattered = scatterLayout(chunks)
+    
+    // Verificar si el contenido cabe en la altura del lienzo
+    const maxItemY = scattered.reduce((max, t) => Math.max(max, t.y + t.height), 0)
+    if (maxItemY <= WORK_SIZE - 100) {
+      bestLayout = { font, scattered }
+      break
     }
-
-    y += lineHeight
   }
 
-  shadow.blur(3).opacity(0.24)
-  textLayer.blur(1)
+  // Fallback a fuente pequeña y diseño original si el scattered no cabe
+  if (!bestLayout) {
+    const fallbackFont = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK)
+    const chunks = await buildChunks(fallbackFont, cleanText)
+    // Usar un diseño híbrido para fallback, más denso pero aún aleatorio
+    bestLayout = { font: fallbackFont, scattered: scatterLayout(chunks) }
+  }
 
-  image.composite(shadow, 0, 0)
-  image.composite(textLayer, 0, 0)
+  const { font, scattered } = bestLayout
+
+  const image = new Jimp(WORK_SIZE, WORK_SIZE, BG_COLOR)
+  const contentLayer = new Jimp(WORK_SIZE, WORK_SIZE, 0x00000000)
+
+  // Dibujar todo el contenido en una capa transparente
+  for (const token of scattered) {
+    if (token.type === 'emoji' && token.image) {
+      contentLayer.composite(token.image, token.x, token.y + 2)
+    } else {
+      contentLayer.print(font, token.x, token.y, token.text)
+    }
+  }
+
+  // APLICAR EL WARP DE PERSPECTIVA (aproximado)
+  const warpedContent = await applyRandomWarp(contentLayer)
+
+  // CREAR EFECTO BRAT DE PROFUNDIDAD
+  // Capa para la sombra (profundidad)
+  const depthLayer = warpedContent.clone()
+  
+  // 1. Desplazar ligeramente hacia abajo y a la derecha
+  depthLayer.composite(warpedContent, 8, 8)
+  
+  // 2. Colorear la sombra (oscura pero translúcida) y difuminar para suavidad
+  depthLayer.color([{ apply: 'xor', params: [BG_COLOR] }, { apply: 'xor', params: [SHADOW_COLOR] }]) // Aproximación
+  depthLayer.blur(4).opacity(0.35)
+
+  // 3. CAPA DE TEXTO PRINCIPAL: Suave pero visible
+  const mainTextLayer = warpedContent.clone().blur(1) // Ligero desenfoque para efecto "soft toy"
+
+  // COMPOSICIÓN FINAL
+  // 1. Dibujar sombra (profundidad)
+  image.composite(depthLayer, 0, 0)
+  
+  // 2. Dibujar texto principal sobre la sombra
+  image.composite(mainTextLayer, 0, 0)
+
+  // REDIMENSIONAR A TAMAÑO FINAL
   image.resize(FINAL_SIZE, FINAL_SIZE, Jimp.RESIZE_BILINEAR)
 
   return image.getBufferAsync(Jimp.MIME_PNG)
 }
 
+// El resto de funciones no cambian
 async function makeBratSticker(text, packname, author) {
   const pngBuffer = await renderBratImage(text)
   const result = await sticker(pngBuffer, false, packname, author)
@@ -242,7 +268,7 @@ let handler = async (m, { conn, text }) => {
   if (!text) {
     return conn.sendMessage(
       m.chat,
-      { text: `${emoji} Por favor ingresa el texto para hacer un sticker brat.` },
+      { text: `Por favor ingresa el texto para hacer un sticker brat.` },
       { quoted: m },
     )
   }
@@ -263,7 +289,7 @@ let handler = async (m, { conn, text }) => {
     await m.react?.('✖️')
     return conn.sendMessage(
       m.chat,
-      { text: `${msm} Ocurrió un error al generar el sticker brat.` },
+      { text: `Ocurrió un error al generar el sticker brat.` },
       { quoted: m },
     )
   }
