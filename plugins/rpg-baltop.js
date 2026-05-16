@@ -1,8 +1,9 @@
 let handler = async (m, { conn, args, participants }) => {
-const groupJids = participants.map(p => p.id)
+const jidLocal = jid => String(jid || '').split('@')[0].split(':')[0]
+const groupLocals = new Set(participants.map(p => jidLocal(p.id)).filter(Boolean))
 
 const users = Object.entries(global.db.data.users)
-.filter(([jid]) => groupJids.includes(jid))
+.filter(([jid]) => groupLocals.has(jidLocal(jid)))
 .map(([key, value]) => ({ ...value, jid: key }))
 
 const sorted = users.sort((a, b) => {

@@ -17,6 +17,7 @@ global.uptimeStart = Date.now();
 const STALE_MESSAGE_WINDOW_MS = 10 * 60 * 1000
 const GROUP_METADATA_CACHE_TTL_MS = 2 * 60 * 1000
 global.groupMetadataCache = global.groupMetadataCache || new Map()
+const jidLocal = (jid = '') => String(jid || '').split('@')[0].split(':')[0]
 export async function handler(chatUpdate) {
 this.msgqueque = this.msgqueque || []
 this.uptime = this.uptime || Date.now()
@@ -71,6 +72,8 @@ if (jid && !/@/.test(jid)) {
 if (/^\d+$/.test(jid)) jid = jid + '@s.whatsapp.net'
 }
 let lid = p?.lid ?? (jid ? jid.split('@')[0] + '@lid' : undefined)
+if (p?.pn_lid) lid = p.pn_lid
+if (p?.phoneNumberLid) lid = p.phoneNumberLid
 let admin = false
 if (p) {
 if (typeof p.admin === 'string') {
@@ -184,6 +187,21 @@ if (!m.fromMe && opts['self']) return
 if (opts['swonly'] && m.chat !== 'status@broadcast') return
 if (typeof m.text !== 'string') m.text = ''
 const _user = global.db.data.users[sender]
+if (sender?.endsWith('@lid') && m.isGroup) {
+const participantMatch = participants.find(p => jidLocal(p?.id) === jidLocal(sender) && p?.id?.endsWith('@s.whatsapp.net'))
+if (participantMatch?.id) {
+const lidKey = sender
+const canonical = participantMatch.id
+if (!global.db.data.users[canonical]) global.db.data.users[canonical] = {}
+if (global.db.data.users[lidKey]) {
+global.db.data.users[canonical] = { ...global.db.data.users[lidKey], ...global.db.data.users[canonical] }
+delete global.db.data.users[lidKey]
+}
+sender = canonical
+if (m.key) m.key.participant = canonical
+m.sender = canonical
+}
+}
 const findParticipant = (jidToFind) => {
 if (!jidToFind) return undefined
 const target = (this.decodeJid && typeof this.decodeJid === 'function') ? this.decodeJid(jidToFind) : jidToFind
@@ -193,6 +211,8 @@ if (!u) return false
 if (u.jid && this.decodeJid && this.decodeJid(u.jid) === target) return true
 if (u.id && this.decodeJid && this.decodeJid(u.id) === target) return true
 if (u.lid && target && (u.lid === target || u.lid === jidToFind)) return true
+const targetLocal = jidLocal(target)
+if (targetLocal && (jidLocal(u.jid) === targetLocal || jidLocal(u.id) === targetLocal || jidLocal(u.lid) === targetLocal)) return true
 } catch (e) { }
 return false
 })
