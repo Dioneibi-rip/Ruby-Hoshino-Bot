@@ -67,7 +67,7 @@ global.groupMetadataCache.set(m.chat, { data: freshMetadata, ts: Date.now() })
 }
 const rawParticipants = m.isGroup ? (groupMetadata.participants || []) : []
 const participants = (rawParticipants || []).map(p => {
-let jid = typeof p === 'string' ? p : (p.id || p.jid || p.participant || p?.[0] || null)
+let jid = typeof p === 'string' ? p : (p.jid || p.id || p.participant || p?.[0] || null)
 if (jid && !/@/.test(jid)) {
 if (/^\d+$/.test(jid)) jid = jid + '@s.whatsapp.net'
 }
@@ -94,7 +94,8 @@ return { id: jid, jid: jid, lid, admin }
 })
 if (m.isGroup) {
 if (sender && sender.endsWith('@lid')) {
-const pInfo = participants.find(p => p.lid === sender)
+const senderLocal = jidLocal(sender)
+const pInfo = participants.find(p => p.lid === sender || jidLocal(p.lid) === senderLocal || jidLocal(p.id) === senderLocal)
 if (pInfo && pInfo.id) {
 sender = pInfo.id
 if (m.key) m.key.participant = pInfo.id
@@ -102,7 +103,8 @@ try { m.sender = pInfo.id } catch (e) { }
 }
 }
 if (m.quoted && m.quoted.sender && m.quoted.sender.endsWith('@lid')) {
-const pInfo = participants.find(p => p.lid === m.quoted.sender)
+const quotedLocal = jidLocal(m.quoted.sender)
+const pInfo = participants.find(p => p.lid === m.quoted.sender || jidLocal(p.lid) === quotedLocal || jidLocal(p.id) === quotedLocal)
 if (pInfo && pInfo.id) {
 if (m.quoted.key) m.quoted.key.participant = pInfo.id
 try { m.quoted.sender = pInfo.id } catch (e) { }
@@ -111,7 +113,8 @@ try { m.quoted.sender = pInfo.id } catch (e) { }
 if (m.mentionedJid && m.mentionedJid.length > 0) {
 const normalizedMentions = m.mentionedJid.map(jid => {
 if (jid && jid.endsWith('@lid')) {
-const pInfo = participants.find(p => p.lid === jid)
+const mentionLocal = jidLocal(jid)
+const pInfo = participants.find(p => p.lid === jid || jidLocal(p.lid) === mentionLocal || jidLocal(p.id) === mentionLocal)
 return (pInfo && pInfo.id) ? pInfo.id : jid
 }
 return jid
@@ -186,6 +189,21 @@ if (opts['nyimak']) return
 if (!m.fromMe && opts['self']) return
 if (opts['swonly'] && m.chat !== 'status@broadcast') return
 if (typeof m.text !== 'string') m.text = ''
+if (sender?.endsWith('@lid') && m.isGroup) {
+const participantMatch = participants.find(p => jidLocal(p?.id) === jidLocal(sender) && p?.id?.endsWith('@s.whatsapp.net'))
+if (participantMatch?.id) {
+const lidKey = sender
+const canonical = participantMatch.id
+if (!global.db.data.users[canonical]) global.db.data.users[canonical] = {}
+if (global.db.data.users[lidKey]) {
+global.db.data.users[canonical] = { ...global.db.data.users[lidKey], ...global.db.data.users[canonical] }
+delete global.db.data.users[lidKey]
+}
+sender = canonical
+if (m.key) m.key.participant = canonical
+m.sender = canonical
+}
+}
 const _user = global.db.data.users[sender]
 if (sender?.endsWith('@lid') && m.isGroup) {
 const participantMatch = participants.find(p => jidLocal(p?.id) === jidLocal(sender) && p?.id?.endsWith('@s.whatsapp.net'))
@@ -229,8 +247,8 @@ const botGroup = (m.isGroup ? findParticipant(this.user.jid) : {}) || {}
 const isRAdmin = normalizeAdmin(userGroup) === 'superadmin'
 const isAdmin = isRAdmin || normalizeAdmin(userGroup) === 'admin'
 const isBotAdmin = normalizeAdmin(botGroup) === 'admin' || normalizeAdmin(botGroup) === 'superadmin'
-const senderNum = String(sender || '').split('@')[0];
-const isROwner = global.owner.map(([number]) => number).includes(senderNum);
+const senderNum = jidLocal(sender);
+const isROwner = global.owner.map(([number]) => String(number).replace(/[^0-9]/g, '')).includes(senderNum);
 const isOwner = isROwner
 const isMods = isOwner || global.mods.map(v => v.replace(/[^0-9]/g, '')).includes(senderNum)
 const isPrems = isROwner || global.prems.map(v => v.replace(/[^0-9]/g, '')).includes(senderNum) || _user?.premium == true
