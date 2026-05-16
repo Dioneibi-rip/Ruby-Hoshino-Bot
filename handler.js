@@ -212,7 +212,37 @@ if (opts['nyimak']) return
 if (!m.fromMe && opts['self']) return
 if (opts['swonly'] && m.chat !== 'status@broadcast') return
 if (typeof m.text !== 'string') m.text = ''
+if (sender?.endsWith('@lid') && m.isGroup) {
+const participantMatch = participants.find(p => jidLocal(p?.id) === jidLocal(sender) && p?.id?.endsWith('@s.whatsapp.net'))
+if (participantMatch?.id) {
+const lidKey = sender
+const canonical = participantMatch.id
+if (!global.db.data.users[canonical]) global.db.data.users[canonical] = {}
+if (global.db.data.users[lidKey]) {
+global.db.data.users[canonical] = { ...global.db.data.users[lidKey], ...global.db.data.users[canonical] }
+delete global.db.data.users[lidKey]
+}
+sender = canonical
+if (m.key) m.key.participant = canonical
+m.sender = canonical
+}
+}
 const _user = global.db.data.users[sender]
+if (sender?.endsWith('@lid') && m.isGroup) {
+const participantMatch = participants.find(p => jidLocal(p?.id) === jidLocal(sender) && p?.id?.endsWith('@s.whatsapp.net'))
+if (participantMatch?.id) {
+const lidKey = sender
+const canonical = participantMatch.id
+if (!global.db.data.users[canonical]) global.db.data.users[canonical] = {}
+if (global.db.data.users[lidKey]) {
+global.db.data.users[canonical] = { ...global.db.data.users[lidKey], ...global.db.data.users[canonical] }
+delete global.db.data.users[lidKey]
+}
+sender = canonical
+if (m.key) m.key.participant = canonical
+m.sender = canonical
+}
+}
 const findParticipant = (jidToFind) => {
 if (!jidToFind) return undefined
 const target = (this.decodeJid && typeof this.decodeJid === 'function') ? this.decodeJid(jidToFind) : jidToFind
