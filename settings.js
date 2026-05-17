@@ -73,8 +73,8 @@ global.avatar = 'https://qu.ax/RYjEw.jpeg'
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
-global.gp1 = 'https://chat.whatsapp.com/Hgl5fQI7UhtEj6Cr6Rpo5w?mode=ac_t'
-global.comunidad1 = 'https://chat.whatsapp.com/K2CPrOTksiA36SW6k41yuR'
+global.gp1 = 'https://chat.whatsapp.com/Hlbyc0Wr0HR8cTJt75draN'
+global.comunidad1 = 'https://chat.whatsapp.com/BMMIqdAuk7gK4JB8csADKw'
 global.channel = 'https://whatsapp.com/channel/0029VakLbM76mYPPFL0IFI3P'
 global.channel2 = 'https://whatsapp.com/channel/0029VakLbM76mYPPFL0IFI3P'
 global.md = 'https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot'
