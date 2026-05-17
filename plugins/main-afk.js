@@ -1,5 +1,8 @@
 export function before(m, { conn }) {
+    if (m.fromMe) return true; 
+
     const user = global.db.data.users[m.sender];
+    if (!user) return true;
 
     const clockString = (ms) => {
         let h = Math.floor(ms / 3600000);
@@ -8,7 +11,7 @@ export function before(m, { conn }) {
         return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
     };
 
-    if (user && user.afk > -1) {
+    if (user.afk > -1) {
         let timeAfk = clockString(new Date() - user.afk);
         let reasonText = user.afkReason ? `\n         🧇̫͠ ꒰  *𝖬𝗈𝗍𝗂𝗏𝗈:* ${user.afkReason}` : '';
         
@@ -26,14 +29,17 @@ export function before(m, { conn }) {
     }
 
     const jids = [...new Set([...(m.mentionedJid || []), ...(m.quoted ? [m.quoted.sender] : [])])];
+    
     for (const jid of jids) {
+        if (jid === conn.user.jid) continue; 
+
         const mentionedUser = global.db.data.users[jid];
         if (!mentionedUser) continue;
         
         const afkTime = mentionedUser.afk;
         if (!afkTime || afkTime < 0) continue;
         
-        const reason = mentionedUser.afkReason || '𝖲𝗂𝗇     𝖾𝗌𝗉𝖾𝖼𝗂𝖿𝗂𝖼𝖺𝗋';
+        const reason = mentionedUser.afkReason || '𝖲𝗂𝗇     𝖾𝗌𝗉𝖾𝖼𝗂𝖼𝖺𝗋';
         let timeAfk = clockString(new Date() - afkTime);
 
         let mentionText = `> 💤 𝖤𝗅     𝗎𝗌𝗎𝖺𝗋𝗂𝗈     𝖾𝗌𝗍𝖺́     𝗂𝗇𝖺𝖼𝗍𝗂𝗏𝗈     ,     𝗇𝗈     𝗅𝗈     𝖾𝗍𝗂𝗊𝗎𝖾𝗍𝖾𝗌     . . .
