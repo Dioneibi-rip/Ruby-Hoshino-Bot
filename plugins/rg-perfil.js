@@ -66,39 +66,47 @@ let handler = async (m, { conn }) => {
     let coins = user.coin || 0
     let bankCoins = user.bank || 0
     let jobLine = formatJobLine(user)
+    let moneda = m.moneda || 'Coins'
 
-    let perfil = await conn.profilePictureUrl(userId, 'image')
-      .catch(() => 'https://files.catbox.moe/xr2m6u.jpg')
+    let perfil
+    try {
+      perfil = await conn.profilePictureUrl(userId, 'image')
+    } catch (e) {
+      perfil = 'https://files.catbox.moe/xr2m6u.jpg'
+    }
+
+    const botName = global.info?.botName || global.botname || "El Propietario"
 
     let profileText = `
-﹙𖤍﹚︩︪ ⌗ 𝖯𝖤𝖱𝖥𝖨𝖫 𝖣𝖤 ${name}
-ㅤㅤ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯  
-⧉ 𖦹 𝖴𝗌𝖾𝗋 » @${userId.split('@')[0]}
-⧉ 𖦹 𝖣𝖾𝗌𝖼𝗋𝗂𝗉𝗍𝗂𝗈𝗇 » ${description}
-
-⧉ 𖦹 𝖠𝗀𝖾 » ${user.age || '𖠿 Desconocida'}
-⧉ 𖦹 𝖢𝗎𝗆𝗉𝗅𝖾 » ${cumpleanos}
-⧉ 𖦹 𝖦énero » ${genero}
-⧉ 𖦹 𝖢𝖺𝗌𝖺𝖽𝗈/𝖺 𝖢𝗈𝗇 » ${parejaTag}
-ㅤㅤ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯  
-⧉ 𖦹 𝖭𝗂𝗏𝖾𝗅 » ${nivel}
-⧉ 𖦹 𝖤𝗑𝗉 » ${exp.toLocaleString()}
-⧉ 𖦹 𝖱𝖺𝗇𝗀𝗈 » ${role}
-
-⧉ 𖦹 𝖢𝗈𝗂𝗇𝗌 » ${coins.toLocaleString()} ${m.moneda}
-⧉ 𖦹 𝖡𝖺𝗇𝗄 » ${bankCoins.toLocaleString()} ${m.moneda}
-⧉ 𖦹 𝖯𝗋𝖾𝗆𝗂𝗎𝗆 » ${user.premium ? '✔ Activo' : '✘ Inactivo'}
-⧉ 𖦹 𝖳𝗋𝖺𝖻𝖺𝗃𝗈 » ${jobLine}
-ㅤㅤ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯ ⎯  
-> ⋆｡°✩ 𝖯𝗋𝗈𝗉𝗂𝖾𝗍𝖺𝗋𝗂𝗈 ᴅᴇ ʟᴀ ʙᴏᴛ: ${dev} ⋆｡°✩
+╭━━━━「 𝖯𝖤𝖱𝖥𝖨𝖫 𝖣𝖤 𝖴𝖲𝖴𝖠𝖱𝖨𝖮 」━━━━
+│ ⧉ 𖦹 𝖭𝗈𝗆𝖻𝗋𝖾 » ${name}
+│ ⧉ 𖦹 𝖴𝗌𝖾𝗋 » @${userId.split('@')[0]}
+│ ⧉ 𖦹 𝖣𝖾𝗌𝖼𝗋𝗂𝗉𝗍𝗂𝗈𝗇 » ${description}
+├────────────────────────
+│ ⧉ 𖦹 𝖠𝗀𝖾 » ${user.age || '𖠿 Desconocida'}
+│ ⧉ 𖦹 𝖢𝗎𝗆𝗉𝗅𝖾 » ${cumpleanos}
+│ ⧉ 𖦹 𝖦énero » ${genero}
+│ ⧉ 𖦹 𝖢𝖺𝗌𝖺𝖽𝗈/𝖺 𝖢𝗈𝗇 » ${parejaTag}
+├────────────────────────
+│ ⧉ 𖦹 𝖭𝗂𝗏𝖾𝗅 » ${nivel}
+│ ⧉ 𖦹 𝖤𝗑𝗉 » ${exp.toLocaleString()}
+│ ⧉ 𖦹 𝖱𝖺𝗇𝗀𝗈 » ${role}
+├────────────────────────
+│ ⧉ 𖦹 𝖢𝗈𝗂𝗇𝗌 » ${coins.toLocaleString()} ${moneda}
+│ ⧉ 𖦹 𝖡𝖺𝗇𝗄 » ${bankCoins.toLocaleString()} ${moneda}
+│ ⧉ 𖦹 𝖯𝗋𝖾𝗆𝗂𝗎𝗆 » ${user.premium ? '✔ Activo' : '✘ Inactivo'}
+│ ⧉ 𖦹 𝖳𝗋𝖺𝖻𝖺𝗃𝗈 » ${jobLine}
+╰━━━━「 ⋆｡°✩ ${botName} ⋆｡°✩ 」━━━━
 `.trim()
 
     await conn.sendMessage(
       m.chat,
       {
-        text: profileText,
+        image: { url: perfil },
+        caption: profileText,
         contextInfo: {
-          mentionedJid: mentions}
+          mentionedJid: mentions
+        }
       },
       { quoted: m }
     )
