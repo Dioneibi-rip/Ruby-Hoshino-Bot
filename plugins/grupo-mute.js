@@ -103,7 +103,7 @@ let handler = async (m, { conn, command, text, args, participants, isBotAdmin, i
     }
 }
 
-handler.command = ['mute|silenciar|unmute|desmutear];
+handler.command = ['mute','silenciar','unmute','desmutear];
 handler.group = true
 handler.admin = true
 handler.botAdmin = true
