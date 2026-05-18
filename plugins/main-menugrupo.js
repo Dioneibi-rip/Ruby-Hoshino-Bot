@@ -59,6 +59,8 @@ let handler = async (m, { conn }) => {
 > ✦ Elimina mensajes de otros usuarios.
 ᪄🧛🏼‍♀️᮫ᮣᮭᮡᩪᩬᩧᩦᩥ᪃ ؉ ᩡᩡ *#fantasmas*
 > ✦ Ver lista de inactivos del grupo.
+᪄🧛🏼‍♀️᮫ᮣᮭᮡᩪᩬᩧᩦᩥ᪃ ؉ ᩡᩡ *#topmensajes • #topmsg • #topactividad* [página]
+> ✦ Ver el ranking de mensajes y comandos de los últimos 30 días.
 ᪄🧛🏼‍♀️᮫ᮣᮭᮡᩪᩬᩧᩦᩥ᪃ ؉ ᩡᩡ *#kickfantasmas*
 > ✦ Elimina a los inactivos del grupo.
 ᪄🧛🏼‍♀️᮫ᮣᮭᮡᩪᩬᩧᩦᩥ᪃ ؉ ᩡᩡ *#invocar • #tagall • #todos*
@@ -86,7 +88,7 @@ let handler = async (m, { conn }) => {
         },
       },
     },
-    { quoted: fkontak }
+    { quoted: global.fkontak || m }
   );
 };
 
