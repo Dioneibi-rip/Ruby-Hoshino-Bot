@@ -717,8 +717,6 @@ let handler = async (m, { conn, args }) => {
 ╚▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬▭╝
   `.trim();
 
-  const extraCommands = buildMissingCommandsSection(global.plugins, txt);
-  if (extraCommands) txt = `${txt}\n\n${extraCommands}`;
 
     await conn.reply(m.chat, '*ꪹ͜𓂃⌛͡𝗘𝗻𝘃𝗶𝗮𝗻𝗱𝗼 𝗠𝗲𝗻𝘂 𝗱𝗲 𝗹𝗮 𝗕𝗼𝘁....𓏲੭*', m, { 
         contextInfo: { 
@@ -769,30 +767,3 @@ function commandAliases(command) {
   if (typeof command === 'string') return [command];
   return [];
 }
-
-function buildMissingCommandsSection(plugins = {}, menuText = '') {
-  const normalizedMenu = normalizeMenuSearch(menuText);
-  const rows = [];
-  const seen = new Set();
-
-  for (const plugin of Object.values(plugins || {})) {
-    if (!plugin || plugin.disabled) continue;
-    const aliases = commandAliases(plugin.command).map(cmd => cmd.trim()).filter(Boolean);
-    if (!aliases.length) continue;
-    if (aliases.some(cmd => normalizedMenu.includes(cmd.toLowerCase()))) continue;
-
-    const key = aliases.join('|').toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    rows.push(`┃ ✦ ${aliases.slice(0, 5).map(cmd => `#${cmd}`).join(' • ')}`);
-  }
-
-  if (!rows.length) return '';
-
-  return `✞͙͙͙͙͙͙͙͙͙͙⏜❟︵ֹ̩̥̩̥̩̥̩̩̥⏜੭🏮୧ֹ⏜︵ֹ̩̥̩̥̩̥̩̥̩̥̩̥̩̥❟⏜፞✞͙͙͙͙͙͙͙͙͙͙.
-├┈ ↷𝘾𝙊𝙈𝘼𝙉𝘿𝙊𝙎 𝙀𝙓𝙏𝙍𝘼 𝘿𝙀𝙏𝙀𝘾𝙏𝘼𝘿𝙊𝙎
-├• ✐; ₊˚✦୧︰ 𝙎𝙚 𝙖𝙜𝙧𝙚𝙜𝙖𝙣 𝙖𝙪𝙩𝙤𝙢𝙖́𝙩𝙞𝙘𝙖𝙢𝙚𝙣𝙩𝙚 𝙨𝙞 𝙣𝙤 𝙚𝙨𝙩𝙖́𝙣 𝙚𝙣 𝙚𝙡 𝙢𝙚𝙣𝙪́.
-${rows.join('\n')}
-╚▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬▭╝`;
-}
-
