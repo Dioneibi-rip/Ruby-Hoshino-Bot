@@ -5,14 +5,14 @@ async function handler(m, { conn }) {
 
   const contactos = [
     {
-      numero: '18294868853',
+      numero: '18093519169',
       nombre: '⏤͟͞ू⃪ ፝͜⁞𝘿𝙞𝙤𝙣𝙚𝙞𝙗𝙞-ʳⁱᵖ ִֶ ࣪˖ ִֶָ👑་༘',
       cargo: 'Dueño Principal',
       nota: 'Creador del Bot',
       correo: 'selinapasena@gmail.com',
       region: '🇩🇴 República Dominicana',
       web: 'https://github.com/Dioneibi-rip',
-      biografia: await conn.fetchStatus('18294868853@s.whatsapp.net').then(res => res.status).catch(_ => 'Sin biografía')
+      biografia: await conn.fetchStatus('18093519169@s.whatsapp.net').then(res => res.status).catch(_ => 'Sin biografía')
     },
     {
       numero: '18096758983',
