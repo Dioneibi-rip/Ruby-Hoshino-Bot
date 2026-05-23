@@ -17,6 +17,29 @@ resolve()
 global.uptimeStart = Date.now();
 
 const GROUP_METADATA_TTL = 60 * 1000
+
+function getCommandTester(conn, pluginName, pluginCommand) {
+conn.__commandTesterCache = conn.__commandTesterCache || new Map()
+const cache = conn.__commandTesterCache
+const cacheKey = `${pluginName}:${typeof pluginCommand}`
+let tester = cache.get(cacheKey)
+if (tester && tester.__source === pluginCommand) return tester
+if (pluginCommand instanceof RegExp) {
+  tester = (command) => pluginCommand.test(command)
+} else if (Array.isArray(pluginCommand)) {
+  const strings = new Set(pluginCommand.filter(cmd => typeof cmd === 'string'))
+  const regexes = pluginCommand.filter(cmd => cmd instanceof RegExp)
+  tester = (command) => strings.has(command) || regexes.some(re => re.test(command))
+} else if (typeof pluginCommand === 'string') {
+  tester = (command) => pluginCommand === command
+} else {
+  tester = () => false
+}
+tester.__source = pluginCommand
+cache.set(cacheKey, tester)
+return tester
+}
+
 const GROUP_METADATA_MAX = 2000
 function normalizeParticipant(participant = {}) {
 return { ...participant, id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin || participant.isAdmin || participant.role }
@@ -30,10 +53,25 @@ if (Array.isArray(metadata.participants)) metadata.participants = metadata.parti
 conn.__groupMetadataCache.set(chatId, metadata)
 return metadata
 }
+
+function createParticipantIndex(participants = []) {
+const byLid = new Map()
+for (const p of participants) {
+  if (p?.lid) byLid.set(p.lid, p)
+}
+return byLid
+}
+
 export async function handler(chatUpdate) {
 this.msgqueque = this.msgqueque || []
 this.uptime = this.uptime || Date.now()
-if (this.__groupMetadataCache && Math.random() < 0.01) this.__groupMetadataCache.clearExpired()
+this.__maintenanceAt = this.__maintenanceAt || 0
+if (Date.now() - this.__maintenanceAt > 60_000) {
+  this.__maintenanceAt = Date.now()
+  if (this.__groupMetadataCache) this.__groupMetadataCache.clearExpired()
+  if (this.__commandTesterCache && this.__commandTesterCache.size > 3000) this.__commandTesterCache.clear()
+  if (this.__prefixMatcherCache && this.__prefixMatcherCache.size > 2000) this.__prefixMatcherCache.clear()
+}
 if (!chatUpdate) return
 let sender = null;
 try {
@@ -66,9 +104,10 @@ if (this?.user?.jid !== chat.primaryBot) return;
 sender = m.isGroup ? (m.key?.participant ? m.key.participant : m.sender) : m.key?.remoteJid;
 const groupMetadata = m.isGroup ? await getCachedGroupMetadata(this, m.chat) : {}
 const participants = Array.isArray(groupMetadata.participants) ? groupMetadata.participants : []
+const participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
 if (m.isGroup) {
 if (sender && sender.endsWith('@lid')) {
-const pInfo = participants.find(p => p.lid === sender)
+const pInfo = participantsByLid?.get(sender)
 if (pInfo && pInfo.jid) {
 sender = pInfo.jid
 if (m.key) m.key.participant = pInfo.jid
@@ -76,7 +115,7 @@ try { m.sender = pInfo.jid } catch (e) { }
 }
 }
 if (m.quoted && m.quoted.sender && m.quoted.sender.endsWith('@lid')) {
-const pInfo = participants.find(p => p.lid === m.quoted.sender)
+const pInfo = participantsByLid?.get(m.quoted.sender)
 if (pInfo && pInfo.jid) {
 if (m.quoted.key) m.quoted.key.participant = pInfo.jid
 try { m.quoted.sender = pInfo.jid } catch (e) { }
@@ -85,7 +124,7 @@ try { m.quoted.sender = pInfo.jid } catch (e) { }
 if (m.mentionedJid && m.mentionedJid.length > 0) {
 const normalizedMentions = m.mentionedJid.map(jid => {
 if (jid && jid.endsWith('@lid')) {
-const pInfo = participants.find(p => p.lid === jid)
+const pInfo = participantsByLid?.get(jid)
 return (pInfo && pInfo.jid) ? pInfo.jid : jid
 }
 return jid
@@ -239,9 +278,8 @@ let _args = noPrefix.trim().split` `.slice(1)
 let text = _args.join` `
 command = (command || '').toLowerCase()
 let fail = plugin.fail || global.dfail
-let isAccept = plugin.command instanceof RegExp ? plugin.command.test(command) :
-Array.isArray(plugin.command) ? plugin.command.some(cmd => cmd instanceof RegExp ? cmd.test(command) : cmd === command) :
-typeof plugin.command === 'string' ? plugin.command === command : false
+const commandTester = getCommandTester(this, name, plugin.command)
+let isAccept = commandTester(command)
 global.comando = command
 if ((m.id && (m.id.startsWith('NJX-') || (m.id.startsWith('BAE5') && m.id.length === 16) || (m.id.startsWith('B24E') && m.id.length === 20)))) return
 if (!isAccept) continue
