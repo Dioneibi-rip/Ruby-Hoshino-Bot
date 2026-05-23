@@ -1,143 +1,150 @@
 import fetch from "node-fetch";
 import { download, detail, search } from "../lib/anime.js";
 
-async function getLangs(episodes) {
-    const list = [];
-    for (const ep of episodes) {
-        try {
-            const dl = await download(ep.link);
-            const langs = [];
-            if (dl?.dl?.sub) langs.push("sub");
-            if (dl?.dl?.dub) langs.push("dub");
-            list.push({ ...ep, lang: langs });
-        } catch (e) {
-            list.push({ ...ep, lang: [] });
-        }
-    }
-    return list;
+const SESSION_TTL = 10 * 60 * 1000;
+
+const formatLangs = (langs = []) => {
+  if (!langs.length) return "SUB / DUB";
+  return langs.map((l) => l.toUpperCase()).join(" & ");
+};
+
+async function detectEpisodeLangs(episodes = []) {
+  const results = [];
+  for (let i = 0; i < episodes.length; i += 4) {
+    const chunk = episodes.slice(i, i + 4);
+    const chunkResults = await Promise.all(chunk.map(async (ep) => {
+      try {
+        const info = await download(ep.link);
+        const langs = Object.entries(info?.dl || {})
+          .filter(([, link]) => Boolean(link))
+          .map(([lang]) => lang);
+        return { ...ep, lang: langs };
+      } catch {
+        return { ...ep, lang: [] };
+      }
+    }));
+    results.push(...chunkResults);
+  }
+  return results;
 }
 
 let handler = async (m, { command, usedPrefix, conn, text, args }) => {
-    if (!text) return m.reply(
-        `🌱 *Ingresa el título de algún anime o la URL.*\n\n` +
-        `• ${usedPrefix + command} Mushoku Tensei\n` +
-        `• ${usedPrefix + command} https://animeav1.com/media/mushoku-tensei`
-    );
+  if (!text) return m.reply(
+    `🌸 *Uso correcto de AnimeDL*\n\n` +
+    `• ${usedPrefix + command} Mushoku Tensei\n` +
+    `• ${usedPrefix + command} https://animeav1.com/media/mushoku-tensei`
+  );
 
-    try {
-        if (text.includes("https://animeav1.com/media/")) {
-            m.react("⌛");
-            let info = await detail(args[0]);
-            let { title, altTitle, description, cover, votes, rating, total, genres } = info;
+  try {
+    if (text.includes("animeav1.com/media/")) {
+      m.react("⏳");
+      const info = await detail(args[0]);
+      if (info?.error) throw new Error(info.error);
 
-            let episodes = await getLangs(info.episodes);
-            const gen = genres.join(", ");
+      const episodes = await detectEpisodeLangs(info.episodes || []);
+      const gen = (info.genres || []).join(", ") || "No disponible";
 
-            let eps = episodes.map(e => {
-                return `• Episodio ${e.ep} (${e.lang.includes("sub") ? "SUB" : ""}${e.lang.includes("dub") ? (e.lang.includes("sub") ? " & " : "") + "DUB" : ""})`;
-            }).join("\n");
+      const eps = episodes.map((e) => `• Episodio ${e.ep} (${formatLangs(e.lang)})`).join("\n");
 
-            let caption = `
-乂 \`\`\`ANIME - DOWNLOAD\`\`\`
+      const caption = [
+        "╭─「 🌸 *ANIME DOWNLOAD PRO* 」",
+        `├ 🏷️ *Título:* ${info.title || "Sin título"}${info.altTitle ? ` - ${info.altTitle}` : ""}`,
+        `├ ⭐ *Rating:* ${info.rating || "N/A"}`,
+        `├ 🗳️ *Votos:* ${info.votes || "N/A"}`,
+        `├ 🎭 *Géneros:* ${gen}`,
+        `├ 📦 *Episodios totales:* ${info.total || episodes.length}`,
+        "├────────────────",
+        `├ 📜 *Descripción:* ${info.description || "Sin descripción"}`,
+        "├────────────────",
+        "├ 📺 *Episodios disponibles:*",
+        eps || "• No se encontraron episodios",
+        "╰─➤ Responde con: *número idioma*",
+        "     Ejemplo: *1 sub*  |  *3 dub*",
+      ].join("\n");
 
-≡ 🌷 *Título :* ${title} - ${altTitle}
-≡ 🌾 *Descripción :* ${description}
-≡ 🌲 *Votos :* ${votes}
-≡ 🍂 *Rating :* ${rating}
-≡ 🍃 *Géneros :* ${gen}
-≡ 🌱 *Episodios totales :* ${total}
-≡ 🌿 *Episodios disponibles :*
+      const buffer = await (await fetch(info.cover)).arrayBuffer();
+      const sent = await conn.sendMessage(m.chat, { image: Buffer.from(buffer), caption }, { quoted: m });
 
-${eps}
-
-> Responde a este mensaje con el número del episodio y el idioma. Ejemplo: *1 sub*, *3 dub*
-`.trim();
-
-            let buffer = await (await fetch(cover)).arrayBuffer();
-            let sent = await conn.sendMessage(
-                m.chat,
-                { image: Buffer.from(buffer), caption },
-                { quoted: m }
-            );
-
-            conn.anime = conn.anime || {};
-            conn.anime[m.sender] = {
-                title,
-                episodes,
-                key: sent.key,
-                downloading: false,
-                timeout: setTimeout(() => delete conn.anime[m.sender], 600000) // 10 minutos
-            };
-
-        } else {
-            m.react("🔍");
-            const results = await search(text);
-
-            if (!results.length) return m.reply("❌ No se encontraron resultados.", m);
-
-            let cap = `乂 *ANIME - SEARCH*\n`;
-            results.slice(0, 15).forEach((res, index) => {
-                cap += `\n\`${index + 1}\`\n≡ 🌴 *Title :* ${res.title}\n≡ 🌱 *Link :* ${res.link}\n`;
-            });
-
-            await conn.sendMessage(m.chat, { text: cap }, { quoted: m });
-            m.react("🌱");
-        }
-    } catch (e) {
-        console.error("Error en handler anime:", e);
-        m.reply("⚠️ Error al procesar la solicitud: " + e.message);
+      conn.anime = conn.anime || {};
+      if (conn.anime[m.sender]?.timeout) clearTimeout(conn.anime[m.sender].timeout);
+      conn.anime[m.sender] = {
+        title: info.title,
+        episodes,
+        key: sent.key,
+        downloading: false,
+        timeout: setTimeout(() => delete conn.anime[m.sender], SESSION_TTL),
+      };
+      return;
     }
+
+    m.react("🔎");
+    const results = await search(text);
+    if (!results.length) return m.reply("❌ No se encontraron resultados para ese anime.");
+
+    let cap = "╭─「 🔎 *RESULTADOS ANIME* 」\n";
+    results.slice(0, 15).forEach((res, index) => {
+      cap += `├ ${index + 1}. *${res.title}*\n`;
+      cap += `│ 🔗 ${res.link}\n`;
+    });
+    cap += "╰─➤ Copia uno de los links y úsalo con animedl";
+
+    await conn.sendMessage(m.chat, { text: cap }, { quoted: m });
+    m.react("✅");
+  } catch (e) {
+    console.error("Error en handler anime:", e);
+    m.reply("⚠️ Ocurrió un error al procesar AnimeDL: " + e.message);
+  }
 };
 
 handler.before = async (m, { conn }) => {
-    conn.anime = conn.anime || {};
-    const session = conn.anime[m.sender];
-    if (!session || !m.quoted || m.quoted.id !== session.key.id) return;
+  conn.anime = conn.anime || {};
+  const session = conn.anime[m.sender];
+  if (!session || !m.quoted || m.quoted.id !== session.key.id) return;
+  if (session.downloading) return m.reply("⏳ Ya hay una descarga en progreso, espera a que termine.");
 
-    if (session.downloading) return m.reply("⏳ Ya estás descargando un episodio. Espera a que termine.");
+  const [epStr, langInput] = (m.text || "").trim().toLowerCase().split(/\s+/);
+  const epi = Number.parseInt(epStr, 10);
+  if (Number.isNaN(epi)) return m.reply("❌ Debes escribir un número de episodio válido. Ejemplo: *1 sub*");
 
-    let [epStr, langInput] = m.text.trim().split(/\s+/);
-    const epi = parseInt(epStr);
-    let idioma = langInput?.toLowerCase();
+  const episode = session.episodes.find((e) => e.ep === epi);
+  if (!episode) return m.reply(`❌ El episodio ${epi} no existe en la lista.`);
 
-    if (isNaN(epi)) return m.reply("❌ Número de episodio no válido.");
-
-    const episode = session.episodes.find(e => parseInt(e.ep) === epi);
-    if (!episode) return m.reply(`❌ Episodio ${epi} no encontrado.`);
-
+  session.downloading = true;
+  try {
     const inf = await download(episode.link);
-    const availableLangs = Object.keys(inf.dl || {});
-    if (!availableLangs.length) return m.reply(`❌ No hay idiomas disponibles para el episodio ${epi}.`);
+    const availableLangs = Object.entries(inf?.dl || {})
+      .filter(([, link]) => Boolean(link))
+      .map(([lang]) => lang);
 
-    if (!idioma || !availableLangs.includes(idioma)) {
-        idioma = availableLangs[0]; // fallback
+    if (!availableLangs.length) {
+      throw new Error("No se detectaron enlaces de descarga en ese episodio");
     }
 
-    const idiomaLabel = idioma === "sub" ? "sub español" : "español latino";
-    await m.reply(`📥 Descargando *${session.title}* - cap ${epi} (${idiomaLabel})`);
-    m.react("📥");
+    let idioma = langInput;
+    if (!idioma || !availableLangs.includes(idioma)) idioma = availableLangs[0];
+    const idiomaLabel = idioma === "sub" ? "Sub Español" : "Español Latino";
 
-    session.downloading = true;
+    await m.reply(`📥 Descargando *${session.title}* - Episodio *${epi}* (${idiomaLabel})...`);
 
-    try {
-        const videoBuffer = await (await fetch(inf.dl[idioma])).buffer();
-        await conn.sendFile(
-            m.chat,
-            videoBuffer,
-            `${session.title} - cap ${epi} ${idiomaLabel}.mp4`,
-            "",
-            m,
-            false,
-            { mimetype: "video/mp4", asDocument: true }
-        );
-        m.react("✅");
-    } catch (err) {
-        console.error("Error al descargar:", err);
-        m.reply("⚠️ Error al descargar el episodio: " + err.message);
-    }
-
-    clearTimeout(session.timeout);
+    await conn.sendFile(
+      m.chat,
+      inf.dl[idioma],
+      `${session.title} - EP${epi} ${idiomaLabel}.mp4`,
+      `✅ Descarga completada\n🎬 *${session.title}*\n📺 Episodio: *${epi}*\n🗣️ Audio: *${idiomaLabel}*`,
+      m,
+      false,
+      { mimetype: "video/mp4", asDocument: true }
+    );
+    m.react("✅");
+  } catch (err) {
+    console.error("Error al descargar episodio:", err);
+    await m.reply(`⚠️ Falló la descarga del episodio ${epi}: ${err.message}`);
+    m.react("❌");
+  } finally {
+    session.downloading = false;
+    if (session.timeout) clearTimeout(session.timeout);
     delete conn.anime[m.sender];
+  }
 };
 
 handler.command = ["anime", "animedl", "animes"];
