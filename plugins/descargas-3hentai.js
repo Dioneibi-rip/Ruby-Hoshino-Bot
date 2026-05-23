@@ -1,91 +1,75 @@
-import { build3HentaiPdf, get3HentaiGallery, search3Hentai } from '../lib/hentaimanga.js'
-import { extractImageThumb } from '@whiskeysockets/baileys'
-import fetch from 'node-fetch' // 🌸 Necesario para el proxy de la miniatura
+import fetch from 'node-fetch';
+import PDFDocument from 'pdfkit';
+import {extractImageThumb} from '@whiskeysockets/baileys';
 
-let handler = async (m, { conn, text, usedPrefix, command }) => {
-  if (!db.data.chats[m.chat].nsfw && m.isGroup) {
-    return m.reply(`🛑 *¡Alto ahí!*\nEl contenido *NSFW* está desactivado en este grupo.\n> 🍓 *Nota:* Un administrador puede activarlo usando » \`#nsfw on\``)
-  }
+const handler = async (m, {conn, text, usedPrefix, command, args}) => {
+  const datas = global
 
-  if (!text) {
-    return conn.reply(m.chat, `🌸 *¿Cómo buscar?*\n\n╭─⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂\n│ 🍓 *Por nombre:*\n│ ↳ ${usedPrefix + command} buscar school days\n│\n│ 🍓 *Por ID o Link:*\n│ ↳ ${usedPrefix + command} 123456\n│ ↳ ${usedPrefix + command} https://es.3hentai.net/d/123456\n╰─⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂⢂`, m)
-  }
-
+  if (!db.data.chats[m.chat].modohorny && m.isGroup) throw '*[❗𝐈𝐍𝐅𝐎❗] 𝙻𝙾𝚂 𝙲𝙾𝙼𝙰𝙽𝙳𝙾𝚂 +𝟷𝟾 𝙴𝚂𝚃𝙰𝙽 𝙳𝙴𝚂𝙰𝙲𝚃𝙸𝚅𝙰𝙳𝙾𝚂 𝙴𝙽 𝙴𝚂𝚃𝙴 𝙶𝚁𝚄𝙿𝙾, 𝚂𝙸 𝙴𝚂 𝙰𝙳𝙼𝙸𝙽 𝚈 𝙳𝙴𝚂𝙴𝙰 𝙰𝙲𝚃𝙸𝚅𝙰𝚁𝙻𝙾𝚂 𝚄𝚂𝙴 𝙴𝙻 𝙲𝙾𝙼𝙰𝙽𝙳𝙾 #enable modohorny*';
+  if (!text) throw `[❗] 𝙸𝙽𝙶𝚁𝙴𝚂𝙰 𝙴𝙻 𝙽𝙾𝙼𝙱𝚁𝙴 𝙳𝙴 𝙰𝙻𝙶𝚄𝙽𝙰 𝙲𝙰𝚃𝙴𝙶𝙾𝚁𝙸𝙰 𝙳𝙴 𝙷𝙴𝙽𝚃𝙰𝙸, 𝙴𝙹𝙴𝙼𝙿𝙻𝙾: ${usedPrefix + command} Miku`;
   try {
-    // ────────── 🔍 BÚSQUEDA ──────────
-    if (/^buscar\s+/i.test(text)) {
-      const query = text.replace(/^buscar\s+/i, '').trim()
-      if (!query) return conn.reply(m.chat, '❌ *Escribe algo para buscar.*', m)
-
-      const results = await search3Hentai(query)
-      if (!results.length) return conn.reply(m.chat, '🥀 *No encontré resultados en 3hentai para tu búsqueda.*', m)
-
-      let cap = '╭─「 🔞 *3HENTAI SEARCH* 」─✧\n│\n'
-      results.forEach((item, idx) => {
-        cap += `├ 🎀 *${idx + 1}.* ${item.title}\n`
-        cap += `│ 🆔 *ID:* ${item.id}\n`
-        cap += `│ 🔗 *Link:* ${item.link}\n`
-        cap += `│\n`
-      })
-      cap += `╰─➤ 🍓 *Usa:* ${usedPrefix + command} <id|link> para descargar.`
-
-      const thumb = results.find((x) => x.thumb)?.thumb
-      if (thumb) await conn.sendFile(m.chat, thumb, 'thumb.jpg', cap, m)
-      else await conn.reply(m.chat, cap, m)
-      return
-    }
-
-    // ────────── 📥 DESCARGA ──────────
-    await m.react('⏳')
-    const gallery = await get3HentaiGallery(text)
-    const { pdfBuffer, fileName, downloaded } = await build3HentaiPdf(gallery, 80)
-
-    // 🖼️ TRUCO PARA LA MINIATURA (Igual al de nhentai) 🖼️
-    let jpegThumbnail = ''
-    try {
-      // Pasamos la primera imagen por DuckDuckGo para purificar su formato
-      const proxyUrl = `https://external-content.duckduckgo.com/iu/?u=${encodeURIComponent(gallery.images[0])}`
-      const reqThumb = await fetch(proxyUrl)
-      const thumbBuf = Buffer.from(await reqThumb.arrayBuffer())
-
-      // Ahora sí, extractImageThumb no lanzará "Invalid input"
-      const extractedThumb = await extractImageThumb(thumbBuf)
-      
-      // WhatsApp suele requerir que la miniatura de los documentos sea en Base64
-      jpegThumbnail = extractedThumb.toString('base64')
-    } catch (thumbError) {
-      console.log('⚠️ Error al generar miniatura:', thumbError.message)
-    }
-
-    // 🌸 Armamos las opciones de envío
-    let msgOptions = {
-      document: pdfBuffer,
-      mimetype: 'application/pdf',
-      fileName: fileName,
-      pageCount: downloaded // 📄 Indicador visual de páginas
-    }
-
-    // Si se logró crear la portada, la inyectamos al mensaje
-    if (jpegThumbnail) {
-      msgOptions.jpegThumbnail = jpegThumbnail
-    }
-
-    // Enviamos usando las propiedades nativas
-    await conn.sendMessage(m.chat, msgOptions, { quoted: m })
-
-    // Reacción de éxito al finalizar
-    await m.react('✅')
-
-  } catch (e) {
-    console.error('Error 3hentai:', e)
-    await m.react('❌')
-    await conn.reply(m.chat, `🥀 *Ocurrió un error al procesar tu solicitud.*\n\n> 💡 *Detalle:* ${e.message}`, m)
+    m.reply(global.wait);
+    const res = await fetch(`https://api.lolhuman.xyz/api/nhentaisearch?apikey=${lolkeysapi}&query=${text}`);
+    const json = await res.json();
+    const aa = json.result[0].id;
+    const data = await nhentaiScraper(aa);
+    const pages = [];
+    const thumb = `https://external-content.duckduckgo.com/iu/?u=https://t.nhentai.net/galleries/${data.media_id}/thumb.jpg`;
+    data.images.pages.map((v, i) => {
+      const ext = new URL(v.t).pathname.split('.')[1];
+      pages.push(`https://external-content.duckduckgo.com/iu/?u=https://i7.nhentai.net/galleries/${data.media_id}/${i + 1}.${ext}`);
+    });
+    const buffer = await (await fetch(thumb)).buffer();
+    const jpegThumbnail = await extractImageThumb(buffer);
+    const imagepdf = await toPDF(pages);
+    await conn.sendMessage(m.chat, {document: imagepdf, jpegThumbnail, fileName: data.title.english + '.pdf', mimetype: 'application/pdf'}, {quoted: m});
+  } catch {
+    throw `*[❗] 𝙴𝚁𝚁𝙾𝚁, 𝚅𝚄𝙴𝙻𝚅𝙰 𝙰 𝙸𝙽𝚃𝙴𝙽𝚃𝙰𝚁𝙻𝙾 𝚈/𝙾 𝙿𝚁𝚄𝙴𝙱𝙴 𝙲𝙾𝙽 𝙾𝚃𝚁𝙰 𝙲𝙰𝚃𝙴𝙶𝙾𝚁𝙸𝙰*`;
   }
+};
+handler.command = ['hentaipdf'];
+handler.register = true;
+handler.group = true;
+export default handler;
+async function nhentaiScraper(id) {
+  const uri = id ? `https://cin.guru/v/${+id}/` : 'https://cin.guru/';
+  const html = (await axios.get(uri)).data;
+  return JSON.parse(html.split('<script id="__NEXT_DATA__" type="application/json">')[1].split('</script>')[0]).props.pageProps.data;
+}
+function toPDF(images, opt = {}) {
+  return new Promise(async (resolve, reject) => {
+    if (!Array.isArray(images)) images = [images];
+    const buffs = []; const doc = new PDFDocument({margin: 0, size: 'A4'});
+    for (let x = 0; x < images.length; x++) {
+      if (/.webp|.gif/.test(images[x])) continue;
+      const data = (await axios.get(images[x], {responseType: 'arraybuffer', ...opt})).data;
+      doc.image(data, 0, 0, {fit: [595.28, 841.89], align: 'center', valign: 'center'});
+      if (images.length != x + 1) doc.addPage();
+    }
+    doc.on('data', (chunk) => buffs.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(buffs)));
+    doc.on('error', (err) => reject(err));
+    doc.end();
+  });
 }
 
-handler.help = ['3hentai buscar <texto>', '3hentai <id|url>']
-handler.tags = ['download', 'nsfw']
-handler.command = ['3hentai', 'h3dl', 'hentaimanga', 'hentai']
-handler.premium = true
 
-export default handler
+/* import fetch from 'node-fetch'
+let handler = async (m, { conn, text, usedPrefix, command, args }) => {
+if (!db.data.chats[m.chat].modohorny && m.isGroup) throw '*[❗𝐈𝐍𝐅𝐎❗] 𝙻𝙾𝚂 𝙲𝙾𝙼𝙰𝙽𝙳𝙾𝚂 +𝟷𝟾 𝙴𝚂𝚃𝙰𝙽 𝙳𝙴𝚂𝙰𝙲𝚃𝙸𝚅𝙰𝙳𝙾𝚂 𝙴𝙽 𝙴𝚂𝚃𝙴 𝙶𝚁𝚄𝙿𝙾, 𝚂𝙸 𝙴𝚂 𝙰𝙳𝙼𝙸𝙽 𝚈 𝙳𝙴𝚂𝙴𝙰 𝙰𝙲𝚃𝙸𝚅𝙰𝚁𝙻𝙾𝚂 𝚄𝚂𝙴 𝙴𝙻 𝙲𝙾𝙼𝙰𝙽𝙳𝙾 #enable modohorny*'
+if (!text) throw `*[❗] 𝙸𝙽𝙶𝚁𝙴𝚂𝙰 𝙴𝙻 𝙽𝙾𝙼𝙱𝚁𝙴 𝙳𝙴 𝙰𝙻𝙶𝚄𝙽𝙰 𝙲𝙰𝚃𝙴𝙶𝙾𝚁𝙸𝙰 𝙳𝙴 𝙷𝙴𝙽𝚃𝙰𝙸, 𝙴𝙹𝙴𝙼𝙿𝙻𝙾: ${usedPrefix + command} miku*`
+try {
+m.reply(global.wait)
+let res = await fetch(`https://api.lolhuman.xyz/api/nhentaisearch?apikey=${lolkeysapi}&query=${text}`)
+let json = await res.json()
+let aa = json.result[0].id
+let aa2 = json.result[0].title_native
+let res2 = await fetch(`https://api.lolhuman.xyz/api/nhentaipdf/${aa}?apikey=${lolkeysapi}`)
+let json2 = await res2.json()
+let aa3 = json2.result
+await conn.sendMessage(m.chat, { document: { url: aa3 }, mimetype: 'application/pdf', fileName: `${aa2}.pdf` }, { quoted: m })
+} catch {
+throw `*[❗] 𝙴𝚁𝚁𝙾𝚁, 𝚅𝚄𝙴𝙻𝚅𝙰 𝙰 𝙸𝙽𝚃𝙴𝙽𝚃𝙰𝚁𝙻𝙾 𝚈/𝙾 𝙿𝚁𝚄𝙴𝙱𝙴 𝙲𝙾𝙽 𝙾𝚃𝚁𝙰 𝙲𝙰𝚃𝙴𝙶𝙾𝚁𝙸𝙰*`
+}}
+handler.command = /^(hentaipdf)$/i
+export default handler*/
