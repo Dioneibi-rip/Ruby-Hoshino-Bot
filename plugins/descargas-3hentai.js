@@ -1,4 +1,6 @@
 import { build3HentaiPdf, get3HentaiGallery, search3Hentai } from '../lib/hentaimanga.js'
+// 🌸 Importamos la función mágica para generar la miniatura compatible con WhatsApp
+import { extractImageThumb } from '@whiskeysockets/baileys'
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!db.data.chats[m.chat].nsfw && m.isGroup) {
@@ -37,19 +39,22 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     await m.react('⏳')
     const gallery = await get3HentaiGallery(text)
     
-    // Ahora recibimos coverBuffer desde la librería
+    // Obtenemos los datos, incluyendo el coverBuffer
     const { pdfBuffer, fileName, downloaded, coverBuffer } = await build3HentaiPdf(gallery, 80)
 
-    // 🌸 Uso de sendMessage para propiedades NATIVAS de WhatsApp 🌸
+    // 🖼️ Convertimos la imagen cruda a una miniatura perfecta para WhatsApp
+    const jpegThumbnail = await extractImageThumb(coverBuffer)
+
+    // 🌸 Enviamos el documento usando las propiedades nativas
     await conn.sendMessage(m.chat, {
       document: pdfBuffer,
       mimetype: 'application/pdf',
       fileName: fileName,
-      pageCount: downloaded,       // 📄 Agrega el indicador visual de páginas
-      jpegThumbnail: coverBuffer   // 🖼️ Agrega la portada nativa en la burbuja
+      pageCount: downloaded,       // 📄 Indicador visual de páginas
+      jpegThumbnail: jpegThumbnail // 🖼️ Portada nativa procesada correctamente
     }, { quoted: m })
 
-    // Reacción de éxito al finalizar (así como pediste, sin mensajes extra)
+    // Reacción de éxito al finalizar
     await m.react('✅')
 
   } catch (e) {
