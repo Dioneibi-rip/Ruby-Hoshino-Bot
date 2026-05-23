@@ -337,7 +337,7 @@ unlinkSync(filePath);
 }
 function purgeSessionSB() {
 try {
-const jadiDir = `./${global.rutaJadiBot}`; 
+const jadiDir = global.rutaJadiBot;
 if (!existsSync(jadiDir)) return;
 const listaDirectorios = readdirSync(jadiDir);
 listaDirectorios.forEach(directorio => {
@@ -357,11 +357,13 @@ unlinkSync(filePath);
 });
 } catch (e) { console.log("Error en purga de Sub-Bots:", e); }
 }
-setInterval(async () => {
+const tmpCleanerInterval = setInterval(async () => {
 await clearTmp()
-}, 1000 * 60 * 2) 
-setInterval(async () => {
+}, 1000 * 60 * 2)
+tmpCleanerInterval.unref()
+const sessionCleanerInterval = setInterval(async () => {
 await purgeSession()
 await purgeSessionSB()
 console.log(chalk.cyanBright(`\n🧹 LIMPIEZA AUTOMÁTICA COMPLETADA: TMP, PRE-KEYS Y SESIONES\n`))
 }, 1000 * 60 * 60)
+sessionCleanerInterval.unref()
