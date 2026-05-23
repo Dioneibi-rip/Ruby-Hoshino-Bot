@@ -1,5 +1,5 @@
 import { build3HentaiPdf, get3HentaiGallery, search3Hentai } from '../lib/hentaimanga.js'
-// 🌸 Importamos la función mágica para generar la miniatura compatible con WhatsApp
+// 🌸 Importamos la función mágica para generar la miniatura
 import { extractImageThumb } from '@whiskeysockets/baileys'
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
@@ -39,11 +39,18 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     await m.react('⏳')
     const gallery = await get3HentaiGallery(text)
     
-    // Obtenemos los datos, incluyendo el coverBuffer
     const { pdfBuffer, fileName, downloaded, coverBuffer } = await build3HentaiPdf(gallery, 80)
 
-    // 🖼️ Convertimos la imagen cruda a una miniatura perfecta para WhatsApp
-    const jpegThumbnail = await extractImageThumb(coverBuffer)
+    // 🛡️ Protección contra el error "Invalid input"
+    let jpegThumbnail
+    try {
+      // Intentamos comprimir la imagen para WhatsApp
+      jpegThumbnail = await extractImageThumb(coverBuffer)
+    } catch (thumbError) {
+      console.log('⚠️ No se pudo comprimir la miniatura, usando la original:', thumbError.message)
+      // Plan B: Usamos el buffer crudo (WhatsApp suele aceptarlo si no es extremadamente grande)
+      jpegThumbnail = coverBuffer 
+    }
 
     // 🌸 Enviamos el documento usando las propiedades nativas
     await conn.sendMessage(m.chat, {
@@ -51,7 +58,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
       mimetype: 'application/pdf',
       fileName: fileName,
       pageCount: downloaded,       // 📄 Indicador visual de páginas
-      jpegThumbnail: jpegThumbnail // 🖼️ Portada nativa procesada correctamente
+      jpegThumbnail: jpegThumbnail // 🖼️ Portada (comprimida o la original si falla)
     }, { quoted: m })
 
     // Reacción de éxito al finalizar
