@@ -7,6 +7,7 @@ import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
 import failureHandler from './lib/respuesta.js';
+import { TTLCache, getPrefixMatcherCache } from './lib/optimizer.js'
 const { proto } = (await import('@whiskeysockets/baileys')).default
 const isNumber = x => typeof x === 'number' && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(function () {
@@ -14,9 +15,25 @@ clearTimeout(this)
 resolve()
 }, ms))
 global.uptimeStart = Date.now();
+
+const GROUP_METADATA_TTL = 60 * 1000
+const GROUP_METADATA_MAX = 2000
+function normalizeParticipant(participant = {}) {
+return { ...participant, id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin || participant.isAdmin || participant.role }
+}
+async function getCachedGroupMetadata(conn, chatId) {
+conn.__groupMetadataCache = conn.__groupMetadataCache || new TTLCache(GROUP_METADATA_TTL, GROUP_METADATA_MAX)
+const cached = conn.__groupMetadataCache.get(chatId)
+if (cached) return cached
+const metadata = await conn.groupMetadata(chatId).catch(() => null) || {}
+if (Array.isArray(metadata.participants)) metadata.participants = metadata.participants.map(normalizeParticipant)
+conn.__groupMetadataCache.set(chatId, metadata)
+return metadata
+}
 export async function handler(chatUpdate) {
 this.msgqueque = this.msgqueque || []
 this.uptime = this.uptime || Date.now()
+if (this.__groupMetadataCache && Math.random() < 0.01) this.__groupMetadataCache.clearExpired()
 if (!chatUpdate) return
 let sender = null;
 try {
@@ -47,8 +64,8 @@ if (this?.user?.jid !== chat.primaryBot) return;
 }
 }
 sender = m.isGroup ? (m.key?.participant ? m.key.participant : m.sender) : m.key?.remoteJid;
-const groupMetadata = m.isGroup ? { ...(this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}), ...(((this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants) && { participants: ((this.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants || []).map(p => ({ ...p, id: p.jid, jid: p.jid, lid: p.lid, admin: p.admin || p.isAdmin || p.role })) }) } : {}
-const participants = ((m.isGroup ? groupMetadata.participants : []) || []).map(participant => ({ id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin }))
+const groupMetadata = m.isGroup ? await getCachedGroupMetadata(this, m.chat) : {}
+const participants = Array.isArray(groupMetadata.participants) ? groupMetadata.participants : []
 if (m.isGroup) {
 if (sender && sender.endsWith('@lid')) {
 const pInfo = participants.find(p => p.lid === sender)
@@ -184,15 +201,29 @@ await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename }
 } catch (e) { console.error(e) }
 }
 if (!opts['restrict'] && plugin.tags && plugin.tags.includes('admin')) continue
-const str2Regex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+const str2Regex = str => str.replace(/[|\{}()[\]^$+*?.]/g, '\\$&')
+const prefixCache = getPrefixMatcherCache(this)
 let _prefix = plugin.customPrefix ? plugin.customPrefix : this.prefix ? this.prefix : global.prefix
 let match = (_prefix instanceof RegExp ? [[_prefix.exec(m.text), _prefix]] :
 Array.isArray(_prefix) ? _prefix.map(p => {
-let re = p instanceof RegExp ? p : new RegExp(str2Regex(p))
+const cacheKey = p instanceof RegExp ? `re:${p.source}:${p.flags}` : `str:${p}`
+let re = prefixCache.get(cacheKey)
+if (!re) {
+re = p instanceof RegExp ? p : new RegExp(str2Regex(p))
+prefixCache.set(cacheKey, re)
+}
 return [re.exec(m.text), re]
 }) :
-typeof _prefix === 'string' ? [[new RegExp(str2Regex(_prefix)).exec(m.text), new RegExp(str2Regex(_prefix))]] : [[[], new RegExp]]
-).find(p => p[1])
+typeof _prefix === 'string' ? (() => {
+const cacheKey = `str:${_prefix}`
+let re = prefixCache.get(cacheKey)
+if (!re) {
+re = new RegExp(str2Regex(_prefix))
+prefixCache.set(cacheKey, re)
+}
+return [[re.exec(m.text), re]]
+})() : [[[], new RegExp]])
+.find(p => p[1])
 if (typeof plugin.before === 'function') {
 if (await plugin.before.call(this, m, {
 match, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename
