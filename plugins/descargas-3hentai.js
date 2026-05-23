@@ -36,15 +36,20 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     // ────────── 📥 DESCARGA ──────────
     await m.react('⏳')
     const gallery = await get3HentaiGallery(text)
-    const { pdfBuffer, fileName } = await build3HentaiPdf(gallery, 80)
+    
+    // Ahora recibimos coverBuffer desde la librería
+    const { pdfBuffer, fileName, downloaded, coverBuffer } = await build3HentaiPdf(gallery, 80)
 
-    // Se envía el documento limpio, sin caption (texto vacío), solo el archivo.
-    await conn.sendFile(m.chat, pdfBuffer, fileName, '', m, false, {
-      asDocument: true,
-      mimetype: 'application/pdf'
-    })
+    // 🌸 Uso de sendMessage para propiedades NATIVAS de WhatsApp 🌸
+    await conn.sendMessage(m.chat, {
+      document: pdfBuffer,
+      mimetype: 'application/pdf',
+      fileName: fileName,
+      pageCount: downloaded,       // 📄 Agrega el indicador visual de páginas
+      jpegThumbnail: coverBuffer   // 🖼️ Agrega la portada nativa en la burbuja
+    }, { quoted: m })
 
-    // Reacción de éxito al finalizar
+    // Reacción de éxito al finalizar (así como pediste, sin mensajes extra)
     await m.react('✅')
 
   } catch (e) {
