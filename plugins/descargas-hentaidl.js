@@ -1,4 +1,4 @@
-import { searchHentai, getHentaiDetail } from '../lib/hentai.js'
+import { searchHentai, getHentaiDetail, getFileSize } from '../lib/hentai.js'
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!db.data.chats[m.chat].nsfw && m.isGroup) {
@@ -6,55 +6,59 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   }
 
   if (!text) {
-    return m.reply(`🔞 *Uso de HentaiDL*\n\n• ${usedPrefix + command} overflow\n• ${usedPrefix + command} https://hentai.tv/video/...`)
+    return conn.reply(m.chat, `🌱 Ejemplo de uso:\n• ${usedPrefix + command} Boku ni Harem Sexfriend\n• ${usedPrefix + command} https://veohentai.com/ver/...`, m)
   }
 
   try {
-    if (/https?:\/\//i.test(text)) {
-      const info = await getHentaiDetail(text)
-      if (!info.streams.length) return m.reply('❌ No se encontró información del video. Prueba con otro link del mismo título o vuelve a buscar con *hentaidl nombre* para obtener un enlace válido.')
+    m.react('🕒')
 
-      const selected = info.streams.find((s) => /mp4/i.test(s.type) || /\.mp4/i.test(s.src)) || info.streams[0]
-      const caption = [
-        '╭─「 🔞 *HENTAI DL* 」',
-        `├ 🏷️ *Título:* ${info.title || 'Sin título'}`,
-        `├ 🎞️ *Calidad:* ${selected.label}`,
-        `├ 📦 *Formato:* ${selected.type || 'video/mp4'}`,
-        '╰─➤ Enviando archivo...'
-      ].join('\n')
+    if (text.includes('veohentai.com/ver/')) {
+      const info = await getHentaiDetail(text)
+      if (!info?.videoUrl) return conn.reply(m.chat, '❌ No se encontró información del video.', m)
+
+      const peso = await getFileSize(info.videoUrl)
+      const cap = `╭─「 🔞 *HENTAI - DOWNLOAD* 」
+├ 🌴 *Title:* ${info.title || 'Sin título'}
+├ 🌿 *Views:* ${info.views || 'N/A'}
+├ 🌾 *Likes:* ${info.likes || 'N/A'}
+├ 🌲 *Peso:* ${peso}
+├ 🍄 *Dislikes:* ${info.dislikes || 'N/A'}
+╰ 🔗 *Link:* ${text}`
 
       if (info.thumbnail) {
-        await conn.sendFile(m.chat, info.thumbnail, 'thumb.jpg', caption, m)
+        await conn.sendFile(m.chat, info.thumbnail, 'thumb.jpg', cap, m)
       } else {
-        await m.reply(caption)
+        await m.reply(cap)
       }
 
-      await conn.sendFile(m.chat, selected.src, `${info.title || 'hentai'}.${selected.type?.includes('mpegURL') ? 'm3u8' : 'mp4'}`, '', m, false, { asDocument: true, mimetype: selected.type?.includes('mpegURL') ? 'application/x-mpegURL' : 'video/mp4' })
+      await conn.sendFile(m.chat, info.videoUrl, `${(info.title || 'video').replace(/[\\/:*?"<>|]/g, '_')}.mp4`, '', m, false, {
+        asDocument: true,
+        mimetype: 'video/mp4'
+      })
+      m.react('✅')
       return
     }
 
     const results = await searchHentai(text)
-    if (!results.length) return m.reply('❌ No se encontraron resultados.')
+    if (!results.length) return conn.reply(m.chat, '❌ No se encontraron resultados.', m)
 
-    let out = '╭─「 🔎 *HENTAI SEARCH* 」\n'
-    results.slice(0, 15).forEach((r, i) => {
-      out += `├ ${i + 1}. *${r.title}*\n`
-      out += `│ 👀 ${r.views || 'Sin dato'}\n`
-      out += `│ 🔗 ${r.link}\n`
+    let cap = '╭─「 🔞 *HENTAI - SEARCH* 」\n'
+    results.slice(0, 15).forEach((res, index) => {
+      cap += `├ ${index + 1}. *${res.title}*\n`
+      cap += `│ 🔗 ${res.link}\n`
     })
-    out += '╰─➤ Copia un link y úsalo con el comando para descargar.'
-
-    await conn.sendMessage(m.chat, { text: out }, { quoted: m })
-  } catch (e) {
-    console.error('Error en hentaidl:', e)
-    m.reply('⚠️ Error al procesar HentaiDL: ' + e.message)
+    cap += '╰─➤ Usa uno de los links para descargar.'
+    await m.reply(cap)
+    m.react('🔞')
+  } catch (err) {
+    console.error('Error en hentaidl:', err)
+    return conn.reply(m.chat, '⚠️ Error en la ejecución.\n\n' + err.message, m)
   }
 }
 
-handler.help = ['hentaidl']
+handler.help = ['hentaidl', 'hent']
+handler.command = ['hentaidl', 'hdownload', 'hentai', 'hent']
 handler.tags = ['download', 'nsfw']
-handler.command = ['hentaidl', 'hdownload']
 handler.premium = true
-handler.register = true
 
 export default handler
