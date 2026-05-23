@@ -1,6 +1,6 @@
 import { build3HentaiPdf, get3HentaiGallery, search3Hentai } from '../lib/hentaimanga.js'
-// 🌸 Importamos la función mágica para generar la miniatura
 import { extractImageThumb } from '@whiskeysockets/baileys'
+import fetch from 'node-fetch' // 🌸 Necesario para el proxy de la miniatura
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!db.data.chats[m.chat].nsfw && m.isGroup) {
@@ -38,28 +38,40 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     // ────────── 📥 DESCARGA ──────────
     await m.react('⏳')
     const gallery = await get3HentaiGallery(text)
-    
-    const { pdfBuffer, fileName, downloaded, coverBuffer } = await build3HentaiPdf(gallery, 80)
+    const { pdfBuffer, fileName, downloaded } = await build3HentaiPdf(gallery, 80)
 
-    // 🛡️ Protección contra el error "Invalid input"
-    let jpegThumbnail
+    // 🖼️ TRUCO PARA LA MINIATURA (Igual al de nhentai) 🖼️
+    let jpegThumbnail = ''
     try {
-      // Intentamos comprimir la imagen para WhatsApp
-      jpegThumbnail = await extractImageThumb(coverBuffer)
+      // Pasamos la primera imagen por DuckDuckGo para purificar su formato
+      const proxyUrl = `https://external-content.duckduckgo.com/iu/?u=${encodeURIComponent(gallery.images[0])}`
+      const reqThumb = await fetch(proxyUrl)
+      const thumbBuf = Buffer.from(await reqThumb.arrayBuffer())
+
+      // Ahora sí, extractImageThumb no lanzará "Invalid input"
+      const extractedThumb = await extractImageThumb(thumbBuf)
+      
+      // WhatsApp suele requerir que la miniatura de los documentos sea en Base64
+      jpegThumbnail = extractedThumb.toString('base64')
     } catch (thumbError) {
-      console.log('⚠️ No se pudo comprimir la miniatura, usando la original:', thumbError.message)
-      // Plan B: Usamos el buffer crudo (WhatsApp suele aceptarlo si no es extremadamente grande)
-      jpegThumbnail = coverBuffer 
+      console.log('⚠️ Error al generar miniatura:', thumbError.message)
     }
 
-    // 🌸 Enviamos el documento usando las propiedades nativas
-    await conn.sendMessage(m.chat, {
+    // 🌸 Armamos las opciones de envío
+    let msgOptions = {
       document: pdfBuffer,
       mimetype: 'application/pdf',
       fileName: fileName,
-      pageCount: downloaded,       // 📄 Indicador visual de páginas
-      jpegThumbnail: jpegThumbnail // 🖼️ Portada (comprimida o la original si falla)
-    }, { quoted: m })
+      pageCount: downloaded // 📄 Indicador visual de páginas
+    }
+
+    // Si se logró crear la portada, la inyectamos al mensaje
+    if (jpegThumbnail) {
+      msgOptions.jpegThumbnail = jpegThumbnail
+    }
+
+    // Enviamos usando las propiedades nativas
+    await conn.sendMessage(m.chat, msgOptions, { quoted: m })
 
     // Reacción de éxito al finalizar
     await m.react('✅')
