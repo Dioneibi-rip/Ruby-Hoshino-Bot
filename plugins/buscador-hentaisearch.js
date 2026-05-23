@@ -5,7 +5,8 @@ import { JSDOM } from "jsdom";
 let handler = async (m, { conn, text, args, setting }) => {
   try {
     if (!text) {
-      return conn.reply(m.chat, `🌱 Ejemplo de uso: hent Boku ni Harem Sexfriend`, m);
+      return conn.reply(m.chat, `🌸 *Uso correcto del comando:*
+> ✨ Ejemplo:  *.hent* Boku ni Harem Sexfriend`, m, rcanal);
     }
 
     m.react('🕒');
@@ -20,21 +21,23 @@ let handler = async (m, { conn, text, args, setting }) => {
       let peso = await size(videoInfo.videoUrl);
 
       let cap = `
-◜ Hentai - Download ◞
+〔 🍃 𝗩𝗲𝗼𝗛𝗲𝗻𝘁𝗮𝗶 𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 🍃 〕
 
-≡ 🌴 \`Title :\` ${videoInfo.title}
-≡ 🌿 \`Views :\` ${videoInfo.views}
-≡ 🌾 \`Likes :\` ${videoInfo.likes}
-≡ 🌲 \`Peso :\` ${peso}
-≡ 🍄 \`Dislikes :\` ${videoInfo.dislikes}
-≡ 🌷 \`Link :\` ${text}
+🎬 *Título:* ${videoInfo.title}
+👀 *Vistas:* ${videoInfo.views}
+💖 *Likes:* ${videoInfo.likes}
+💢 *Dislikes:* ${videoInfo.dislikes}
+📦 *Tamaño:* ${peso}
+🔗 *Link:* ${text}
+
+⚡ _Descargando el archivo, espera un momento..._
 `;
       m.reply(cap)
 
       await conn.sendFile(m.chat, videoUrl, `${videoInfo.title}.mp4`, '', m, null, {
         asDocument: true, mimetype: "video/mp4"
       });
-      m.react('☑️');
+      m.react('✔️');
     } else {
       const results = await searchHentai(text);
       if (results.length === 0) {
@@ -44,10 +47,11 @@ let handler = async (m, { conn, text, args, setting }) => {
       let cap = `◜ Hentai - Search ◞\n`;
 
       results.slice(0, 15).forEach((res, index) => {
-        cap += `\n\`${index + 1}\`\n≡ 🌴 \`Title :\` ${res.titulo}\n≡ 🌱 \`Link :\` ${res.url}\n`;
+        cap += `${index + 1}. 🌸 *Título:* ${res.titulo}
+🔗 *Link:* ${res.url}\n`;
       });
       m.reply(cap)
-      m.react("🔞");
+      m.react("✔️");
     }
   } catch (err) {
     return conn.reply(m.chat, 'Error en la ejecución.\n\n' + err, m);
