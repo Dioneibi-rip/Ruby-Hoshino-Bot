@@ -12,9 +12,9 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   try {
     if (/https?:\/\//i.test(text)) {
       const info = await getHentaiDetail(text)
-      if (!info.streams.length) return m.reply('❌ No se detectaron enlaces de video en ese título.')
+      if (!info.streams.length) return m.reply('❌ No se encontró información del video. Prueba con otro link del mismo título o vuelve a buscar con *hentaidl nombre* para obtener un enlace válido.')
 
-      const selected = info.streams[0]
+      const selected = info.streams.find((s) => /mp4/i.test(s.type) || /\.mp4/i.test(s.src)) || info.streams[0]
       const caption = [
         '╭─「 🔞 *HENTAI DL* 」',
         `├ 🏷️ *Título:* ${info.title || 'Sin título'}`,
@@ -29,7 +29,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
         await m.reply(caption)
       }
 
-      await conn.sendFile(m.chat, selected.src, `${info.title || 'hentai'}.mp4`, '', m, false, { asDocument: true, mimetype: 'video/mp4' })
+      await conn.sendFile(m.chat, selected.src, `${info.title || 'hentai'}.${selected.type?.includes('mpegURL') ? 'm3u8' : 'mp4'}`, '', m, false, { asDocument: true, mimetype: selected.type?.includes('mpegURL') ? 'application/x-mpegURL' : 'video/mp4' })
       return
     }
 
