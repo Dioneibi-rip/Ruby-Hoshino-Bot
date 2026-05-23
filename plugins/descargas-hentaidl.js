@@ -14,7 +14,10 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
     if (text.includes('veohentai.com/ver/')) {
       const info = await getHentaiDetail(text)
-      if (!info?.videoUrl) return conn.reply(m.chat, '❌ No se encontró información del video.', m)
+      if (!info?.videoUrl) {
+        const fallbackTitle = info?.title || decodeURIComponent(text.split('/ver/')[1]?.replace(/\/+$/, '')?.replace(/-/g, ' ') || 'Sin título')
+        return conn.reply(m.chat, `❌ No pude extraer el enlace MP4 en este intento.\n\n• *Título:* ${fallbackTitle}\n• *Link:* ${text}\n\nIntenta de nuevo en unos segundos (los links con verify expiran rápido).`, m)
+      }
 
       const peso = await getFileSize(info.videoUrl)
       const cap = `╭─「 🔞 *HENTAI - DOWNLOAD* 」
