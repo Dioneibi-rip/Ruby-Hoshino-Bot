@@ -1,5 +1,5 @@
 import { build3HentaiPdf, get3HentaiGallery, search3Hentai } from '../lib/hentaimanga.js'
-import { extractImageThumb } from '@whiskeysockets/baileys'
+import sharp from 'sharp' 
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!db.data.chats[m.chat].nsfw && m.isGroup) {
@@ -37,24 +37,24 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     // ────────── 📥 DESCARGA ──────────
     await m.react('⏳')
     const gallery = await get3HentaiGallery(text)
-    
-    // Extraemos el PDF y la primera imagen (coverBuffer)
+
+    // Extraemos el PDF y la primera imagen cruda (coverBuffer)
     const { pdfBuffer, fileName, downloaded, coverBuffer } = await build3HentaiPdf(gallery, 80)
 
-    // 🖼️ GENERACIÓN DE MINIATURA 🖼️
+    // 🖼️ LA MAGIA DE SHARP PARA LA MINIATURA 🖼️
     let jpegThumbnail
     try {
-      // 1. Intentamos usar la función nativa de Itsukichan Baileys basada en tu README
-      if (typeof conn.resize === 'function') {
-        jpegThumbnail = await conn.resize(gallery.images[0], 300, 300)
-      } else {
-        // 2. Fallback: Usamos extractImageThumb de Baileys conservando el Buffer (SIN base64)
-        jpegThumbnail = await extractImageThumb(coverBuffer)
-      }
+      // Usamos el código de tu amigo para forzar el formato y tamaño perfecto
+      jpegThumbnail = await sharp(coverBuffer)
+        .resize(250, 250, {
+          fit: 'cover', 
+          position: 'center'
+        })
+        .jpeg({ quality: 80 })
+        .toBuffer()
     } catch (thumbError) {
-      console.log('⚠️ Error al comprimir portada:', thumbError.message)
-      // 3. Plan Z: Si falla la compresión, enviamos la imagen cruda tal cual.
-      jpegThumbnail = coverBuffer 
+      console.log('⚠️ Error al procesar imagen con sharp:', thumbError.message)
+      jpegThumbnail = coverBuffer // Plan B por si acaso
     }
 
     // 🌸 Enviamos el documento usando propiedades nativas
@@ -62,8 +62,8 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
       document: pdfBuffer,
       mimetype: 'application/pdf',
       fileName: fileName,
-      pageCount: downloaded,       // 📄 Indicador visual de páginas
-      jpegThumbnail: jpegThumbnail // 🖼️ La imagen en Buffer puro
+      pageCount: downloaded,       // 📄 Muestra la cantidad de páginas
+      jpegThumbnail: jpegThumbnail // 🖼️ La portada perfecta en Buffer
     }, { quoted: m })
 
     // Reacción de éxito al finalizar
