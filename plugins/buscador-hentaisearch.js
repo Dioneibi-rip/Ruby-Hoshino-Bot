@@ -1,4 +1,4 @@
-import { searchManhwa, getManhwaChapters, buildManhwaPdf } from '../lib/manhwa.js'
+import { searchManhwa, getManhwaChapters, buildManhwaPdf } from '../lib/hentai.js'
 import sharp from 'sharp'
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
