@@ -1,151 +1,111 @@
-import fetch from "node-fetch";
-import cheerio from "cheerio";
-import { JSDOM } from "jsdom";
+import { searchManhwa, getManhwaChapters, buildManhwaPdf } from '../lib/manhwa.js'
+import sharp from 'sharp'
 
-let handler = async (m, { conn, text, args, setting }) => {
-  try {
+let handler = async (m, { conn, text, usedPrefix, command }) => {
+    
+    // OPCIONAL: Si quieres que siga siendo NSFW, descomenta esto:
+    /*
+    if (!db.data.chats[m.chat].nsfw && m.isGroup) {
+        return m.reply(`⸺      \`ㅤ  A V I S Oㅤ\`\n\`ㅤ ݰ   \`\n          𝗁 𝗲𝘆 ㅤܐㅤׄㅤ𝗬 𝗈𝗎!      *;* ⎖  𓌛ㅤㅤㅤ\n⎯⎯̸⎯⎯꯭⎯꯭⎯꯭⎯꯭⎯꯭⎯⎯̸⎯⎯\n\n> ㅤㅤㅤ𝖤𝗅 𝖼𝗈𝗇𝗍𝖾𝗇𝗂𝖽𝗈 𝖭𝖲𝖥𝖶 𝖾𝗌𝗍𝖺 𝖽𝖾𝗌𝖺𝖼𝗍𝗂𝗏𝖺𝖽𝗈  .\n\n\`ㅤㅤㅤܐ⸺𝘗𝘪𝘥𝘦 𝘢 𝘶𝘯 𝘢𝘥𝘮𝘪𝘯 𝘲𝘶𝘦 𝘭𝘰 𝘢𝘤𝘵𝘪𝘷𝘦\` ㅤׅ     ㅤׄ`)
+    }
+    */
+
     if (!text) {
-      return conn.reply(m.chat, `🌸 *Uso correcto del comando:*
-> ✨ Ejemplo:  *.hent* Boku ni Harem Sexfriend`, m, rcanal);
+        return conn.reply(m.chat, `          ꒰͡ ͜⠸͜͡ ⠸͜͡꒱ㅤֺ  𓉣˒ㅤ꒰͡ ͜⠸͜͡ ⠸͜͡꒱\n\n⏜❜   🌸⃞ 𝗢𝗙𝗥𝗘𝗖𝗘𝗠𝗢𝗦 \n\n> ︵❜    ⩅🍡⩅   𝖡𝗎𝗌𝖼𝖺𝗋 𝗆𝖺𝗇𝗁𝗐𝖺:\n> ︵❜    ⩅🍥⩅   ${usedPrefix + command} 𝖻𝗎𝗌𝖼𝖺𝗋 𝖲𝗈𝗅𝗈 𝖫𝖾𝗏𝖾𝗅𝗂𝗇𝗀\n> ︵❜    ⩅🌸⩅   𝖵𝖾𝗋 𝖢𝖺𝗉𝗂𝗍𝗎𝗅𝗈𝗌:\n> ︵❜    ⩅🍡⩅   ${usedPrefix + command} 𝖼𝖺𝗉𝗌 <𝖨𝖣_𝖬𝖺𝗇𝗁𝗐𝖺>\n> ︵❜    ⩅🌸⩅   𝖣𝖾𝗌𝖼𝖺𝗋𝗀𝖺𝗋 𝖢𝖺𝗉𝗂𝗍𝗎𝗅𝗈:\n> ︵❜    ⩅🍥⩅   ${usedPrefix + command} 𝖽𝗅 <𝖨𝖣_𝖢𝖺𝗉𝗂𝗍𝗎𝗅𝗈>\n\n          ꒰͡ ͜⠸͜͡ ⠸͜͡꒱ㅤֺ  𓉣˒ㅤ꒰͡ ͜⠸͜͡ ⠸͜͡꒱`, m)
     }
 
-    m.react('🕒');
+    try {
+        // 1. COMANDO: BUSCAR
+        if (/^buscar\s+/i.test(text)) {
+            const query = text.replace(/^buscar\s+/i, '').trim()
+            if (!query) return conn.reply(m.chat, '`ㅤܐ⸺𝘌𝘴𝘤𝘳𝘪𝘣𝘦 𝘢𝘭𝘨𝘰 𝘱𝘢𝘳𝘢 𝘣𝘶𝘴𝘤𝘢𝘳` ㅤׅ  ㅤׄ', m)
+            
+            const results = await searchManhwa(query)
+            if (!results.length) return conn.reply(m.chat, '`ㅤܐ⸺𝘕𝘰 𝘴𝘦 𝘦𝘯𝘤𝘰𝘯𝘵𝘳𝘢𝘳𝘰𝘯 𝘳𝘦𝘴𝘶𝘭𝘵𝘢𝘥𝘰𝘴` ㅤׅ  ㅤׄ', m)
+            
+            let cap = '𞋪 ׅ ꩌ ۪  📚 𝗦𝗲𝗮𝗿𝗰𝗵 𝗠𝗮𝗻𝗵𝘄𝗮  ᜔ ݁ 🍣ᩧ〪࣪𝆬  ֔  ࣭  \n\n─  𝕰𝗇𝖼𝗈𝗇𝗍𝗋𝖺𝗆𝗈𝗌 𝗅𝗈𝗌 𝗌𝗂𝗀𝗎𝗂𝖾𝗇𝗍𝖾𝗌 𝗋𝖾𝗌𝗎𝗅𝗍𝖺𝖽𝗈𝗌:\n\n'
+            results.forEach((item, idx) => {
+                cap += `─『🍡』 *${idx + 1}.* ${item.title}\n`
+                cap += `─『🆔』 *ID:* ${item.id}\n\n`
+            })
+            cap += '╼╾╼╾╼╾╼╾╼╾╼╾╼╾╼╾╼╾╼╾╼╾╼\n\n'
+            cap += `> 𝖴𝗌𝖺: ${usedPrefix + command} 𝖼𝖺𝗉𝗌 <ID> 𝗉𝖺𝗋𝖺 𝗏𝖾𝗋 𝗅𝗈𝗌 𝖼𝖺𝗉𝗂𝗍𝗎𝗅𝗈𝗌.`
+            
+            return await conn.reply(m.chat, cap, m)
+        }
 
-    if (text.includes('https://veohentai.com/ver/')) {
-      const videoInfo = await getInfo(text);
-      if (!videoInfo) {
-        return conn.reply(m.chat, 'No se encontró información del video.', m);
-      }
+        // 2. COMANDO: VER CAPÍTULOS
+        if (/^caps\s+/i.test(text)) {
+            const mangaId = text.replace(/^caps\s+/i, '').trim()
+            if (!mangaId) return conn.reply(m.chat, '`ㅤܐ⸺𝘗𝘳𝘰𝘱𝘰𝘳𝘤𝘪𝘰𝘯𝘢 𝘦𝘭 𝘐𝘋 𝘥𝘦𝘭 𝘔𝘢𝘯𝘩𝘸𝘢` ㅤׅ  ㅤׄ', m)
+            
+            await m.react('⏳')
+            const data = await getManhwaChapters(mangaId)
+            
+            if (!data.chapters.length) return conn.reply(m.chat, '`ㅤܐ⸺𝘌𝘴𝘵𝘦 𝘔𝘢𝘯𝘩𝘸𝘢 𝘯𝘰 𝘵𝘪𝘦𝘯𝘦 𝘤𝘢𝘱𝘪𝘵𝘶𝘭𝘰𝘴` ㅤׅ  ㅤׄ', m)
 
-      const videoUrl = videoInfo.videoUrl;
-      let peso = await size(videoInfo.videoUrl);
+            let cap = `𞋪 ׅ ꩌ ۪  📖 𝗖𝗮𝗽𝗶𝘁𝘂𝗹𝗼𝘀: ${data.title}  ᜔ ݁ 🍥ᩧ〪࣪𝆬  ֔  ࣭  \n\n`
+            
+            // Limitamos a mostrar los últimos 30 para no saturar el chat
+            const listToShow = data.chapters.slice(-30) 
+            listToShow.forEach(ch => {
+                cap += `─『🌸』 *Cap. ${ch.chapter}* ➾ ID: ${ch.id}\n`
+            })
+            
+            if (data.chapters.length > 30) cap += `\n*(Se ocultan capítulos antiguos)*\n`
+            
+            cap += '\n╼╾╼╾╼╾╼╾╼╾╼╾╼╾╼╾╼╾╼╾╼╾╼\n\n'
+            cap += `> 𝖴𝗌𝖺: ${usedPrefix + command} 𝖽𝗅 <ID_Capitulo> 𝗉𝖺𝗋𝖺 𝖽𝖾𝗌𝖼𝖺𝗋𝗀𝖺𝗋𝗅𝗈.`
+            
+            await m.react('✅')
+            return await conn.reply(m.chat, cap, m)
+        }
 
-      let cap = `
-〔 🍃 𝗩𝗲𝗼𝗛𝗲𝗻𝘁𝗮𝗶 𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 🍃 〕
+        // 3. COMANDO: DESCARGAR CAPÍTULO
+        if (/^dl\s+/i.test(text)) {
+            const chapterId = text.replace(/^dl\s+/i, '').trim()
+            if (!chapterId) return conn.reply(m.chat, '`ㅤܐ⸺𝘗𝘳𝘰𝘱𝘰𝘳𝘤𝘪𝘰𝘯𝘢 𝘦𝘭 𝘐𝘋 𝘥𝘦𝘭 𝘊𝘢𝘱𝘪𝘵𝘶𝘭𝘰` ㅤׅ  ㅤׄ', m)
 
-🎬 *Título:* ${videoInfo.title}
-👀 *Vistas:* ${videoInfo.views}
-💖 *Likes:* ${videoInfo.likes}
-💢 *Dislikes:* ${videoInfo.dislikes}
-📦 *Tamaño:* ${peso}
-🔗 *Link:* ${text}
+            await m.react('⏳')
+            
+            // Construimos el PDF
+            const { pdfBuffer, fileName, pageCount, coverBuffer } = await buildManhwaPdf(chapterId, "Manhwa")
 
-⚡ _Descargando el archivo, espera un momento..._
-`;
-      m.reply(cap)
+            // Generamos la miniatura para el documento
+            let jpegThumbnail
+            try {
+                jpegThumbnail = await sharp(coverBuffer)
+                    .resize(250, 250, { fit: 'cover', position: 'center' })
+                    .jpeg({ quality: 80 })
+                    .toBuffer()
+            } catch (thumbError) {
+                jpegThumbnail = coverBuffer
+            }
 
-      await conn.sendFile(m.chat, videoUrl, `${videoInfo.title}.mp4`, '', m, null, {
-        asDocument: true, mimetype: "video/mp4"
-      });
-      m.react('✔️');
-    } else {
-      const results = await searchHentai(text);
-      if (results.length === 0) {
-        return conn.reply(m.chat, 'No se encontraron resultados.', m);
-      }
+            // Enviamos el PDF
+            await conn.sendMessage(m.chat, { 
+                document: pdfBuffer, 
+                mimetype: 'application/pdf', 
+                fileName: fileName, 
+                pageCount: pageCount, 
+                jpegThumbnail: jpegThumbnail 
+            }, { quoted: m })
+            
+            return await m.react('✅')
+        }
 
-      let cap = `◜ Hentai - Search ◞\n`;
+        // Si el usuario escribe algo que no es buscar, caps o dl
+        return conn.reply(m.chat, `\`ㅤܐ⸺𝘊𝘰𝘮𝘢𝘯𝘥𝘰 𝘪𝘯𝘷𝘢𝘭𝘪𝘥𝘰. 𝘜𝘴𝘢 ${usedPrefix + command} 𝘱𝘢𝘳𝘢 𝘷𝘦𝘳 𝘦𝘭 𝘮𝘦𝘯𝘶.\` ㅤׅ  ㅤׄ`, m)
 
-      results.slice(0, 15).forEach((res, index) => {
-        cap += `${index + 1}. 🌸 *Título:* ${res.titulo}
-🔗 *Link:* ${res.url}\n`;
-      });
-      m.reply(cap)
-      m.react("✔️");
+    } catch (e) {
+        await m.react('❌')
+        await conn.reply(m.chat, `⸺      \`ㅤ  E R R O Rㅤ\`\n\`ㅤ ݰ   \`\n          𝗁 𝗲𝘆 ㅤܐㅤׄㅤ𝗬 𝗈𝗎!      *;* ⎖  𓌛ㅤㅤㅤ\n⎯⎯̸⎯⎯꯭⎯꯭⎯꯭⎯꯭⎯꯭⎯⎯̸⎯⎯\n\n> ㅤㅤㅤ𝖮𝖼𝗎𝗋𝗋𝗂𝗈 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋 𝗂𝗇𝖾𝗌𝗉𝖾𝗋𝖺𝖽𝗈  .\n\n\`ㅤㅤㅤܐ⸺${e.message}\` ㅤׅ     ㅤׄ`, m)
     }
-  } catch (err) {
-    return conn.reply(m.chat, 'Error en la ejecución.\n\n' + err, m);
-  }
-};
-
-handler.help = ["hentai"];
-handler.command = ["hentai", "hent"];
-handler.tags = ["download"];
-export default handler;
-
-async function searchHentai(text) {
-  let base = `https://veohentai.com/?s=${encodeURIComponent(text)}`;
-
-  try {
-    const response = await fetch(base);
-    if (!response.ok) throw new Error(`Error en la petición: ${response.status}`);
-
-    const html = await response.text();
-    const $ = cheerio.load(html);
-
-    let resultados = [];
-
-    $(".grid a").each((i, el) => {
-      let url = $(el).attr("href");
-      let titulo = $(el).find("h2").text().trim();
-
-      if (url && titulo) {
-        resultados.push({ titulo, url });
-      }
-    });
-
-    return resultados;
-  } catch (error) {
-    console.error("Error:", error);
-    return [];
-  }
 }
 
-async function getInfo(url) {
-  try {
-    const response = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0" }
-    });
+handler.help = ['manhwa buscar <texto>', 'manhwa caps <id>', 'manhwa dl <id>']
+handler.tags = ['download']
+handler.command = ['manhwa', 'mhdl', 'webtoon']
+handler.premium = false
 
-    const data = await response.text();
-    const dom = new JSDOM(data);
-    const document = dom.window.document;
-
-    const iframe = document.querySelector(".aspect-w-16.aspect-h-9 iframe");
-
-    if (iframe) {
-      const iframeSrc = iframe.src;
-      const videoResponse = await fetch(iframeSrc);
-      const videoHtml = await videoResponse.text();
-      const match = videoHtml.match(/data-id="\/player\.php\?u=([^&]*)/);
-
-      if (!match) throw new Error("No se encontró la URL del video");
-
-      const videoUrl = atob(match[1]);
-
-      const title = document.querySelector("h1.text-whitegray.text-lg").textContent.trim();
-      const views = document.querySelector("h4.text-whitelite.text-sm").textContent.trim();
-      const likes = document.querySelector("#num-like").textContent.trim();
-      const dislikes = document.querySelector("#num-dislike").textContent.trim();
-
-      return {
-        videoUrl,
-        title,
-        views,
-        likes,
-        dislikes
-      };
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-}
-
-async function size(url) {
-  try {
-    const res = await fetch(url, { method: 'HEAD' });
-    const size = parseInt(res.headers.get('content-length'), 10);
-
-    if (!size) throw new Error('Size not available');
-
-    if (size >= 1e9) return (size / 1e9).toFixed(2) + ' GB';
-    if (size >= 1e6) return (size / 1e6).toFixed(2) + ' MB';
-    if (size >= 1e3) return (size / 1e3).toFixed(2) + ' KB';
-    return size + ' Bytes';
-  } catch (err) {
-    return 'Error: ' + err.message;
-  }
-}
+export default handler
