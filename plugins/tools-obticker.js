@@ -1,4 +1,3 @@
-```javascript
 import axios from 'axios'
 import sharp from 'sharp'
 
@@ -266,4 +265,3 @@ handler.command = ['stickerly', 'sl', 'dlsticker']
 handler.group = false
 
 export default handler
-```
