@@ -90,7 +90,7 @@ name.includes(v)
 )
 ) return false
 
-// 🔥 SOLO paquetes relacionados
+// 🔥 SOLO resultados relacionados
 
 const exactName =
 name.includes(normalizedQuery)
@@ -177,8 +177,6 @@ stick.isAnimated || false,
 imageUrl:
 
 stick.resourceUrl ||
-
-stick.resourceFiles?.[0] ||
 
 `${data.result.resourceUrlPrefix}${stick.fileName}`
 
@@ -343,6 +341,13 @@ response.data
 
 let finalBuffer
 
+// 🔥 Mantener animaciones
+if (sticker.isAnimated) {
+
+finalBuffer = buffer
+
+} else {
+
 try {
 
 finalBuffer =
@@ -354,6 +359,8 @@ await sharp(buffer)
 
 finalBuffer =
 buffer
+
+}
 
 }
 
