@@ -3,7 +3,8 @@ import {
   loadHarem,
   saveHarem,
   addOrUpdateClaim,
-  findClaim
+  findClaim,
+  isSameUserId
 } from '../lib/gacha-group.js';
 import {
   loadCharacters,
@@ -11,11 +12,24 @@ import {
   extractCharacterIdFromText
 } from '../lib/gacha-characters.js';
 import { canUserClaimCharacter } from '../lib/gacha-restrictions.js';
+import { resetProtectionOnTransfer } from '../lib/gacha-protection.js';
 
 export const cooldowns = {}; // clave: `${groupId}:${userId}`
 
 global.gachaCooldowns = global.gachaCooldowns || {};
 global.gachaCooldowns.claim = cooldowns;
+
+
+function isUserInGroup(userId, participants = []) {
+  if (!userId) return false;
+
+  if (!Array.isArray(participants) || !participants.length) return true;
+
+  return participants.some(participant => {
+    const ids = [participant?.id, participant?.jid, participant?.lid].filter(Boolean);
+    return ids.some(id => isSameUserId(id, userId));
+  });
+}
 
 async function loadClaimMessages() {
   try {
@@ -32,7 +46,7 @@ async function getCustomClaimMessage(userId, username, characterName) {
   return template.replace(/\$user/g, username).replace(/\$character/g, characterName);
 }
 
-let handler = async (m, { conn }) => {
+let handler = async (m, { conn, participants = [] }) => {
   const userId = m.sender;
   const groupId = m.chat;
   const now = Date.now();
@@ -95,12 +109,19 @@ let handler = async (m, { conn }) => {
     // comprobar si ya está reclamado en este grupo por otra persona
     const haremBefore = await loadHarem();
     const existingClaim = findClaim(haremBefore, groupId, id);
-    if (existingClaim && existingClaim.userId !== userId) {
+    if (existingClaim && !isSameUserId(existingClaim.userId, userId) && isUserInGroup(existingClaim.userId, participants)) {
       return conn.reply(m.chat, `❌ El personaje *${character.name}* ya fue reclamado por ${existingClaim.userId.split('@')[0]}.`, m);
     }
 
-    // Registrar claim en harem.json (por grupo)
-    addOrUpdateClaim(haremBefore, groupId, userId, id);
+    // Registrar claim en harem.json (por grupo). Si el dueño anterior salió del grupo,
+    // se transfiere limpiamente al nuevo usuario para no dejar personajes bloqueados.
+    if (existingClaim && !isSameUserId(existingClaim.userId, userId)) {
+      existingClaim.userId = userId;
+      existingClaim.lastClaimTime = now;
+      resetProtectionOnTransfer(existingClaim, { now, reason: 'claim_absent_owner' });
+    } else {
+      addOrUpdateClaim(haremBefore, groupId, userId, id);
+    }
     await saveHarem(haremBefore);
 
     // remover activeRoll si existe

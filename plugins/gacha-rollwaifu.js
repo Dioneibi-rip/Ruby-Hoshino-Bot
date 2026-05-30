@@ -1,4 +1,4 @@
-import { loadHarem, findClaim } from '../lib/gacha-group.js'
+import { loadHarem, saveHarem, findClaim, isSameUserId } from '../lib/gacha-group.js'
 import { loadCharacters, normalizeCharacterId } from '../lib/gacha-characters.js'
 import { getExclusiveOwner } from '../lib/gacha-restrictions.js'
 
@@ -8,6 +8,23 @@ global.gachaCooldowns = global.gachaCooldowns || {}
 global.gachaCooldowns.rollwaifu = cooldowns
 
 global.activeRolls = global.activeRolls || {}
+
+
+function isUserInGroup(userId, participants = []) {
+    if (!userId) return false
+
+    if (!Array.isArray(participants) || !participants.length) return true
+
+    return participants.some(participant => {
+        const ids = [participant?.id, participant?.jid, participant?.lid].filter(Boolean)
+        return ids.some(id => isSameUserId(id, userId))
+    })
+}
+
+function removeClaimEntry(harem = [], claim) {
+    const index = harem.indexOf(claim)
+    if (index !== -1) harem.splice(index, 1)
+}
 
 function formatUrl(url) {
     if (!url) return url
@@ -28,7 +45,7 @@ function formatUrl(url) {
     return url
 }
 
-let handler = async (m, { conn }) => {
+let handler = async (m, { conn, participants = [] }) => {
     const userId = m.sender
     const groupId = m.chat
     const now = Date.now()
@@ -65,7 +82,12 @@ let handler = async (m, { conn }) => {
         }
 
         const harem = await loadHarem()
-        const claimedInGroup = findClaim(harem, groupId, randomCharacter.id)
+        let claimedInGroup = findClaim(harem, groupId, randomCharacter.id)
+        if (claimedInGroup && !isUserInGroup(claimedInGroup.userId, participants)) {
+            removeClaimEntry(harem, claimedInGroup)
+            await saveHarem(harem)
+            claimedInGroup = null
+        }
         const exclusiveOwner = getExclusiveOwner(randomCharacter.id)
         
         let ownerName = 'Nadie'
