@@ -1,1 +1,93 @@
-function _0x4fcf(_0xe234f5,_0xb97ea5){const _0x19962f=_0x1996();return _0x4fcf=function(_0x4fcf39,_0x100a9a){_0x4fcf39=_0x4fcf39-0x10f;let _0x1c5135=_0x19962f[_0x4fcf39];return _0x1c5135;},_0x4fcf(_0xe234f5,_0xb97ea5);}const _0x449712=_0x4fcf;(function(_0x3e334c,_0x143f84){const _0x86d367=_0x4fcf,_0x5efbaf=_0x3e334c();while(!![]){try{const _0x4eccae=parseInt(_0x86d367(0x12b))/0x1*(parseInt(_0x86d367(0x121))/0x2)+parseInt(_0x86d367(0x12c))/0x3+-parseInt(_0x86d367(0x122))/0x4+-parseInt(_0x86d367(0x113))/0x5+-parseInt(_0x86d367(0x111))/0x6*(-parseInt(_0x86d367(0x11a))/0x7)+-parseInt(_0x86d367(0x118))/0x8+-parseInt(_0x86d367(0x126))/0x9*(parseInt(_0x86d367(0x12d))/0xa);if(_0x4eccae===_0x143f84)break;else _0x5efbaf['push'](_0x5efbaf['shift']());}catch(_0x5efeda){_0x5efbaf['push'](_0x5efbaf['shift']());}}}(_0x1996,0x9e287));import _0x4596cc from'node-fetch';import{Sticker}from'wa-sticker-formatter';function shuffleArray(_0x50b8d1){const _0x1eb95a=_0x4fcf;for(let _0x8b5784=_0x50b8d1['length']-0x1;_0x8b5784>0x0;_0x8b5784--){const _0xa7905a=Math[_0x1eb95a(0x128)](Math[_0x1eb95a(0x11c)]()*(_0x8b5784+0x1));[_0x50b8d1[_0x8b5784],_0x50b8d1[_0xa7905a]]=[_0x50b8d1[_0xa7905a],_0x50b8d1[_0x8b5784]];}return _0x50b8d1;}let handler=async(_0x2f76d5,{conn:_0x202963,text:_0x275b56,usedPrefix:_0x5cc2eb,command:_0x4a2033})=>{const _0xfb852e=_0x4fcf;if(!_0x275b56)throw _0xfb852e(0x124)+(_0x5cc2eb+_0x4a2033)+_0xfb852e(0x10f);_0x2f76d5['react']('🎴');try{let _0x119c45=await _0x4596cc(_0xfb852e(0x129)+encodeURIComponent(_0x275b56));if(!_0x119c45['ok'])throw _0xfb852e(0x123);let _0x593f57=await _0x119c45[_0xfb852e(0x11b)]();if(!_0x593f57['status']||!_0x593f57['data']||_0x593f57[_0xfb852e(0x116)][_0xfb852e(0x120)]===0x0)throw _0xfb852e(0x114);let _0x3c6f2c=shuffleArray(_0x593f57[_0xfb852e(0x116)]),_0x55ea7a=_0x3c6f2c[_0xfb852e(0x119)](0x0,0x5);for(let _0x3ff2d5 of _0x55ea7a){const _0x1e6b2e=new Sticker(_0x3ff2d5['thumbnailUrl'],{'pack':_0x3ff2d5['name'],'author':_0x3ff2d5['author'],'type':_0xfb852e(0x117),'categories':['🔎'],'id':_0xfb852e(0x11e)+Date[_0xfb852e(0x11d)](),'quality':0x50});await _0x202963[_0xfb852e(0x12a)](_0x2f76d5['chat'],{'sticker':await _0x1e6b2e[_0xfb852e(0x125)]()},{'quoted':_0x2f76d5});}}catch(_0x16f55e){console[_0xfb852e(0x127)](_0x16f55e);throw _0xfb852e(0x115);}};function _0x1996(){const _0x3057fa=['1020764BahBJr','1451332fknBDl','❌\x20Error\x20al\x20conectar\x20con\x20la\x20API.','🔍\x20*Ejemplo\x20de\x20uso:*\x20','toBuffer','8967096sjGzVE','error','floor','https://zenzxz.dpdns.org/search/stickerlysearch?query=','sendMessage','1VHjOgU','2820393QFVcNP','10Ngogpn','stickerly\x20<texto>','limit','\x20hatsune\x20miku','internet','381090sctOad','stickerpack','306640QjSbQh','😿\x20No\x20se\x20encontraron\x20stickers\x20con\x20esa\x20búsqueda.','❌\x20Hubo\x20un\x20error\x20al\x20buscar\x20o\x20enviar\x20los\x20stickers.','data','full','4711824QgaauS','slice','133lEOJdh','json','random','now','stickerly-','stickersearch','length'];_0x1996=function(){return _0x3057fa;};return _0x1996();}handler['help']=[_0x449712(0x12e)],handler['tags']=['sticker',_0x449712(0x110)],handler['command']=['stickerly',_0x449712(0x112),_0x449712(0x11f)],handler[_0x449712(0x12f)]=!![];export default handler;
+import axios from 'axios'
+
+// 1. Incluimos la clase StickerLy
+class StickerLy {
+    async detail(url) {
+        const match = url.match(/\/s\/([^\/\?#]+)/);
+        if (!match) throw new Error('URL inválida. Usa un enlace de compartir de sticker.ly (ej: https://sticker.ly/s/XYZ123)');
+
+        const { data } = await axios.get(`https://api.sticker.ly/v4/stickerPack/${match[1]}?needRelation=true`, {
+            headers: {
+                'user-agent': 'androidapp.stickerly/3.17.0 (Redmi Note 4; U; Android 29; in-ID; id;)',
+                'content-type': 'application/json',
+                'accept-encoding': 'gzip'
+            }
+        });
+
+        return {
+            name: data.result.name,
+            author: data.result.user.displayName,
+            stickers: data.result.stickers.map(stick => ({
+                fileName: stick.fileName,
+                isAnimated: stick.isAnimated,
+                imageUrl: `${data.result.resourceUrlPrefix}${stick.fileName}`
+            })),
+            stickerCount: data.result.stickers.length
+        };
+    }
+}
+
+// 2. Creamos el handler del comando
+let handler = async (m, { conn, text, usedPrefix, command }) => {
+    // Verificamos si el usuario envió un enlace
+    if (!text) {
+        return m.reply(`⚠️ Por favor, ingresa un enlace de Sticker.ly.\n*Ejemplo:* ${usedPrefix + command} https://sticker.ly/s/123456`);
+    }
+
+    if (!text.includes('sticker.ly/s/')) {
+        return m.reply('⚠️ El enlace no parece ser válido. Asegúrate de que contenga "sticker.ly/s/".');
+    }
+
+    await m.react('⏳'); // Reacción de carga
+
+    try {
+        const api = new StickerLy();
+        const packDetails = await api.detail(text);
+        
+        // Avisamos al usuario que empezó la descarga
+        let infoMessage = `📦 *PAQUETE ENCONTRADO*\n\n`;
+        infoMessage += `🏷️ *Nombre:* ${packDetails.name}\n`;
+        infoMessage += `👤 *Autor:* ${packDetails.author}\n`;
+        infoMessage += `📊 *Total de stickers:* ${packDetails.stickerCount}\n\n`;
+        infoMessage += `⏳ *Descargando los primeros 10 stickers para evitar spam...*`;
+        
+        await m.reply(infoMessage);
+
+        // Limitamos a 10 stickers por seguridad anti-ban de WhatsApp
+        const maxStickers = Math.min(packDetails.stickers.length, 10);
+        
+        for (let i = 0; i < maxStickers; i++) {
+            const stickerData = packDetails.stickers[i];
+            
+            try {
+                // Descargamos el sticker como buffer
+                const response = await axios.get(stickerData.imageUrl, { responseType: 'arraybuffer' });
+                const buffer = Buffer.from(response.data);
+                
+                // Lo enviamos al chat
+                await conn.sendMessage(m.chat, { sticker: buffer }, { quoted: m });
+                
+                // Pausa de 1.5 segundos entre stickers para evitar que WhatsApp lo detecte como spam
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+            } catch (stickerError) {
+                console.error(`Error al enviar el sticker ${i+1}:`, stickerError.message);
+            }
+        }
+        
+        await m.react('✅'); // Reacción de éxito al terminar
+
+    } catch (e) {
+        console.error(e);
+        await m.react('❌');
+        m.reply(`❌ Ocurrió un error al intentar descargar el paquete. Verifica que el enlace sea correcto y público.\n\n*Error:* ${e.message}`);
+    }
+}
+
+// 3. Metadatos del comando
+handler.help = ['stickerly <url>']
+handler.tags = ['descargas', 'sticker']
+handler.command = ['stickerly', 'sl', 'dlsticker']
+handler.group = false // Ponlo en true si solo quieres que se use en grupos
+
+export default handler
