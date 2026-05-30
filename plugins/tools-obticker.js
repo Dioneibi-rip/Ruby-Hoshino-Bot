@@ -102,6 +102,7 @@ class StickerLy {
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 
+    // 🌸 Mensaje de ayuda aesthetic
     if (!text) {
         return m.reply(
             `𐔌 ࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִ ࣪⛩️ᩧ᳟˖ ۪࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִﾉﾞ\n\n` +
@@ -134,17 +135,15 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
             const top = results.slice(0, 3)
             const selected = top[Math.floor(Math.random() * top.length)]
-
             packDetails = await api.detail(selected.url)
         }
 
         if (!packDetails.stickers || !packDetails.stickers.length) {
             await m.react('🥀')
-            return m.reply(
-                '₍ᐢ ׅ ׄ ׅꊞ ׅ ⚠️ 𝖤𝗌𝗍𝖾 𝗉𝖺𝗊𝗎𝖾𝗍𝖾 𝗇𝗈 𝗍𝗂𝖾𝗇𝖾 𝗌𝗍𝗂𝖼𝗄𝖾𝗋𝗌 𝗏𝖺́𝗅𝗂𝖽𝗈𝗌. ૮(>﹏<)ა'
-            )
+            return m.reply('₍ᐢ ׅ ׄ ׅꊞ ׅ ⚠️ 𝖤𝗌𝗍𝖾 𝗉𝖺𝗊𝗎𝖾𝗍𝖾 𝗇𝗈 𝗍𝗂𝖾𝗇𝖾 𝗌𝗍𝗂𝖼𝗄𝖾𝗋𝗌 𝗏𝖺́𝗅𝗂𝖽𝗈𝗌. ૮(>﹏<)ა')
         }
 
+        // 🎀 Información del pack aesthetic
         let msg = `〰︎ ⊹ 📦 𝗣𝗔𝗤𝗨𝗘𝗧𝗘 𝗘𝗡𝗖𝗢𝗡𝗧𝗥𝗔𝗗𝗢 ⊹〰︎\n\n`
         msg += `🏷️ *Nombre:* ${packDetails.name}\n`
         msg += `👤 *Autor:* ${packDetails.author}\n`
@@ -153,10 +152,12 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
         await m.reply(msg)
 
-        const max = Math.min(packDetails.stickers.length, 20)
+        // Limite de 30 para no saturar demasiado rápido, aunque el core soporta 120
+        const max = Math.min(packDetails.stickers.length, 30) 
         let stickersArray = []
         let coverBuffer = null
 
+        // 📥 Descargar los buffers (El core modificado hará el redimensionamiento)
         for (let i = 0; i < max; i++) {
             const sticker = packDetails.stickers[i]
 
@@ -167,57 +168,23 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
                 })
 
                 const buffer = Buffer.from(response.data)
-                let finalBuffer
 
-                // 🛠️ Redimensionamiento y compatibilidad
-                if (sticker.isAnimated) {
-                    finalBuffer = buffer
-                } else {
-                    finalBuffer = await sharp(buffer)
-                        .resize(512, 512, {
-                            fit: 'contain',
-                            background: {
-                                r: 0,
-                                g: 0,
-                                b: 0,
-                                alpha: 0
-                            }
-                        })
-                        .webp({
-                            quality: 90
-                        })
-                        .toBuffer()
-                }
-
-                // 🖼️ Portada estática obligatoria
+                // Aseguramos una portada estática para que WhatsApp no rechace el paquete
                 if (i === 0) {
                     try {
-                        coverBuffer = await sharp(finalBuffer, {
-                            animated: false
-                        })
-                            .resize(512, 512, {
-                                fit: 'contain',
-                                background: {
-                                    r: 0,
-                                    g: 0,
-                                    b: 0,
-                                    alpha: 0
-                                }
-                            })
-                            .webp({
-                                quality: 90
-                            })
+                        coverBuffer = await sharp(buffer, { animated: false })
+                            .resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+                            .webp({ quality: 90 })
                             .toBuffer()
                     } catch {
-                        coverBuffer = finalBuffer
+                        coverBuffer = buffer
                     }
                 }
 
                 stickersArray.push({
-                    media: finalBuffer,
+                    media: buffer, // Pasamos el buffer directo, el core de Baileys hará el resto
                     isAnimated: sticker.isAnimated,
-                    emojis: ['🎀'],
-                    fileName: `sticker-${i}.webp`
+                    emojis: ['🎀']
                 })
 
             } catch (err) {
@@ -225,14 +192,12 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
             }
         }
 
-        if (!stickersArray.length) {
+        if (stickersArray.length === 0) {
             await m.react('🥀')
-            return m.reply(
-                '₍ᐢ ׅ ׄ ׅꊞ ׅ ❌ 𝖭𝗈 𝗉𝗎𝖽𝖾 𝗉𝗋𝗈𝖼𝖾𝗌𝖺𝗋 𝗅𝗈𝗌 𝗌𝗍𝗂𝖼𝗄𝖾𝗋𝗌. ૮(>﹏<)ა'
-            )
+            return m.reply('₍ᐢ ׅ ׄ ׅꊞ ׅ ❌ 𝖭𝗈 𝗉𝗎𝖽𝖾 𝗉𝗋𝗈𝖼𝖾𝗌𝖺𝗋 𝗅𝗈𝗌 𝗌𝗍𝗂𝖼𝗄𝖾𝗋𝗌. ૮(>﹏<)ა')
         }
 
-        // 🚀 Nuevo formato corregido
+        // 🚀 Envío usando la estructura perfecta para tu nuevo núcleo de Baileys
         await conn.sendMessage(
             m.chat,
             {
@@ -240,22 +205,20 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
                     name: packDetails.name,
                     publisher: packDetails.author,
                     description: 'Descargado por tu Bot Kawaii ✨',
-                    cover: coverBuffer,
-                    stickers: stickersArray
+                    cover: coverBuffer, 
+                    stickers: stickersArray 
                 }
             },
             { quoted: m }
         )
 
+        // ✅ Reacción de aprobación si todo sale bien
         await m.react('🎀')
 
     } catch (e) {
         console.error(e)
         await m.react('🥀')
-
-        m.reply(
-            `───│ ❌ 𝖮𝖼𝗎𝗋𝗋𝗂𝗈́ 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋:\n${e.message} ✉𓈒𓂂ׅ◝ׄ`
-        )
+        m.reply(`───│ ❌ 𝖮𝖼𝗎𝗋𝗋𝗂𝗈́ 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋:\n${e.message} ✉𓈒𓂂ׅ◝ׄ`)
     }
 }
 
