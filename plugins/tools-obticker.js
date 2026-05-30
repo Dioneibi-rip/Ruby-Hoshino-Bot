@@ -38,7 +38,11 @@ if (
 !data.result.stickerPacks.length
 ) return []
 
+const normalizedQuery =
+query.toLowerCase().trim()
+
 const packs = data.result.stickerPacks
+
 .map(pack => ({
 
 name: pack.name || 'Sin nombre',
@@ -62,10 +66,17 @@ isAnimated: pack.isAnimated || false
 
 .filter(pack => {
 
-if (!pack.url) return false
+if (!pack.url)
+return false
 
 if (pack.stickerCount < 3)
 return false
+
+const name =
+pack.name.toLowerCase()
+
+const author =
+pack.author.toLowerCase()
 
 const badNames = [
 'my stickers',
@@ -75,26 +86,52 @@ const badNames = [
 
 if (
 badNames.some(v =>
-pack.name.toLowerCase().includes(v)
+name.includes(v)
 )
 ) return false
 
-return true
+// 🔥 SOLO paquetes relacionados
+
+const exactName =
+name.includes(normalizedQuery)
+
+const exactAuthor =
+author.includes(normalizedQuery)
+
+return exactName || exactAuthor
+
 })
 
 .sort((a, b) => {
 
+const aExact =
+a.name
+.toLowerCase()
+.includes(normalizedQuery)
+? 1000000
+: 0
+
+const bExact =
+b.name
+.toLowerCase()
+.includes(normalizedQuery)
+? 1000000
+: 0
+
 const scoreA =
+aExact +
 (a.exportCount * 2) +
 a.viewCount +
 (a.stickerCount * 50)
 
 const scoreB =
+bExact +
 (b.exportCount * 2) +
 b.viewCount +
 (b.stickerCount * 50)
 
 return scoreB - scoreA
+
 })
 
 return packs
@@ -102,10 +139,13 @@ return packs
 
 async detail(url) {
 
-const match = url.match(/\/s\/([^\/\?#]+)/)
+const match =
+url.match(/\/s\/([^\/\?#]+)/)
 
 if (!match)
-throw new Error('URL inválida')
+throw new Error(
+'URL inválida'
+)
 
 const { data } = await axios.get(
 `https://api.sticker.ly/v4/stickerPack/${match[1]}?needRelation=true`,
@@ -120,14 +160,19 @@ headers: {
 )
 
 if (!data.result)
-throw new Error('Paquete no encontrado')
+throw new Error(
+'Paquete no encontrado'
+)
 
-const stickers = data.result.stickers
+const stickers =
+data.result.stickers
+
 .map(stick => ({
 
 fileName: stick.fileName,
 
-isAnimated: stick.isAnimated || false,
+isAnimated:
+stick.isAnimated || false,
 
 imageUrl:
 
@@ -139,11 +184,15 @@ stick.resourceFiles?.[0] ||
 
 }))
 
-.filter(stick => stick.imageUrl)
+.filter(stick =>
+stick.imageUrl
+)
 
 return {
 
-name: data.result.name || 'Sin nombre',
+name:
+data.result.name ||
+'Sin nombre',
 
 author:
 data.result.user?.displayName ||
@@ -151,7 +200,8 @@ data.result.user?.displayName ||
 
 stickers,
 
-stickerCount: stickers.length
+stickerCount:
+stickers.length
 
 }
 }
@@ -159,15 +209,20 @@ stickerCount: stickers.length
 
 let handler = async (
 m,
-{ conn, text, usedPrefix, command }
+{
+conn,
+text,
+usedPrefix,
+command
+}
 ) => {
 
 if (!text) {
 
 return m.reply(
-`⚠️ Ingresa un nombre o URL.\n\n` +
+`⚠️ Ingresa un texto o URL.\n\n` +
 `📌 Ejemplo:\n` +
-`${usedPrefix + command} Miku\n\n` +
+`${usedPrefix + command} Hatsune Miku\n\n` +
 `📌 Ejemplo:\n` +
 `${usedPrefix + command} Goku`
 )
@@ -178,11 +233,16 @@ await m.react('⏳')
 
 try {
 
-const api = new StickerLy()
+const api =
+new StickerLy()
 
 let packDetails
 
-if (text.includes('sticker.ly/s/')) {
+if (
+text.includes(
+'sticker.ly/s/'
+)
+) {
 
 packDetails =
 await api.detail(text)
@@ -197,20 +257,23 @@ if (!results.length) {
 await m.react('❌')
 
 return m.reply(
-`❌ No encontré resultados para:\n${text}`
+`❌ No encontré paquetes relacionados con:\n${text}`
 )
 
 }
 
-const top = results.slice(0, 8)
+const top =
+results.slice(0, 3)
 
-const randomPack =
+const selected =
 top[
-Math.floor(Math.random() * top.length)
+Math.floor(
+Math.random() * top.length
+)
 ]
 
 packDetails =
-await api.detail(randomPack.url)
+await api.detail(selected.url)
 
 }
 
@@ -222,7 +285,7 @@ if (
 await m.react('❌')
 
 return m.reply(
-'❌ El paquete no tiene stickers válidos.'
+'❌ Este paquete no tiene stickers válidos.'
 )
 
 }
@@ -252,7 +315,11 @@ packDetails.stickers.length,
 
 let enviados = 0
 
-for (let i = 0; i < max; i++) {
+for (
+let i = 0;
+i < max;
+i++
+) {
 
 const sticker =
 packDetails.stickers[i]
@@ -263,13 +330,16 @@ const response =
 await axios.get(
 sticker.imageUrl,
 {
-responseType: 'arraybuffer',
+responseType:
+'arraybuffer',
 timeout: 15000
 }
 )
 
 const buffer =
-Buffer.from(response.data)
+Buffer.from(
+response.data
+)
 
 let finalBuffer
 
@@ -282,14 +352,16 @@ await sharp(buffer)
 
 } catch {
 
-finalBuffer = buffer
+finalBuffer =
+buffer
 
 }
 
 await conn.sendMessage(
 m.chat,
 {
-sticker: finalBuffer
+sticker:
+finalBuffer
 },
 {
 quoted: m
@@ -298,14 +370,18 @@ quoted: m
 
 enviados++
 
-await new Promise(resolve =>
-setTimeout(resolve, 1200)
+await new Promise(
+resolve =>
+setTimeout(
+resolve,
+1200
+)
 )
 
 } catch (err) {
 
 console.log(
-`Sticker ${i + 1} error:`,
+`Error sticker ${i + 1}:`,
 err.message
 )
 
