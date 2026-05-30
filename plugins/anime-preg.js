@@ -48,6 +48,7 @@ let handler = async (m, { conn, usedPrefix }) => {
 handler.help = ['pregg/embarazar @tag'];
 handler.tags = ['anime'];
 handler.command = ['preg','embarazar','preñar'];
+handler.nsfw = true;
 handler.group = true;
 
 export default handler;
