@@ -1,17 +1,48 @@
 import axios from 'axios'
 
 class StickerLy {
-async detail(urlOrId) {
-const match = urlOrId.match(/\/s\/([^\/\?#]+)/);
-const packId = match ? match[1] : urlOrId;
-const { data } = await axios.get(`https://api.sticker.ly/v4/stickerPack/${packId}?needRelation=true`, {
+async search(query) {
+if (!query) throw new Error('Query is required');
+const { data } = await axios.post('https://api.sticker.ly/v4/stickerPack/smartSearch', {
+keyword: query,
+enabledKeywordSearch: true,
+filter: {
+extendSearchResult: false,
+sortBy: 'RECOMMENDED',
+languages: ['ALL'],
+minStickerCount: 5,
+searchBy: 'ALL',
+stickerType: 'ALL'
+}
+}, {
 headers: {
 'user-agent': 'androidapp.stickerly/3.17.0 (Redmi Note 4; U; Android 29; in-ID; id;)',
 'content-type': 'application/json',
 'accept-encoding': 'gzip'
 }
 });
-if (!data.result) throw new Error('No se encontraron detalles del paquete.');
+
+if (!data.result || !data.result.stickerPacks || data.result.stickerPacks.length === 0) return null;
+
+return data.result.stickerPacks.map(pack => ({
+name: pack.name,
+author: pack.authorName,
+url: pack.shareUrl
+}));
+}
+
+async detail(url) {
+const match = url.match(/\/s\/([^\/\?#]+)/);
+if (!match) throw new Error('Invalid URL. Use sticker.ly share URL');
+
+const { data } = await axios.get(`https://api.sticker.ly/v4/stickerPack/${match[1]}?needRelation=true`, {
+headers: {
+'user-agent': 'androidapp.stickerly/3.17.0 (Redmi Note 4; U; Android 29; in-ID; id;)',
+'content-type': 'application/json',
+'accept-encoding': 'gzip'
+}
+});
+
 return {
 name: data.result.name,
 author: data.result.user.displayName,
@@ -22,18 +53,6 @@ imageUrl: `${data.result.resourceUrlPrefix}${stick.fileName}`
 })),
 stickerCount: data.result.stickers.length
 };
-}
-
-async search(query) {
-const { data } = await axios.get(`https://api.sticker.ly/v4/search/stickerPack?keyword=${encodeURIComponent(query)}&page=0&size=20`, {
-headers: {
-'user-agent': 'androidapp.stickerly/3.17.0 (Redmi Note 4; U; Android 29; in-ID; id;)',
-'content-type': 'application/json',
-'accept-encoding': 'gzip'
-}
-});
-if (!data.result || !data.result.stickerPacks || data.result.stickerPacks.length === 0) return null;
-return data.result.stickerPacks;
 }
 }
 
@@ -57,8 +76,7 @@ await m.react('❌');
 return m.reply(`❌ No se encontraron paquetes de stickers para la búsqueda: "${text}"`);
 }
 const randomPack = searchResults[Math.floor(Math.random() * searchResults.length)];
-const id = randomPack.packId || randomPack.id;
-packDetails = await api.detail(id);
+packDetails = await api.detail(randomPack.url);
 }
 
 let infoMessage = `📦 *PAQUETE ENCONTRADO*\n\n`;
