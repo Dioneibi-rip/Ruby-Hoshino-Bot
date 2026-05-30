@@ -182,10 +182,15 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
                 // Guardamos el primer sticker como portada del pack
                 if (i === 0) coverBuffer = finalBuffer
 
-                stickersArray.push({
-                    sticker: finalBuffer,
-                    emojis: ['🎀'] // Puedes cambiar el emoji base
-                })
+                // ... dentro del bucle for, después de obtener finalBuffer ...
+
+// 🎀 Aquí está el secreto: el nombre del campo debe coincidir con lo que 
+// el núcleo modificado de Baileys espera (usualmente 'media' o 'sticker')
+stickersArray.push({
+    media: finalBuffer, // Cambiamos 'sticker' por 'media'
+    isAnimated: sticker.isAnimated,
+    emojis: ['🎀']
+})
 
             } catch (err) {
                 console.log(`Error al procesar sticker ${i + 1}:`, err.message)
