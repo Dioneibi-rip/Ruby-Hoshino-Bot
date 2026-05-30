@@ -101,7 +101,7 @@ class StickerLy {
 }
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-    
+
     // 🌸 Mensaje de ayuda aesthetic
     if (!text) {
         return m.reply(
@@ -165,26 +165,38 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
                     responseType: 'arraybuffer',
                     timeout: 15000
                 })
-                
+
                 const buffer = Buffer.from(response.data)
                 let finalBuffer
 
+                // --- MAGIA AQUÍ: Forzar proporciones de 512x512 y reducir peso ---
                 if (sticker.isAnimated) {
-                    finalBuffer = buffer
+                    try {
+                        finalBuffer = await sharp(buffer, { animated: true })
+                            .resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+                            .webp({ quality: 40, effort: 4 }) // Compresión agresiva para evitar colapso de red
+                            .toBuffer()
+                    } catch {
+                        // Fallback en caso de que sharp falle al leer una animación rara
+                        finalBuffer = buffer 
+                    }
                 } else {
                     try {
-                        finalBuffer = await sharp(buffer).webp().toBuffer()
+                        finalBuffer = await sharp(buffer)
+                            .resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+                            .webp({ quality: 50 })
+                            .toBuffer()
                     } catch {
                         finalBuffer = buffer
                     }
                 }
 
-                // Guardamos el primer sticker como portada del pack
-                if (i === 0) coverBuffer = finalBuffer
+                // Guardamos el primer sticker válido como portada del pack
+                if (!coverBuffer && finalBuffer) coverBuffer = finalBuffer
 
                 stickersArray.push({
                     sticker: finalBuffer,
-                    emojis: ['🎀'] // Puedes cambiar el emoji base
+                    emojis: ['🎀'] 
                 })
 
             } catch (err) {
@@ -197,7 +209,10 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
             return m.reply('₍ᐢ ׅ ׄ ׅꊞ ׅ ❌ 𝖭𝗈 𝗉𝗎𝖽𝖾 𝗉𝗋𝗈𝖼𝖾𝗌𝖺𝗋 𝗅𝗈𝗌 𝗌𝗍𝗂𝖼𝗄𝖾𝗋𝗌. ૮(>﹏<)ა')
         }
 
-        // 🚀 Envío usando la función stickerPack de Baileys
+        // Asegurarnos de que si falló el primer sticker pero hay otros, sí haya cover.
+        if (!coverBuffer) coverBuffer = stickersArray[0].sticker
+
+        // 🚀 Envío usando la función stickerPack
         await conn.sendMessage(
             m.chat,
             {
@@ -205,14 +220,14 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
                     name: packDetails.name,
                     publisher: packDetails.author,
                     description: 'Descargado por tu Bot Kawaii ✨',
-                    cover: coverBuffer, // El primer sticker del pack funciona como portada
-                    stickers: stickersArray // Array con todos los stickers cargados
+                    cover: coverBuffer, 
+                    stickers: stickersArray
                 }
             },
             { quoted: m }
         )
 
-        // ✅ Reacción de aprobación si todo sale bien (Corazoncito aesthetic)
+        // ✅ Reacción de aprobación si todo sale bien
         await m.react('🎀')
 
     } catch (e) {
