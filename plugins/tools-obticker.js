@@ -1,3 +1,4 @@
+```javascript
 import axios from 'axios'
 import sharp from 'sharp'
 
@@ -102,7 +103,6 @@ class StickerLy {
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 
-    // 🌸 Mensaje de ayuda aesthetic
     if (!text) {
         return m.reply(
             `𐔌 ࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִ ࣪⛩️ᩧ᳟˖ ۪࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִﾉﾞ\n\n` +
@@ -135,15 +135,17 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
             const top = results.slice(0, 3)
             const selected = top[Math.floor(Math.random() * top.length)]
+
             packDetails = await api.detail(selected.url)
         }
 
         if (!packDetails.stickers || !packDetails.stickers.length) {
             await m.react('🥀')
-            return m.reply('₍ᐢ ׅ ׄ ׅꊞ ׅ ⚠️ 𝖤𝗌𝗍𝖾 𝗉𝖺𝗊𝗎𝖾𝗍𝖾 𝗇𝗈 𝗍𝗂𝖾𝗇𝖾 𝗌𝗍𝗂𝖼𝗄𝖾𝗋𝗌 𝗏𝖺́𝗅𝗂𝖽𝗈𝗌. ૮(>﹏<)ა')
+            return m.reply(
+                '₍ᐢ ׅ ׄ ׅꊞ ׅ ⚠️ 𝖤𝗌𝗍𝖾 𝗉𝖺𝗊𝗎𝖾𝗍𝖾 𝗇𝗈 𝗍𝗂𝖾𝗇𝖾 𝗌𝗍𝗂𝖼𝗄𝖾𝗋𝗌 𝗏𝖺́𝗅𝗂𝖽𝗈𝗌. ૮(>﹏<)ა'
+            )
         }
 
-        // 🎀 Información del pack aesthetic pero clara
         let msg = `〰︎ ⊹ 📦 𝗣𝗔𝗤𝗨𝗘𝗧𝗘 𝗘𝗡𝗖𝗢𝗡𝗧𝗥𝗔𝗗𝗢 ⊹〰︎\n\n`
         msg += `🏷️ *Nombre:* ${packDetails.name}\n`
         msg += `👤 *Autor:* ${packDetails.author}\n`
@@ -152,11 +154,10 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
         await m.reply(msg)
 
-        const max = Math.min(packDetails.stickers.length, 20) // Limitado a 20 para evitar sobrecarga en el envío del pack
+        const max = Math.min(packDetails.stickers.length, 20)
         let stickersArray = []
         let coverBuffer = null
 
-        // 📥 Descargar y preparar todos los stickers en memoria
         for (let i = 0; i < max; i++) {
             const sticker = packDetails.stickers[i]
 
@@ -169,40 +170,70 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
                 const buffer = Buffer.from(response.data)
                 let finalBuffer
 
+                // 🛠️ Redimensionamiento y compatibilidad
                 if (sticker.isAnimated) {
                     finalBuffer = buffer
                 } else {
+                    finalBuffer = await sharp(buffer)
+                        .resize(512, 512, {
+                            fit: 'contain',
+                            background: {
+                                r: 0,
+                                g: 0,
+                                b: 0,
+                                alpha: 0
+                            }
+                        })
+                        .webp({
+                            quality: 90
+                        })
+                        .toBuffer()
+                }
+
+                // 🖼️ Portada estática obligatoria
+                if (i === 0) {
                     try {
-                        finalBuffer = await sharp(buffer).webp().toBuffer()
+                        coverBuffer = await sharp(finalBuffer, {
+                            animated: false
+                        })
+                            .resize(512, 512, {
+                                fit: 'contain',
+                                background: {
+                                    r: 0,
+                                    g: 0,
+                                    b: 0,
+                                    alpha: 0
+                                }
+                            })
+                            .webp({
+                                quality: 90
+                            })
+                            .toBuffer()
                     } catch {
-                        finalBuffer = buffer
+                        coverBuffer = finalBuffer
                     }
                 }
 
-                // Guardamos el primer sticker como portada del pack
-                if (i === 0) coverBuffer = finalBuffer
-
-                // ... dentro del bucle for, después de obtener finalBuffer ...
-
-// 🎀 Aquí está el secreto: el nombre del campo debe coincidir con lo que 
-// el núcleo modificado de Baileys espera (usualmente 'media' o 'sticker')
-stickersArray.push({
-    media: finalBuffer, // Cambiamos 'sticker' por 'media'
-    isAnimated: sticker.isAnimated,
-    emojis: ['🎀']
-})
+                stickersArray.push({
+                    media: finalBuffer,
+                    isAnimated: sticker.isAnimated,
+                    emojis: ['🎀'],
+                    fileName: `sticker-${i}.webp`
+                })
 
             } catch (err) {
                 console.log(`Error al procesar sticker ${i + 1}:`, err.message)
             }
         }
 
-        if (stickersArray.length === 0) {
+        if (!stickersArray.length) {
             await m.react('🥀')
-            return m.reply('₍ᐢ ׅ ׄ ׅꊞ ׅ ❌ 𝖭𝗈 𝗉𝗎𝖽𝖾 𝗉𝗋𝗈𝖼𝖾𝗌𝖺𝗋 𝗅𝗈𝗌 𝗌𝗍𝗂𝖼𝗄𝖾𝗋𝗌. ૮(>﹏<)ა')
+            return m.reply(
+                '₍ᐢ ׅ ׄ ׅꊞ ׅ ❌ 𝖭𝗈 𝗉𝗎𝖽𝖾 𝗉𝗋𝗈𝖼𝖾𝗌𝖺𝗋 𝗅𝗈𝗌 𝗌𝗍𝗂𝖼𝗄𝖾𝗋𝗌. ૮(>﹏<)ა'
+            )
         }
 
-        // 🚀 Envío usando la función stickerPack de Baileys
+        // 🚀 Nuevo formato corregido
         await conn.sendMessage(
             m.chat,
             {
@@ -210,20 +241,22 @@ stickersArray.push({
                     name: packDetails.name,
                     publisher: packDetails.author,
                     description: 'Descargado por tu Bot Kawaii ✨',
-                    cover: coverBuffer, // El primer sticker del pack funciona como portada
-                    stickers: stickersArray // Array con todos los stickers cargados
+                    cover: coverBuffer,
+                    stickers: stickersArray
                 }
             },
             { quoted: m }
         )
 
-        // ✅ Reacción de aprobación si todo sale bien (Corazoncito aesthetic)
         await m.react('🎀')
 
     } catch (e) {
         console.error(e)
         await m.react('🥀')
-        m.reply(`───│ ❌ 𝖮𝖼𝗎𝗋𝗋𝗂𝗈́ 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋:\n${e.message} ✉𓈒𓂂ׅ◝ׄ`)
+
+        m.reply(
+            `───│ ❌ 𝖮𝖼𝗎𝗋𝗋𝗂𝗈́ 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋:\n${e.message} ✉𓈒𓂂ׅ◝ׄ`
+        )
     }
 }
 
@@ -233,3 +266,4 @@ handler.command = ['stickerly', 'sl', 'dlsticker']
 handler.group = false
 
 export default handler
+```
