@@ -14,6 +14,10 @@ let handler = async (m, { conn, usedPrefix }) => {
         who = m.sender;
     }
 
+if (!db.data.chats[m.chat].nsfw && m.isGroup) {
+    return m.reply(`${emoji} El contenido *NSFW* está desactivado en este grupo.\n> Un administrador puede activarlo con el comando » *#nsfw on*`);
+    }
+
     let name = conn.getName(who);
     let name2 = conn.getName(m.sender);
     m.react('🤰');
@@ -48,7 +52,6 @@ let handler = async (m, { conn, usedPrefix }) => {
 handler.help = ['pregg/embarazar @tag'];
 handler.tags = ['anime'];
 handler.command = ['preg','embarazar','preñar'];
-handler.nsfw = true;
 handler.group = true;
 
 export default handler;
