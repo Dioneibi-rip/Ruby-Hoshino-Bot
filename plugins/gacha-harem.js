@@ -21,38 +21,53 @@ function formatProtectionStatus(character) {
   return ` 🔒 ${Math.max(1, minutes)}m`;
 }
 
-let handler = async (m, { conn, args, participants }) => {
+function normalizeToJid(rawJid, participants = []) {
+  if (!rawJid || typeof rawJid !== 'string') return rawJid;
+  if (!rawJid.endsWith('@lid')) return rawJid;
+  const pInfo = participants.find(p => p?.lid === rawJid);
+  return pInfo?.id || rawJid;
+}
+
+function getNumberTarget(args = []) {
+  const joined = args.join(' ').trim();
+  if (!joined) return null;
+
+  const looksLikePhone = /^@?\+?[\d\s().-]{5,32}$/.test(joined) && (joined.includes('+') || joined.includes(' ') || /^@?\d{5,20}$/.test(joined));
+  if (!looksLikePhone) return null;
+
+  const digits = joined.replace(/\D/g, '');
+  if (digits.length < 5 || digits.length > 20) return null;
+  return `${digits}@s.whatsapp.net`;
+}
+
+let handler = async (m, { conn, args, participants = [] }) => {
   try {
     const characters = await loadCharacters();
     const harem = await loadHarem();
     let rawUserId;
 
+    const numberTarget = getNumberTarget(args);
     if (m.quoted && m.quoted.sender) {
       rawUserId = m.quoted.sender;
     } else if (m.mentionedJid && m.mentionedJid[0]) {
       rawUserId = m.mentionedJid[0];
-    } else if (args[0] && /^@?\d{5,20}$/.test(args[0])) {
-      rawUserId = args[0].replace('@', '') + '@s.whatsapp.net';
     } else {
-      rawUserId = m.sender;
+      rawUserId = numberTarget || m.sender;
     }
 
-    let userId = rawUserId;
-    if (m.isGroup && rawUserId && rawUserId.endsWith('@lid')) {
-      const pInfo = participants.find(p => p?.lid === rawUserId);
-      if (pInfo?.id) userId = pInfo.id;
-    }
+    let userId = normalizeToJid(rawUserId, participants);
 
     const groupId = m.chat;
 
     const userClaims = getUserClaims(harem, groupId, userId);
 
     if (userClaims.length === 0) {
-      await conn.reply(m.chat, '❀ No tienes personajes reclamados en este grupo.', m);
+      const emptyText = userId === m.sender ? '❀ No tienes personajes reclamados en este grupo.' : `❀ @${userId.split('@')[0]} no tiene personajes reclamados en este grupo.`;
+      await conn.reply(m.chat, emptyText, m, { mentions: [userId] });
       return;
     }
 
-    let pageArg = args.find(arg => /^\d+$/.test(arg));
+    let pageArg = numberTarget ? null : args.find(arg => /^\d+$/.test(arg));
     const page = parseInt(pageArg) || 1;
     const charactersPerPage = 50;
     const totalCharacters = userClaims.length;
