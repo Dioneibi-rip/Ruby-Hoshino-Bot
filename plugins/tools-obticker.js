@@ -174,7 +174,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
                     try {
                         coverBuffer = await sharp(buffer, { animated: false })
                             .resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-                            .webp({ quality: 90 })
+                            .webp({ quality: 60 })
                             .toBuffer()
                     } catch {
                         coverBuffer = buffer
