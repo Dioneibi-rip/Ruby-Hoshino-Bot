@@ -10,7 +10,7 @@ import {
   buildPermissionContext,
   createParticipantIndex,
   getCachedGroupMetadata,
-  getCommandTester,
+  commandMatches,
   getPluginDirectory,
   getPrefixMatch,
   hydrateDatabaseForMessage,
@@ -238,8 +238,7 @@ export async function handler(chatUpdate) {
 
       const usedPrefix = match[0][0]
       const parsed = parseCommand(m.text, usedPrefix)
-      const commandTester = getCommandTester(this, name, plugin.command)
-      const isAccept = commandTester(parsed.command)
+      const isAccept = commandMatches(plugin.command, parsed.command)
       global.comando = parsed.command
       if (shouldIgnoreBaileysId(m.id || m.key?.id || '')) return
       if (!isAccept) continue

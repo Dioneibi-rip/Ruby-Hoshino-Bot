@@ -105,19 +105,35 @@ export function runMaintenance(conn) {
   if (conn.__prefixMatcherCache?.size > 2000) conn.__prefixMatcherCache.clear()
 }
 
+
+export function commandMatches(pluginCommand, command = '') {
+  if (!pluginCommand) return false
+  if (pluginCommand instanceof RegExp) {
+    pluginCommand.lastIndex = 0
+    return pluginCommand.test(command)
+  }
+  if (Array.isArray(pluginCommand)) {
+    return pluginCommand.some((cmd) => {
+      if (typeof cmd === 'string') return cmd === command
+      if (cmd instanceof RegExp) {
+        cmd.lastIndex = 0
+        return cmd.test(command)
+      }
+      return false
+    })
+  }
+  if (typeof pluginCommand === 'string') return pluginCommand === command
+  if (typeof pluginCommand === 'function') return pluginCommand(command)
+  return false
+}
+
 export function getCommandTester(conn, pluginName, pluginCommand) {
   conn.__commandTesterCache ||= new Map()
   const cache = conn.__commandTesterCache
   const cacheKey = `${pluginName}:${typeof pluginCommand}`
   let tester = cache.get(cacheKey)
   if (tester?.__source === pluginCommand) return tester
-  if (pluginCommand instanceof RegExp) tester = (command) => pluginCommand.test(command)
-  else if (Array.isArray(pluginCommand)) {
-    const strings = new Set(pluginCommand.filter((cmd) => typeof cmd === 'string'))
-    const regexes = pluginCommand.filter((cmd) => cmd instanceof RegExp)
-    tester = (command) => strings.has(command) || regexes.some((re) => re.test(command))
-  } else if (typeof pluginCommand === 'string') tester = (command) => pluginCommand === command
-  else tester = () => false
+  tester = (command) => commandMatches(pluginCommand, command)
   tester.__source = pluginCommand
   cache.set(cacheKey, tester)
   return tester
