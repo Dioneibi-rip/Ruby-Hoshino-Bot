@@ -35,7 +35,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
         if (!userId) continue;
 
         try {
-            const pp = await conn.profilePictureUrl(userId, 'image').catch(() => 'https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1745522645448.jpeg')
+            const pp = await conn.profilePictureUrl(userId, 'image').catch(() => 'https://i.pinimg.com/736x/40/5a/17/405a170d05df4de50e01e8c5cd2a7250.jpg')
             const username = `@${userId.split('@')[0]}`
             const groupName = groupMetadata.subject || 'este grupo'
             const desc = groupMetadata.desc?.toString() || 'Sin descripción'
@@ -70,16 +70,14 @@ export async function before(m, { conn, participants, groupMetadata }) {
                 }
 
                 await conn.sendMessage(m.chat, {
-                    image: { url: pp },
-                    caption: text,
-                    contextInfo: {
-                        mentionedJid: [userId],
-                        isForwarded: true,
-                        forwardingScore: 9999999
-                        // ELIMINADO TEMPORALMENTE HASTA QUE DEFINAS TU CANAL
-                        // forwardedNewsletterMessageInfo: { newsletterJid: 'TU_JID_AQUI@newsletter', newsletterName: 'TU_NOMBRE', serverMessageId: -1 }
-                    }
-                }, { quoted: null })
+                image: { url: pp },
+                caption: text,
+                contextInfo: {
+                    mentionedJid: [userId],
+                    isForwarded: true,
+                    forwardingScore: 9999999,
+                    forwardedNewsletterMessageInfo: { newsletterJid: newsletterJid, newsletterName: newsletterName, serverMessageId: -1 }}
+            }, { quoted: null })
             }
 
             if (isBye) {
@@ -112,16 +110,14 @@ export async function before(m, { conn, participants, groupMetadata }) {
                 }
 
                 await conn.sendMessage(m.chat, {
-                    image: { url: pp },
-                    caption: text,
-                    contextInfo: {
-                        mentionedJid: [userId],
-                        isForwarded: true,
-                        forwardingScore: 9999999
-                        // ELIMINADO TEMPORALMENTE HASTA QUE DEFINAS TU CANAL
-                        // forwardedNewsletterMessageInfo: { newsletterJid: 'TU_JID_AQUI@newsletter', newsletterName: 'TU_NOMBRE', serverMessageId: -1 }
-                    }
-                }, { quoted: null })
+                image: { url: pp },
+                caption: text,
+                contextInfo: {
+                    mentionedJid: [userId],
+                    isForwarded: true,
+                    forwardingScore: 9999999,
+                    forwardedNewsletterMessageInfo: { newsletterJid: newsletterJid, newsletterName: newsletterName, serverMessageId: -1 }}
+            }, { quoted: null })
             }
         } catch (error) {
             console.error(`[WELCOME] Error al intentar enviar bienvenida/despedida a ${userId}:`, error.message);
