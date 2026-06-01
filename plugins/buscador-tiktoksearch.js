@@ -31,6 +31,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
             // Opción 1: TikWM
             let { data: response } = await axios.post('https://www.tikwm.com/api/feed/search', 
                 new URLSearchParams({ keywords: text, count: 12, cursor: 0, web: 1, hd: 1 }), {
+                    timeout: 15000,
                     headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "User-Agent": "Mozilla/5.0" }
                 }
             )
@@ -47,7 +48,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
             console.log("Error TikWM, probando Agatz...")
             // Fallback Opción 2: Agatz
             try {
-                let { data: response } = await axios.get('https://api.agatz.xyz/api/tiktoksearch?message=' + text)
+                let { data: response } = await axios.get('https://api.agatz.xyz/api/tiktoksearch?message=' + encodeURIComponent(text), { timeout: 15000 })
                 searchResults = response.data.map(v => ({
                     title: v.title,
                     nowm: v.nowm || v.url,

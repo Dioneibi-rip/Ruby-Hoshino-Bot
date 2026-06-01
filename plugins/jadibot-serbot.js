@@ -21,7 +21,6 @@ generateWAMessageFromContent,
 proto,
 } = (await import("@whiskeysockets/baileys"));
 import qrcode from "qrcode"
-import NodeCache from "node-cache"
 import fs from "fs"
 import path from "path"
 import pino from 'pino'
@@ -31,6 +30,7 @@ import * as ws from 'ws'
 const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
 import { makeWASocket } from '../lib/simple.js'
+import { attachSessionState, cleanupSessionState, createMessageRetryCache, registerSubBot } from '../src/core/session-manager.js'
 import { fileURLToPath } from 'url'
 let crm1 = "Y2QgcGx1Z2lucy"
 let crm2 = "A7IG1kNXN1b"
@@ -109,7 +109,7 @@ const drmer = Buffer.from(drm1 + drm2, `base64`)
 let { version, isLatest } = await fetchLatestBaileysVersion()
 const subSocketCfg = global.baileysSocketConfig || {}
 const msgRetry = (MessageRetryMap) => { }
-const msgRetryCache = new NodeCache({ stdTTL: 5 * 60, checkperiod: 120, useClones: false })
+const msgRetryCache = createMessageRetryCache()
 const { state, saveState, saveCreds } = await useMultiFileAuthState(pathRubyJadiBot)
 
 const connectionOptions = {
@@ -132,6 +132,7 @@ syncFullHistory: false
 let sock = makeWASocket(connectionOptions)
 const subBotId = path.basename(pathRubyJadiBot)
 sock.subBotId = subBotId
+attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.jid || 'primary', path: pathRubyJadiBot })
 sock.isInit = false
 let isInit = true
 let healthInterval = null
@@ -169,6 +170,7 @@ clearPairingCodeLock()
 try { sock.ws.close() } catch (e) {}
 try { sock.ev.removeAllListeners() } catch (e) {}
 removeSockFromPool(sock)
+cleanupSessionState(sock)
 if (global.subBotRegistry instanceof Map) global.subBotRegistry.delete(subBotId)
 if (removeSession) {
 try { fs.rmSync(pathRubyJadiBot, { recursive: true, force: true }) } catch (e) {}
@@ -191,8 +193,9 @@ try { sock.ws.close() } catch (e) { }
 try { sock.ev.removeAllListeners() } catch (e) {}
 sock = makeWASocket(connectionOptions, { chats: oldChats })
 sock.subBotId = subBotId
+attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.jid || 'primary', path: pathRubyJadiBot })
 isInit = true
-if (global.subBotRegistry instanceof Map) global.subBotRegistry.set(subBotId, { sock, reconnecting: true, ts: Date.now() })
+registerSubBot(global.subBotRegistry, subBotId, { sock, reconnecting: true, ts: Date.now() })
 }
 if (!isInit) {
 sock.ev.off("messages.upsert", sock.handler)
@@ -358,7 +361,7 @@ console.log(chalk.bold.cyanBright(`\n❒⸺⸺⸺⸺【• SUB-BOT •】⸺⸺�
 sock.isInit = true
 reconnectAttempts = 0
 if (!global.conns.includes(sock)) global.conns.push(sock)
-if (global.subBotRegistry instanceof Map) global.subBotRegistry.set(subBotId, { sock, connectedAt: Date.now() })
+registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() })
 clearPairingCodeLock()
 await joinChannels(sock)
 

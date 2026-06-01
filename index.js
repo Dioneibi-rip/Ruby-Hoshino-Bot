@@ -21,10 +21,10 @@ import { makeWASocket, protoType, serialize } from './lib/simple.js'
 import { Low, JSONFile } from 'lowdb'
 import { mongoDB, mongoDBV2 } from './lib/mongoDB.js'
 import store from './lib/store.js'
-import NodeCache from 'node-cache'
 import readline, { createInterface } from 'readline'
 import { RubyJadiBot } from './plugins/jadibot-serbot.js'
 import { EventEmitter } from 'events'
+import { attachSessionState, createMessageRetryCache } from './src/core/session-manager.js'
 EventEmitter.defaultMaxListeners = 100 
 const { proto } = (await import('@whiskeysockets/baileys')).default
 const { DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser } = await import('@whiskeysockets/baileys')
@@ -35,7 +35,7 @@ const { CONNECTING } = ws
 const { chain } = lodash
 global.__filename = function filename(pathURL = import.meta.url, rmPrefix = platform !== 'win32') { return rmPrefix ? /file:\/\/\//.test(pathURL) ? fileURLToPath(pathURL) : pathURL : pathToFileURL(pathURL).toString(); };
 global.__dirname = function dirname(pathURL) { return path.dirname(global.__filename(pathURL, true)) };
-global.__require = function require(dir = import.meta.url) { return createRequire(dir) }
+global.__require = function createLocalRequire(dir = import.meta.url) { return createRequire(dir) }
 global.timestamp = {start: new Date}
 const __dirname = global.__dirname(import.meta.url)
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
@@ -106,7 +106,7 @@ protoType()
 serialize()
 const { state, saveState, saveCreds } = await useMultiFileAuthState(global.Rubysessions)
 const msgRetryCounterMap = (MessageRetryMap) => { };
-const msgRetryCounterCache = new NodeCache()
+const msgRetryCounterCache = createMessageRetryCache()
 const { version } = await fetchLatestBaileysVersion();
 let phoneNumber = global.botNumber
 const methodCodeQR = process.argv.includes("qr")
@@ -158,6 +158,7 @@ keepAliveIntervalMs: socketCfg.keepAliveIntervalMs ?? 20000,
 retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 1500
 }
 global.conn = makeWASocket(connectionOptions);
+attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.Rubysessions })
 let conn = global.conn
 conn.isInit = false;
 conn.well = false;
@@ -226,6 +227,7 @@ const oldChats = global.conn.chats
 try { global.conn.ws.close() } catch (e) { }
 conn.ev.removeAllListeners()
 global.conn = makeWASocket(connectionOptions, { chats: oldChats })
+attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.Rubysessions })
 conn = global.conn
 isInit = true
 }
