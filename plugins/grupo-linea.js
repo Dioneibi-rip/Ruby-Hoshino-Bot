@@ -4,7 +4,6 @@ let handler = async (m, { conn, args }) => {
   try {
     let id = args?.[0]?.match(/\d+\-\d+@g.us/) || m.chat;
 
-    // Obtener participantes únicos
     const participantesUnicos = Object.values(conn.chats[id]?.messages || {})
       .map((item) => item.key.participant)
       .filter((value, index, self) => self.indexOf(value) === index);
@@ -14,11 +13,15 @@ let handler = async (m, { conn, args }) => {
         .map((k) => `@${k.split("@")[0]}`)
         .join("\n") || "*✧ No hay usuarios en línea en este momento :c.*";
 
-    const mensaje = `*Lista de usuarios en línea:*\n\n${listaEnLinea}\n\n> ${dev}`;
+    // Enlace base para generar la tarjeta
+    const urlPreview = 'https://github.com';
 
-    // 1. Preparar la media simulando un enlace de miniatura 🍃
+    // Se añade urlPreview al texto para que WhatsApp valide el matchedText correctamente 🪴
+    const mensaje = `*Lista de usuarios en línea:*\n\n${listaEnLinea}\n\n> ${dev}\n\n${urlPreview}`;
+
+    // Utilizamos una imagen ligera y con servidores estables
     const media = await prepareWAMessageMedia(
-      { image: { url: "https://i.pinimg.com/736x/40/5a/17/405a170d05df4de50e01e8c5cd2a7250.jpg" } }, // URL de la imagen a mostrar
+      { image: { url: "https://avatars.githubusercontent.com/u/9919?s=280&v=4" } },
       {
         upload: conn.waUploadToServer,
         mediaTypeOverride: 'thumbnail-link',
@@ -27,11 +30,10 @@ let handler = async (m, { conn, args }) => {
 
     const { imageMessage: thumb } = media;
 
-    // 2. Construir el contenido con extendedTextMessage
     const content = {
       extendedTextMessage: {
         text: mensaje,
-        matchedText: 'https://github.com', // Texto que fuerza la validación del preview
+        matchedText: urlPreview,
         title: 'Usuarios Activos 🪴',
         description: "Revisa quién está en línea",
         previewType: 0,
@@ -45,18 +47,17 @@ let handler = async (m, { conn, args }) => {
         thumbnailWidth: thumb.width,
         inviteLinkGroupTypeV2: 0,
         contextInfo: {
-          mentionedJid: participantesUnicos // Mantenemos las menciones funcionando
+          mentionedJid: participantesUnicos
         },
       },
     };
 
-    // 3. Enviar mediante relayMessage
     await conn.relayMessage(m.chat, content, { messageId: m.key.id });
     await m.react("✅");
 
   } catch (error) {
     console.error(error);
-    await m.reply(`${msm} Hubo un error al enviar la lista de usuarios. 🍂`);
+    await m.reply(`Hubo un error al enviar la lista de usuarios. 🍂`);
   }
 };
 
