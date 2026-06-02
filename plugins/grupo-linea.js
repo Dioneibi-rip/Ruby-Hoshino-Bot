@@ -13,15 +13,16 @@ let handler = async (m, { conn, args }) => {
         .map((k) => `@${k.split("@")[0]}`)
         .join("\n") || "*✧ No hay usuarios en línea en este momento :c.*";
 
-    // Enlace base para generar la tarjeta
     const urlPreview = 'https://github.com';
-
-    // Se añade urlPreview al texto para que WhatsApp valide el matchedText correctamente 🪴
     const mensaje = `*Lista de usuarios en línea:*\n\n${listaEnLinea}\n\n> ${dev}\n\n${urlPreview}`;
 
-    // Utilizamos una imagen ligera y con servidores estables
+    // 1. Descargar la imagen como Buffer para asegurar que Baileys procese el icono 🪴
+    const response = await fetch("https://avatars.githubusercontent.com/u/9919?s=280&v=4");
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    // 2. Pasamos el Buffer directamente en lugar de la URL
     const media = await prepareWAMessageMedia(
-      { image: { url: "https://avatars.githubusercontent.com/u/9919?s=280&v=4" } },
+      { image: buffer },
       {
         upload: conn.waUploadToServer,
         mediaTypeOverride: 'thumbnail-link',
@@ -30,6 +31,7 @@ let handler = async (m, { conn, args }) => {
 
     const { imageMessage: thumb } = media;
 
+    // 3. Verificamos opcionalmente las propiedades con "?." por seguridad
     const content = {
       extendedTextMessage: {
         text: mensaje,
@@ -37,14 +39,14 @@ let handler = async (m, { conn, args }) => {
         title: 'Usuarios Activos 🪴',
         description: "Revisa quién está en línea",
         previewType: 0,
-        jpegThumbnail: thumb.jpegThumbnail?.toString('base64') ?? '',
-        thumbnailDirectPath: thumb.directPath,
-        thumbnailSha256: thumb.fileSha256?.toString('base64') ?? '',
-        thumbnailEncSha256: thumb.fileEncSha256?.toString('base64') ?? '',
-        mediaKey: thumb.mediaKey?.toString('base64') ?? '',
-        mediaKeyTimestamp: thumb.mediaKeyTimestamp,
-        thumbnailHeight: thumb.height,
-        thumbnailWidth: thumb.width,
+        jpegThumbnail: thumb?.jpegThumbnail?.toString('base64') ?? '',
+        thumbnailDirectPath: thumb?.directPath,
+        thumbnailSha256: thumb?.fileSha256?.toString('base64') ?? '',
+        thumbnailEncSha256: thumb?.fileEncSha256?.toString('base64') ?? '',
+        mediaKey: thumb?.mediaKey?.toString('base64') ?? '',
+        mediaKeyTimestamp: thumb?.mediaKeyTimestamp,
+        thumbnailHeight: thumb?.height,
+        thumbnailWidth: thumb?.width,
         inviteLinkGroupTypeV2: 0,
         contextInfo: {
           mentionedJid: participantesUnicos
