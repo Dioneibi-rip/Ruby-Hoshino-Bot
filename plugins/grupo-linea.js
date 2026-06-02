@@ -10,56 +10,58 @@ let handler = async (m, { conn, args }) => {
 
     const listaEnLinea =
       participantesUnicos
-        .map((k) => `@${k.split("@")[0]}`)
+        .map((k) => `🌸 @${k.split("@")[0]}`)
         .join("\n") || "*✧ No hay usuarios en línea en este momento :c.*";
 
-    const urlPreview = 'https://github.com';
-    const mensaje = `*Lista de usuarios en línea:*\n\n${listaEnLinea}\n\n> ${dev}\n\n${urlPreview}`;
+    // Si 'dev' no está definido globalmente, puedes usar algo como "Bot Kawaii ✨"
+    const mensaje = `*♡ Lista de usuarios en línea:*\n\n${listaEnLinea}\n\n> ${typeof dev !== 'undefined' ? dev : 'Bot Kawaii ✨'}`;
 
-    // 1. Descargar la imagen como Buffer para asegurar que Baileys procese el icono 🪴
-    const response = await fetch("https://avatars.githubusercontent.com/u/9919?s=280&v=4");
-    const buffer = Buffer.from(await response.arrayBuffer());
+    // --- SOLUCIÓN DE NEKOSMICO APLICADA ---
+    
+    // 1. Preparamos la imagen (Link funcional de prueba)
+    const imgUrl = "https://github.com/github.png"; 
+    const linkDestino = "https://github.com/WhiskeySockets/Baileys";
 
-    // 2. Pasamos el Buffer directamente en lugar de la URL
     const media = await prepareWAMessageMedia(
-      { image: buffer },
+      { image: { url: imgUrl } }, 
       {
         upload: conn.waUploadToServer,
-        mediaTypeOverride: 'thumbnail-link',
+        mediaTypeOverride: 'thumbnail-link', // Esto es clave para que lo tome como miniatura
       }
     );
 
     const { imageMessage: thumb } = media;
 
-    // 3. Verificamos opcionalmente las propiedades con "?." por seguridad
+    // 2. Construimos el mensaje extendido imitando el preview nativo
     const content = {
       extendedTextMessage: {
         text: mensaje,
-        matchedText: urlPreview,
-        title: 'Usuarios Activos 🪴',
-        description: "Revisa quién está en línea",
+        matchedText: linkDestino, // El link que desencadena el preview
+        title: 'Usuarios Activos 💖',
+        description: "¡Mira quién está conectado ahora mismo!",
         previewType: 0,
-        jpegThumbnail: thumb?.jpegThumbnail?.toString('base64') ?? '',
-        thumbnailDirectPath: thumb?.directPath,
-        thumbnailSha256: thumb?.fileSha256?.toString('base64') ?? '',
-        thumbnailEncSha256: thumb?.fileEncSha256?.toString('base64') ?? '',
-        mediaKey: thumb?.mediaKey?.toString('base64') ?? '',
-        mediaKeyTimestamp: thumb?.mediaKeyTimestamp,
-        thumbnailHeight: thumb?.height,
-        thumbnailWidth: thumb?.width,
+        jpegThumbnail: thumb.jpegThumbnail?.toString('base64') ?? '',
+        thumbnailDirectPath: thumb.directPath,
+        thumbnailSha256: thumb.fileSha256?.toString('base64') ?? '',
+        thumbnailEncSha256: thumb.fileEncSha256?.toString('base64') ?? '',
+        mediaKey: thumb.mediaKey?.toString('base64') ?? '',
+        mediaKeyTimestamp: thumb.mediaKeyTimestamp,
+        thumbnailHeight: thumb.height,
+        thumbnailWidth: thumb.width,
         inviteLinkGroupTypeV2: 0,
         contextInfo: {
-          mentionedJid: participantesUnicos
+          mentionedJid: participantesUnicos // Mantenemos las menciones funcionando
         },
       },
     };
 
-    await conn.relayMessage(m.chat, content, { messageId: m.key.id });
+    // 3. Enviamos usando relayMessage para evitar que Baileys sobreescriba el formato
+    await conn.relayMessage(m.chat, content, {});
     await m.react("✅");
 
   } catch (error) {
     console.error(error);
-    await m.reply(`Hubo un error al enviar la lista de usuarios. 🍂`);
+    await m.reply(`😿 Hubo un error al enviar la lista de usuarios.`);
   }
 };
 
