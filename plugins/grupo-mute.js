@@ -1,109 +1,74 @@
-import fetch from 'node-fetch'
+const parseDuration = (args = []) => {
+    const timeArg = args.find(arg => /^\d+[smh]$/i.test(arg))
+    if (!timeArg) return { duration: null, label: '' }
 
-let handler = async (m, { conn, command, text, args, participants, isBotAdmin, isAdmin, isOwner }) => {
-    
+    const value = Number.parseInt(timeArg.slice(0, -1), 10)
+    const unit = timeArg.slice(-1).toLowerCase()
+    if (!Number.isFinite(value) || value <= 0) return { duration: null, label: '' }
 
-    // Identificar al usuario
-    let who
-    if (m.mentionedJid[0]) who = m.mentionedJid[0]
-    else if (m.quoted) who = m.quoted.sender
-    else return m.reply('Debes mencionar o responder al mensaje del usuario. 🧐')
-
-    // Validar que el usuario no sea el bot o un admin
-    let user = global.db.data.users[who]
-    if (!user) {
-        global.db.data.users[who] = { muto: false }
-        user = global.db.data.users[who]
-    }
-
-    const bot = global.db.data.settings[conn.user.jid] || {}
-    const ownerBot = global.owner[0][0] + '@s.whatsapp.net'
-    
-    if (who === conn.user.jid) return m.reply('No puedo mutearme a mí mismo. 🤖')
-    
-    // Comprobar si el objetivo es admin (Opcional: Si quieres que admins se muteen entre sí, borra esto)
-    let groupMetadata = await conn.groupMetadata(m.chat)
-    let groupAdmins = groupMetadata.participants.filter(v => v.admin !== null).map(v => v.id)
-    if (groupAdmins.includes(who) && !isOwner) return m.reply('No puedo mutear a otro administrador. 🛡️')
-
-    // --- LÓGICA DE UNMUTE ---
-    if (command === 'unmute' || command === 'desmutear') {
-        if (!user.muto) return m.reply('El usuario no estaba muteado. 🤷‍♂️')
-        
-        user.muto = false
-        
-        // Mensaje FakeLocation UNMUTE
-        let fakeLocationUnmute = {
-            key: { participants: '0@s.whatsapp.net', fromMe: false, id: 'Halo' },
-            message: {
-                locationMessage: {
-                    name: '𝗨𝘀𝘂𝗮𝗿𝗶𝗼 𝗱𝗲𝗺𝘂𝘁𝗮𝗱𝗼',
-                    jpegThumbnail: await (await fetch('https://telegra.ph/file/aea704d0b242b8c41bf15.png')).buffer(),
-                    vcard: 'BEGIN:VCARD\nVERSION:3.0\nN:;Free;;;\nFN:Free\nEND:VCARD'
-                }
-            },
-            participant: '0@s.whatsapp.net'
-        };
-
-        return conn.reply(m.chat, `✅ *El usuario @${who.split`@`[0]} ha sido desmuteado.*\nYa puede hablar de nuevo.`, fakeLocationUnmute, { mentions: [who] })
-    }
-
-    // --- LÓGICA DE MUTE ---
-    if (command === 'mute' || command === 'silenciar') {
-        if (user.muto) return m.reply('El usuario ya está muteado. 🤐')
-
-        user.muto = true
-
-        // Lógica para Mute Temporal
-        let duration = null
-        let timerLabel = ""
-        
-        // Intentar leer el tiempo del argumento (ej: .mute @user 1m)
-        // Buscamos argumentos que no sean la mención
-        let timeArg = args.find(arg => !arg.includes('@') && (arg.endsWith('m') || arg.endsWith('h') || arg.endsWith('s')))
-        
-        if (timeArg) {
-            let value = parseInt(timeArg.slice(0, -1))
-            let unit = timeArg.slice(-1)
-            
-            if (!isNaN(value)) {
-                if (unit === 's') duration = value * 1000
-                else if (unit === 'm') duration = value * 60000
-                else if (unit === 'h') duration = value * 3600000
-                
-                timerLabel = `\n⏱️ *Tiempo:* ${value}${unit === 'm' ? ' minuto(s)' : unit === 'h' ? ' hora(s)' : ' segundo(s)'}`
-            }
-        }
-
-        // Mensaje FakeLocation MUTE
-        let fakeLocationMute = {
-            key: { participants: '0@s.whatsapp.net', fromMe: false, id: 'Halo' },
-            message: {
-                locationMessage: {
-                    name: '𝗨𝘀𝘂𝗮𝗿𝗶𝗼 𝗺𝘂𝘁𝗮𝗱𝗼',
-                    jpegThumbnail: await (await fetch('https://telegra.ph/file/f8324d9798fa2ed2317bc.png')).buffer(),
-                    vcard: 'BEGIN:VCARD\nVERSION:3.0\nN:;Muted;;;\nFN:Muted\nEND:VCARD'
-                }
-            },
-            participant: '0@s.whatsapp.net'
-        };
-
-        await conn.reply(m.chat, `🔇 *Usuario Silenciado*\n@${who.split`@`[0]} ha sido muteado.${timerLabel}\n\nSus mensajes serán eliminados automáticamente.`, fakeLocationMute, { mentions: [who] })
-
-        // Ejecutar el temporizador si existe duración
-        if (duration) {
-            setTimeout(async () => {
-                // Verificar si sigue muteado antes de desmutear (por si un admin lo desmuteó manualmente antes)
-                if (user.muto) {
-                    user.muto = false
-                    await conn.sendMessage(m.chat, { text: `🔔 *El mute temporal de @${who.split`@`[0]} ha terminado.*`, mentions: [who] })
-                }
-            }, duration)
-        }
+    const multipliers = { s: 1000, m: 60000, h: 3600000 }
+    const names = { s: 'segundo(s)', m: 'minuto(s)', h: 'hora(s)' }
+    return {
+        duration: value * multipliers[unit],
+        label: `\n⏱️ *Tiempo:* ${value} ${names[unit]}`
     }
 }
 
-handler.command = ['mute','silenciar','unmute','desmutear'];
+const handler = async (m, { conn, command, args, groupMetadata, isOwner }) => {
+    let who
+    if (m.mentionedJid?.[0]) who = m.mentionedJid[0]
+    else if (m.quoted) who = m.quoted.sender
+    else return m.reply('Debes mencionar o responder al mensaje del usuario. 🧐')
+
+    const botJid = conn.decodeJid?.(conn.user?.jid || conn.user?.id) || conn.user?.jid
+    if (who === botJid) return m.reply('No puedo mutearme a mí mismo. 🤖')
+
+    let user = global.db.data.users[who]
+    if (!user) user = global.db.data.users[who] = {}
+    if (!user.mutedChats || typeof user.mutedChats !== 'object') user.mutedChats = {}
+
+    const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
+    const groupAdmins = participants
+        .filter(v => v.admin === 'admin' || v.admin === 'superadmin' || v.admin === 'creator' || v.admin === true)
+        .map(v => v.jid || v.id)
+    if (groupAdmins.includes(who) && !isOwner) return m.reply('No puedo mutear a otro administrador. 🛡️')
+
+    if (command === 'unmute' || command === 'desmutear') {
+        if (!user.mutedChats[m.chat] && !(user.muto && (!user.mutoChat || user.mutoChat === m.chat))) {
+            return m.reply('El usuario no estaba muteado. 🤷‍♂️')
+        }
+
+        user.mutedChats[m.chat] = false
+        if (!Object.values(user.mutedChats).some(Boolean)) user.muto = false
+        if (user.mutoChat === m.chat) delete user.mutoChat
+
+        return conn.reply(m.chat, `✅ *El usuario @${who.split`@`[0]} ha sido desmuteado.*\nYa puede hablar de nuevo.`, m, { mentions: [who] })
+    }
+
+    if (user.mutedChats[m.chat] || (user.muto && (!user.mutoChat || user.mutoChat === m.chat))) {
+        return m.reply('El usuario ya está muteado. 🤐')
+    }
+
+    user.muto = true
+    user.mutoChat = m.chat
+    user.mutedChats[m.chat] = true
+
+    const { duration, label } = parseDuration(args)
+    await conn.reply(m.chat, `🔇 *Usuario Silenciado*\n@${who.split`@`[0]} ha sido muteado.${label}\n\nSus mensajes serán eliminados automáticamente.`, m, { mentions: [who] })
+
+    if (duration) {
+        setTimeout(async () => {
+            if (user.mutedChats?.[m.chat]) {
+                user.mutedChats[m.chat] = false
+                if (!Object.values(user.mutedChats).some(Boolean)) user.muto = false
+                if (user.mutoChat === m.chat) delete user.mutoChat
+                await conn.sendMessage(m.chat, { text: `🔔 *El mute temporal de @${who.split`@`[0]} ha terminado.*`, mentions: [who] }).catch(() => {})
+            }
+        }, duration)
+    }
+}
+
+handler.command = ['mute','silenciar','unmute','desmutear']
 handler.group = true
 handler.admin = true
 handler.botAdmin = true
