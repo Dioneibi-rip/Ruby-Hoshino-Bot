@@ -15,12 +15,12 @@ if (primaryBot && botJid !== primaryBot) return true
 const isWelcome = [
 WAMessageStubType.GROUP_PARTICIPANT_ADD,
 WAMessageStubType.GROUP_PARTICIPANT_INVITE,
-27, 31, 32
+27, 31
 ].includes(m.messageStubType)
 const isBye = [
 WAMessageStubType.GROUP_PARTICIPANT_REMOVE,
 WAMessageStubType.GROUP_PARTICIPANT_LEAVE,
-28, 33
+28, 32
 ].includes(m.messageStubType)
 if (!isWelcome && !isBye) return true
 let usuariosAfectados = m.messageStubParameters && m.messageStubParameters.length > 0 ? m.messageStubParameters : [m.sender]
@@ -77,8 +77,7 @@ isForwarded: true,
 forwardingScore: 9999999,
 forwardedNewsletterMessageInfo: { newsletterJid: newsletterJid, newsletterName: newsletterName, serverMessageId: -1 }}
 }, { quoted: null })
-}
-if (isBye) {
+} else if (isBye) {
 let text
 if (chat.byeText) {
 text = chat.byeText.replace(/@user/g, username).replace(/@subject/g, groupName)
@@ -117,7 +116,7 @@ forwardedNewsletterMessageInfo: { newsletterJid: newsletterJid, newsletterName: 
 }, { quoted: null })
 }
 } catch (error) {
-console.error(`[WELCOME] Error al intentar enviar bienvenida/despedida a ${targetJid}:`, error.message);
+console.error(error.message);
 }
 }
 }
