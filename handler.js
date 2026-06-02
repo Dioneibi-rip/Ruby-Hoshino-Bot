@@ -145,13 +145,30 @@ async function executePlugin(conn, plugin, name, m, extra, permissionContext, se
   return true
 }
 
+function isUserMutedInChat(user, chatId) {
+  if (!user || !chatId) return false
+  if (user.mutedChats?.[chatId] === true) return true
+  return user.muto === true && (!user.mutoChat || user.mutoChat === chatId)
+}
+
+function getMessageDeletePayload(m, sender) {
+  const key = m?.__deleteKey || m?.key || {}
+  const id = key.id || m?.id
+  const remoteJid = key.remoteJid || m?.chat
+  if (!id || !remoteJid) return null
+  const payload = { remoteJid, fromMe: Boolean(key.fromMe), id }
+  const participant = key.participant || m?.participant || sender
+  if (m?.isGroup && participant) payload.participant = participant
+  return payload
+}
+
 function updateStatsAndEconomy(conn, m, sender) {
   const data = global.db?.data
   if (!data || !m) return
   const mutedUser = data.users?.[sender]
-  if (mutedUser?.muto === true) {
-    const deletePayload = { remoteJid: m.chat, fromMe: false, id: m.key?.id, participant: m.key?.participant }
-    conn.sendMessage?.(m.chat, { delete: deletePayload }).catch(() => {})
+  if (m.isGroup && isUserMutedInChat(mutedUser, m.chat)) {
+    const deletePayload = getMessageDeletePayload(m, sender)
+    if (deletePayload) conn.sendMessage?.(m.chat, { delete: deletePayload }).catch(() => {})
   }
   if (sender && data.users?.[sender]) {
     data.users[sender].exp += m.exp || 0
@@ -202,6 +219,7 @@ export async function handler(chatUpdate) {
 
     sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
     if (!sender) return
+    m.__deleteKey = m.key ? { ...m.key } : null
     const groupMetadata = m.isGroup ? await getCachedGroupMetadata(this, m.chat) : {}
     const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
     sender = normalizeLidReferences(m, sender, m.isGroup ? createParticipantIndex(participants) : null)
