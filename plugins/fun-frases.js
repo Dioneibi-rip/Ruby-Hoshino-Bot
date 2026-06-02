@@ -2,7 +2,6 @@ const { generateWAMessageFromContent, proto } = (await import('@whiskeysockets/b
 
 var handler = async (m, { conn, text}) => {
 
-conn.reply(m.chat, `⏳ Buscando una frase...`, m)
 
 let animeQuote = pickRandom(global.frases)
 
