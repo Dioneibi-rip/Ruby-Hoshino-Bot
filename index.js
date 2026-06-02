@@ -25,7 +25,7 @@ import readline, { createInterface } from 'readline'
 import { RubyJadiBot } from './plugins/jadibot-serbot.js'
 import { EventEmitter } from 'events'
 import { attachSessionState, createMessageRetryCache } from './src/core/session-manager.js'
-EventEmitter.defaultMaxListeners = 100 
+EventEmitter.defaultMaxListeners = 100
 const { proto } = (await import('@whiskeysockets/baileys')).default
 const { DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser } = await import('@whiskeysockets/baileys')
 import pkg from 'google-libphonenumber'
@@ -116,83 +116,81 @@ const rl = readline.createInterface({ input: process.stdin, output: process.stdo
 const question = (texto) => { rl.clearLine(rl.input, 0); return new Promise((resolver) => { rl.question(texto, (respuesta) => { rl.clearLine(rl.input, 0); resolver(respuesta.trim()) }) }) }
 let opcion
 if (methodCodeQR) { opcion = '1' }
-if (!methodCodeQR && !methodCode && !existsSync(`./${Rubysessions}/creds.json`)) {
+if (!methodCodeQR && !methodCode && !existsSync(`./${global.Rubysessions}/creds.json`)) {
 const lineM = '━'.repeat(45)
 do {
-showBanner() 
+showBanner()
 opcion = await question(chalk.bold.magentaBright(`
 ╭━━${lineM}━━╮
 ┃ ${chalk.bold.cyanBright('╔════❖•ೋ° ¡HOLA USUARIO! °ೋ•❖════╗')}
 ┃ ${chalk.bold.cyanBright('║')}    ${chalk.bold.greenBright('SELECCIONA TU MÉTODO DE CONEXIÓN')}
 ┃ ${chalk.bold.cyanBright('╚════❖•ೋ° ❀ RUBY-Bot ❀ °ೋ•❖════╝')}
-┃                                                                
-┃ ${chalk.bold.yellow('🔸 OPCIÓN 1:')} ${chalk.white('Escanear Código QR')} 
+┃
+┃ ${chalk.bold.yellow('🔸 OPCIÓN 1:')} ${chalk.white('Escanear Código QR')}
 ┃ ${chalk.bold.yellow('🔸 OPCIÓN 2:')} ${chalk.white('Código de 8 Dígitos (Pairing)')}
 ┃
 ┃ ${chalk.italic.gray('Escribe el número de la opción y presiona Enter')}
 ╰━━${lineM}━━╯
 ${chalk.bold.magentaBright('➜ ')}`))
-if (!/^[1-2]$/.test(opcion)) { 
-console.log(chalk.red.bold(`❌ OPCIÓN INVÁLIDA. POR FAVOR ELIJA 1 O 2.`)); 
-await new Promise(resolve => setTimeout(resolve, 1500)); 
+if (!/^[1-2]$/.test(opcion)) {
+console.log(chalk.red.bold(`❌ OPCIÓN INVÁLIDA. POR FAVOR ELIJA 1 O 2.`));
+await new Promise(resolve => setTimeout(resolve, 1500));
 }
-} while (opcion !== '1' && opcion !== '2' || existsSync(`./${Rubysessions}/creds.json`))
+} while (opcion !== '1' && opcion !== '2' || existsSync(`./${global.Rubysessions}/creds.json`))
 }
+const RECONNECT_REASONS = new Set([DisconnectReason.connectionLost, DisconnectReason.connectionClosed, DisconnectReason.restartRequired, DisconnectReason.connectionReplaced])
 const socketCfg = global.baileysSocketConfig || {}
 const connectionOptions = {
-logger: pino({ level: 'silent' }), 
+logger: pino({ level: 'silent' }),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile,
-browser: ['Mac OS', 'Safari', '10.15.7'], 
+browser: ['Mac OS', 'Safari', '10.15.7'],
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })), },
 markOnlineOnConnect: true,
 generateHighQualityLinkPreview: true,
 getMessage: async (clave) => { let jid = jidNormalizedUser(clave.remoteJid); let msg = await store.loadMessage(jid, clave.id); return msg?.message || "" },
 msgRetryCounterCache,
 msgRetryCounterMap,
-defaultQueryTimeoutMs: socketCfg.defaultQueryTimeoutMs ?? 30000,
+defaultQueryTimeoutMs: socketCfg.defaultQueryTimeoutMs ?? 60000,
 version,
 syncFullHistory: false,
-connectTimeoutMs: socketCfg.connectTimeoutMs ?? 45000,
-keepAliveIntervalMs: socketCfg.keepAliveIntervalMs ?? 20000,
-retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 1500
+connectTimeoutMs: socketCfg.connectTimeoutMs ?? 20000,
+keepAliveIntervalMs: socketCfg.keepAliveIntervalMs ?? 30000,
+retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 250,
+shouldReconnect: ({ statusCode }) => RECONNECT_REASONS.has(statusCode) || statusCode !== DisconnectReason.loggedOut
 }
 global.conn = makeWASocket(connectionOptions);
 attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.Rubysessions })
 let conn = global.conn
 conn.isInit = false;
 conn.well = false;
-if (!existsSync(`./${Rubysessions}/creds.json`)) {
+if (!existsSync(`./${global.Rubysessions}/creds.json`)) {
 if (opcion === '2' || methodCode) {
 opcion = '2'
 if (!conn.authState.creds.registered) {
 let addNumber
 if (!!phoneNumber) { addNumber = phoneNumber.replace(/[^0-9]/g, '') } else {
-do { 
-phoneNumber = await question(chalk.bold.hex('#A020F0')(`\n📞 INGRESE SU NÚMERO DE WHATSAPP\n${chalk.white('Ejemplo: 5219999999999')}\n${chalk.yellow('➜ ')}`)); 
-phoneNumber = phoneNumber.replace(/\D/g, ''); 
-if (!phoneNumber.startsWith('+')) { phoneNumber = `+${phoneNumber}` } 
+do {
+phoneNumber = await question(chalk.bold.hex('#A020F0')(`\n📞 INGRESE SU NÚMERO DE WHATSAPP\n${chalk.white('Ejemplo: 5219999999999')}\n${chalk.yellow('➜ ')}`));
+phoneNumber = phoneNumber.replace(/\D/g, '');
+if (!phoneNumber.startsWith('+')) { phoneNumber = `+${phoneNumber}` }
 } while (!await isValidPhoneNumber(phoneNumber))
 rl.close()
 addNumber = phoneNumber.replace(/\D/g, '')
-setTimeout(async () => { 
-let codeBot = await conn.requestPairingCode(addNumber); 
-codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot; 
-console.log(boxen(chalk.bold.white(' Codigo : ') + chalk.bold.bgMagenta(` ${codeBot} `), { borderStyle: 'round', borderColor: 'magenta', padding: 1, margin: 1, title: '👾 VINCULACION', titleAlignment: 'center' })) 
+setTimeout(async () => {
+let codeBot = await conn.requestPairingCode(addNumber);
+codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
+console.log(boxen(chalk.bold.white(' Codigo : ') + chalk.bold.bgMagenta(` ${codeBot} `), { borderStyle: 'round', borderColor: 'magenta', padding: 1, margin: 1, title: '👾 VINCULACION', titleAlignment: 'center' }))
 }, 3000)
 }
 }
 }
 }
+let reconnectTimer
 async function connectionUpdate(update) {
-const { connection, lastDisconnect, isNewLogin, qr } = update
+const { connection, lastDisconnect, isNewLogin, qr, reconnectDelayMs } = update
 global.stopped = connection
 if (isNewLogin) conn.isInit = true
-const code = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode
-if (code && code !== DisconnectReason.loggedOut && conn?.ws.socket == null) {
-await global.reloadHandler(true).catch(console.error)
-global.timestamp.connect = new Date()
-}
 if (global.db.data == null) loadDatabase()
 if ((qr && opcion === '1') || methodCodeQR) {
 console.log(boxen(chalk.hex('#FF66C4')('—🍦ܶ߭ຼ ᪲  ۪  ︵ Escanea el codigo QR aqui ︵ ࣪'), { padding: 1, borderStyle: 'classic', borderColor: 'magenta' }))
@@ -203,17 +201,24 @@ console.log(boxen(chalk.bold.hex('#00FF00')('୭ৎ֮֮ BOT CONECTADO CORRECTAME
 console.log('\n')
 }
 if (connection === 'close') {
-const reason = new Boom(lastDisconnect?.error)?.output?.statusCode
+const statusCode = (lastDisconnect?.error)?.output?.statusCode || (lastDisconnect?.error)?.statusCode || DisconnectReason.connectionClosed
 const show = (color, text, icon) => console.log(boxen(color(text), { padding: 1, borderStyle: 'round', borderColor: 'red', title: icon, titleAlignment: 'center' }))
-switch (reason) {
-case DisconnectReason.badSession: show(chalk.red, `⚠️ SESION CORRUPTA, BORRE LA CARPETA ${global.Rubysessions}`, '❌ 𝖤𝖱𝖱𝖮𝖱'); await global.reloadHandler(true).catch(console.error); break
-case DisconnectReason.connectionClosed: show(chalk.yellow, '🔌 CONEXION CERRADA, RECONECTANDO...', '🔁'); await global.reloadHandler(true).catch(console.error); break
-case DisconnectReason.connectionLost: show(chalk.blue, '📡 SEÑAL PERDIDA DEL SERVIDOR...', '⚠️'); await global.reloadHandler(true).catch(console.error); break
-case DisconnectReason.connectionReplaced: show(chalk.magenta, '💻 SESION ABIERTA EN OTRA PARTE', '🚫'); break
-case DisconnectReason.loggedOut: show(chalk.red, `👋 SESION CERRADA BORRE LA CARPETA ${global.Rubysessions}`, '🚪'); await global.reloadHandler(true).catch(console.error); break
-case DisconnectReason.restartRequired: show(chalk.cyan, '🔄 REINICIO NECESARIO...', '♻️'); await global.reloadHandler(true).catch(console.error); break
-case DisconnectReason.timedOut: show(chalk.yellow, '⏳ TIEMPO AGOTADO...', '⏱️'); await global.reloadHandler(true).catch(console.error); break
-default: show(chalk.red, `❓ 𝖤𝗋𝗋𝗈𝗋 𝖽𝖾𝗌𝖼𝗈𝗇𝗈𝖼𝗂𝖽𝗈: ${reason}`, '💀'); break
+if (statusCode === DisconnectReason.loggedOut) {
+show(chalk.red, `👋 SESION CERRADA BORRE LA CARPETA ${global.Rubysessions}`, '🚪')
+await global.reloadHandler(true).catch(console.error)
+return
+}
+if (RECONNECT_REASONS.has(statusCode) || update.shouldReconnect !== false) {
+show(chalk.yellow, '🔌 RECONECTANDO SILENCIOSAMENTE...', '🔁')
+if (reconnectTimer) return
+reconnectTimer = setTimeout(async () => {
+reconnectTimer = undefined
+await global.reloadHandler(true).catch(console.error)
+}, reconnectDelayMs || 1500)
+reconnectTimer.unref?.()
+} else {
+show(chalk.red, `❓ Error desconocido: ${statusCode}`, '💀')
+await global.reloadHandler(true).catch(console.error)
 }
 }
 }
@@ -243,12 +248,12 @@ return true
 };
 await global.reloadHandler(false)
 global.rutaJadiBot = join(__dirname, './RubyJadiBots')
-if (global.RubyJadibts || true) { 
-if (!existsSync(global.rutaJadiBot)) { 
-mkdirSync(global.rutaJadiBot, { recursive: true }); 
-console.log(chalk.bold.cyan(`✅ Carpeta de sub-Bots creada`)) 
-} else { 
-console.log(chalk.bold.cyan(`✨ Cargando sub-Bots...`)) 
+if (global.RubyJadibts || true) {
+if (!existsSync(global.rutaJadiBot)) {
+mkdirSync(global.rutaJadiBot, { recursive: true });
+console.log(chalk.bold.cyan(`✅ Carpeta de sub-Bots creada`))
+} else {
+console.log(chalk.bold.cyan(`✨ Cargando sub-Bots...`))
 }
 const readRutaJadiBot = readdirSync(global.rutaJadiBot)
 if (readRutaJadiBot.length > 0) {
@@ -330,9 +335,9 @@ files.forEach(file => {
 const filePath = join(sessionDir, file);
 try {
 const stats = statSync(filePath);
-if (file.startsWith('pre-key-') && (Date.now() - stats.mtimeMs > 3600000)) { 
+if (file.startsWith('pre-key-') && (Date.now() - stats.mtimeMs > 3600000)) {
 unlinkSync(filePath);
-} 
+}
 } catch (e) { }
 });
 } catch (e) { console.log("Error en purga de sesión principal:", e); }
