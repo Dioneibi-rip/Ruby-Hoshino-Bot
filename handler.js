@@ -19,6 +19,7 @@ import {
   runMaintenance,
 } from './src/core/handler-utils.js'
 import { attachSessionState } from './src/core/session-manager.js'
+import { getCommandName, shouldIgnoreByBanChat, shouldIgnoreByBotState } from './src/core/chat-state.js'
 
 global.uptimeStart = Date.now()
 
@@ -220,6 +221,10 @@ export async function handler(chatUpdate) {
     sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
     if (!sender) return
     m.__deleteKey = m.key ? { ...m.key } : null
+
+    if (shouldIgnoreByBotState(this, m, sender)) return
+    if (shouldIgnoreByBanChat(this, m, sender)) return
+
     const groupMetadata = m.isGroup ? await getCachedGroupMetadata(this, m.chat) : {}
     const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
     sender = normalizeLidReferences(m, sender, m.isGroup ? createParticipantIndex(participants) : null)
@@ -237,6 +242,18 @@ export async function handler(chatUpdate) {
     m.moneda = settings?.moneda || 'Coins'
     ensureQueue(this, m, opts, isMods, isPrems)
     m.exp += Math.ceil(Math.random() * 10)
+
+    const privateCommand = !m.isGroup && getCommandName(m.text)
+    const allowedPrivateCommands = new Set(['serbot', 'jadibot', 'code', 'qr', 'antiprivado', 'antipriv', 'antiprivate'])
+    if (privateCommand && settings?.antiPrivate && !isOwner && !isROwner && !allowedPrivateCommands.has(privateCommand)) {
+      if ((settings.antiPrivateMode || 'ban') === 'ignore') {
+        await this.readMessages?.([m.key]).catch(() => {})
+      } else {
+        await m.reply(`${global.emoji || '🚫'} Hola @${String(sender).split('@')[0]}, mi creador desactivó los comandos en privados. Serás bloqueado.`, false, { mentions: [sender] }).catch(() => {})
+        await this.updateBlockStatus?.(m.chat, 'block').catch(() => {})
+      }
+      return
+    }
 
     const pluginDir = getPluginDirectory()
     for (const name in (global.plugins || {})) {
