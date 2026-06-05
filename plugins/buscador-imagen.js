@@ -35,7 +35,7 @@ await m.react('✅');
 } catch (error) {
 console.error(error);
 await m.react('✖️');
-conn.reply(m.chat, `𐔌 🥀 ׄ 𝖼ჩɑ𝗇𝗇⃨𝖾𝗅 ⢟ Ocurrió un error de conexión. Intente con otra palabra.`, m);
+conn.reply(m.chat, `𐔌 🥀 ׄ𝗅 ⢟ Ocurrió un error de conexión. Intente con otra palabra.`, m);
 }
 };
 handler.help = ['imagen <texto>'];
