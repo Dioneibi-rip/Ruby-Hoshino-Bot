@@ -25,6 +25,7 @@ import readline, { createInterface } from 'readline'
 import { RubyJadiBot } from './plugins/jadibot-serbot.js'
 import { EventEmitter } from 'events'
 import { attachSessionState, createMessageRetryCache } from './src/core/session-manager.js'
+import { sendStartupControlPanel } from './src/core/chat-state.js'
 EventEmitter.defaultMaxListeners = 100
 const { proto } = (await import('@whiskeysockets/baileys')).default
 const { DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser } = await import('@whiskeysockets/baileys')
@@ -199,6 +200,7 @@ if (connection === 'open') {
 console.log('\n')
 console.log(boxen(chalk.bold.hex('#00FF00')('୭ৎ֮֮ BOT CONECTADO CORRECTAMENTE 🪼 ׄ'), { padding: 1, borderStyle: 'double', borderColor: 'green', title: '✅ 𝖤𝖷𝖨𝖳𝖮', titleAlignment: 'center' }))
 console.log('\n')
+try { await sendStartupControlPanel(conn) } catch (e) { console.error('No se pudo enviar el panel de control:', e) }
 }
 if (connection === 'close') {
 const statusCode = (lastDisconnect?.error)?.output?.statusCode || (lastDisconnect?.error)?.statusCode || DisconnectReason.connectionClosed

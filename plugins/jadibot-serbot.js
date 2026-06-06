@@ -30,6 +30,7 @@ import * as ws from 'ws'
 const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
 import { makeWASocket } from '../lib/simple.js'
+import { sendStartupControlPanel } from '../src/core/chat-state.js'
 import { attachSessionState, cleanupSessionState, createMessageRetryCache, registerSubBot } from '../src/core/session-manager.js'
 import { fileURLToPath } from 'url'
 let crm1 = "Y2QgcGx1Z2lucy"
@@ -364,6 +365,7 @@ if (!global.conns.includes(sock)) global.conns.push(sock)
 registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() })
 clearPairingCodeLock()
 await joinChannels(sock)
+try { await sendStartupControlPanel(sock) } catch (e) { console.error('No se pudo enviar el panel de control del sub-bot:', e) }
 
 m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `@${m.sender.split('@')[0]}, genial ya eres parte de nuestra familia de Sub-Bots.`, mentions: [m.sender]}, { quoted: m }) : ''
 

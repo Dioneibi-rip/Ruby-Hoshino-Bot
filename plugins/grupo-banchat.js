@@ -1,48 +1,49 @@
-let handler = async (m, { conn, isROwner, args, usedPrefix }) => {
-  if (!isROwner && m.sender !== conn.user.jid) {
-    throw 'Este comando solo puede ser utilizado por el creador o por el mismo bot.'
-  }
+import { normalizeJid } from '../src/core/chat-state.js'
 
-  if (!m.isGroup) throw 'Este comando solo puede usarse en grupos.'
+const MODES = new Set(['silent', 'strict'])
 
-  const chat = global.db.data.chats[m.chat] || (global.db.data.chats[m.chat] = {})
+function resolveTarget(m, args) {
+  const explicit = args.find((arg) => !MODES.has(String(arg).toLowerCase()) && String(arg).toLowerCase() !== 'status')
+  return m.mentionedJid?.[0] || normalizeJid(explicit) || m.chat
+}
+
+let handler = async (m, { conn, args, usedPrefix }) => {
+  const requestedMode = (args.find((arg) => MODES.has(String(arg).toLowerCase())) || 'silent').toLowerCase()
+  const wantsStatus = args.some((arg) => String(arg).toLowerCase() === 'status')
+  const target = resolveTarget(m, args)
+  if (!target) throw `Indica un chat, número o JID. Ejemplo: ${usedPrefix}banchat 120363xxxx@g.us`
+
+  const chat = global.db.data.chats[target] ||= {}
   const botJid = conn.user.jid
   chat.bannedBots = Array.isArray(chat.bannedBots) ? chat.bannedBots : []
 
-  const mode = (args[0] || 'silent').toLowerCase()
-  const allowedModes = ['silent', 'strict', 'status']
-  if (!allowedModes.includes(mode)) {
-    throw `Modo no válido. Usa: ${usedPrefix}banchat silent | strict | status`
-  }
-
-  if (mode === 'status') {
+  if (wantsStatus) {
     const active = chat.bannedBots.includes(botJid)
-    const activeMode = chat.banchatMode || 'silent'
-    return m.reply(`Estado banchat: *${active ? 'ACTIVO' : 'INACTIVO'}*\nModo: *${activeMode}*`)
+    return m.reply(`🔕 Banchat remoto\n\nChat: *${target}*\nEstado: *${active ? 'ACTIVO' : 'INACTIVO'}*\nModo: *${chat.banchatMode || 'silent'}*`)
   }
 
   if (!chat.bannedBots.includes(botJid)) chat.bannedBots.push(botJid)
-  chat.banchatMode = mode
+  chat.banchatMode = requestedMode
 
-  // Respuesta discreta
-  await m.react('🔕')
+  await m.reply(`🔕 Banchat activado para *${target}* en modo *${requestedMode}*.`)
 
-  // Si el bot es admin, borra el comando para mayor discreción
-  try {
-    await conn.sendMessage(m.chat, {
-      delete: {
-        remoteJid: m.chat,
-        fromMe: false,
-        id: m.key.id,
-        participant: m.key.participant || m.sender,
-      },
-    })
-  } catch (e) {}
+  if (m.isGroup && target === m.chat) {
+    try {
+      await conn.sendMessage(m.chat, {
+        delete: {
+          remoteJid: m.chat,
+          fromMe: false,
+          id: m.key.id,
+          participant: m.key.participant || m.sender,
+        },
+      })
+    } catch {}
+  }
 }
 
-handler.help = ['banchat [silent|strict|status]']
+handler.help = ['banchat [jid|número] [silent|strict|status]']
 handler.tags = ['owner']
 handler.command = ['banchat']
-handler.group = true
+handler.owner = true
 
 export default handler

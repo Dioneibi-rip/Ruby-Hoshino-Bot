@@ -1,24 +1,24 @@
-let handler = async (m, { conn, isROwner }) => {
-  if (!isROwner && m.sender !== conn.user.jid) {
-    throw 'Este comando solo puede ser utilizado por el creador o el mismo bot.'
-  }
+import { normalizeJid } from '../src/core/chat-state.js'
 
-  const chat = global.db.data.chats[m.chat]
-  if (!chat || !Array.isArray(chat.bannedBots)) {
-    await m.react('✅')
-    return
-  }
-
-  const botJid = conn.user.jid
-  chat.bannedBots = chat.bannedBots.filter(jid => jid !== botJid)
-  chat.banchatMode = 'silent'
-
-  await m.react('✅')
+function resolveTarget(m, args) {
+  return m.mentionedJid?.[0] || normalizeJid(args[0]) || m.chat
 }
 
-handler.help = ['unbanchat']
+let handler = async (m, { conn, args, usedPrefix }) => {
+  const target = resolveTarget(m, args)
+  if (!target) throw `Indica un chat, número o JID. Ejemplo: ${usedPrefix}unbanchat 120363xxxx@g.us`
+
+  const chat = global.db.data.chats[target] ||= {}
+  const botJid = conn.user.jid
+  chat.bannedBots = Array.isArray(chat.bannedBots) ? chat.bannedBots.filter((jid) => jid !== botJid) : []
+  chat.banchatMode = 'silent'
+
+  await m.reply(`✅ Banchat desactivado para *${target}*.`)
+}
+
+handler.help = ['unbanchat [jid|número]']
 handler.tags = ['owner']
 handler.command = ['unbanchat', 'desbanearchat']
-handler.group = true
+handler.owner = true
 
 export default handler

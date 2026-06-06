@@ -66,6 +66,8 @@ export const settingsDefault = Object.freeze({
   restrict: true,
   jadibotmd: true,
   antiPrivate: false,
+  antiPrivateMode: 'ban',
+  botState: null,
   moneda: 'Coins',
   autoread: false,
   status: 0,
