@@ -5,16 +5,10 @@ let handler = async (m, { conn }) => {
 
 ⌈ ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#tiktoksearch • #tiktoks*  
 > ✦ Buscador de videos de TikTok.  
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ.*#tweetposts*  
-> ✦ Buscador de posts de Twitter/X.    
 | ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#ytsearch • #yts*  
 > ✦ Realiza búsquedas en YouTube.  
 | ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#githubsearch*  
 > ✦ Buscador de usuarios de GitHub.  
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#cuevana • #cuevanasearch*  
-> ✦ Buscador de películas/series por Cuevana.  
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#google*  
-> ✦ Realiza búsquedas en Google.  
 | ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#pin • #pinterest*  
 > ✦ Buscador de imágenes de Pinterest.  
 | ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#imagen • #image*  

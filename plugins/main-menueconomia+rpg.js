@@ -59,8 +59,6 @@ let handler = async (m, { conn }) => {
 > ✦ Aventúrate en un nuevo reino y recolecta recursos.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🪷̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#curar • #heal*
 > ✦ Cura tu salud para volverte aventurero.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🥡̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#cazar • #hunt • #berburu*
-> ✦ Aventúrate en una caza de animales.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#inv • #inventario*
 > ✦ Ver tu inventario con todos tus ítems.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#mazmorra • #explorar*

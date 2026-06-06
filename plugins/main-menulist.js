@@ -53,7 +53,7 @@ product: {
 productImage: { jpegThumbnail: thumb2 },
 title: '𝖬𝖤𝖭𝖴 𝖫𝖨𝖲𝖳 • 𝖱𝖴𝖡𝖸',
 description: '╰┈➤ 𝖨𝖭𝖳𝖤𝖱𝖠𝖢𝖳𝖨𝖵𝖤 𝖬𝖤𝖭𝖴',
-retailerId: 'AI • ESTADO',
+retailerId: 'INFO • ESTADO',
 productImageCount: 1
 },
 businessOwnerJid: '0@s.whatsapp.net'

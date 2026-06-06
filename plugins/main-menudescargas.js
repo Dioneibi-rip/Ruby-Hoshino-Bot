@@ -11,8 +11,6 @@ let handler = async (m, { conn }) => {
 > ✦ Descarga videos de TikTok.
 ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#mediafire • #mf*
 > ✦ Descargar archivos de MediaFire.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#pinvid • #pinvideo* + [enlace]
-> ✦ Descargar videos de Pinterest.
 ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#mega • #mg* + [enlace]
 > ✦ Descargar archivos de MEGA.
 ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#play • #play2*
