@@ -1,3 +1,12 @@
+async function pathExists(file){
+try{
+await fs.promises.access(file)
+return true
+}catch{
+return false
+}
+}
+
 /*⚠ PROHIBIDO EDITAR ⚠
 Este codigo fue modificado, adaptado y mejorado por
 - ReyEndymion >> https://github.com/ReyEndymion
@@ -25,7 +34,7 @@ import fs from "fs"
 import path from "path"
 import pino from 'pino'
 import chalk from 'chalk'
-import util from 'util' 
+import util from 'util'
 import * as ws from 'ws'
 const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
@@ -53,7 +62,7 @@ let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
 let time = global.db.data.users[m.sender].Subs + 120000
 if (new Date - global.db.data.users[m.sender].Subs < 120000) return conn.reply(m.chat, `${emoji} Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
 
-const limiteSubBots = global.subbotlimitt || 26; 
+const limiteSubBots = global.subbotlimitt || 26;
 const subBots = [...new Set([...global.conns.filter((c) => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)])]
 const subBotsCount = subBots.length
 
@@ -68,22 +77,22 @@ const existingById = global.conns.find(c => c?.subBotId === id && c?.ws?.socket?
 if (existingById) {
 return conn.reply(m.chat, `${emoji} Ya tienes un *Sub-Bot* activo y estable.`, m)
 }
-if (!fs.existsSync(pathRubyJadiBot)){
-fs.mkdirSync(pathRubyJadiBot, { recursive: true })
+if (!await pathExists(pathRubyJadiBot)){
+await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })
 }
 const options = { pathRubyJadiBot, m, conn, args: [...args], usedPrefix, command, fromCommand: true }
 RubyJadiBot(options)
 global.db.data.users[m.sender].Subs = new Date * 1
-} 
+}
 handler.help = ['qr', 'code']
 handler.tags = ['serbot']
 handler.command = ['qr', 'code']
-export default handler 
+export default handler
 
 export async function RubyJadiBot(options) {
 let { pathRubyJadiBot, m, conn, args, usedPrefix, command } = options
 if (command === 'code') {
-command = 'qr'; 
+command = 'qr';
 args.unshift('code')}
 const mcode = args[0] && /(--code|code)/.test(args[0].trim()) ? true : args[1] && /(--code|code)/.test(args[1].trim()) ? true : false
 let txtCode, codeBot, txtQR
@@ -93,10 +102,10 @@ if (args[1]) args[1] = args[1].replace(/^--code$|^code$/, "").trim()
 if (args[0] == "") args[0] = undefined
 }
 const pathCreds = path.join(pathRubyJadiBot, "creds.json")
-if (!fs.existsSync(pathRubyJadiBot)){
-fs.mkdirSync(pathRubyJadiBot, { recursive: true })}
+if (!await pathExists(pathRubyJadiBot)){
+await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })}
 try {
-args[0] && args[0] != undefined ? fs.writeFileSync(pathCreds, JSON.stringify(JSON.parse(Buffer.from(args[0], "base64").toString("utf-8")), null, '\t')) : ""
+args[0] && args[0] != undefined ? await fs.promises.writeFile(pathCreds, JSON.stringify(JSON.parse(Buffer.from(args[0], "base64").toString("utf-8")), null, '\t')) : ""
 } catch (e) {
 conn.reply(m.chat, `${emoji} Use correctamente el comando » ${usedPrefix + command} code`, m)
 return
@@ -164,7 +173,7 @@ pairingCodeTimer = null
 pairingCodeRequests.delete(subBotId)
 }
 
-const destroySock = ({ removeSession = false } = {}) => {
+const destroySock = async ({ removeSession = false } = {}) => {
 clearHealthMonitor()
 clearPairingCodeLock()
 try { sock.ws.close() } catch (e) {}
@@ -173,7 +182,7 @@ removeSockFromPool(sock)
 cleanupSessionState(sock)
 if (global.subBotRegistry instanceof Map) global.subBotRegistry.delete(subBotId)
 if (removeSession) {
-try { fs.rmSync(pathRubyJadiBot, { recursive: true, force: true }) } catch (e) {}
+try { await fs.promises.rm(pathRubyJadiBot, { recursive: true, force: true }) } catch (e) {}
 }
 }
 
@@ -227,79 +236,79 @@ if (txtQR && txtQR.key) {
 setTimeout(() => { conn.sendMessage(m.chat, { delete: txtQR.key }).catch(() => {})}, PAIRING_CODE_TTL_MS)
 }
 return
-} 
+}
 if (qr && mcode) {
-    if (!m?.chat || pairingCodeSent) return
-    const now = Date.now()
-    const activeRequest = pairingCodeRequests.get(subBotId)
-    if (activeRequest && now - activeRequest.ts < PAIRING_CODE_COOLDOWN_MS) {
-        pairingCodeSent = true
-        pairingCodeMessageKey = activeRequest.key || null
-        return
-    }
+if (!m?.chat || pairingCodeSent) return
+const now = Date.now()
+const activeRequest = pairingCodeRequests.get(subBotId)
+if (activeRequest && now - activeRequest.ts < PAIRING_CODE_COOLDOWN_MS) {
+pairingCodeSent = true
+pairingCodeMessageKey = activeRequest.key || null
+return
+}
 
-    pairingCodeSent = true
-    const rawCode = await sock.requestPairingCode(m.sender.split`@`[0], "RUBYCHAN")
+pairingCodeSent = true
+const rawCode = await sock.requestPairingCode(m.sender.split`@`[0], "RUBYCHAN")
 
-    const formattedCode = rawCode.match(/.{1,4}/g)?.join("-") || rawCode
-    const mediaMessage = await prepareWAMessageMedia({
-        image: { url: "https://files.catbox.moe/rt1yfo.jpeg" }
-    }, { upload: conn.waUploadToServer })
+const formattedCode = rawCode.match(/.{1,4}/g)?.join("-") || rawCode
+const mediaMessage = await prepareWAMessageMedia({
+image: { url: "https://files.catbox.moe/rt1yfo.jpeg" }
+}, { upload: conn.waUploadToServer })
 
-    const interactivePayload = generateWAMessageFromContent(m.chat, {
-        viewOnceMessage: {
-            message: {
-                interactiveMessage: proto.Message.InteractiveMessage.fromObject({
-                    body: proto.Message.InteractiveMessage.Body.create({
-                        text: `*✨ ¡Tu código de vinculación está listo! ✨*
+const interactivePayload = generateWAMessageFromContent(m.chat, {
+viewOnceMessage: {
+message: {
+interactiveMessage: proto.Message.InteractiveMessage.fromObject({
+body: proto.Message.InteractiveMessage.Body.create({
+text: `*✨ ¡Tu código de vinculación está listo! ✨*
 
 Usa el siguiente código para conectarte como Sub-Bot:
 
 *Código:* ${formattedCode}
 
 > Haz clic en el botón de abajo para copiarlo fácilmente.`
-                    }),
-                    footer: proto.Message.InteractiveMessage.Footer.create({
-                        text: "Este código expirará en 45 segundos."
-                    }),
-                    header: proto.Message.InteractiveMessage.Header.create({
-                        hasMediaAttachment: true,
-                        imageMessage: mediaMessage.imageMessage
-                    }),
-                    nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
-                        buttons: [{
-                            name: "cta_copy",
-                            buttonParamsJson: JSON.stringify({
-                                display_text: "Copiar Código",
-                                copy_code: rawCode
-                            })
-                        }]
-                    })
-                })
-            }
-        }
-    }, { quoted: m })
+}),
+footer: proto.Message.InteractiveMessage.Footer.create({
+text: "Este código expirará en 45 segundos."
+}),
+header: proto.Message.InteractiveMessage.Header.create({
+hasMediaAttachment: true,
+imageMessage: mediaMessage.imageMessage
+}),
+nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
+buttons: [{
+name: "cta_copy",
+buttonParamsJson: JSON.stringify({
+display_text: "Copiar Código",
+copy_code: rawCode
+})
+}]
+})
+})
+}
+}
+}, { quoted: m })
 
-    await conn.relayMessage(m.chat, interactivePayload.message, { messageId: interactivePayload.key.id })
-    pairingCodeMessageKey = interactivePayload.key
-    pairingCodeRequests.set(subBotId, { ts: now, key: pairingCodeMessageKey })
-    console.log(`Código de vinculación enviado: ${rawCode}`)
+await conn.relayMessage(m.chat, interactivePayload.message, { messageId: interactivePayload.key.id })
+pairingCodeMessageKey = interactivePayload.key
+pairingCodeRequests.set(subBotId, { ts: now, key: pairingCodeMessageKey })
+console.log(`Código de vinculación enviado: ${rawCode}`)
 
-    if (pairingCodeMessageKey) {
-        pairingCodeTimer = setTimeout(() => {
-            conn.sendMessage(m.chat, { delete: pairingCodeMessageKey }).catch(() => {})
-            clearPairingCodeLock()
-        }, PAIRING_CODE_TTL_MS)
-    }
-    return
+if (pairingCodeMessageKey) {
+pairingCodeTimer = setTimeout(() => {
+conn.sendMessage(m.chat, { delete: pairingCodeMessageKey }).catch(() => {})
+clearPairingCodeLock()
+}, PAIRING_CODE_TTL_MS)
+}
+return
 }
 
 
 if (txtCode && txtCode.key) {
-    setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key })}, 45000)
+setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key })}, 45000)
 }
 if (codeBot && codeBot.key) {
-    setTimeout(() => { conn.sendMessage(m.sender, { delete: codeBot.key })}, 45000)
+setTimeout(() => { conn.sendMessage(m.sender, { delete: codeBot.key })}, 45000)
 }
 const endSesion = async (loaded) => {
 if (!loaded) destroySock({ removeSession: false })
@@ -309,52 +318,52 @@ const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.erro
 
 // 🔥 CORRECCIÓN 1: scheduleReconnect ahora recibe una función para reconectar realmente
 const scheduleReconnect = async (closeReason, reconnectFn) => {
-  if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-    console.log(chalk.bold.yellow(`⚠️ Sub-Bot +${subBotId} alcanzó el límite de reconexiones (${MAX_RECONNECT_ATTEMPTS}).`))
-    return destroySock({ removeSession: false })
-  }
-  reconnectAttempts += 1
-  const waitMs = Math.min(30000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1)))
-  await sleep(waitMs)
-  
-  try {
-    await reconnectFn()
-  } catch (e) {
-    console.error(`Error reconectando +${subBotId}:`, e)
-    // Si falla, lo vuelve a intentar
-    return scheduleReconnect(closeReason, reconnectFn)
-  }
+if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+console.log(chalk.bold.yellow(`⚠️ Sub-Bot +${subBotId} alcanzó el límite de reconexiones (${MAX_RECONNECT_ATTEMPTS}).`))
+return destroySock({ removeSession: false })
+}
+reconnectAttempts += 1
+const waitMs = Math.min(30000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1)))
+await sleep(waitMs)
+
+try {
+await reconnectFn()
+} catch (e) {
+console.error(`Error reconectando +${subBotId}:`, e)
+// Si falla, lo vuelve a intentar
+return scheduleReconnect(closeReason, reconnectFn)
+}
 }
 
 // 🔥 CORRECCIÓN 2: Lógica unificada para manejar el cierre de conexión y reiniciar el socket
 if (connection === 'close') {
-  const transient = [428, 408, 500, 515]
-  const fatal = [401, 403, 405]
+const transient = [428, 408, 500, 515]
+const fatal = [401, 403, 405]
 
-  if (fatal.includes(reason)) {
-    console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La sesión (+${path.basename(pathRubyJadiBot)}) fue cerrada. Credenciales no válidas o desconectado. Razón: ${reason}\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-    destroySock({ removeSession: true })
-    return
-  }
+if (fatal.includes(reason)) {
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La sesión (+${path.basename(pathRubyJadiBot)}) fue cerrada. Credenciales no válidas o desconectado. Razón: ${reason}\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+destroySock({ removeSession: true })
+return
+}
 
-  if (reason === 440) {
-    console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathRubyJadiBot)}) fue reemplazada por otra sesión activa.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-    destroySock({ removeSession: false })
-    return
-  }
+if (reason === 440) {
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathRubyJadiBot)}) fue reemplazada por otra sesión activa.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+destroySock({ removeSession: false })
+return
+}
 
-  console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathRubyJadiBot)}) se perdió. Razón: ${reason}. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-  
-  // Llamamos a scheduleReconnect pasando la función que VERDADERAMENTE reconstruye el socket
-  return scheduleReconnect(reason, async () => {
-    await creloadHandler(true)
-  })
+console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathRubyJadiBot)}) se perdió. Razón: ${reason}. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+
+// Llamamos a scheduleReconnect pasando la función que VERDADERAMENTE reconstruye el socket
+return scheduleReconnect(reason, async () => {
+await creloadHandler(true)
+})
 }
 
 if (global.db.data == null) loadDatabase()
 if (connection == `open`) {
 if (!global.db.data?.users) loadDatabase()
-let userName, userJid 
+let userName, userJid
 userName = sock.authState.creds.me.name || 'Anónimo'
 userJid = sock.authState.creds.me.jid || `${path.basename(pathRubyJadiBot)}@s.whatsapp.net`
 console.log(chalk.bold.cyanBright(`\n❒⸺⸺⸺⸺【• SUB-BOT •】⸺⸺⸺⸺❒\n│\n│ 🟢 ${userName} (+${path.basename(pathRubyJadiBot)}) conectado exitosamente.\n│\n❒⸺⸺⸺【• CONECTADO •】⸺⸺⸺❒`))
@@ -369,13 +378,13 @@ m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@'
 
 // 🔥 CORRECCIÓN 3: Relajamos el monitor de salud para que no destruya sesiones que están intentando reconectar
 if (!healthInterval) {
-  healthInterval = setInterval(async () => {
-    if (!sock.user || sock?.ws?.socket?.readyState === ws.CLOSED) {
-      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-        destroySock({ removeSession: false })
-      }
-    }
-  }, 90000)
+healthInterval = setInterval(async () => {
+if (!sock.user || sock?.ws?.socket?.readyState === ws.CLOSED) {
+if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+destroySock({ removeSession: false })
+}
+}
+}, 90000)
 }
 
 }}

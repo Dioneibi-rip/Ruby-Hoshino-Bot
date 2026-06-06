@@ -4,22 +4,22 @@ import path from 'path'
 import { spawn } from 'child_process'
 import { tmpdir } from 'os'
 
-function gifToMp4(gifBuffer){
-return new Promise((resolve,reject)=>{
+async function gifToMp4(gifBuffer){
 const tempGif=path.join(tmpdir(),`${Date.now()}.gif`)
 const tempMp4=path.join(tmpdir(),`${Date.now()}.mp4`)
-fs.writeFileSync(tempGif,gifBuffer)
+await fs.promises.writeFile(tempGif,gifBuffer)
+return new Promise((resolve,reject)=>{
 const ffmpeg=spawn('ffmpeg',['-y','-i',tempGif,'-c:v','libx264','-pix_fmt','yuv420p','-vf','scale=trunc(iw/2)*2:trunc(ih/2)*2','-movflags','+faststart',tempMp4])
-ffmpeg.on('close',code=>{
-fs.unlinkSync(tempGif)
+ffmpeg.on('close',async code=>{
+await fs.promises.unlink(tempGif)
 if(code===0){
-const mp4Buffer=fs.readFileSync(tempMp4)
-fs.unlinkSync(tempMp4)
+const mp4Buffer=await fs.promises.readFile(tempMp4)
+await fs.promises.unlink(tempMp4)
 resolve(mp4Buffer)
 }else reject(new Error(`FFmpeg error ${code}`))
 })
-ffmpeg.on('error',err=>{
-fs.unlinkSync(tempGif)
+ffmpeg.on('error',async err=>{
+await fs.promises.unlink(tempGif)
 reject(err)
 })
 })
@@ -36,7 +36,7 @@ const sleepGifs=[
 'https://i.pinimg.com/originals/a2/86/b7/a286b7e6b77ac172f3e101bdba4ccf7d.gif',
 'https://i.pinimg.com/originals/34/01/08/340108a4ac709fa76a93a148d3042f2b.gif',
 'https://i.pinimg.com/originals/52/12/c6/5212c66558e9eb4609bd8038e4794274.gif',
-'https://i.pinimg.com/originals/c3/bc/10/c3bc10f31eca300f1d5ea035cf32df43.gif', 
+'https://i.pinimg.com/originals/c3/bc/10/c3bc10f31eca300f1d5ea035cf32df43.gif',
 'https://i.pinimg.com/originals/60/24/7b/60247b6a7f2b1e2e6b832eaee550cc05.gif',
 'https://i.pinimg.com/originals/8d/74/d0/8d74d090209a9f763f7a4331a4c1b693.gif',
 'https://media.tenor.com/nqw8PQ6u01cAAAAM/sanchit-sleepy-sleep.gif',

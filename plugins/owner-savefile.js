@@ -4,7 +4,7 @@ if (!text) return m.reply(`${emoji} Ingresa la Ruta y el nombre del Archivo junt
 try {
 if (!m.quoted.text) return m.reply(`${emoji2} Responde al mensaje.`)
 let path = `${text}.js`
-await fs.writeFileSync(path, m.quoted.text)
+await fs.promises.writeFile(path, m.quoted.text)
 m.reply(`${emoji} Guardado en *${path}*.`)
 } catch (e) {
 await m.reply(`Responde al mensaje.`)

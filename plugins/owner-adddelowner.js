@@ -2,6 +2,14 @@ import fs from 'fs';
 import path from 'path';
 
 const ownerPath = 'src/database/owners.json';
+async function pathExists(file){
+try{
+await fs.promises.access(file)
+return true
+}catch{
+return false
+}
+}
 
 const protectedOwners = [
 '18294868853',
@@ -14,11 +22,11 @@ const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡『 Ruby-Hoshino-Channel 』࿐�
 
 const handler = async (m, { conn, text, args, usedPrefix, command, participants }) => {
 try {
-if (!fs.existsSync(ownerPath)) {
-fs.mkdirSync(path.dirname(ownerPath), { recursive: true });
-fs.writeFileSync(ownerPath, JSON.stringify(global.owner, null, 2));
+if (!await pathExists(ownerPath)) {
+await fs.promises.mkdir(path.dirname(ownerPath), { recursive: true });
+await fs.promises.writeFile(ownerPath, JSON.stringify(global.owner, null, 2));
 } else {
-const savedOwners = JSON.parse(fs.readFileSync(ownerPath));
+const savedOwners = JSON.parse(await fs.promises.readFile(ownerPath));
 if (savedOwners.length > global.owner.length) {
 global.owner = savedOwners;
 }
@@ -88,7 +96,7 @@ if (!added) {
 return conn.reply(m.chat, `🌸 *${contactName}* 𝙮𝙖 𝙚𝙨 𝙤𝙬𝙣𝙚𝙧, *${name}-chan*~`, m, { contextInfo });
 }
 
-fs.writeFileSync(ownerPath, JSON.stringify(global.owner, null, 2));
+await fs.promises.writeFile(ownerPath, JSON.stringify(global.owner, null, 2));
 
 await conn.reply(
 m.chat,
@@ -115,7 +123,7 @@ const initialLength = global.owner.length;
 global.owner = global.owner.filter(o => o[0] !== jidNumber && o[0] !== lidNumber);
 
 if (global.owner.length < initialLength) {
-fs.writeFileSync(ownerPath, JSON.stringify(global.owner, null, 2));
+await fs.promises.writeFile(ownerPath, JSON.stringify(global.owner, null, 2));
 await conn.reply(
 m.chat,
 `
