@@ -10,7 +10,7 @@ let handler = async (m, { conn, usedPrefix }) => {
 
   let job = getJobData(user);
   if (!job) {
-    return conn.reply(m.chat, `💼 Primero consigue trabajo con *${usedPrefix}trabajo elegir <trabajo>*. Tu oficio afecta el rendimiento en #slut.`, m);
+    return conn.reply(m.chat, `💼 Primero consigue trabajo con *#trabajo lista*. Tu oficio afecta el rendimiento en #slut.`, m);
   }
 
   let tiempo = 5 * 60; // 5 minutos
