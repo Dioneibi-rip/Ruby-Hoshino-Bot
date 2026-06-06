@@ -1,13 +1,15 @@
 
 let handler = async (m, { conn }) => {
-  const texto = `
+const texto = `
 🆔✨⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐝𝐞 𝐩𝐞𝐫𝐟𝐢𝐥 𝐩𝐚𝐫𝐚 𝐯𝐞𝐫, 𝐜𝐨𝐧𝐟𝐢𝐠𝐮𝐫𝐚𝐫 𝐲 𝐜𝐨𝐦𝐩𝐫𝐨𝐛𝐚𝐫 𝐞𝐬𝐭𝐚𝐝𝐨𝐬 𝐝𝐞 𝐭𝐮 𝐩𝐞𝐫𝐟𝐢𝐥 📇🔍
 
-░ ⃝🌀ᩧ᳕ᬵ *#reg • #verificar • #register*
-> ✦ Registra tu nombre y edad en el bot.
-░ ⃝🌀ᩧ᳕ᬵ *#unreg*
-> ✦ Elimina tu registro del bot.
-░ ⃝🌀ᩧ᳕ᬵ *#profile*
+░ ⃝🌀ᩧ᳕ᬵ *#setname*
+> ✦ Establece un nombre personalizado para tu perfil.
+░ ⃝🌀ᩧ᳕ᬵ *#setage • #edad*
+> ✦ Agrega o actualiza tu edad en el bot.
+░ ⃝🌀ᩧ᳕ᬵ *#unreg • #quitaregistro*
+> ✦ Resetea tu cuenta y elimina tus datos guardados.
+░ ⃝🌀ᩧ᳕ᬵ *#profile • #perfil*
 > ✦ Muestra tu perfil de usuario.
 ░ ⃝🌀ᩧ᳕ᬵ *#marry* [mension / etiquetar]
 > ✦ Propón matrimonio a otro usuario.
@@ -34,26 +36,26 @@ let handler = async (m, { conn }) => {
 ░ ⃝🌀ᩧ᳕ᬵ *#confesiones • #confesar*
 > ✦ Confiesa tus sentimientos a alguien de manera anonima.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅
-  `.trim();
+`.trim();
 
 
-    await conn.sendMessage(
-    m.chat,
-    {
-      image: { url: 'https://files.catbox.moe/a2cyzt.jpeg' },
-      caption: texto,
-      contextInfo: {
-        mentionedJid: [m.sender],
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363335626706839@newsletter',
-        newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
-          serverMessageId: -1,
-        },
-      },
-    },
-    { quoted: fkontak }
-  );
+await conn.sendMessage(
+m.chat,
+{
+image: { url: 'https://files.catbox.moe/a2cyzt.jpeg' },
+caption: texto,
+contextInfo: {
+mentionedJid: [m.sender],
+isForwarded: true,
+forwardedNewsletterMessageInfo: {
+newsletterJid: '120363335626706839@newsletter',
+newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
+serverMessageId: -1,
+},
+},
+},
+{ quoted: fkontak }
+);
 };
 
 handler.command = ['menuperfil', 'perfilmenu'];

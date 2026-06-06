@@ -6,53 +6,53 @@ import path from 'path';
 const cwd = process.cwd();
 
 let handler = async (m, { conn, args }) => {
-  let userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
+let userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
 
 
-  let name = await conn.getName(userId);
+let name = await conn.getName(userId);
 
-  let user = global.db.data.users[userId];
-  let exp = user.exp || 0;
-  let level = user.level || 0;
-  let role = user.role || 'Sin Rango';
-  let coins = user.coin || 0;
+let user = global.db.data.users[userId];
+let exp = user.exp || 0;
+let level = user.level || 0;
+let role = user.role || 'Sin Rango';
+let coins = user.coin || 0;
 
-  let _uptime = process.uptime() * 1000;
-  let uptime = clockString(_uptime);
-  let totalreg = Object.keys(global.db.data.users).length;
-  let totalCommands = Object.values(global.plugins).filter(v => v.help && v.tags).length;
+let _uptime = process.uptime() * 1000;
+let uptime = clockString(_uptime);
+let totalreg = Object.keys(global.db.data.users).length;
+let totalCommands = Object.values(global.plugins).filter(v => v.help && v.tags).length;
 
-  const gifVideosDir = path.join(cwd, 'src', 'menu');
-  if (!fs.existsSync(gifVideosDir)) {
-    console.error('El directorio no existe:', gifVideosDir);
-    return;
-  }
+const gifVideosDir = path.join(cwd, 'src', 'menu');
+if (!fs.existsSync(gifVideosDir)) {
+console.error('El directorio no existe:', gifVideosDir);
+return;
+}
 
-  const gifVideos = fs.readdirSync(gifVideosDir)
-    .filter(file => file.endsWith('.mp4'))
-    .map(file => path.join(gifVideosDir, file));
+const gifVideos = fs.readdirSync(gifVideosDir)
+.filter(file => file.endsWith('.mp4'))
+.map(file => path.join(gifVideosDir, file));
 
-  const randomGif = gifVideos[Math.floor(Math.random() * gifVideos.length)];
+const randomGif = gifVideos[Math.floor(Math.random() * gifVideos.length)];
 
-  let txt = `
+let txt = `
 ୨୧‿̥̣‿̣̥̣̇‿̥̣୨୧‿̥̣‿̣̥̣̇‿̥̣୨୧‿̥̣‿̣̥̣̇‿̥̣୨୧୧‿̥̣‿̣̥̣̇‿̥̣୨୧
 ᰔ🩵𝙃𝙤𝙡𝙖! ${name} 𝙈𝙞 𝙣𝙤𝙢𝙗𝙧𝙚 𝙚𝙨 *Ruby Hoshino* ¡𝙀𝙨𝙥𝙚𝙧𝙤 𝙦𝙪𝙚 𝙚𝙨𝙩𝙚𝙨 𝙗𝙞𝙚𝙣! ໒꒰ྀི⁄ ⁄>⁄ ⁄ <⁄ ⁄꒱ྀི১
 
 ╔═══════⩽✦✰✦⩾═══════╗
-       「 𝙄𝙉𝙁𝙊 𝘿𝙀 𝙇𝘼 𝘽𝙊𝙏 」
+「 𝙄𝙉𝙁𝙊 𝘿𝙀 𝙇𝘼 𝘽𝙊𝙏 」
 ╚═══════⩽✦✰✦⩾═══════╝
 ║ ☆ 🌟 *𝖡𝖮𝖳 𝖢𝖮𝖭 𝖳𝖤𝖬𝖠𝖳𝖨𝖢𝖠 𝖣𝖤 𝖶𝖠𝖨𝖥𝖴*
 ║ ☆ 🚩 *𝖬𝖮𝖣𝖮*: *𝖯𝖴𝖡𝖫𝖨𝖢𝖮*
 ║ ☆ 📚 *B𝖠𝖨𝖫𝖤𝖸𝖲*: *𝖬𝖴𝖫𝖳𝖨 𝖣𝖤𝖵𝖨𝖢𝖤*
 ║ ☆ 🌐 *𝖢𝖮𝖬𝖠𝖭𝖣𝖮𝖲 𝖤𝖭 𝖳𝖮𝖳𝖠𝖫*: ${totalCommands}
 ║ ☆ ⏱️ *𝖳𝖨𝖤𝖬𝖯𝖮 𝖠𝖢𝖳𝖨𝖵𝖠*: ${uptime}
-║ ☆ 👤 *𝖴𝖲𝖴𝖠𝖱𝖨𝖮𝖲 𝖱𝖤𝖦𝖨𝖲𝖳𝖱𝖠𝖣𝖮𝖲*: ${totalreg}
+║ ☆ 👤 *𝖴𝖲𝖴𝖠𝖱𝖨𝖮𝖲 𝖤𝖭 𝖡𝖠𝖲𝖤 𝖣𝖤 𝖣𝖠𝖳𝖮𝖲*: ${totalreg}
 ║ ☆ 👩‍💻 *𝖢𝖱𝖤𝖠𝖣𝖮𝖱 𝖣𝖤 𝖫𝖠 𝖡𝖮𝖳*: (https://Wa.me/18294868853)
 ╚════════════════════════
 
 
 ╔═══════⩽✦✰✦⩾═══════╗
-     「 𝙄𝙉𝙁𝙊 𝘿𝙀𝙇 𝙐𝙎𝙐𝘼𝙍𝙄𝙊 」
+「 𝙄𝙉𝙁𝙊 𝘿𝙀𝙇 𝙐𝙎𝙐𝘼𝙍𝙄𝙊 」
 ╚═══════⩽✦✰✦⩾═══════╝
 ║ ☆ 🌐 *𝖢𝖫𝖨𝖤𝖭𝖳𝖤*: ${name}
 ║ ☆ 🚀 *𝖤𝖷𝖯𝖤𝖱𝖨𝖤𝖭𝖢𝖨𝖠*: ${exp}
@@ -64,7 +64,7 @@ let handler = async (m, { conn, args }) => {
 > Crea un *sub-bot* de Ruby utilizando *#qr* o *#code*
 
 ╔══⩽✦✰✦⩾══╗
-   「 ${(conn.user.jid == global.conn.user.jid ? '𝘽𝙤𝙩 𝙊𝙛𝙞𝙘𝙞𝙖𝙡' : '𝙎𝙪𝙗𝘽𝙤𝙩')} 」
+「 ${(conn.user.jid == global.conn.user.jid ? '𝘽𝙤𝙩 𝙊𝙛𝙞𝙘𝙞𝙖𝙡' : '𝙎𝙪𝙗𝘽𝙤𝙩')} 」
 ╚══⩽✦✰✦⩾══╝
 
 *L I S T A  -  D E  -  C O M A N D O S*
@@ -378,11 +378,13 @@ let handler = async (m, { conn, args }) => {
 ├┈ ↷𝙋𝘼𝙍𝘼 𝙈𝙊𝘿𝙄𝙁𝙄𝘾𝘼𝙍 𝙏𝙐 𝙋𝙀𝙍𝙁𝙄𝙇
 ├• ✐; ₊˚✦୧︰  .
 ├┈・──・──・﹕₊˚ ✦・୨୧・
-┣ ☬⃝ᩎ⋟᷊᷂᷊᷊᷊᷊᷊᷊᷊᷊᷊᷊᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷊᷊᷂᷂᷂᷂ ☃️ *#𝙧𝙚𝙜 • #𝙫𝙚𝙧𝙞𝙛𝙞𝙘𝙖𝙧 • #𝙧𝙚𝙜𝙞𝙨𝙩𝙚𝙧*
-> ✦ 𝙍𝙚𝙜𝙞𝙨𝙩𝙧𝙖 𝙩𝙪 𝙣𝙤𝙢𝙗𝙧𝙚 𝙮 𝙚𝙙𝙖𝙙 𝙚𝙣 𝙚𝙡 𝙗𝙤𝙩.
-┣ ☬⃝ᩎ⋟᷊᷂᷊᷊᷊᷊᷊᷊᷊᷊᷊᷊᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷊᷊᷂᷂᷂᷂ ☃️ *#𝙪𝙣𝙧𝙚𝙜*
-> ✦ 𝙀𝙡𝙞𝙢𝙞𝙣𝙖 𝙩𝙪 𝙧𝙚𝙜𝙞𝙨𝙩𝙧𝙤 𝙙𝙚𝙡 𝙗𝙤𝙩.
-┣ ☬⃝ᩎ⋟᷊᷂᷊᷊᷊᷊᷊᷊᷊᷊᷊᷊᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷊᷊᷂᷂᷂᷂ ☃️ *#𝙥𝙧𝙤𝙛𝙞𝙡𝙚*
+┣ ☬⃝ᩎ⋟᷊᷂᷊᷊᷊᷊᷊᷊᷊᷊᷊᷊᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷊᷊᷂᷂᷂᷂ ☃️ *#setname*
+> ✦ Establece un nombre personalizado para tu perfil.
+┣ ☬⃝ᩎ⋟᷊᷂᷊᷊᷊᷊᷊᷊᷊᷊᷊᷊᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷊᷊᷂᷂᷂᷂ ☃️ *#setage • #edad*
+> ✦ Agrega o actualiza tu edad en el bot.
+┣ ☬⃝ᩎ⋟᷊᷂᷊᷊᷊᷊᷊᷊᷊᷊᷊᷊᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷊᷊᷂᷂᷂᷂ ☃️ *#unreg • #quitaregistro*
+> ✦ Resetea tu cuenta y elimina tus datos guardados.
+┣ ☬⃝ᩎ⋟᷊᷂᷊᷊᷊᷊᷊᷊᷊᷊᷊᷊᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷊᷊᷂᷂᷂᷂ ☃️ *#profile • #perfil*
 > ✦ 𝙈𝙪𝙚𝙨𝙩𝙧𝙖 𝙩𝙪 𝙥𝙚𝙧𝙛𝙞𝙡 𝙙𝙚 𝙪𝙨𝙪𝙖𝙧𝙞𝙤.
 ┣ ☬⃝ᩎ⋟᷊᷂᷊᷊᷊᷊᷊᷊᷊᷊᷊᷊᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷊᷊᷂᷂᷂᷂ ☃️ *#𝙢𝙖𝙧𝙧𝙮* [𝙢𝙚𝙣𝙨𝙞𝙤𝙣 / 𝙚𝙩𝙞𝙦𝙪𝙚𝙩𝙖𝙧]
 > ✦ 𝙋𝙧𝙤𝙥𝙤́𝙣 𝙢𝙖𝙩𝙧𝙞𝙢𝙤𝙣𝙞𝙤 𝙖 𝙤𝙩𝙧𝙤 𝙪𝙨𝙪𝙖𝙧𝙞𝙤.
@@ -699,31 +701,31 @@ let handler = async (m, { conn, args }) => {
 ┣ ☬⃝ᩎ⋟᷊᷂᷊᷊᷊᷊᷊᷊᷊᷊᷊᷊᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷊᷊᷂᷂᷂᷂ ☃️ *#𝙮𝙪𝙧𝙞 • #𝙩𝙞𝙟𝙚𝙧𝙖𝙨* + <𝙢𝙚𝙣𝙘𝙞𝙤𝙣>
 > ✦ 𝙃𝙖𝙘𝙚𝙧 𝙩𝙞𝙟𝙚𝙧𝙖𝙨.
 ╚▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬▭╝
-  `.trim();
+`.trim();
 
 
-    await conn.reply(m.chat, '*ꪹ͜𓂃⌛͡𝗘𝗻𝘃𝗶𝗮𝗻𝗱𝗼 𝗠𝗲𝗻𝘂 𝗱𝗲 𝗹𝗮 𝗕𝗼𝘁....𓏲੭*', m, { 
-        contextInfo: { 
-            forwardingScore: 2022, 
-            isForwarded: true}
-    });
+await conn.reply(m.chat, '*ꪹ͜𓂃⌛͡𝗘𝗻𝘃𝗶𝗮𝗻𝗱𝗼 𝗠𝗲𝗻𝘂 𝗱𝗲 𝗹𝗮 𝗕𝗼𝘁....𓏲੭*', m, { 
+contextInfo: { 
+forwardingScore: 2022, 
+isForwarded: true}
+});
 
 
-    await m.react('💛');
+await m.react('💛');
 
-    await conn.sendMessage(m.chat, { 
-        video: { url: randomGif },
-        caption: txt,
-        gifPlayback: true,
-        contextInfo: {
-            mentionedJid: [m.sender, userId],
-            isForwarded: true,
-            forwardingScore: 999,
-            forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363335626706839@newsletter',
-                newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
-                serverMessageId: -1}}
-    }, { quoted: m });
+await conn.sendMessage(m.chat, { 
+video: { url: randomGif },
+caption: txt,
+gifPlayback: true,
+contextInfo: {
+mentionedJid: [m.sender, userId],
+isForwarded: true,
+forwardingScore: 999,
+forwardedNewsletterMessageInfo: {
+newsletterJid: '120363335626706839@newsletter',
+newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
+serverMessageId: -1}}
+}, { quoted: m });
 
 };
 
@@ -735,19 +737,19 @@ handler.command = ['menuall', 'allmenu', 'allmenù'];
 export default handler;
 
 function clockString(ms) {
-    let seconds = Math.floor((ms / 1000) % 60);
-    let minutes = Math.floor((ms / (1000 * 60)) % 60);
-    let hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
-    return `${hours}h ${minutes}m ${seconds}s`;
+let seconds = Math.floor((ms / 1000) % 60);
+let minutes = Math.floor((ms / (1000 * 60)) % 60);
+let hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+return `${hours}h ${minutes}m ${seconds}s`;
 
 }
 
 function normalizeMenuSearch(text = '') {
-  return text.normalize('NFKD').toLowerCase();
+return text.normalize('NFKD').toLowerCase();
 }
 
 function commandAliases(command) {
-  if (Array.isArray(command)) return command.filter(cmd => typeof cmd === 'string');
-  if (typeof command === 'string') return [command];
-  return [];
+if (Array.isArray(command)) return command.filter(cmd => typeof cmd === 'string');
+if (typeof command === 'string') return [command];
+return [];
 }
