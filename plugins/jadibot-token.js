@@ -1,10 +1,19 @@
 import fs from 'fs'
 
+async function pathExists(file){
+try{
+await fs.promises.access(file)
+return true
+}catch{
+return false
+}
+}
+
 async function handler(m, {usedPrefix}) {
 
 const user = m.sender.split('@')[0]
-if (fs.existsSync(`./${jadi}/` + user + '/creds.json')) {
-let token = Buffer.from(fs.readFileSync(`./${jadi}/` + user + '/creds.json'), 'utf-8').toString('base64')    
+if (await pathExists(`./${jadi}/` + user + '/creds.json')) {
+let token = Buffer.from(await fs.promises.readFile(`./${jadi}/` + user + '/creds.json'), 'utf-8').toString('base64')
 
 await conn.reply(m.chat, `${emoji} El token te permite iniciar sesion en otros bots, recomendamos no compartirlo con nadie\n\n*Tu token es:*`, m)
 await conn.reply(m.chat, token, m)
@@ -18,4 +27,4 @@ handler.command = ['token']
 handler.tags = ['serbot']
 handler.private = true
 
-export default handler 
+export default handler

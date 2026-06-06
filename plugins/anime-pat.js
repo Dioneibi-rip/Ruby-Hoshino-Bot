@@ -4,22 +4,22 @@ import path from 'path'
 import { spawn } from 'child_process'
 import { tmpdir } from 'os'
 
-function gifToMp4(gifBuffer){
-return new Promise((resolve,reject)=>{
+async function gifToMp4(gifBuffer){
 const tempGif=path.join(tmpdir(),`${Date.now()}.gif`)
 const tempMp4=path.join(tmpdir(),`${Date.now()}.mp4`)
-fs.writeFileSync(tempGif,gifBuffer)
+await fs.promises.writeFile(tempGif,gifBuffer)
+return new Promise((resolve,reject)=>{
 const ffmpeg=spawn('ffmpeg',['-y','-i',tempGif,'-c:v','libx264','-pix_fmt','yuv420p','-vf','scale=trunc(iw/2)*2:trunc(ih/2)*2','-movflags','+faststart',tempMp4])
-ffmpeg.on('close',code=>{
-fs.unlinkSync(tempGif)
+ffmpeg.on('close',async code=>{
+await fs.promises.unlink(tempGif)
 if(code===0){
-const mp4Buffer=fs.readFileSync(tempMp4)
-fs.unlinkSync(tempMp4)
+const mp4Buffer=await fs.promises.readFile(tempMp4)
+await fs.promises.unlink(tempMp4)
 resolve(mp4Buffer)
 }else reject(new Error(`FFmpeg falló con código ${code}`))
 })
-ffmpeg.on('error',err=>{
-fs.unlinkSync(tempGif)
+ffmpeg.on('error',async err=>{
+await fs.promises.unlink(tempGif)
 reject(err)
 })
 })
@@ -31,26 +31,26 @@ const patGifs=[
 'https://i.pinimg.com/originals/e3/e2/58/e3e2588fbae9422f2bd4813c324b1298.gif',
 'https://i.pinimg.com/originals/27/da/ce/27dace4b6aec7de261ddb5d9444e716a.gif',
 'https://i.pinimg.com/originals/8b/42/6c/8b426c9bedc37054cd7e73925fa10da5.gif',
-'https://i.pinimg.com/originals/73/08/9d/73089d4e4b3f570ef3d5a7ca9f68e622.gif', 
-'https://media.tenor.com/PkWttKcH1xMAAAAM/kobayashi-dragon.gif', 
-'https://media.tenor.com/8FOQORmaLNoAAAAM/shiro-anime.gif', 
-'https://media.tenor.com/wLqFGYigJuIAAAAM/mai-sakurajima.gif', 
-'https://media.tenor.com/fro6pl7src0AAAAM/hugtrip.gif', 
-'https://media.tenor.com/Dbg-7wAaiJwAAAAM/aharen-aharen-san.gif', 
-'https://media.tenor.com/CIF_Pa3yepwAAAAM/rika-higurashi.gif', 
-'https://media.tenor.com/Zm71HaIh7wwAAAAM/pat-pat.gif', 
-'https://media.tenor.com/YMRmKEdwZCgAAAAM/anime-hug-anime.gif', 
-'https://media.tenor.com/079CvbmFPe8AAAAM/qualidea-code-head-pat.gif', 
-'https://media.tenor.com/hR_7bvEw3l0AAAAM/clannad-anime.gif', 
-'https://media.tenor.com/8o4fWGwBY1EAAAAM/aharensan-aharen.gif', 
-'https://media.tenor.com/r3LCBlmezPcAAAAM/can-a-boy-girl-friendship-survive-danjo-no-yuujou-wa-seiritsu-suru.gif', 
-'https://media.tenor.com/u10UVE5aQVkAAAAM/miss-kobayashi%27s-dragon-maid-kanna.gif', 
-'https://media.tenor.com/MDc4TSck5PQAAAAM/frieren-anime.gif', 
-'https://media.tenor.com/Z-28SFKJaIsAAAAM/anime-pat.gif', 
-'https://media.tenor.com/cQzScx6m9xEAAAAM/anime-elf.gif', 
-'https://media.tenor.com/Vw4wf7gsD4cAAAA1/lawrence-wolf-girl.webp', 
-'https://media.tenor.com/mecnd_qE8p8AAAAM/anime-pat.gif', 
-'https://media.tenor.com/mYzBXEhbbvgAAAAM/anime-pat.gif', 
+'https://i.pinimg.com/originals/73/08/9d/73089d4e4b3f570ef3d5a7ca9f68e622.gif',
+'https://media.tenor.com/PkWttKcH1xMAAAAM/kobayashi-dragon.gif',
+'https://media.tenor.com/8FOQORmaLNoAAAAM/shiro-anime.gif',
+'https://media.tenor.com/wLqFGYigJuIAAAAM/mai-sakurajima.gif',
+'https://media.tenor.com/fro6pl7src0AAAAM/hugtrip.gif',
+'https://media.tenor.com/Dbg-7wAaiJwAAAAM/aharen-aharen-san.gif',
+'https://media.tenor.com/CIF_Pa3yepwAAAAM/rika-higurashi.gif',
+'https://media.tenor.com/Zm71HaIh7wwAAAAM/pat-pat.gif',
+'https://media.tenor.com/YMRmKEdwZCgAAAAM/anime-hug-anime.gif',
+'https://media.tenor.com/079CvbmFPe8AAAAM/qualidea-code-head-pat.gif',
+'https://media.tenor.com/hR_7bvEw3l0AAAAM/clannad-anime.gif',
+'https://media.tenor.com/8o4fWGwBY1EAAAAM/aharensan-aharen.gif',
+'https://media.tenor.com/r3LCBlmezPcAAAAM/can-a-boy-girl-friendship-survive-danjo-no-yuujou-wa-seiritsu-suru.gif',
+'https://media.tenor.com/u10UVE5aQVkAAAAM/miss-kobayashi%27s-dragon-maid-kanna.gif',
+'https://media.tenor.com/MDc4TSck5PQAAAAM/frieren-anime.gif',
+'https://media.tenor.com/Z-28SFKJaIsAAAAM/anime-pat.gif',
+'https://media.tenor.com/cQzScx6m9xEAAAAM/anime-elf.gif',
+'https://media.tenor.com/Vw4wf7gsD4cAAAA1/lawrence-wolf-girl.webp',
+'https://media.tenor.com/mecnd_qE8p8AAAAM/anime-pat.gif',
+'https://media.tenor.com/mYzBXEhbbvgAAAAM/anime-pat.gif',
 ]
 
 let who=m.mentionedJid&&m.mentionedJid[0]?m.mentionedJid[0]:m.quoted?m.quoted.sender:m.sender

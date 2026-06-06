@@ -4,22 +4,22 @@ import path from 'path'
 import { spawn } from 'child_process'
 import { tmpdir } from 'os'
 
-function gifToMp4(gifBuffer){
-return new Promise((resolve,reject)=>{
+async function gifToMp4(gifBuffer){
 const tempGif=path.join(tmpdir(),`${Date.now()}.gif`)
 const tempMp4=path.join(tmpdir(),`${Date.now()}.mp4`)
-fs.writeFileSync(tempGif,gifBuffer)
+await fs.promises.writeFile(tempGif,gifBuffer)
+return new Promise((resolve,reject)=>{
 const ffmpeg=spawn('ffmpeg',['-y','-i',tempGif,'-c:v','libx264','-pix_fmt','yuv420p','-vf','scale=trunc(iw/2)*2:trunc(ih/2)*2','-movflags','+faststart',tempMp4])
-ffmpeg.on('close',code=>{
-fs.unlinkSync(tempGif)
+ffmpeg.on('close',async code=>{
+await fs.promises.unlink(tempGif)
 if(code===0){
-const mp4Buffer=fs.readFileSync(tempMp4)
-fs.unlinkSync(tempMp4)
+const mp4Buffer=await fs.promises.readFile(tempMp4)
+await fs.promises.unlink(tempMp4)
 resolve(mp4Buffer)
 }else reject(new Error(`FFmpeg falló con código ${code}`))
 })
-ffmpeg.on('error',err=>{
-fs.unlinkSync(tempGif)
+ffmpeg.on('error',async err=>{
+await fs.promises.unlink(tempGif)
 reject(err)
 })
 })
@@ -29,7 +29,7 @@ let handler=async(m,{conn})=>{
 const smokeGifs=[
 'https://i.pinimg.com/originals/5c/8e/bb/5c8ebbfa78bef8b0a51259d10fbbc929.gif',
 'https://i.pinimg.com/originals/29/7c/bb/297cbb4ffe4b7a96cbc1d913917dad27.gif',
-'https://i.pinimg.com/originals/fb/56/48/fb5648dc6e39b7b724cb0daf3693610f.gif', 
+'https://i.pinimg.com/originals/fb/56/48/fb5648dc6e39b7b724cb0daf3693610f.gif',
 'https://i.pinimg.com/originals/b4/f9/35/b4f9350ae84bc8f0dd76c51f85ee5392.gif',
 'https://i.pinimg.com/originals/29/92/fb/2992fb9c44cdc817e6cbc0782fbc6276.gif',
 'https://i.pinimg.com/originals/3f/4e/1c/3f4e1cd6530eb5f5e5fc9c00aaf651f3.gif',

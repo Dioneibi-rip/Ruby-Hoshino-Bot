@@ -4,22 +4,22 @@ import path from 'path'
 import { spawn } from 'child_process'
 import { tmpdir } from 'os'
 
-function gifToMp4(buffer){
-return new Promise((resolve,reject)=>{
+async function gifToMp4(buffer){
 const gif=path.join(tmpdir(),`${Date.now()}.gif`)
 const mp4=path.join(tmpdir(),`${Date.now()}.mp4`)
-fs.writeFileSync(gif,buffer)
+await fs.promises.writeFile(gif,buffer)
+return new Promise((resolve,reject)=>{
 const ffmpeg=spawn('ffmpeg',['-y','-i',gif,'-c:v','libx264','-pix_fmt','yuv420p','-vf','scale=trunc(iw/2)*2:trunc(ih/2)*2','-movflags','+faststart',mp4])
-ffmpeg.on('close',code=>{
-fs.unlinkSync(gif)
+ffmpeg.on('close',async code=>{
+await fs.promises.unlink(gif)
 if(code===0){
-const out=fs.readFileSync(mp4)
-fs.unlinkSync(mp4)
+const out=await fs.promises.readFile(mp4)
+await fs.promises.unlink(mp4)
 resolve(out)
 }else reject('ffmpeg error')
 })
-ffmpeg.on('error',e=>{
-fs.unlinkSync(gif)
+ffmpeg.on('error',async e=>{
+await fs.promises.unlink(gif)
 reject(e)
 })
 })

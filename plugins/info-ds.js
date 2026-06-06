@@ -1,4 +1,4 @@
-import { readdirSync, unlinkSync, existsSync, promises as fs, rmSync } from 'fs'
+import { promises as fs } from 'fs'
 import path from 'path'
 
 var handler = async (m, { conn, usedPrefix }) => {

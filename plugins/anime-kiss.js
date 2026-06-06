@@ -4,22 +4,22 @@ import path from 'path'
 import { spawn } from 'child_process'
 import { tmpdir } from 'os'
 
-function gifToMp4(gifBuffer){
-return new Promise((resolve,reject)=>{
+async function gifToMp4(gifBuffer){
 const tempGif=path.join(tmpdir(),`${Date.now()}.gif`)
 const tempMp4=path.join(tmpdir(),`${Date.now()}.mp4`)
-fs.writeFileSync(tempGif,gifBuffer)
+await fs.promises.writeFile(tempGif,gifBuffer)
+return new Promise((resolve,reject)=>{
 const ffmpeg=spawn('ffmpeg',['-y','-i',tempGif,'-c:v','libx264','-pix_fmt','yuv420p','-vf','scale=trunc(iw/2)*2:trunc(ih/2)*2','-movflags','+faststart',tempMp4])
-ffmpeg.on('close',code=>{
-fs.unlinkSync(tempGif)
+ffmpeg.on('close',async code=>{
+await fs.promises.unlink(tempGif)
 if(code===0){
-const mp4Buffer=fs.readFileSync(tempMp4)
-fs.unlinkSync(tempMp4)
+const mp4Buffer=await fs.promises.readFile(tempMp4)
+await fs.promises.unlink(tempMp4)
 resolve(mp4Buffer)
 }else reject(new Error(`FFmpeg falló con código ${code}`))
 })
-ffmpeg.on('error',err=>{
-fs.unlinkSync(tempGif)
+ffmpeg.on('error',async err=>{
+await fs.promises.unlink(tempGif)
 reject(err)
 })
 })
@@ -31,15 +31,15 @@ const kissGifs=[
 'https://i.pinimg.com/originals/10/5a/7a/105a7ad7edbe74e5ca834348025cc650.gif',
 'https://i.pinimg.com/originals/8e/36/da/8e36dab30ae3e74a17c1fca0e7092e1a.gif',
 'https://i.pinimg.com/originals/5d/28/23/5d2823c3a0d739ffb6c221708127b9ae.gif',
-'https://i.pinimg.com/originals/0c/2a/89/0c2a89004ebf7f6b6a4b0b5553dc8776.gif', 
-'https://i.pinimg.com/originals/5c/01/b9/5c01b9519ebdad0ed42dd2eb0a215fcc.gif', 
-'https://i.pinimg.com/originals/b3/2c/83/b32c83dad2eae8c430f8ecf3b8f5654f.gif', 
-'https://i.pinimg.com/originals/81/a4/4e/81a44e96f35a9b19df0231727b910692.gif', 
-'https://i.pinimg.com/originals/d0/cd/64/d0cd64030f383d56e7edc54a484d4b8d.gif', 
-'https://i.pinimg.com/originals/51/6e/3d/516e3dcaa0140aa7d5b815447be9f38f.gif', 
-'https://i.pinimg.com/originals/23/73/b9/2373b9fcac13929d32d3e0539e6fbcb2.gif', 
-'https://i.pinimg.com/originals/56/0b/b3/560bb37b1596f48d93a76db4f87dc2f9.gif', 
-'https://i.pinimg.com/originals/0c/68/5b/0c685b1ccb8ec1d5a7cf734395bf702b.gif', 
+'https://i.pinimg.com/originals/0c/2a/89/0c2a89004ebf7f6b6a4b0b5553dc8776.gif',
+'https://i.pinimg.com/originals/5c/01/b9/5c01b9519ebdad0ed42dd2eb0a215fcc.gif',
+'https://i.pinimg.com/originals/b3/2c/83/b32c83dad2eae8c430f8ecf3b8f5654f.gif',
+'https://i.pinimg.com/originals/81/a4/4e/81a44e96f35a9b19df0231727b910692.gif',
+'https://i.pinimg.com/originals/d0/cd/64/d0cd64030f383d56e7edc54a484d4b8d.gif',
+'https://i.pinimg.com/originals/51/6e/3d/516e3dcaa0140aa7d5b815447be9f38f.gif',
+'https://i.pinimg.com/originals/23/73/b9/2373b9fcac13929d32d3e0539e6fbcb2.gif',
+'https://i.pinimg.com/originals/56/0b/b3/560bb37b1596f48d93a76db4f87dc2f9.gif',
+'https://i.pinimg.com/originals/0c/68/5b/0c685b1ccb8ec1d5a7cf734395bf702b.gif',
 'https://media.tenor.com/kmxEaVuW8AoAAAAM/kiss-gentle-kiss.gif',
 'https://media.tenor.com/YhGc7aQAI4oAAAAM/megumi-kato-kiss.gif',
 'https://media.tenor.com/sbMBW4a-VN4AAAAM/anime-kiss.gif',
