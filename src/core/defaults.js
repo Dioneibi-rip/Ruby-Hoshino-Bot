@@ -38,20 +38,15 @@ export const userDefault = Object.freeze({
 })
 
 export const chatDefault = Object.freeze({
-  sAutoresponder: '',
   welcome: true,
   isBanned: false,
   autolevelup: false,
-  autoresponder: false,
   delete: false,
-  autoAceptar: false,
-  autoRechazar: false,
   detect: true,
   antiBot: false,
   antiBot2: false,
   modoadmin: false,
   antiLink: true,
-  antifake: false,
   antiArabe: false,
   reaction: false,
   nsw: false,

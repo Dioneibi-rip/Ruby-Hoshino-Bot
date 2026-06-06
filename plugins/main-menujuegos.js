@@ -21,8 +21,6 @@ let handler = async (m, { conn }) => {
 > ✦ Forma 5 parejas diferentes.  
 ᰵ𐇽𑂘⃘ׂ◌࠭᷼🪷⃝⃦̸̷᪶᪶ᩘ★ *#frase*  
 > ✦ La bot te da una frase.  
-ᰵ𐇽𑂘⃘ׂ◌࠭᷼🪷⃝⃦̸̷᪶᪶ᩘ★ *#huevo*  
-> ✦ Agárrale el huevo a alguien.  
 ᰵ𐇽𑂘⃘ׂ◌࠭᷼🪷⃝⃦̸̷᪶᪶ᩘ★ *#chupalo* + <mención>  
 > ✦ Hacer que un usuario te la chupe.  
 ᰵ𐇽𑂘⃘ׂ◌࠭᷼🪷⃝⃦̸̷᪶᪶ᩘ★ *#aplauso* + <mención>  
@@ -53,8 +51,6 @@ let handler = async (m, { conn }) => {
 > ✦ Empieza un sorteo.  
 ᰵ𐇽𑂘⃘ׂ◌࠭᷼🪷⃝⃦̸̷᪶᪶ᩘ★ *#top*  
 > ✦ Empieza un top de personas.  
-ᰵ𐇽𑂘⃘ׂ◌࠭᷼🪷⃝⃦̸̷᪶᪶ᩘ★ *#formartrio* + <mención>  
-> ✦ Forma un trío.  
 ᰵ𐇽𑂘⃘ׂ◌࠭᷼🪷⃝⃦̸̷᪶᪶ᩘ★ *#ahorcado*  
 > ✦ Diviértete jugando al ahorcado con la bot.  
 ᰵ𐇽𑂘⃘ׂ◌࠭᷼🪷⃝⃦̸̷᪶᪶ᩘ★ *#genio*  
