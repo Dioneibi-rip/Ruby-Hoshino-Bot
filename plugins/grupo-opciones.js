@@ -17,26 +17,20 @@ const handler = async (m, { conn }) => {
 ┠───═[ *SEGURIDAD* ]═───⬣
 ┃
 ┃ ${status(chat.antiLink)} ◈ Antilink
-┃ ${status(chat.antiLink2)} ◈ Antilink2
 ┃ ${status(chat.antiBot)} ◈ Antibot
 ┃ ${status(chat.antiBot2)} ◈ Antisubbots
 ┃ ${status(chat.antitoxic)} ◈ Antitoxic
-┃ ${status(chat.antitraba)} ◈ Antitraba
-┃ ${status(chat.antifake)} ◈ Antifake
 ┃
 ┠───═[ *AUTOMATIZACIÓN* ]═───⬣
 ┃
 ┃ ${status(chat.welcome)} ◈ Welcome
 ┃ ${status(chat.detect)} ◈ detect
 ┃ ${status(chat.autolevelup)} ◈ autolevelup
-┃ ${status(chat.autoresponder)} ◈ autoresponder
 ┃ ${status(chat.reaction)} ◈ reaction
 ┃
 ┠───═[ *GESTIÓN Y CONTENIDO* ]═───⬣
 ┃
 ┃ ${status(chat.modoadmin)} ◈ modoadmin
-┃ ${status(chat.autoAceptar)} ◈ autoAceptar
-┃ ${status(chat.autoRechazar)} ◈ autoRechazar
 ┃ ${status(chat.nsfw)} ◈ nsfw
 ┃
 ╰━━━━━━━━━━━━━━━━━━⬣

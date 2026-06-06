@@ -23,13 +23,9 @@ const featureNames = {
   'audios': 'Audios',
   'autosticker': 'Auto Sticker',
   'antibot': 'Anti-Bot', 'antibots': 'Anti-Bot',
-  'autoaceptar': 'Auto Aceptar', 'aceptarauto': 'Auto Aceptar',
-  'autorechazar': 'Auto Rechazar', 'rechazarauto': 'Auto Rechazar',
-  'autoresponder': 'Auto Responder', 'autorespond': 'Auto Responder',
   'antisubbots': 'Anti-Sub Bots', 'antisub': 'Anti-Sub Bots', 'antisubot': 'Anti-Sub Bots', 'antibot2': 'Anti-Sub Bots',
   'modoadmin': 'Modo Admin', 'soloadmin': 'Modo Admin', 'onlyadmin': 'Modo Admin',
   'autoread': 'Auto Leer', 'autoleer': 'Auto Leer', 'autover': 'Auto Leer',
-  'antiver': 'Anti Ver (View Once)', 'antiocultar': 'Anti Ver (View Once)', 'antiviewonce': 'Anti Ver (View Once)',
   'reaction': 'Reacción', 'reaccion': 'Reacción', 'emojis': 'Reacción',
   'nsfw': 'NSFW', 'nsfwhot': 'NSFW', 'nsfwhorny': 'NSFW',
   'antispam': 'Anti-Spam', 'antiSpam': 'Anti-Spam', 'antispamosos': 'Anti-Spam',
@@ -37,10 +33,7 @@ const featureNames = {
   'jadibotmd': 'Modo Jadibot', 'modejadibot': 'Modo Jadibot',
   'detect': 'Detección', 'configuraciones': 'Detección', 'avisodegp': 'Detección',
   'detect2': 'Detección 2', 'avisos': 'Detección 2', 'eventos': 'Detección 2',
-  'autosimi': 'SimSimi', 'simsimi': 'SimSimi',
-  'antilink': 'Anti-Enlaces', 'antilink2': 'Anti-Enlaces 2',
-  'antitrabas': 'Anti-Trabas', 'antitraba': 'Anti-Trabas',
-  'antifake': 'Anti-Fakes', 'antivirtuales': 'Anti-Fakes'
+  'antilink': 'Anti-Enlaces'
 };
 
 const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isROwner }) => {
@@ -144,39 +137,6 @@ const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, i
       }
       chat.antiBot = isEnable;
       break;
-    case 'autoaceptar':
-    case 'aceptarauto':
-      if (m.isGroup) {
-        if (!(isAdmin || isOwner)) {
-          global.dfail('admin', m, conn);
-          throw false;
-        }
-      }
-      chat.autoAceptar = isEnable;
-      break;
-    case 'autorechazar':
-    case 'rechazarauto':
-      if (m.isGroup) {
-        if (!(isAdmin || isOwner)) {
-          global.dfail('admin', m, conn);
-          throw false;
-        }
-      }
-      chat.autoRechazar = isEnable;
-      break;
-    case 'autoresponder':
-    case 'autorespond':
-      if (!m.isGroup) {
-        if (!isOwner) {
-          global.dfail('group', m, conn);
-          throw false;
-        }
-      } else if (!isAdmin) {
-        global.dfail('admin', m, conn);
-        throw false;
-      }
-      chat.autoresponder = isEnable;
-      break;
     case 'antisubbots':
     case 'antisub':
     case 'antisubot':
@@ -209,20 +169,6 @@ const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, i
         throw false;
       }
       global.opts['autoread'] = isEnable;
-      break;
-    case 'antiver':
-    case 'antiocultar':
-    case 'antiviewonce':
-      if (!m.isGroup) {
-        if (!isOwner) {
-          global.dfail('group', m, conn);
-          throw false;
-        }
-      } else if (!isAdmin) {
-        global.dfail('admin', m, conn);
-        throw false;
-      }
-      chat.antiver = isEnable;
       break;
     case 'reaction':
     case 'reaccion':
@@ -309,19 +255,6 @@ const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, i
       }
       chat.detect2 = isEnable;
       break;
-    case 'autosimi':
-    case 'simsimi':
-      if (!m.isGroup) {
-        if (!isOwner) {
-          global.dfail('group', m, conn);
-          throw false;
-        }
-      } else if (!isAdmin) {
-        global.dfail('admin', m, conn);
-        throw false;
-      }
-      chat.simi = isEnable;
-      break;
     case 'antilink':
       if (m.isGroup) {
         if (!(isAdmin || isOwner)) {
@@ -330,15 +263,6 @@ const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, i
         }
       }
       chat.antiLink = isEnable;
-      break;
-    case 'antilink2':
-      if (m.isGroup) {
-        if (!(isAdmin || isOwner)) {
-          global.dfail('admin', m, conn);
-          throw false;
-        }
-      }
-      chat.antiLink2 = isEnable;
       break;
     case 'antitoxic': 
     case 'antitoxicos':
@@ -349,26 +273,6 @@ const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, i
         }
       }
       chat.antitoxic = isEnable;
-      break;
-    case 'antitrabas': 
-    case 'antitraba':
-      if (m.isGroup) {
-        if (!(isAdmin || isOwner)) {
-          global.dfail('admin', m, conn);
-          throw false;
-        }
-      }
-       chat.antiTraba = isEnable;
-      break;
-    case 'antifake': 
-    case 'antivirtuales':
-      if (m.isGroup) {
-        if (!(isAdmin || isOwner)) {
-          global.dfail('admin', m, conn);
-          throw false;
-        }
-      }
-      chat.antifake = isEnable;
       break;
     default:
       if (!isOwner) {
@@ -410,8 +314,8 @@ const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, i
   await conn.reply(m.chat, replyText, fkontak || m);
 };
 
-handler.help = ['welcome', 'audios', 'antiPorno', 'bv', 'bienvenida', 'antiprivado', 'antipriv', 'antiprivate', 'restrict', 'restringir', 'autolevelup', 'autonivel', 'autosticker', 'antibot', 'antibots', 'autoaceptar', 'aceptarauto', 'autorechazar', 'rechazarauto', 'autoresponder', 'autorespond', 'antisubbots', 'antisub', 'antisubot', 'antibot2', 'modoadmin', 'soloadmin', 'onlyadmin', 'autoread', 'autoleer', 'autover', 'antiver', 'antiocultar', 'antiviewonce', 'reaction', 'reaccion', 'emojis', 'nsfw', 'nsfwhot', 'nsfwhorny', 'antispam', 'antiSpam', 'antispamosos', 'antidelete', 'antieliminar', 'jadibotmd', 'modejadibot', 'subbots', 'detect', 'configuraciones', 'avisodegp', 'detect2', 'avisos', 'eventos', 'autosimi', 'simsimi', 'antilink', 'antilink2', 'antitoxic', 'antitoxicos', 'antitraba', 'antitrabas', 'antifake', 'antivirtuales'];
+handler.help = ['welcome', 'audios', 'antiPorno', 'bv', 'bienvenida', 'antiprivado', 'antipriv', 'antiprivate', 'restrict', 'restringir', 'autolevelup', 'autonivel', 'autosticker', 'antibot', 'antibots', 'antisubbots', 'antisub', 'antisubot', 'antibot2', 'modoadmin', 'soloadmin', 'onlyadmin', 'autoread', 'autoleer', 'autover', 'reaction', 'reaccion', 'emojis', 'nsfw', 'nsfwhot', 'nsfwhorny', 'antispam', 'antiSpam', 'antispamosos', 'antidelete', 'antieliminar', 'jadibotmd', 'modejadibot', 'subbots', 'detect', 'configuraciones', 'avisodegp', 'detect2', 'avisos', 'eventos', 'antilink', 'antitoxic', 'antitoxicos'];
 handler.tags = ['nable'];
-handler.command = ['welcome', 'audios', 'bv', 'bienvenida', 'antiprivado', 'antipriv', 'antiprivate', 'restrict', 'restringir', 'autolevelup', 'autonivel', 'autosticker', 'antibot', 'antibots', 'autoaceptar', 'aceptarauto', 'autorechazar', 'rechazarauto', 'autoresponder', 'autorespond', 'antisubbots', 'antisubbots', 'antisub', 'antisubot', 'antibot2', 'modoadmin', 'soloadmin', 'onlyadmin', 'autoread', 'autoleer', 'autover', 'antiver', 'antiocultar', 'antiviewonce', 'reaction', 'reaccion', 'emojis', 'nsfw', 'nsfwhot', 'nsfwhorny', 'antispam', 'antiSpam', 'antispamosos', 'antidelete', 'antieliminar', 'jadibotmd', 'modejadibot', 'subbots', 'detect', 'configuraciones', 'avisodegp', 'detect2', 'avisos', 'eventos', 'autosimi', 'simsimi', 'antilink', 'antilink2', 'antitraba', 'antitrabas', 'antifake', 'antivirtuales'];
+handler.command = ['welcome', 'audios', 'bv', 'bienvenida', 'antiprivado', 'antipriv', 'antiprivate', 'restrict', 'restringir', 'autolevelup', 'autonivel', 'autosticker', 'antibot', 'antibots', 'antisubbots', 'antisubbots', 'antisub', 'antisubot', 'antibot2', 'modoadmin', 'soloadmin', 'onlyadmin', 'autoread', 'autoleer', 'autover', 'reaction', 'reaccion', 'emojis', 'nsfw', 'nsfwhot', 'nsfwhorny', 'antispam', 'antiSpam', 'antispamosos', 'antidelete', 'antieliminar', 'jadibotmd', 'modejadibot', 'subbots', 'detect', 'configuraciones', 'avisodegp', 'detect2', 'avisos', 'eventos', 'antilink'];
 
 export default handler;
