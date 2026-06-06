@@ -67,6 +67,7 @@ export function hydrateDatabaseForMessage(conn, m, sender) {
 const data = ensureDatabaseShape(global.db)
 const whatsappName = String(m?.pushName || m?.name || conn?.getName?.(sender) || '').trim()
 const user = ensureRecord(data.users, sender, userDefault, { name: whatsappName || userDefault.name })
+if (user.registered !== true) user.registered = true
 if (whatsappName && !user.customName && user.name !== whatsappName) user.name = whatsappName
 const chat = m?.chat ? ensureRecord(data.chats, m.chat, chatDefault) : {}
 const botJid = conn?.user?.jid || conn?.session?.id || 'primary'
