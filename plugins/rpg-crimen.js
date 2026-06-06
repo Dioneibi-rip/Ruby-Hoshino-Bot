@@ -11,7 +11,7 @@ let handler = async (m, { conn, usedPrefix }) => {
 
   let job = getJobData(user);
   if (!job) {
-    return conn.reply(m.chat, `💼 No tienes trabajo. Busca uno con *${usedPrefix}trabajo elegir <trabajo>* para desbloquear #crime.`, m);
+    return conn.reply(m.chat, `💼 No tienes trabajo. Busca uno con *${usedPrefix}trabajo lista* para desbloquear #crime.`, m);
   }
 
   let cooldown = 8 * 60; 
