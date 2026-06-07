@@ -157,10 +157,10 @@ if (removeSession) {
 try { await fs.promises.rm(pathRubyJadiBot, { recursive: true, force: true }) } catch (e) {}
 }
 }
-const { handler: handlerModule } = await import(`../handler.js?t=${Date.now()}`)
+const { handler: handlerModule } = await import(`../../handler.js?t=${Date.now()}`)
 let creloadHandler = async function (restatConn) {
 try {
-const freshHandler = await import(`../handler.js?t=${Date.now()}`).catch(console.error)
+const freshHandler = await import(`../../handler.js?t=${Date.now()}`).catch(console.error)
 if (freshHandler?.handler) {
 handlerModule.handler = freshHandler.handler
 }
