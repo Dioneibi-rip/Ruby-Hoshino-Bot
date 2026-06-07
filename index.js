@@ -22,7 +22,7 @@ import { Low, JSONFile } from 'lowdb'
 import { mongoDB, mongoDBV2 } from './lib/mongoDB.js'
 import store from './lib/store.js'
 import readline, { createInterface } from 'readline'
-import { RubyJadiBot } from './plugins/jadibot-serbot.js'
+import { RubyJadiBot } from './plugins/Subbots/jadibot-serbot.js'
 import { EventEmitter } from 'events'
 import { attachSessionState, createMessageRetryCache } from './src/core/session-manager.js'
 EventEmitter.defaultMaxListeners = 100
@@ -291,8 +291,27 @@ if (i + batchSize < subBotPaths.length) await new Promise(resolve => setTimeout(
 const pluginFolder = global.__dirname(join(__dirname, './plugins/index'))
 const pluginFilter = (filename) => /\.js$/.test(filename)
 global.plugins = {}
+function getPluginFiles(folder, base = folder) {
+return readdirSync(folder, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)).sort((a, b) => (b.name === 'Enable') - (a.name === 'Enable')).flatMap((entry) => {
+const fullPath = join(folder, entry.name)
+const relativePath = fullPath.slice(base.length + 1).replace(/\\/g, '/')
+if (entry.isDirectory()) return getPluginFiles(fullPath, base)
+return pluginFilter(entry.name) ? [relativePath] : []
+})
+}
+function watchPluginTree(folder, base = folder) {
+watch(folder, (_ev, filename) => {
+if (filename) {
+const relativePath = join(folder.slice(base.length), filename.toString()).replace(/^\/+/, '').replace(/\\/g, '/')
+global.reload(_ev, relativePath)
+} else filesInit().then(() => Object.keys(global.plugins)).catch(console.error)
+})
+for (const entry of readdirSync(folder, { withFileTypes: true })) {
+if (entry.isDirectory()) watchPluginTree(join(folder, entry.name), base)
+}
+}
 async function filesInit() {
-for (const filename of readdirSync(pluginFolder).filter(pluginFilter)) {
+for (const filename of getPluginFiles(pluginFolder).filter(pluginFilter)) {
 try { const file = global.__filename(join(pluginFolder, filename)); const module = await import(file); global.plugins[filename] = module.default || module } catch (e) { conn.logger.error(e); delete global.plugins[filename] }
 }
 }
@@ -305,14 +324,16 @@ if (existsSync(dir)) conn.logger.info(`✨ Plugin actualizado: '${filename}'`)
 else { conn.logger.warn(`🗑️ Plugin eliminado: '${filename}'`); return delete global.plugins[filename] }
 } else conn.logger.info(`✨ Nuevo plugin: '${filename}'`);
 const err = syntaxerror(readFileSync(dir), filename, { sourceType: 'module', allowAwaitOutsideFunction: true, });
-if (err) conn.logger.error(`❌ Error sintaxis: '${filename}'\n${format(err)}`)
+if (err) conn.logger.error(`❌ Error sintaxis: '${filename}'
+${format(err)}`)
 else {
-try { const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`)); global.plugins[filename] = module.default || module; } catch (e) { conn.logger.error(`❌ Error sintaxis: '${filename}\n${format(e)}'`) } finally { global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b))) }
+try { const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`)); global.plugins[filename] = module.default || module; } catch (e) { conn.logger.error(`❌ Error sintaxis: '${filename}
+${format(e)}'`) } finally { global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => (b.startsWith('Enable/') - a.startsWith('Enable/')) || a.localeCompare(b))) }
 }
 }
 }
 Object.freeze(global.reload)
-watch(pluginFolder, global.reload)
+watchPluginTree(pluginFolder)
 async function isValidPhoneNumber(number) {
 try {
 number = number.replace(/\s+/g, '')

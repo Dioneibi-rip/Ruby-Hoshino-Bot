@@ -24,7 +24,7 @@ global.uptimeStart = Date.now()
 
 const SYSTEM_MESSAGE_MAX_AGE_MS = 60_000
 const IGNORED_BAILEYS_IDS = [/^NJX-/, /^BAE5.{12}$/, /^B24E.{16}$/]
-const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js']
+const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js', 'Enable/grupo-unbanchat.js']
 
 function getLatestMessage(chatUpdate) {
 const messages = Array.isArray(chatUpdate?.messages) ? chatUpdate.messages : []
@@ -55,20 +55,6 @@ command: (rawCommand || '').toLowerCase(),
 }
 }
 
-const PRIVATE_BURST_WINDOW_MS = 10000
-const PRIVATE_BURST_LIMIT = 8
-const privateBurstMap = new Map()
-
-function isPrivateBurstBlocked(m, sender, isPrivileged) {
-if (!m?.text || m.isGroup || m.fromMe || isPrivileged) return false
-const now = Date.now()
-const bucket = privateBurstMap.get(sender) || []
-const recent = bucket.filter((timestamp) => now - timestamp <= PRIVATE_BURST_WINDOW_MS)
-recent.push(now)
-privateBurstMap.set(sender, recent)
-return recent.length > PRIVATE_BURST_LIMIT
-}
-
 async function runPluginHooks(conn, plugin, name, m, context) {
 if (typeof plugin?.all === 'function') {
 try {
@@ -91,7 +77,7 @@ const fail = plugin.fail || global.dfail
 const chat = global.db?.data?.chats?.[m.chat]
 const user = global.db?.data?.users?.[sender]
 
-if (!UNBAN_COMMAND_FILES.includes(name) && chat?.isBanned && !isROwner) return true
+if (!UNBAN_COMMAND_FILES.includes(name) && chat?.isBanned === true && !isROwner) return true
 if (m.text && user?.banned && !isROwner) {
 if (!user.lastBanMsg || Date.now() - user.lastBanMsg > 30_000) {
 m.reply(`《✦》Estas baneado/a, no puedes usar comandos en este bot!\n\n${user.bannedReason ? `✰ *Motivo:* ${user.bannedReason}` : '✰ *Motivo:* Sin Especificar'}\n\n> ✧ Si este Bot es cuenta ...`)
@@ -252,7 +238,9 @@ const match = getPrefixMatch(this, plugin, m.text)
 const beforeContext = { match, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
 if (typeof plugin.before === 'function') {
 if (await plugin.before.call(this, m, beforeContext)) continue
+if (m.__pluginHalt) return
 }
+if (m.__pluginHalt) return
 if (typeof plugin !== 'function' || !match?.[0]?.[0]) continue
 
 const usedPrefix = match[0][0]
@@ -261,8 +249,6 @@ const isAccept = commandMatches(plugin.command, parsed.command)
 global.comando = parsed.command
 if (shouldIgnoreBaileysId(m.id || m.key?.id || '')) return
 if (!isAccept) continue
-if (isPrivateBurstBlocked(m, sender, isROwner || isOwner || isMods || isPrems)) return
-
 m.plugin = name
 const chatData = global.db?.data?.chats?.[m.chat] || {}
 const isBotBannedInThisChat = Array.isArray(chatData.bannedBots) && chatData.bannedBots.includes(this.user?.jid)
