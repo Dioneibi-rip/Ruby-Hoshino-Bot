@@ -5,19 +5,15 @@ async search(query) {
 if (!query) throw new Error('Query requerida')
 const { data } = await axios.post('https://api.sticker.ly/v4/stickerPack/smartSearch', { keyword: query, enabledKeywordSearch: true, filter: { extendSearchResult: false, sortBy: 'RECOMMENDED', languages: ['ALL'], minStickerCount: 3, searchBy: 'ALL', stickerType: 'ALL' } }, { headers: { 'user-agent': 'androidapp.stickerly/3.17.0 (Redmi Note 4; U; Android 29; in-ID; id;)', 'content-type': 'application/json', 'accept-encoding': 'gzip' } })
 if (!data.result || !data.result.stickerPacks || !data.result.stickerPacks.length) return []
-const normalizedQuery = query.toLowerCase().trim()
 const packs = data.result.stickerPacks.map(pack => ({ name: pack.name || 'Sin nombre', author: pack.authorName || 'Desconocido', url: pack.shareUrl, stickerCount: pack.resourceFiles?.length || pack.stickerCount || 0, viewCount: pack.viewCount || 0, exportCount: pack.exportCount || 0, isAnimated: pack.isAnimated || false })).filter(pack => {
 if (!pack.url || pack.stickerCount < 3) return false
 const name = pack.name.toLowerCase()
-const author = pack.author.toLowerCase()
 const badNames = ['my stickers', 'test', 'sin nombre']
 if (badNames.some(v => name.includes(v))) return false
-return name.includes(normalizedQuery) || author.includes(normalizedQuery)
+return true
 }).sort((a, b) => {
-const aExact = a.name.toLowerCase().includes(normalizedQuery) ? 1000000 : 0
-const bExact = b.name.toLowerCase().includes(normalizedQuery) ? 1000000 : 0
-const scoreA = aExact + (a.exportCount * 2) + a.viewCount + (a.stickerCount * 50)
-const scoreB = bExact + (b.exportCount * 2) + b.viewCount + (b.stickerCount * 50)
+const scoreA = (a.exportCount * 2) + a.viewCount + (a.stickerCount * 50)
+const scoreB = (b.exportCount * 2) + b.viewCount + (b.stickerCount * 50)
 return scoreB - scoreA
 })
 return packs
@@ -33,7 +29,7 @@ return { name: data.result.name || 'Sin nombre', author: data.result.user?.displ
 }
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 if (!text) {
-return m.reply(`𐔌 ࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִ ࣪⛩️ᩧ᳟˖ ۪࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִﾉﾞ\n\n      ໊ 𐔌  Hola hermosa personita :3\n      Por favor, ingresa un texto o URL.\n\n ᗝᗝ  ϙִ ࣪ ˖ ࣪🍣̟᳟⃛ ! ੭ ִ ׄ⠷ 𝗘𝗷𝗲𝗺𝗽𝗹𝗼𝘀:\n ⊹ ${usedPrefix + command} Hatsune Miku\n ⊹ ${usedPrefix + command} Goku\n\nᐝ ׅ ׄ ׅ ѕωєєƚ ׄ ׅ ׄ ꊞ ׄ ׅ ׄ ׅ 🌼 ׄ ׅ ㅤׄ 𓈒𓂂`)
+return m.reply(`𐔌 ࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִ ࣪⛩️ᩧ᳟˖ ۪࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִﾉﾞ\n\n      ໊ 𐔌  Hola hermosa personita :3\n      Por favor, ingresa un texto o URL.\n\n ᗝᗝ  ϙִ ࣪ ˖ ࣪🍣̟᳟⃛ ! ੭ ִ ׄ⠷ 𝗘𝗷𝗲𝗺𝗽𝗹𝗼𝘀:\n ⊹ ${usedPrefix + command} Hatsune Miku\n ⊹ ${usedPrefix + command} Goku\n\nᐝ ׅ ׄ ׅ ѕωєєƚ ׄ ׅ ׄ ꊞ ׄ ׅ ׄ ׅ 🌼 ׄ ׅ ㅤׄ 𓈒𓂂`)
 }
 await m.react('⏳')
 try {
@@ -47,7 +43,7 @@ if (!results.length) {
 await m.react('🥀')
 return m.reply(`₍ᐢ ׅ ׄ ׅꊞ ׅ ❌ 𝖭𝗈 𝖾𝗇𝖼𝗈𝗇𝗍𝗋𝖾́ 𝗉𝖺𝗊𝗎𝖾𝗍𝖾𝗌 𝗋𝖾𝗅𝖺𝖼𝗂𝗈𝗇𝖺𝖽𝗈𝗌 𝖼𝗈𝗇: *${text}* ૮(>﹏<)ა`)
 }
-const top = results.slice(0, 3)
+const top = results.slice(0, 15)
 const selected = top[Math.floor(Math.random() * top.length)]
 packDetails = await api.detail(selected.url)
 }
