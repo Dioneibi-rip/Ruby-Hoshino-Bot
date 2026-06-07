@@ -55,15 +55,18 @@ command: (rawCommand || '').toLowerCase(),
 }
 }
 
-function ensureQueue(conn, m, opts, isMods, isPrems) {
-if (!opts?.queque || !m?.text || isMods || isPrems) return
-const queue = conn.msgqueque ||= []
-const previousID = queue.at(-1)
-queue.push(m.id || m.key?.id)
-setTimeout(() => {
-const idx = queue.indexOf(previousID)
-if (idx !== -1) queue.splice(idx, 1)
-}, 5000)
+const PRIVATE_BURST_WINDOW_MS = 10000
+const PRIVATE_BURST_LIMIT = 8
+const privateBurstMap = new Map()
+
+function isPrivateBurstBlocked(m, sender, isPrivileged) {
+if (!m?.text || m.isGroup || m.fromMe || isPrivileged) return false
+const now = Date.now()
+const bucket = privateBurstMap.get(sender) || []
+const recent = bucket.filter((timestamp) => now - timestamp <= PRIVATE_BURST_WINDOW_MS)
+recent.push(now)
+privateBurstMap.set(sender, recent)
+return recent.length > PRIVATE_BURST_LIMIT
 }
 
 async function runPluginHooks(conn, plugin, name, m, context) {
@@ -234,7 +237,6 @@ if (opts.swonly && m.chat !== 'status@broadcast') return
 const permissionContext = buildPermissionContext(this, m, sender, participants)
 const { userGroup, botGroup, isRAdmin, isAdmin, isBotAdmin, isROwner, isOwner, isMods, isPrems } = permissionContext
 m.moneda = settings?.moneda || 'Coins'
-ensureQueue(this, m, opts, isMods, isPrems)
 m.exp += Math.ceil(Math.random() * 10)
 
 const pluginDir = getPluginDirectory()
@@ -259,6 +261,7 @@ const isAccept = commandMatches(plugin.command, parsed.command)
 global.comando = parsed.command
 if (shouldIgnoreBaileysId(m.id || m.key?.id || '')) return
 if (!isAccept) continue
+if (isPrivateBurstBlocked(m, sender, isROwner || isOwner || isMods || isPrems)) return
 
 m.plugin = name
 const chatData = global.db?.data?.chats?.[m.chat] || {}
@@ -272,12 +275,6 @@ break
 } catch (error) {
 console.error(error)
 } finally {
-try {
-if (this.msgqueque && (this.opts || global.opts || {}).queque && m?.text) {
-const queueIndex = this.msgqueque.indexOf(m.id || m.key?.id)
-if (queueIndex !== -1) this.msgqueque.splice(queueIndex, 1)
-}
-} catch {}
 try {
 updateStatsAndEconomy(this, m, sender)
 } catch (error) {

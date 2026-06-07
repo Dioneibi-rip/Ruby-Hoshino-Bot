@@ -139,12 +139,16 @@ await new Promise(resolve => setTimeout(resolve, 1500));
 } while (opcion !== '1' && opcion !== '2' || existsSync(`./${global.Rubysessions}/creds.json`))
 }
 const RECONNECT_REASONS = new Set([DisconnectReason.connectionLost, DisconnectReason.connectionClosed, DisconnectReason.restartRequired, DisconnectReason.connectionReplaced])
+const DISCONNECT_AUTH_STATUS = new Set([401, 403, DisconnectReason.loggedOut])
+const RECONNECT_BASE_DELAY_MS = 5000
+const RECONNECT_MAX_DELAY_MS = 60000
+let reconnectAttempt = 0
 const socketCfg = global.baileysSocketConfig || {}
 const connectionOptions = {
 logger: pino({ level: 'silent' }),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile,
-browser: ['Mac OS', 'Safari', '10.15.7'],
+browser: ['Ubuntu', 'Chrome', '114.0.5735.198'],
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })), },
 markOnlineOnConnect: true,
 generateHighQualityLinkPreview: true,
@@ -157,7 +161,7 @@ syncFullHistory: false,
 connectTimeoutMs: socketCfg.connectTimeoutMs ?? 20000,
 keepAliveIntervalMs: socketCfg.keepAliveIntervalMs ?? 30000,
 retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 250,
-shouldReconnect: ({ statusCode }) => RECONNECT_REASONS.has(statusCode) || statusCode !== DisconnectReason.loggedOut
+shouldReconnect: ({ statusCode }) => !DISCONNECT_AUTH_STATUS.has(statusCode) && (RECONNECT_REASONS.has(statusCode) || statusCode !== DisconnectReason.loggedOut)
 }
 global.conn = makeWASocket(connectionOptions);
 attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.Rubysessions })
@@ -196,6 +200,11 @@ if ((qr && opcion === '1') || methodCodeQR) {
 console.log(boxen(chalk.hex('#FF66C4')('—🍦ܶ߭ຼ ᪲  ۪  ︵ Escanea el codigo QR aqui ︵ ࣪'), { padding: 1, borderStyle: 'classic', borderColor: 'magenta' }))
 }
 if (connection === 'open') {
+reconnectAttempt = 0
+if (reconnectTimer) {
+clearTimeout(reconnectTimer)
+reconnectTimer = undefined
+}
 console.log('\n')
 console.log(boxen(chalk.bold.hex('#00FF00')('୭ৎ֮֮ BOT CONECTADO CORRECTAMENTE 🪼 ׄ'), { padding: 1, borderStyle: 'double', borderColor: 'green', title: '✅ 𝖤𝖷𝖨𝖳𝖮', titleAlignment: 'center' }))
 console.log('\n')
@@ -203,23 +212,24 @@ console.log('\n')
 if (connection === 'close') {
 const statusCode = (lastDisconnect?.error)?.output?.statusCode || (lastDisconnect?.error)?.statusCode || DisconnectReason.connectionClosed
 const show = (color, text, icon) => console.log(boxen(color(text), { padding: 1, borderStyle: 'round', borderColor: 'red', title: icon, titleAlignment: 'center' }))
-if (statusCode === DisconnectReason.loggedOut) {
-show(chalk.red, `👋 SESION CERRADA BORRE LA CARPETA ${global.Rubysessions}`, '🚪')
-await global.reloadHandler(true).catch(console.error)
+if (DISCONNECT_AUTH_STATUS.has(statusCode)) {
+show(chalk.red, `👋 SESION INVALIDA ${statusCode}. BORRE LA CARPETA ${global.Rubysessions} Y VINCULE DE NUEVO`, '🚪')
 return
 }
-if (RECONNECT_REASONS.has(statusCode) || update.shouldReconnect !== false) {
-show(chalk.yellow, '🔌 RECONECTANDO SILENCIOSAMENTE...', '🔁')
+const shouldReconnect = RECONNECT_REASONS.has(statusCode) || update.shouldReconnect !== false
+if (!shouldReconnect) {
+show(chalk.red, `❓ Error desconocido: ${statusCode}`, '💀')
+return
+}
 if (reconnectTimer) return
+const reconnectDelay = Math.min(Math.max(reconnectDelayMs || 0, RECONNECT_BASE_DELAY_MS * Math.max(1, reconnectAttempt + 1)), RECONNECT_MAX_DELAY_MS)
+reconnectAttempt += 1
+show(chalk.yellow, `🔌 RECONECTANDO EN ${Math.ceil(reconnectDelay / 1000)}S...`, '🔁')
 reconnectTimer = setTimeout(async () => {
 reconnectTimer = undefined
 await global.reloadHandler(true).catch(console.error)
-}, reconnectDelayMs || 1500)
+}, reconnectDelay)
 reconnectTimer.unref?.()
-} else {
-show(chalk.red, `❓ Error desconocido: ${statusCode}`, '💀')
-await global.reloadHandler(true).catch(console.error)
-}
 }
 }
 process.on('uncaughtException', console.error)
