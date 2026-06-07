@@ -237,8 +237,9 @@ if (!opts.restrict && plugin.tags?.includes?.('admin')) continue
 const match = getPrefixMatch(this, plugin, m.text)
 const beforeContext = { match, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
 if (typeof plugin.before === 'function') {
-if (await plugin.before.call(this, m, beforeContext)) continue
+const beforeResult = await plugin.before.call(this, m, beforeContext)
 if (m.__pluginHalt) return
+if (beforeResult) continue
 }
 if (m.__pluginHalt) return
 if (typeof plugin !== 'function' || !match?.[0]?.[0]) continue
