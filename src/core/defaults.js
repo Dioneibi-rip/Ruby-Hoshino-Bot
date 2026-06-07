@@ -37,7 +37,6 @@ warn: 0,
 crime: 0,
 Subs: 0,
 })
-
 export const chatDefault = Object.freeze({
 welcome: true,
 isBanned: false,
@@ -61,20 +60,17 @@ bannedBots: [],
 antiImg: false,
 nsfw: false,
 })
-
 export const settingsDefault = Object.freeze({
 self: false,
 restrict: true,
 jadibotmd: true,
-antiPrivate: false,
-antiGroup: false,
+antiPrivate: 0,
+antiGroup: 0,
 moneda: 'Coins',
 autoread: false,
 status: 0,
 })
-
 const isNumber = (value) => typeof value === 'number' && Number.isFinite(value)
-
 export function ensureRecord(container, key, defaults, patches = {}) {
 if (!container || !key) return {}
 if (!container[key] || typeof container[key] !== 'object') container[key] = {}
@@ -92,7 +88,6 @@ record[field] = [...value]
 }
 return record
 }
-
 export function ensureDatabaseShape(db = global.db) {
 if (!db.data || typeof db.data !== 'object') db.data = {}
 db.data.users ||= {}
