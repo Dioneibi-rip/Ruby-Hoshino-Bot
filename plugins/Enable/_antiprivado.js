@@ -15,10 +15,6 @@ if (m.chat === '120363322713003916@newsletter') return !1
 if (isEssentialPrivateCommand(m.text || '')) return !1
 const chat = global.db?.data?.chats?.[m.chat]
 if (chat?.isBanned === false) return !1
-if (chat?.isBanned === true) {
-m.__pluginHalt = true
-return !0
-}
 const mode = getBotSettings(this).antiPrivate
 if (!mode || mode === 0 || mode === false) return !1
 if (mode === 1 || mode === true) {
