@@ -77,7 +77,7 @@ const fail = plugin.fail || global.dfail
 const chat = global.db?.data?.chats?.[m.chat]
 const user = global.db?.data?.users?.[sender]
 
-if (!UNBAN_COMMAND_FILES.includes(name) && chat?.isBanned === true && !isROwner) return true
+if (m.isGroup && !UNBAN_COMMAND_FILES.includes(name) && chat?.isBanned === true && !isROwner) return true
 if (m.text && user?.banned && !isROwner) {
 if (!user.lastBanMsg || Date.now() - user.lastBanMsg > 30_000) {
 m.reply(`《✦》Estas baneado/a, no puedes usar comandos en este bot!\n\n${user.bannedReason ? `✰ *Motivo:* ${user.bannedReason}` : '✰ *Motivo:* Sin Especificar'}\n\n> ✧ Si este Bot es cuenta ...`)
@@ -237,8 +237,9 @@ if (!opts.restrict && plugin.tags?.includes?.('admin')) continue
 const match = getPrefixMatch(this, plugin, m.text)
 const beforeContext = { match, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
 if (typeof plugin.before === 'function') {
-if (await plugin.before.call(this, m, beforeContext)) continue
+const beforeResult = await plugin.before.call(this, m, beforeContext)
 if (m.__pluginHalt) return
+if (beforeResult) continue
 }
 if (m.__pluginHalt) return
 if (typeof plugin !== 'function' || !match?.[0]?.[0]) continue
