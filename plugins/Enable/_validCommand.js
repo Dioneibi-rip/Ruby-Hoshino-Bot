@@ -46,6 +46,7 @@ return thumbnailPromise;
 }
 
 export async function before(m, { conn, isAdmin, isOwner, isROwner }) {
+if (!m.isGroup) return;
 const chat = global.db?.data?.chats?.[m.chat];
 if (chat?.isBanned || chat?.banchat || chat?.banChat || chat?.isBan) return;
 if (!m.text) return;
@@ -91,7 +92,7 @@ return;
 
 const comando = m.text.trim().split(/\s+/,1)[0];
 const msjDecorado =
-`(,,•᷄‎ࡇ•᷅ ,,)? ᥱᥣ ᥴ᥆mᥲᥒძ᥆ *${comando}* ᥒ᥆ sᥱ ᥱᥒᥴᥙᥱᥒ𝗍rᥲ rᥱgіs𝗍rᥲძ᥆. ᥱs ⍴᥆sіᑲᥣᥱ 𝗊ᥙᥱ ᥱs𝗍ᥱ mᥲᥣ ᥱsᥴrі𝗍᥆ ᥆ ᥒ᥆ ᥱ᥊іs𝗍ᥲ.
+`(,,•᷄‎ࡇ•᷅ ,,)? ᥱᥣ ᥴ᥆mᥲᥒძ᥆ *${comando}* ᥒ᥆ sᥱ ᥱᥒᥴᥙᥱᥒ𝗍rᥲ rᥱgіs𝗍rᥲძ᥆. ᥱs ⍴᥆sіᑲᥣᥱ 𝗊ᥙᥱ ᥱs𝗍ᥱ mᥲᥣ ᥱsᥴrі𝗍᥆.
 
 ⍴ᥲrᥲ ᥴ᥆ᥒsᥙᥣ𝗍ᥲr ᥣᥲ ᥣіs𝗍ᥲ ᥴ᥆m⍴ᥣᥱ𝗍ᥲ ძᥱ 𝖿ᥙᥒᥴі᥆ᥒᥲᥣіძᥲძᥱs ᥙsᥲ:
 » *${usedPrefix}help*`;
