@@ -1,5 +1,6 @@
 import { loadHarem, saveHarem, findClaim, isSameUserId } from '../../lib/gacha-group.js'
-import { loadCharacters, normalizeCharacterId } from '../../lib/gacha-characters.js'
+import { loadCharactersOptimized, invalidateCache } from '../../lib/gacha-cache-manager.js'
+import { normalizeCharacterId } from '../../lib/gacha-characters.js'
 import { getExclusiveOwner } from '../../lib/gacha-restrictions.js'
 
 export const cooldowns = {}
@@ -9,12 +10,22 @@ global.gachaCooldowns.rollwaifu = cooldowns
 
 global.activeRolls = global.activeRolls || {}
 
+// Limpieza automática cada 5 minutos
+setInterval(() => {
+  const now = Date.now()
+  let cleaned = 0
+  for (const [key, data] of Object.entries(cooldowns)) {
+    if (now > data) {
+      delete cooldowns[key]
+      cleaned++
+    }
+  }
+  if (cleaned > 0) console.log(`[gacha-rollwaifu] ${cleaned} cooldowns limpiados`)
+}, 5 * 60 * 1000)
 
 function isUserInGroup(userId, participants = []) {
     if (!userId) return false
-
     if (!Array.isArray(participants) || !participants.length) return true
-
     return participants.some(participant => {
         const ids = [participant?.id, participant?.jid, participant?.lid].filter(Boolean)
         return ids.some(id => isSameUserId(id, userId))
@@ -29,19 +40,15 @@ function removeClaimEntry(harem = [], claim) {
 function formatUrl(url) {
     if (!url) return url
     url = url.trim()
-
     if (url.includes('github.com') && url.includes('/blob/')) {
         url = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/')
     }
-
     if (url.includes('github.com') && url.includes('?raw=true')) {
         url = url.replace('github.com', 'raw.githubusercontent.com').replace('?raw=true', '')
     }
-
     if (url.includes('raw.github.com')) {
         url = url.replace('raw.github.com', 'raw.githubusercontent.com')
     }
-
     return url
 }
 
@@ -51,8 +58,14 @@ let handler = async (m, { conn, participants = [] }) => {
     const now = Date.now()
     const key = `${groupId}:${userId}`
 
+    // ⚡ Limpieza rápida: máximo 50 items
+    let expCount = 0
     for (const [rollKey, rollData] of Object.entries(global.activeRolls)) {
-        if (!rollData?.time || now - rollData.time > 3 * 60 * 1000) delete global.activeRolls[rollKey]
+        if (!rollData?.time || now - rollData.time > 3 * 60 * 1000) {
+            delete global.activeRolls[rollKey]
+            expCount++
+            if (expCount >= 50) break
+        }
     }
 
     if (cooldowns[key] && now < cooldowns[key]) {
@@ -65,7 +78,8 @@ let handler = async (m, { conn, participants = [] }) => {
     cooldowns[key] = now + 15 * 60 * 1000
 
     try {
-        const characters = await loadCharacters()
+        // ⚡ OPTIMIZACIÓN: Usar caché centralizado
+        const characters = await loadCharactersOptimized()
         if (!characters.length) throw new Error('❀ No hay personajes disponibles para el gacha.')
         
         const randomCharacter = characters[Math.floor(Math.random() * characters.length)]
@@ -106,8 +120,9 @@ let handler = async (m, { conn, participants = [] }) => {
             global.activeRolls[`${groupId}:${randomCharacter.id}`] = { user: rollOwner, time: Date.now() }
         }
 
+        // 📝 MISMO DISEÑO Y DECORACIÓN - SIN CAMBIOS
         const message = `
-ㅤㅤ⏜⋮ㅤㅤ꒰ㅤ꒰ㅤㅤ𖹭⃞🎲⃞𖹭ㅤㅤ꒱ㅤ꒱ㅤㅤ⋮⏜
+ㅤㅤ⏜⋮ㅤㅤ꒰ㅤ꒰ㅤㅤ𖹭⃞🎲⃞𖹭��ㅤ꒱ㅤ꒱ㅤㅤ⋮⏜
 ꒰ㅤ꒰͡ㅤ 🄽🅄🄴🅅🄾 🄿🄴🅁🅂🄾🄽🄰🄹🄴ㅤㅤ͡꒱ㅤ꒱
 
 ▓𓏴𓏴 ۪ ֹ 🄽꯭🄾꯭🄼꯭🄱꯭🅁꯭🄴 :
