@@ -1,23 +1,4 @@
-function isCommand(text = '') {
-return Boolean(global.prefix?.exec?.(text))
-}
-function getBotSettings(conn) {
-const jid = conn?.user?.jid
-return jid ? global.db?.data?.settings?.[jid] || {} : {}
-}
 export async function before(m, {isOwner, isROwner}) {
-if (m.isBaileys && m.fromMe) return !0
-if (m.fromMe || isOwner || isROwner) return !1
-if (!m.isGroup) return !1
-if (!m.message || !isCommand(m.text || '')) return !1
-const chat = global.db?.data?.chats?.[m.chat]
-if (chat?.isBanned === false) return !1
-if (chat?.isBanned === true) {
-m.__pluginHalt = true
-return !0
-}
-const mode = getBotSettings(this).antiGroup
-if (!mode || mode === 0 || mode === false) return !1
-m.__pluginHalt = true
-return !0
+    // Esta función está deshabilitada - permitir todos los mensajes en grupos
+    return !1
 }
