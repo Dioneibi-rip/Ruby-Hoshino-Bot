@@ -1,1 +1,53 @@
-const _0x14af73=_0x1c12;(function(_0x4415e1,_0x36eb42){const _0x20e6a0=_0x1c12,_0x22e59c=_0x4415e1();while(!![]){try{const _0x491f8e=parseInt(_0x20e6a0(0xad))/0x1*(-parseInt(_0x20e6a0(0x83))/0x2)+parseInt(_0x20e6a0(0x81))/0x3*(parseInt(_0x20e6a0(0x9e))/0x4)+-parseInt(_0x20e6a0(0xaa))/0x5+-parseInt(_0x20e6a0(0x92))/0x6*(parseInt(_0x20e6a0(0xa2))/0x7)+-parseInt(_0x20e6a0(0x8f))/0x8+-parseInt(_0x20e6a0(0xa0))/0x9+parseInt(_0x20e6a0(0x86))/0xa;if(_0x491f8e===_0x36eb42)break;else _0x22e59c['push'](_0x22e59c['shift']());}catch(_0x184f20){_0x22e59c['push'](_0x22e59c['shift']());}}}(_0x20fe,0x59658));import _0x57dd71 from'axios';async function pinterestScraper(_0xd06e39,_0x39fe18=0x19){const _0x47f53f=_0x1c12,_0x1afea1=_0x47f53f(0xab)+encodeURIComponent(_0xd06e39)+'%26rs%3Dtyped&data=%7B%22options%22%3A%7B%22query%22%3A%22'+encodeURIComponent(_0xd06e39)+_0x47f53f(0xa8),_0x535999={'accept':'application/json,\x20text/javascript,\x20*/*;\x20q=0.01','accept-language':_0x47f53f(0xb3),'referer':_0x47f53f(0x8a),'user-agent':_0x47f53f(0x97),'x-app-version':_0x47f53f(0x95),'x-pinterest-appstate':_0x47f53f(0x9f),'x-pinterest-pws-handler':_0x47f53f(0x91),'x-pinterest-source-url':'/','x-requested-with':'XMLHttpRequest'},_0x15b159=await _0x57dd71[_0x47f53f(0xa6)](_0x1afea1,{'headers':_0x535999});if(!_0x15b159['data']?.[_0x47f53f(0xac)]?.[_0x47f53f(0x94)]?.[_0x47f53f(0x88)])return[];const _0x2d698d=_0x15b159[_0x47f53f(0x94)][_0x47f53f(0xac)]['data'][_0x47f53f(0x88)]['map'](_0x266e21=>{const _0x5781ef=_0x47f53f;if(!_0x266e21['images'])return null;const _0x5207d6=Object[_0x5781ef(0x98)](_0x266e21['images']),_0x3233a3=_0x5207d6['find'](_0xaa5293=>/4\d{2}x|5\d{2}x|6\d{2}x/[_0x5781ef(0x9b)](_0xaa5293))||_0x5207d6[0x0],_0x4b9237=_0x266e21[_0x5781ef(0xb1)][_0x3233a3]?.[_0x5781ef(0x90)]||null;return{'title':_0x266e21['grid_title']||_0x266e21[_0x5781ef(0xaf)]||_0x5781ef(0x8b),'image_large_url':_0x266e21[_0x5781ef(0xb1)]['orig']?.[_0x5781ef(0x90)]||null,'image_medium_url':_0x4b9237,'image_small_url':_0x266e21[_0x5781ef(0xb1)][_0x5781ef(0x85)]?.['url']||null};})['filter'](Boolean);return _0x2d698d[_0x47f53f(0xae)](0x0,_0x39fe18);}function _0x20fe(){const _0x5b044c=['report*\x20para\x20informarlo.\x0a\x0a','image','reply','5587808odLGrl','url','www/index.js','200184qUwyFe','command','data','c056fb7','map','Mozilla/5.0\x20(Windows\x20NT\x2010.0;\x20Win64;\x20x64)\x20AppleWebKit/537.36\x20(KHTML,\x20like\x20Gecko)\x20Chrome/140.0.0.0\x20Safari/537.36','keys','chat','»\x0a✐\x20💎\x20rᥱsᥙᥣ𝗍ᥲძ᥆s\x20»\x20','test','❀\x20✧\x20No\x20se\x20encontraron\x20resultados\x20para\x20«','descargas','134140MwKgrq','active','3959901fdngXZ','image_large_url','77ZprZEZ','⚠︎\x20❀\x20Se\x20ha\x20producido\x20un\x20error\x20❀\x0a>\x20Usa\x20*','»\x20❧\x20❀','(*∩_∩*)\x20⍴᥆r\x20𝖿ᥲ᥎᥆r,\x20іᥒgrᥱsᥲ\x20ᥣ᥆\x20𝗊ᥙᥱ\x20ძᥱsᥱᥲs\x20ᑲᥙsᥴᥲr\x20⍴᥆r\x20⍴іᥒ𝗍ᥱrᥱs𝗍\x20🌸','get','tags','%22%2C%22scope%22%3A%22pins%22%2C%22rs%22%3A%22typed%22%7D%2C%22context%22%3A%7B%7D%7D','pinterest','1591865XwlXLV','https://id.pinterest.com/resource/BaseSearchResource/get/?source_url=%2Fsearch%2Fpins%2F%3Fq%3D','resource_response','15559ZMuQeh','slice','title','pinterest\x20<texto>','images','length','es-ES,es;q=0.9,en;q=0.8','42UdbVje','react','46MRMOsR','pin','236x','20783770vbbsWO','(*ˊᗜˋ*)\x20ᑲᥙ́s𝗊ᥙᥱძᥲ\x20᥊\x20⍴іᥒ𝗍ᥱrᥱs𝗍\x0a\x0a✧\x20📌\x20𝗍і𝗍ᥙᥣ᥆\x20»\x20«','results','help','https://id.pinterest.com/','Sin\x20título'];_0x20fe=function(){return _0x5b044c;};return _0x20fe();}let handler=async(_0x46b9b7,{conn:_0x2be3fc,text:_0x36b579,usedPrefix:_0x4cf030})=>{const _0x17360b=_0x1c12;if(!_0x36b579)return _0x46b9b7[_0x17360b(0x8e)](_0x17360b(0xa5));try{await _0x46b9b7[_0x17360b(0x82)]('🕒');const _0x5ba7f6=await pinterestScraper(_0x36b579,0x19);if(!_0x5ba7f6[_0x17360b(0xb2)])return _0x2be3fc[_0x17360b(0x8e)](_0x46b9b7['chat'],_0x17360b(0x9c)+_0x36b579+_0x17360b(0xa4),_0x46b9b7);const _0x51cd7e=_0x5ba7f6[_0x17360b(0xae)](0x0,0xa)[_0x17360b(0x96)](_0x3e11c8=>({'type':_0x17360b(0x8d),'data':{'url':_0x3e11c8[_0x17360b(0xa1)],'title':_0x3e11c8[_0x17360b(0xaf)]}}));for(let _0x53534a=0x0;_0x53534a<_0x51cd7e['length'];_0x53534a++){await _0x2be3fc['sendMessage'](_0x46b9b7['chat'],{'image':{'url':_0x51cd7e[_0x53534a]['data']['url']},'caption':_0x53534a===0x0?_0x17360b(0x87)+_0x36b579+_0x17360b(0x9a)+_0x51cd7e[_0x17360b(0xb2)]+'\x20іmᥲ́gᥱᥒᥱs\x20ᥱᥒᥴ᥆ᥒ𝗍rᥲძᥲs':'✧\x20'+(_0x51cd7e[_0x53534a][_0x17360b(0x94)][_0x17360b(0xaf)]||_0x17360b(0x8b))},{'quoted':_0x46b9b7});}await _0x46b9b7[_0x17360b(0x82)]('✔️');}catch(_0x85dcf2){await _0x46b9b7['react']('✖️'),_0x2be3fc[_0x17360b(0x8e)](_0x46b9b7[_0x17360b(0x99)],_0x17360b(0xa3)+_0x4cf030+_0x17360b(0x8c)+_0x85dcf2,_0x46b9b7);}};function _0x1c12(_0x34a668,_0x33673c){const _0x20fec3=_0x20fe();return _0x1c12=function(_0x1c1284,_0x5e44b9){_0x1c1284=_0x1c1284-0x81;let _0x85ff9=_0x20fec3[_0x1c1284];return _0x85ff9;},_0x1c12(_0x34a668,_0x33673c);}handler[_0x14af73(0x89)]=[_0x14af73(0xb0)],handler[_0x14af73(0x93)]=[_0x14af73(0xa9),_0x14af73(0x84)],handler[_0x14af73(0xa7)]=[_0x14af73(0x9d)],handler['group']=!![];export default handler;
+import axios from 'axios';
+async function pinterestScraper(query, limit = 25) {
+const url = 'https://id.pinterest.com/resource/BaseSearchResource/get/?source_url=%2Fsearch%2Fpins%2F%3Fq%3D' + encodeURIComponent(query) + '%26rs%3Dtyped&data=%7B%22options%22%3A%7B%22query%22%3A%22' + encodeURIComponent(query) + '%22%2C%22scope%22%3A%22pins%22%2C%22rs%22%3A%22typed%22%7D%2C%22context%22%3A%7B%7D%7D';
+const headers = {
+'accept': 'application/json, text/javascript, */*; q=0.01',
+'accept-language': 'es-ES,es;q=0.9,en;q=0.8',
+'referer': 'https://id.pinterest.com/',
+'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
+'x-app-version': 'c056fb7',
+'x-pinterest-appstate': 'active',
+'x-pinterest-pws-handler': 'www/index.js',
+'x-pinterest-source-url': '/',
+'x-requested-with': 'XMLHttpRequest'
+};
+const response = await axios.get(url, { headers: headers });
+if (!response.data?.resource_response?.data?.results) return [];
+const results = response.data.resource_response.data.results.map(item => {
+if (!item.images) return null;
+const keys = Object.keys(item.images);
+const bestKey = keys.find(key => /4\d{2}x|5\d{2}x|6\d{2}x/.test(key)) || keys[0];
+const image_medium_url = item.images[bestKey]?.url || null;
+return {
+title: item.grid_title || item.title || 'Sin título',
+image_large_url: item.images.orig?.url || null,
+image_medium_url: image_medium_url,
+image_small_url: item.images['236x']?.url || null
+};
+}).filter(Boolean);
+return results.slice(0, limit);
+}
+let handler = async (m, { conn, text, usedPrefix }) => {
+if (!text) return m.reply('(*∩_∩*) ⍴᥆r 𝖿ᥲ᥎᥆r, іᥒgrᥱsᥲ ᥣ᥆ 𝗊ᥙᥱ ძᥱsᥱᥲs ᑲᥙsᥴᥲr ⍴᥆r ⍴іᥒ𝗍ᥱrᥱs𝗍 🌸');
+try {
+await m.react('🕒');
+const results = await pinterestScraper(text, 25);
+if (!results.length) return conn.reply(m.chat, '❀ ✧ No se encontraron resultados para «' + text + '»\n» ❧ ❀', m);
+const randomResult = results[Math.floor(Math.random() * results.length)];
+const imageUrl = randomResult.image_large_url || randomResult.image_medium_url || randomResult.image_small_url;
+await conn.sendMessage(m.chat, {
+image: { url: imageUrl },
+caption: '(*ˊᗜˋ*) ᑲᥙ́s𝗊ᥙᥱძᥲ ᥊ ⍴іᥒ𝗍ᥱrᥱs𝗍\n\n✧ 📌 𝗍і𝗍ᥙᥣ᥆ » «' + text + '»\n✐ 💎 rᥱsᥙᥣ𝗍ᥲძ᥆s » ' + results.length + ' іmᥲ́gᥱᥒᥱs ᥱᥒᥴ᥆ᥒ𝗍rᥲძᥲs\n✧ ' + (randomResult.title || 'Sin título')
+}, { quoted: m });
+await m.react('✔️');
+} catch (e) {
+await m.react('✖️');
+conn.reply(m.chat, '⚠︎ ❀ Se ha producido un error ❀\n> Usa *' + usedPrefix + 'report* para informarlo.\n\n' + e, m);
+}
+};
+handler.help = ['pinterest <texto>'];
+handler.tags = ['descargas', 'pinterest'];
+handler.command = ['pinterest', 'pin'];
+handler.group = true;
+export default handler;
