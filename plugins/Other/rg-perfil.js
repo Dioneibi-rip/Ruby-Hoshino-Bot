@@ -46,7 +46,7 @@ const age=Number.isFinite(user.age)&&user.age>=0?`${user.age}`:`Desconocida (Usa
 let parejaId=resolvePartnerJid(userId,user)
 let parejaTag='✘ Nadie'
 let mentions=[userId]
-if(parejaId){
+if(parejaId && typeof parejaId === 'string'){
 parejaTag=`⚝ @${parejaId.split('@')[0]}`
 if(/@s\.whatsapp\.net$/.test(parejaId))mentions.push(parejaId)
 }
@@ -66,24 +66,24 @@ perfil='https://files.catbox.moe/xr2m6u.jpg'
 }
 const botName=global.info?.botName||global.botname||'El Propietario'
 const profileText=`
-╭━━━━「 𝖯𝖤𝖱𝖥𝖨𝖫 𝖣𝖤 𝖴𝖲𝖴𝖠𝖱𝖨𝖮 」━━━━
-│ ⧉ 𖦹 𝖭𝗈𝗆𝖻𝗋𝖾 » ${name}
-│ ⧉ 𖦹 𝖴𝗌𝖾𝗋 » @${userId.split('@')[0]}
-│ ⧉ 𖦹 𝖣𝖾𝗌𝖼𝗋𝗂𝗉𝗍𝗂𝗈𝗇 » ${description}
+╭━━━━「 𝖯𝖤𝖱𝖥𝖨𝖫 𝖣𝖤 𝖴𝖲𝖴𝖠𝖱𝖎𝖔 」━━━━
+│ ⧉ 𖦹 𝖭𝗈𝗆𝖻𝗋𝖊 » ${name}
+│ ⧉ 𖦹 𝖴𝗌𝖊𝗋 » @${userId.split('@')[0]}
+│ ⧉ 𖦹 𝖣𝖾𝗌𝖈𝗋𝗂𝗉𝗍𝗂𝖔𝗇 » ${description}
 ├────────────────────────
-│ ⧉ 𖦹 𝖠𝗀𝖾 » ${age}
-│ ⧉ 𖦹 𝖢𝗎𝗆𝗉𝗅𝖾 » ${cumpleanos}
-│ ⧉ 𖦹 𝖦énero » ${genero}
-│ ⧉ 𖦹 𝖢𝖺𝗌𝖺𝖽𝗈/𝖺 𝖢𝗈𝗇 » ${parejaTag}
+│ ⧉ 𖦹 𝖠𝗀𝖊 » ${age}
+│ ⧉ 𖦹 𝖢𝗎𝗆𝗉𝗅𝖊 » ${cumpleanos}
+│ ⧉ 𖦹 𝖦𝗌𝗇𝖊𝗋𝖔 » ${genero}
+│ ⧉ 𖦹 𝖈𝖆𝗌𝖎𝖉𝖔/𝖎 𝖈𝖙𝗇 » ${parejaTag}
 ├────────────────────────
-│ ⧉ 𖦹 𝖭𝗂𝗏𝖾𝗅 » ${nivel}
-│ ⧉ 𖦹 𝖤𝗑𝗉 » ${exp.toLocaleString()}
-│ ⧉ 𖦹 𝖱𝖺𝗇𝗀𝗈 » ${role}
+│ ⧉ 𖦹 𝖭𝗂𝗏𝖊𝗅 » ${nivel}
+│ ⧉ 𖦹 𝖤𝖝𝗉 » ${exp.toLocaleString()}
+│ ⧉ 𖦹 𝖱𝖆𝖓𝖆𝖔 » ${role}
 ├────────────────────────
-│ ⧉ 𖦹 𝖢𝗈𝗂𝗇𝗌 » ${coins.toLocaleString()} ${moneda}
-│ ⧉ 𖦹 𝖡𝖺𝗇𝗄 » ${bankCoins.toLocaleString()} ${moneda}
-│ ⧉ 𖦹 𝖯𝗋𝖾𝗆𝗂𝗎𝗆 » ${user.premium?'✔ Activo':'✘ Inactivo'}
-│ ⧉ 𖦹 𝖳𝗋𝖺𝖻𝖺𝗃𝗈 » ${jobLine}
+│ ⧉ 𖦹 𝖈𝗈𝗂𝖓𝖘 » ${coins.toLocaleString()} ${moneda}
+│ ⧉ 𖦹 𝖇𝖎𝖘𝖐 » ${bankCoins.toLocaleString()} ${moneda}
+│ ⧉ 𖦹 𝖕𝖕𝖈𝖔𝖎𝖍𝖎𝖔 » ${user.premium?'✔ Activo':'✘ Inactivo'}
+│ ⧉ 𖦹 𝖈𝗋𝖎𝖇𝖖𝖏𝖔 » ${jobLine}
 ╰━━━━「 ⋆｡°✩ ${botName} ⋆｡°✩ 」━━━━
 `.trim()
 await conn.sendMessage(m.chat,{image:{url:perfil},caption:profileText,contextInfo:{mentionedJid:mentions}},{quoted:m})
