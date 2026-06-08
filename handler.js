@@ -37,7 +37,9 @@ const messageTime = rawTimestamp > 0 ? rawTimestamp * 1000 : Date.now()
 return Date.now() - messageTime <= SYSTEM_MESSAGE_MAX_AGE_MS
 }
 
-function shouldIgnoreBaileysId(id = '') {
+function shouldIgnoreBaileysMessage(m) {
+if (!m?.fromMe && !m?.isBaileys) return false
+const id = m?.id || m?.key?.id || ''
 return IGNORED_BAILEYS_IDS.some((pattern) => pattern.test(id))
 }
 
@@ -248,7 +250,7 @@ const usedPrefix = match[0][0]
 const parsed = parseCommand(m.text, usedPrefix)
 const isAccept = commandMatches(plugin.command, parsed.command)
 global.comando = parsed.command
-if (shouldIgnoreBaileysId(m.id || m.key?.id || '')) return
+if (shouldIgnoreBaileysMessage(m)) return
 if (!isAccept) continue
 m.plugin = name
 const chatData = global.db?.data?.chats?.[m.chat] || {}
