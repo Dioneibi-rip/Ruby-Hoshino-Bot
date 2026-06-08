@@ -39,7 +39,7 @@ Subs: 0,
 })
 export const chatDefault = Object.freeze({
 welcome: true,
-isBanned: false,
+isBanned: null,
 autolevelup: false,
 delete: false,
 detect: true,
