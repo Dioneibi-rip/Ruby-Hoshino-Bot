@@ -22,6 +22,6 @@ await m.react('✖️')
 handler.help = ['cmd'].map(v => 'set' + v + ' *<texto>*')
 handler.tags = ['owner']
 handler.command = ['setcmd', 'addcmd', 'cmdadd', 'cmdset']
-handler.owner = true
+handler.owner = false
 
 export default handler
