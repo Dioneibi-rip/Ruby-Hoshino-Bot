@@ -24,7 +24,7 @@ global.uptimeStart = Date.now()
 
 const SYSTEM_MESSAGE_MAX_AGE_MS = 60_000
 const IGNORED_BAILEYS_IDS = [/^NJX-/, /^BAE5.{12}$/, /^B24E.{16}$/]
-const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js', 'Enable/grupo-unbanchat.js']
+const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js', 'enable/grupo-unbanchat.js']
 
 function getLatestMessage(chatUpdate) {
 const messages = Array.isArray(chatUpdate?.messages) ? chatUpdate.messages : []

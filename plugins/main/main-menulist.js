@@ -1,9 +1,9 @@
-import { promises } from 'fs';
-import { join } from 'path';
 import fetch from 'node-fetch';
-import { xpRange } from '../../lib/levelling.js';
 import { prepareWAMessageMedia, generateWAMessageFromContent } from '@whiskeysockets/baileys';
 import moment from 'moment-timezone';
+
+const menuMediaCache = new WeakMap();
+let menuThumbPromise = null;
 
 const defaultMenu = {
 before: `𝙃𝙤𝙡𝙖 *%name*-san ${ucapan()}
@@ -24,7 +24,6 @@ before: `𝙃𝙤𝙡𝙖 *%name*-san ${ucapan()}
 let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
 try {
 let { exp, level, role } = global.db.data.users[m.sender];
-let { min, xp, max } = xpRange(level, global.multiplier);
 let name = await conn.getName(m.sender);
 
 let _uptime = process.uptime() * 1000;
@@ -41,33 +40,8 @@ let muptime = clockString(_muptime);
 let uptime = clockString(_uptime);
 let totalreg = Object.keys(global.db.data.users).length;
 
-let fkontak = null;
-try {
-const res = await fetch('https://i.postimg.cc/XqsLDBQ4/Ruby-Hoshino-Trailer-season-3.jpg');
-const thumb2 = Buffer.from(await res.arrayBuffer());
-fkontak = {
-key: { participant: '0@s.whatsapp.net', remoteJid: 'status@broadcast', fromMe: false, id: 'Halo' },
-message: {
-productMessage: {
-product: {
-productImage: { jpegThumbnail: thumb2 },
-title: '𝖬𝖤𝖭𝖴 𝖫𝖨𝖲𝖳 • 𝖱𝖴𝖡𝖸',
-description: '╰┈➤ 𝖨𝖭𝖳𝖤𝖱𝖠𝖢𝖳𝖨𝖵𝖤 𝖬𝖤𝖭𝖴',
-retailerId: 'INFO • ESTADO',
-productImageCount: 1
-},
-businessOwnerJid: '0@s.whatsapp.net'
-}
-},
-participant: '0@s.whatsapp.net'
-};
-} catch (e) {}
-
-const imageUrl = 'https://files.catbox.moe/yenx0h.png';
-let media = await prepareWAMessageMedia(
-{ image: { url: imageUrl } },
-{ upload: conn.waUploadToServer }
-);
+const fkontak = await getMenuQuoted(m)
+const media = await getMenuMedia(conn)
 
 let sections = [{
 title: "𝐒𝐄𝐋𝐄𝐂𝐂𝐈𝐎𝐍𝐄 𝐀𝐐𝐔𝐈",
@@ -213,8 +187,44 @@ handler.command = ['menu', 'menú', 'help', 'listmenu'];
 
 export default handler;
 
-function pickRandom(list) {
-return list[Math.floor(Math.random() * list.length)];
+
+async function getMenuThumb() {
+if (!menuThumbPromise) {
+menuThumbPromise = fetch('https://i.postimg.cc/XqsLDBQ4/Ruby-Hoshino-Trailer-season-3.jpg')
+.then(res => res.ok ? res.arrayBuffer() : null)
+.then(buffer => buffer ? Buffer.from(buffer) : null)
+.catch(() => null)
+}
+return menuThumbPromise
+}
+
+async function getMenuQuoted(fallback) {
+const thumb2 = await getMenuThumb()
+if (!thumb2) return fallback
+return {
+key: { participant: '0@s.whatsapp.net', remoteJid: 'status@broadcast', fromMe: false, id: 'Halo' },
+message: {
+productMessage: {
+product: {
+productImage: { jpegThumbnail: thumb2 },
+title: '𝖬𝖤𝖭𝖴 𝖫𝖨𝖲𝖳 • 𝖱𝖴𝖡𝖸',
+description: '╰┈➤ 𝖨𝖭𝖳𝖤𝖱𝖠𝖢𝖳𝖨𝖵𝖤 𝖬𝖤𝖭𝖴',
+retailerId: 'INFO • ESTADO',
+productImageCount: 1
+},
+businessOwnerJid: '0@s.whatsapp.net'
+}
+},
+participant: '0@s.whatsapp.net'
+}
+}
+
+async function getMenuMedia(conn) {
+const cached = menuMediaCache.get(conn)
+if (cached) return cached
+const media = await prepareWAMessageMedia({ image: { url: 'https://files.catbox.moe/yenx0h.png' } }, { upload: conn.waUploadToServer })
+menuMediaCache.set(conn, media)
+return media
 }
 
 function clockString(ms) {
