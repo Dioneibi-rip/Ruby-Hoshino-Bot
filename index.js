@@ -22,7 +22,7 @@ import { Low, JSONFile } from 'lowdb'
 import { mongoDB, mongoDBV2 } from './lib/mongoDB.js'
 import store from './lib/store.js'
 import readline, { createInterface } from 'readline'
-import { RubyJadiBot } from './plugins/Subbots/jadibot-serbot.js'
+import { RubyJadiBot } from './plugins/subbots/jadibot-serbot.js'
 import { EventEmitter } from 'events'
 import { attachSessionState, createMessageRetryCache } from './src/core/session-manager.js'
 EventEmitter.defaultMaxListeners = 100
@@ -292,7 +292,7 @@ const pluginFolder = global.__dirname(join(__dirname, './plugins/index'))
 const pluginFilter = (filename) => /\.js$/.test(filename)
 global.plugins = {}
 function getPluginFiles(folder, base = folder) {
-return readdirSync(folder, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)).sort((a, b) => (b.name === 'Enable') - (a.name === 'Enable')).flatMap((entry) => {
+return readdirSync(folder, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)).sort((a, b) => (b.name === 'enable') - (a.name === 'enable')).flatMap((entry) => {
 const fullPath = join(folder, entry.name)
 const relativePath = fullPath.slice(base.length + 1).replace(/\\/g, '/')
 if (entry.isDirectory()) return getPluginFiles(fullPath, base)
@@ -328,7 +328,7 @@ if (err) conn.logger.error(`❌ Error sintaxis: '${filename}'
 ${format(err)}`)
 else {
 try { const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`)); global.plugins[filename] = module.default || module; } catch (e) { conn.logger.error(`❌ Error sintaxis: '${filename}
-${format(e)}'`) } finally { global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => (b.startsWith('Enable/') - a.startsWith('Enable/')) || a.localeCompare(b))) }
+${format(e)}'`) } finally { global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => (b.startsWith('enable/') - a.startsWith('enable/')) || a.localeCompare(b))) }
 }
 }
 }

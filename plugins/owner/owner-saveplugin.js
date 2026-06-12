@@ -4,7 +4,7 @@ let handler = async (m, {text}) => {
 if (!text) return m.reply(`${global.emoji || '✦'} Por favor, ingrese el nombre del plugin.`)
 if (!m.quoted || !m.quoted.text) return m.reply(`${global.emoji2 || '✘'} Responda al mensaje con el contenido del plugin.`)
 const cleanName = text.endsWith('.js') ? text : `${text}.js`
-const ruta = cleanName.includes('/') ? path.join('plugins', cleanName) : path.join('plugins', 'Other', cleanName)
+const ruta = cleanName.includes('/') ? path.join('plugins', cleanName) : path.join('plugins', 'tools', cleanName)
 try {
 await fs.promises.mkdir(path.dirname(ruta), {recursive: true})
 await fs.promises.writeFile(ruta, m.quoted.text)
