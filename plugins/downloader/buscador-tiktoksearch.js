@@ -16,17 +16,20 @@ try {
 await m.react('🕒')
 let searchResults = []
 try {
-let { data: response } = await axios.post('https://www.tikwm.com/api/feed/search', new URLSearchParams({ keywords: text, count: 12, cursor: 0, web: 1, hd: 1 }), { timeout: 15000, headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "User-Agent": "Mozilla/5.0" } })
+let { data: response } = await axios.post('https://www.tikwm.com/api/feed/search', new URLSearchParams({ keywords: text, count: 10 }), { timeout: 10000, headers: { "Content-Type": "application/x-www-form-urlencoded" } })
 if (response.data?.videos) {
-searchResults = response.data.videos.map(v => ({ title: v.title, nowm: v.play.startsWith('http') ? v.play : `https://www.tikwm.com${v.play}`, cover: v.cover.startsWith('http') ? v.cover : `https://www.tikwm.com${v.cover}`, author: v.author.nickname, url: `https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}` }))
+searchResults = response.data.videos.map(v => ({ title: v.title, cover: v.cover.startsWith('http') ? v.cover : `https://www.tikwm.com${v.cover}`, author: v.author.nickname, url: `https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}` }))
 }
-} catch (e) {
+} catch (e1) {}
+if (!searchResults.length) {
 try {
-let { data: response } = await axios.get('https://api.agatz.xyz/api/tiktoksearch?message=' + encodeURIComponent(text), { timeout: 15000 })
-searchResults = response.data.map(v => ({ title: v.title, nowm: v.nowm || v.url, cover: v.cover || 'https://i.imgur.com/95t44C0.png', author: 'TikTok User', url: v.url }))
+let { data: response } = await axios.get(`https://api.bk9.site/search/tiktok?q=${encodeURIComponent(text)}`, { timeout: 10000 })
+if (response.status && response.BK9) {
+searchResults = response.BK9.map(v => ({ title: v.desc, cover: v.cover, author: v.author.nickname, url: `https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}` }))
+}
 } catch (e2) {}
 }
-if (!searchResults.length) return conn.reply(m.chat, '❌ No se encontraron videos.', m)
+if (!searchResults.length) return conn.reply(m.chat, '❌ No se encontraron videos. Las APIs de búsqueda están caídas temporalmente.', m)
 await shuffleArray(searchResults)
 let selectedResults = searchResults.splice(0, 5)
 let cards = []
