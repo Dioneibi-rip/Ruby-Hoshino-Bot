@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const {
   generateWAMessageFromContent,
-  prepareWAMessageMedia,
+  generateWAMessageContent,
   proto
 } = (await import('@whiskeysockets/baileys')).default
 
@@ -18,37 +18,37 @@ let handler = async (m, { conn, text }) => {
 
   const toFancy = str => {
     const map = {
-      'a': 'ᥲ',
-      'b': 'ᑲ',
-      'c': 'ᥴ',
-      'd': 'ᑯ',
-      'e': 'ᥱ',
-      'f': '𝖿',
-      'g': 'g',
-      'h': 'һ',
-      'i': 'і',
-      'j': 'j',
-      'k': 'k',
-      'l': 'ᥣ',
-      'm': 'm',
-      'n': 'ᥒ',
-      'o': '᥆',
-      'p': '⍴',
-      'q': 'q',
-      'r': 'r',
-      's': 's',
-      't': '𝗍',
-      'u': 'ᥙ',
-      'v': '᥎',
-      'w': 'ɯ',
-      'x': 'x',
-      'y': 'ᥡ',
-      'z': 'z'
+      a: 'ᥲ',
+      b: 'ᑲ',
+      c: 'ᥴ',
+      d: 'ᑯ',
+      e: 'ᥱ',
+      f: '𝖿',
+      g: 'g',
+      h: 'һ',
+      i: 'і',
+      j: 'j',
+      k: 'k',
+      l: 'ᥣ',
+      m: 'm',
+      n: 'ᥒ',
+      o: '᥆',
+      p: '⍴',
+      q: 'q',
+      r: 'r',
+      s: 's',
+      t: '𝗍',
+      u: 'ᥙ',
+      v: '᥎',
+      w: 'ɯ',
+      x: 'x',
+      y: 'ᥡ',
+      z: 'z'
     }
 
     return str
       .split('')
-      .map(c => map[c] || c)
+      .map(c => map[c.toLowerCase()] || c)
       .join('')
   }
 
@@ -57,6 +57,19 @@ let handler = async (m, { conn, text }) => {
       const j = Math.floor(Math.random() * (i + 1))
       ;[array[i], array[j]] = [array[j], array[i]]
     }
+  }
+
+  async function createVideoMessage(url) {
+    const { videoMessage } = await generateWAMessageContent(
+      {
+        video: { url }
+      },
+      {
+        upload: conn.waUploadToServer
+      }
+    )
+
+    return videoMessage
   }
 
   try {
@@ -69,50 +82,39 @@ let handler = async (m, { conn, text }) => {
         'https://www.tikwm.com/api/feed/search',
         new URLSearchParams({
           keywords: text,
-          count: 10
+          count: 10,
+          cursor: 0,
+          HD: 1
         }),
         {
-          timeout: 10000,
+          timeout: 15000,
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Cookie': 'current_language=en',
+            'User-Agent':
+              'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36'
           }
         }
       )
 
-      if (response.data?.videos) {
-        searchResults = response.data.videos.map(v => ({
-          title: v.title,
-          cover: v.cover.startsWith('http')
-            ? v.cover
-            : `https://www.tikwm.com${v.cover}`,
-          author: v.author.nickname,
-          url: `https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}`
-        }))
-      }
-    } catch {}
-
-    if (!searchResults.length) {
-      try {
-        const { data: response } = await axios.get(
-          `https://api.bk9.site/search/tiktok?q=${encodeURIComponent(text)}`,
-          { timeout: 10000 }
-        )
-
-        if (response.status && response.BK9) {
-          searchResults = response.BK9.map(v => ({
-            title: v.desc,
-            cover: v.cover,
-            author: v.author.nickname,
+      if (response?.data?.videos) {
+        searchResults = response.data.videos
+          .filter(v => v.play)
+          .map(v => ({
+            title: v.title || 'Video TikTok',
+            author: v.author?.nickname || 'Desconocido',
+            play: v.play,
             url: `https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}`
           }))
-        }
-      } catch {}
+      }
+    } catch (e) {
+      console.error(e)
     }
 
     if (!searchResults.length) {
       return conn.reply(
         m.chat,
-        '❌ No se encontraron videos. Las APIs de búsqueda están caídas temporalmente.',
+        '❌ No se encontraron resultados.',
         m
       )
     }
@@ -125,25 +127,11 @@ let handler = async (m, { conn, text }) => {
 
     for (const result of selectedResults) {
       try {
-        const imageResponse = await axios.get(result.cover, {
-          responseType: 'arraybuffer',
-          timeout: 15000
-        })
-
-        const mediaMessage = await prepareWAMessageMedia(
-          {
-            image: Buffer.from(imageResponse.data)
-          },
-          {
-            upload: conn.waUploadToServer
-          }
-        )
-
         cards.push({
           body: proto.Message.InteractiveMessage.Body.fromObject({
             text: toFancy(
-              result.title.length > 50
-                ? result.title.substring(0, 50) + '...'
+              result.title.length > 70
+                ? result.title.slice(0, 70) + '...'
                 : result.title
             )
           }),
@@ -153,9 +141,9 @@ let handler = async (m, { conn, text }) => {
           }),
 
           header: proto.Message.InteractiveMessage.Header.fromObject({
-            title: toFancy('TikTok Video'),
+            title: 'TikTok Video',
             hasMediaAttachment: true,
-            imageMessage: mediaMessage.imageMessage
+            videoMessage: await createVideoMessage(result.play)
           }),
 
           nativeFlowMessage:
@@ -180,19 +168,19 @@ let handler = async (m, { conn, text }) => {
             })
         })
       } catch (e) {
-        console.log('Error cargando portada:', e.message)
+        console.error('Error creando tarjeta:', e)
       }
     }
 
     if (!cards.length) {
       return conn.reply(
         m.chat,
-        '❌ No se pudieron cargar las portadas.',
+        '❌ No se pudieron generar los resultados.',
         m
       )
     }
 
-    const message = generateWAMessageFromContent(
+    const msg = generateWAMessageFromContent(
       m.chat,
       {
         viewOnceMessage: {
@@ -204,40 +192,43 @@ let handler = async (m, { conn, text }) => {
 
             interactiveMessage:
               proto.Message.InteractiveMessage.fromObject({
-                body: {
-                  text: `${toFancy('✦ Rᥱsᥙᥣ𝗍ᥲძ᥆s ძᥱ:')} ${text}\n_Desliza para ver más videos 👉_`
-                },
+                body: proto.Message.InteractiveMessage.Body.create({
+                  text: `${toFancy('✦ Rᥱsᥙᥣ𝗍ᥲძ᥆s ძᥱ:')} ${text}\n\n_Desliza para ver más videos 👉_`
+                }),
 
-                footer: {
+                footer: proto.Message.InteractiveMessage.Footer.create({
                   text: '🔎 TikTok Search'
-                },
+                }),
 
-                header: {
+                header: proto.Message.InteractiveMessage.Header.create({
                   hasMediaAttachment: false
-                },
+                }),
 
-                carouselMessage: {
-                  cards
-                }
+                carouselMessage:
+                  proto.Message.InteractiveMessage.CarouselMessage.fromObject({
+                    cards
+                  })
               })
           }
         }
       },
-      { quoted: m }
+      {
+        quoted: m
+      }
     )
 
     await conn.relayMessage(
       m.chat,
-      message.message,
+      msg.message,
       {
-        messageId: message.key.id
+        messageId: msg.key.id
       }
     )
 
     await m.react('✅')
 
-  } catch (e) {
-    console.error(e)
+  } catch (error) {
+    console.error(error)
     await m.react('❌')
   }
 }
