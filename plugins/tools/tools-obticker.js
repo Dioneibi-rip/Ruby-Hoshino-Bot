@@ -1,5 +1,6 @@
 import axios from 'axios'
 import sharp from 'sharp'
+import { Sticker } from 'wa-sticker-formatter'
 class StickerLy {
 async search(query) {
 if (!query) throw new Error('Query requerida')
@@ -27,25 +28,9 @@ const stickers = data.result.stickers.map(stick => ({ fileName: stick.fileName, 
 return { name: data.result.name || 'Sin nombre', author: data.result.user?.displayName || 'Desconocido', stickers, stickerCount: stickers.length }
 }
 }
-async function injectExif(buffer, packname, author) {
-try {
-const webpmux = await import('node-webpmux')
-const img = new webpmux.Image()
-await img.load(buffer)
-const json = { "sticker-pack-id": "bot", "sticker-pack-name": packname, "sticker-pack-publisher": author, "emojis": ["🎀"] }
-const exifAttr = Buffer.from([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00])
-const jsonBuff = Buffer.from(JSON.stringify(json), "utf-8")
-const exif = Buffer.concat([exifAttr, jsonBuff])
-exif.writeUIntLE(jsonBuff.length, 14, 4)
-img.exif = exif
-return await img.save(null)
-} catch (e) {
-return buffer
-}
-}
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 if (!text) {
-return m.reply(`𐔌 ࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִ ࣪⛩️ᩧ᳟˖ ۪࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִﾉﾞ\n\n      ໊ 𐔌  H᥆ᥣᥲ һᥱrm᥆sᥲ ρᥱrs᥆ᥒі𝗍ᥲ :3\n      P᥆r 𝖿ᥲ᥎᥆r, іᥒgrᥱsᥲ ᥙᥒ 𝗍ᥱx𝗍᥆ ᥆ URL.\n\n ᗝᗝ  ϙִ ࣪ ˖ ࣪🍣̟᳟⃛ ! ੭ ִ ׄ⠷ E𝗃ᥱmρᥣ᥆s:\n ⊹ ${usedPrefix + command} Hatsune Miku\n ⊹ ${usedPrefix + command} Goku\n\nᐝ ׅ ׄ ׅ ѕωєєƚ ׄ ׅ ׄ ꊞ ׄ ׅ ׄ ׅ 🌼 ׄ ׅ ㅤׄ 𓈒𓂂`)
+return m.reply(`𐔌 ࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִ ࣪⛩️ᩧ᳟˖ ۪࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִﾉﾞ\n\n      ໊ 𐔌  H᥆ᥣᥲ һᥱrm᥆sᥲ ρᥱrs᥆ᥒі𝗍ᥲ :3\n      P᥆r 𝖿ᥲ᥎᥆r, іᥒgrᥱsᥲ ᥙᥒ 𝗍ᥱx𝗍᥆ ᥆ URL.\n\n ᗝᗝ  ϙִ ࣪ ˖ ࣪🍣̟᳟⃛ ! ੭ ִ ׄ⠷ E𝗃ᥱmρᥣ᥆s:\n ⊹ ${usedPrefix + command} Hatsune Miku\n ⊹ ${usedPrefix + command} Goku\n\nᐝ ׅ ׄ ׅ ѕωєєƚ ׄ ׅ ׄ ꊞ ׄ ׅ ׄ ׅ 🌼 ׅ ㅤׄ 𓈒𓂂`)
 }
 await m.react('⏳')
 try {
@@ -78,16 +63,17 @@ for (let i = 0; i < max; i++) {
 const sticker = packDetails.stickers[i]
 try {
 const response = await axios.get(sticker.imageUrl, { responseType: 'arraybuffer', timeout: 15000 })
-let buffer = Buffer.from(response.data)
-buffer = await injectExif(buffer, packNameExif, packAuthorExif)
+const rawBuffer = Buffer.from(response.data)
+const stickerMeta = new Sticker(rawBuffer, { pack: packNameExif, author: packAuthorExif, type: 'default', quality: 60 })
+const finalBuffer = await stickerMeta.toBuffer()
 if (i === 0) {
 try {
-coverBuffer = await sharp(buffer, { animated: false }).resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).webp({ quality: 60 }).toBuffer()
+coverBuffer = await sharp(finalBuffer, { animated: false }).resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).webp({ quality: 60 }).toBuffer()
 } catch {
-coverBuffer = buffer
+coverBuffer = finalBuffer
 }
 }
-stickersArray.push({ media: buffer, isAnimated: sticker.isAnimated, emojis: ['🎀'] })
+stickersArray.push({ media: finalBuffer, isAnimated: sticker.isAnimated, emojis: ['🎀'] })
 } catch (err) {
 console.log(`Error al procesar sticker ${i + 1}:`, err.message)
 }
