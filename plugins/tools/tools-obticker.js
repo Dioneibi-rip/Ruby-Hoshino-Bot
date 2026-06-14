@@ -68,7 +68,7 @@ coverBuffer = await sharp(buffer, { animated: false }).resize(512, 512, { fit: '
 coverBuffer = buffer
 }
 }
-stickersArray.push({ media: buffer, isAnimated: sticker.isAnimated, emojis: ['🎀'] })
+stickersArray.push({ media: buffer, isAnimated: sticker.isAnimated, emojis: ['🎀'], packname: global.packsticker, author: global.packsticker2 })
 } catch (err) {
 console.log(`Error al procesar sticker ${i + 1}:`, err.message)
 }
