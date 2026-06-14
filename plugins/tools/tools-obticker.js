@@ -27,9 +27,25 @@ const stickers = data.result.stickers.map(stick => ({ fileName: stick.fileName, 
 return { name: data.result.name || 'Sin nombre', author: data.result.user?.displayName || 'Desconocido', stickers, stickerCount: stickers.length }
 }
 }
+async function injectExif(buffer, packname, author) {
+try {
+const webpmux = await import('node-webpmux')
+const img = new webpmux.Image()
+await img.load(buffer)
+const json = { "sticker-pack-id": "bot", "sticker-pack-name": packname, "sticker-pack-publisher": author, "emojis": ["🎀"] }
+const exifAttr = Buffer.from([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00])
+const jsonBuff = Buffer.from(JSON.stringify(json), "utf-8")
+const exif = Buffer.concat([exifAttr, jsonBuff])
+exif.writeUIntLE(jsonBuff.length, 14, 4)
+img.exif = exif
+return await img.save(null)
+} catch (e) {
+return buffer
+}
+}
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 if (!text) {
-return m.reply(`𐔌 ࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִ ࣪⛩️ᩧ᳟˖ ۪࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִﾉﾞ\n\n      ໊ 𐔌  Hola hermosa personita :3\n      Por favor, ingresa un texto o URL.\n\n ᗝᗝ  ϙִ ࣪ ˖ ࣪🍣̟᳟⃛ ! ੭ ִ ׄ⠷ 𝗘𝗷𝗲𝗺𝗽𝗹𝗼𝘀:\n ⊹ ${usedPrefix + command} Hatsune Miku\n ⊹ ${usedPrefix + command} Goku\n\nᐝ ׅ ׄ ׅ ѕωєєƚ ׄ ׅ ׄ ꊞ ׄ ׅ ׄ ׅ 🌼 ׄ ׅ ㅤׄ 𓈒𓂂`)
+return m.reply(`𐔌 ࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִ ࣪⛩️ᩧ᳟˖ ۪࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִﾉﾞ\n\n      ໊ 𐔌  H᥆ᥣᥲ һᥱrm᥆sᥲ ρᥱrs᥆ᥒі𝗍ᥲ :3\n      P᥆r 𝖿ᥲ᥎᥆r, іᥒgrᥱsᥲ ᥙᥒ 𝗍ᥱx𝗍᥆ ᥆ URL.\n\n ᗝᗝ  ϙִ ࣪ ˖ ࣪🍣̟᳟⃛ ! ੭ ִ ׄ⠷ E𝗃ᥱmρᥣ᥆s:\n ⊹ ${usedPrefix + command} Hatsune Miku\n ⊹ ${usedPrefix + command} Goku\n\nᐝ ׅ ׄ ׅ ѕωєєƚ ׄ ׅ ׄ ꊞ ׄ ׅ ׄ ׅ 🌼 ׄ ׅ ㅤׄ 𓈒𓂂`)
 }
 await m.react('⏳')
 try {
@@ -51,16 +67,19 @@ if (!packDetails.stickers || !packDetails.stickers.length) {
 await m.react('🥀')
 return m.reply('₍ᐢ ׅ ׄ ׅꊞ ׅ ⚠️ 𝖤𝗌𝗍𝖾 𝗉𝖺𝗊𝗎𝖾𝗍𝖾 𝗇𝗈 𝗍𝗂𝖾𝗇𝖾 𝗌𝗍𝗂𝖼𝗄𝖾𝗋𝗌 𝗏𝖺́𝗅𝗂𝖽𝗈𝗌. ૮(>﹏<)ა')
 }
-let msg = `〰︎ ⊹ 📦 𝗣𝗔𝗤𝗨𝗘𝗧𝗘 𝗘𝗡𝗖𝗢𝗡𝗧𝗥𝗔𝗗𝗢 ⊹〰︎\n\n🏷️ *Nombre:* ${packDetails.name}\n👤 *Autor:* ${packDetails.author}\n📊 *Stickers:* ${packDetails.stickerCount}\n\n ꒷ ๑ 𝖤𝗇𝗏𝗂𝖺𝗇𝖽𝗈 𝗌𝗍𝗂𝖼𝗄𝖾𝗋𝗌, 𝖾𝗌𝗉𝖾𝗋𝖺 𝗎𝗇 𝗆𝗈𝗆𝖾𝗇𝗍𝗂𝗍𝗈 𝗉𝗈𝗋 𝖿𝖺𝗏𝗈𝗋... ๑ ꒷`
+let msg = `〰︎ ⊹ 📦 𝗣𝗔𝗤𝗨𝗘𝗧𝗘 𝗘𝗡𝗖𝗢𝗡𝗧𝗥𝗔𝗗𝗢 ⊹〰︎\n\n🏷️ *N᥆mᑲrᥱ:* ${packDetails.name}\n👤 *Aᥙ𝗍᥆r:* ${packDetails.author}\n📊 *S𝗍іᥴkᥱrs:* ${packDetails.stickerCount}\n\n ꒷ ๑ Eᥒ᥎іᥲᥒძ᥆ s𝗍іᥴkᥱrs, ᥱsρᥱrᥲ ᥙᥒ m᥆mᥱᥒ𝗍і𝗍᥆ ρ᥆r 𝖿ᥲ᥎᥆r... ๑ ꒷`
 await m.reply(msg)
 const max = Math.min(packDetails.stickers.length, 30)
 let stickersArray = []
 let coverBuffer = null
+const packNameExif = global.packsticker || 'Bot'
+const packAuthorExif = global.packsticker2 || 'Kawaii'
 for (let i = 0; i < max; i++) {
 const sticker = packDetails.stickers[i]
 try {
 const response = await axios.get(sticker.imageUrl, { responseType: 'arraybuffer', timeout: 15000 })
-const buffer = Buffer.from(response.data)
+let buffer = Buffer.from(response.data)
+buffer = await injectExif(buffer, packNameExif, packAuthorExif)
 if (i === 0) {
 try {
 coverBuffer = await sharp(buffer, { animated: false }).resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).webp({ quality: 60 }).toBuffer()
@@ -68,7 +87,7 @@ coverBuffer = await sharp(buffer, { animated: false }).resize(512, 512, { fit: '
 coverBuffer = buffer
 }
 }
-stickersArray.push({ media: buffer, isAnimated: sticker.isAnimated, emojis: ['🎀'], packname: global.packsticker, author: global.packsticker2 })
+stickersArray.push({ media: buffer, isAnimated: sticker.isAnimated, emojis: ['🎀'] })
 } catch (err) {
 console.log(`Error al procesar sticker ${i + 1}:`, err.message)
 }
@@ -82,7 +101,7 @@ await m.react('🎀')
 } catch (e) {
 console.error(e)
 await m.react('🥀')
-m.reply(`───│ ❌ 𝖮𝖼𝗎𝗋𝗋𝗂𝗈́ 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋:\n${e.message} ✉𓈒𓂂ׅ◝ׄ`)
+m.reply(`───│ ❌ 𝖮𝖼𝗎𝗋𝗋і᥆́ ᥙᥒ ᥱrr᥆r:\n${e.message} ✉𓈒𓂂ׅ◝ׄ`)
 }
 }
 handler.help = ['stickerly <texto/url>']
