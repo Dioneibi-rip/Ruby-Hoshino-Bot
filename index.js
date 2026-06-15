@@ -25,6 +25,7 @@ import readline, { createInterface } from 'readline'
 import { RubyJadiBot } from './plugins/subbots/jadibot-serbot.js'
 import { EventEmitter } from 'events'
 import { attachSessionState, createMessageRetryCache } from './src/core/session-manager.js'
+import { startMonitor } from './src/core/stability-monitor.js'
 EventEmitter.defaultMaxListeners = 100
 const { proto } = (await import('@whiskeysockets/baileys')).default
 const { DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser } = await import('@whiskeysockets/baileys')
@@ -233,6 +234,8 @@ reconnectTimer.unref?.()
 }
 }
 process.on('uncaughtException', console.error)
+process.on('unhandledRejection', console.error)
+startMonitor()
 let isInit = true;
 let handler = await import('./handler.js')
 global.reloadHandler = async function(restatConn) {

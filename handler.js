@@ -19,6 +19,7 @@ normalizeLidReferences,
 runMaintenance,
 } from './src/core/handler-utils.js'
 import { attachSessionState } from './src/core/session-manager.js'
+import messageQueue from './src/core/message-queue.js'
 
 global.uptimeStart = Date.now()
 
@@ -26,9 +27,12 @@ const SYSTEM_MESSAGE_MAX_AGE_MS = 60_000
 const IGNORED_BAILEYS_IDS = [/^NJX-/, /^BAE5.{12}$/, /^B24E.{16}$/]
 const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js', 'enable/grupo-unbanchat.js']
 
-function getLatestMessage(chatUpdate) {
-const messages = Array.isArray(chatUpdate?.messages) ? chatUpdate.messages : []
-return messages.at(-1) || null
+function getIncomingMessages(chatUpdate) {
+return Array.isArray(chatUpdate?.messages) ? chatUpdate.messages.filter(Boolean) : []
+}
+
+function getQueueKey(message) {
+return message?.key?.participant || message?.participant || message?.key?.remoteJid || message?.chat || 'unknown'
 }
 
 function isFreshMessage(message) {
@@ -183,12 +187,17 @@ stat.lastSuccess = now
 export async function handler(chatUpdate) {
 attachSessionState(this)
 runMaintenance(this)
-const rawMessage = getLatestMessage(chatUpdate)
-if (!rawMessage || !isFreshMessage(rawMessage)) return
-
-this.pushMessage?.(chatUpdate?.messages || []).catch(console.error)
+const messages = getIncomingMessages(chatUpdate).filter(isFreshMessage)
+if (!messages.length) return
+this.pushMessage?.(messages).catch(console.error)
 if (global.db && global.db.data == null) await global.loadDatabase?.()
+for (const rawMessage of messages) {
+const key = getQueueKey(rawMessage)
+messageQueue.enqueue(key, () => processMessage.call(this, chatUpdate, rawMessage))
+}
+}
 
+async function processMessage(chatUpdate, rawMessage) {
 let m = null
 let sender = null
 try {
