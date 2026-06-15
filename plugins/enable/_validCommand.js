@@ -39,7 +39,7 @@ export async function before(m, { conn }) {
         externalAdReply: {
           title: global.botname || 'GOJOBOT-MD',
           body: 'Sistema de comandos',
-          thumbnailUrl: global.banner || '',
+          thumbnailUrl: global.icons || '',
           mediaType: 1,
           renderLargerThumbnail: true
         }
