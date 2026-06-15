@@ -1,117 +1,52 @@
 import fetch from 'node-fetch';
 
-let cachedCommands = new Set();
-let cachedPluginSize = -1;
-let cachedPluginRefs = new Map();
-let thumbnailPromise = null;
+export async function before(m, { conn }) {
+  if (!m.text ||!global.prefix.test(m.text)) return;
 
-function toCommandList(commandConfig) {
-if (!commandConfig) return [];
-return Array.isArray(commandConfig) ? commandConfig : [commandConfig];
-}
+  const usedPrefix = global.prefix.exec(m.text)[0];
+  const command = m.text.slice(usedPrefix.length).trim().split(' ')[0].toLowerCase();
 
-function buildCommandCache(plugins) {
-const pluginEntries = Object.entries(plugins);
-const pluginSize = pluginEntries.length;
+  if (!command || command === 'bot') return;
 
-const isCacheValid =
-pluginSize === cachedPluginSize &&
-pluginEntries.every(([name, plugin]) => cachedPluginRefs.get(name) === plugin);
+  const isValidCommand = (command, plugins) => {
+    for (let plugin of Object.values(plugins)) {
+      const cmd = Array.isArray(plugin.command)? plugin.command : [plugin.command];
+      if (cmd.includes(command)) return true;
+    }
+    return false;
+  };
 
-if (isCacheValid) return;
+  if (isValidCommand(command, global.plugins)) {
+    if (!global.db.data.users[m.sender]) global.db.data.users[m.sender] = {}
+    global.db.data.users[m.sender].commands = (global.db.data.users[m.sender].commands || 0) + 1
+    return;
+  }
 
-const nextCache = new Set();
-const nextRefs = new Map();
+  const texto = `🍛 ᴇʟ ᴄᴏᴍᴀɴᴅᴏ *${command}* ɴᴏ ᴇxɪsᴛᴇ.
+> 🍜 ᴜsᴀ *${usedPrefix}ʜᴇʟᴘ* ᴘᴀʀᴀ ᴠᴇʀ ʟᴀ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs.`
 
-for (const [name, plugin] of pluginEntries) {
-nextRefs.set(name, plugin);
-for (const command of toCommandList(plugin?.command)) {
-if (typeof command === 'string') nextCache.add(command.toLowerCase());
-}
-}
-
-cachedCommands = nextCache;
-cachedPluginRefs = nextRefs;
-cachedPluginSize = pluginSize;
-}
-
-async function getUnknownCommandThumbnail() {
-if (!thumbnailPromise) {
-thumbnailPromise = fetch('https://i.postimg.cc/d0DPFp3R/5a8d323a071395fcdab8465e510c749c-2025-11-17T213332-475.jpg')
-.then((res) => (res.ok ? res.arrayBuffer() : null))
-.then((buf) => (buf ? Buffer.from(buf) : null))
-.catch(() => null);
-}
-return thumbnailPromise;
-}
-
-export async function before(m, { conn, isAdmin, isOwner, isROwner }) {
-if (!m.isGroup) return;
-const chat = global.db?.data?.chats?.[m.chat];
-if (chat?.isBanned || chat?.banchat || chat?.banChat || chat?.isBan) return;
-if (!m.text) return;
-
-const prefixMatch = global.prefix.exec(m.text);
-if (!prefixMatch) return;
-
-const usedPrefix = prefixMatch[0];
-
-const botJid = conn?.user?.jid;
-const isBotBannedInThisChat = Boolean(chat?.bannedBots && botJid && chat.bannedBots.includes(botJid));
-
-if (isBotBannedInThisChat) {
-const mode = chat?.banchatMode || 'silent';
-if (mode === 'strict') return;
-if (mode === 'silent' && !isOwner && !isROwner) return;
-}
-if (chat?.modoadmin && m.isGroup && !isAdmin && !isOwner && !isROwner) return;
-if (['>', '=>', '$'].includes(usedPrefix)) return;
-
-const command = m.text.slice(usedPrefix.length).trim().split(/\s+/,1)[0]?.toLowerCase();
-if (!command || command === 'bot') return;
-
-if (!/^[a-z0-9][\w-]*$/i.test(command)) return;
-
-buildCommandCache(global.plugins);
-const isKnownCommand = cachedCommands.has(command);
-
-if (isKnownCommand) {
-const user = global.db.data.users[m.sender];
-
-if (chat?.isBanned) {
-const avisoDesactivado = `🍧 La bot *${global.botname}* está desactivada en este grupo.\n\n> ✦ Un *administrador* puede activarla con el comando:\n> » *${usedPrefix}bot on*`;
-await m.reply(avisoDesactivado);
-return;
-}
-
-if (user) {
-user.commands = (user.commands || 0) + 1;
-}
-return;
-}
-
-const comando = m.text.trim().split(/\s+/,1)[0];
-const msjDecorado =
-`(,,•᷄‎ࡇ•᷅ ,,)? ᥱᥣ ᥴ᥆mᥲᥒძ᥆ *${comando}* ᥒ᥆ sᥱ ᥱᥒᥴᥙᥱᥒ𝗍rᥲ rᥱgіs𝗍rᥲძ᥆. ᥱs ⍴᥆sіᑲᥣᥱ 𝗊ᥙᥱ ᥱs𝗍ᥱ mᥲᥣ ᥱsᥴrі𝗍᥆.
-
-⍴ᥲrᥲ ᥴ᥆ᥒsᥙᥣ𝗍ᥲr ᥣᥲ ᥣіs𝗍ᥲ ᥴ᥆m⍴ᥣᥱ𝗍ᥲ ძᥱ 𝖿ᥙᥒᥴі᥆ᥒᥲᥣіძᥲძᥱs ᥙsᥲ:
-» *${usedPrefix}help*`;
-
-const thumb2 = await getUnknownCommandThumbnail();
-if (thumb2) {
-const fkontak = {
-key: { participant: '0@s.whatsapp.net', remoteJid: 'status@broadcast', fromMe: false, id: 'Halo' },
-message: {
-locationMessage: {
-name: '𝙉𝙤 𝙨𝙚 𝙝𝙖 𝙚𝙣𝙘𝙤𝙣𝙩𝙧𝙖𝙙𝙤',
-jpegThumbnail: thumb2,
-},
-},
-participant: '0@s.whatsapp.net',
-};
-await conn.sendMessage(m.chat, { text: msjDecorado }, { quoted: fkontak });
-return;
-}
-
-await m.reply(msjDecorado);
-}
+  try {
+    await conn.sendMessage(m.chat, {
+      text: texto,
+      mentions: [m.sender],
+      contextInfo: {
+        isForwarded: true,
+        forwardedNewsletterMessageInfo: {
+          newsletterJid: '120363421367237421@newsletter',
+          serverMessageId: '',
+          newsletterName: 'ׄ﹙ׅ🍜﹚ּ 𝐆𝐨𝐣𝐨𝐁𝐨𝐭-𝐌𝐃 › 𝘊𝘩𝘢𝘯𝘦𝘭 𝘰𝘧𝘪𝘤𝘪𝘢𝘭 ᰔᩚ.ᐟ.ᐟ'
+        },
+        externalAdReply: {
+          title: global.botname || 'GOJOBOT-MD',
+          body: 'Sistema de comandos',
+          thumbnailUrl: global.banner || '',
+          mediaType: 1,
+          renderLargerThumbnail: true
+        }
+      }
+    }, { quoted: m })
+  } catch (e) {
+    // Fallback: mensaje simple sin newsletter
+    await conn.sendMessage(m.chat, { text: texto }, { quoted: m })
+  }
+                           }
