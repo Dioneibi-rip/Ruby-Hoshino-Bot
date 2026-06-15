@@ -21,12 +21,18 @@ admin: participant?.admin || participant?.isAdmin || participant?.role,
 export async function getCachedGroupMetadata(conn, chatId) {
 if (!conn || !chatId) return {}
 conn.__groupMetadataCache ||= new TTLCache(GROUP_METADATA_TTL, GROUP_METADATA_MAX)
+conn.__groupMetadataInflight ||= new Map()
 const cached = conn.__groupMetadataCache.get(chatId)
 if (cached) return cached
-const metadata = await conn.groupMetadata?.(chatId).catch(() => null) || {}
+if (conn.__groupMetadataInflight.has(chatId)) return conn.__groupMetadataInflight.get(chatId)
+const request = Promise.resolve(conn.groupMetadata?.(chatId)).then((metadata) => {
+metadata ||= {}
 if (Array.isArray(metadata?.participants)) metadata.participants = metadata.participants.map(normalizeParticipant)
 conn.__groupMetadataCache.set(chatId, metadata)
 return metadata
+}).catch(() => cached || {}).finally(() => conn.__groupMetadataInflight.delete(chatId))
+conn.__groupMetadataInflight.set(chatId, request)
+return request
 }
 
 export function createParticipantIndex(participants = []) {
