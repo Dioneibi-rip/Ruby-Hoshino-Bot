@@ -45,7 +45,7 @@
 "license": "MIT-License",
 
 "dependencies": {
-"baileys": "npm:@itsliaaa/baileys",
+"@whiskeysockets/baileys": "npm:@itsliaaa/baileys",
 
 "awesome-phonenumber": "^3.4.0",
 "ruhend-scraper": "^7.0.4",
