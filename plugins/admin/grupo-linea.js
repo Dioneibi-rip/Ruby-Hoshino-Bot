@@ -22,7 +22,7 @@ body: 'Deymoon Bot MD - Desarrollado por David Chian',
 ...(thumbBuffer && { thumbnail: thumbBuffer }),
 sourceUrl: 'https://github.com/Dioneibi-rip',
 mediaType: 1,
-renderLargerThumbnail: true
+renderLargerThumbnail: false
 }
 }, { quoted: m })
 await m.react("✅")
