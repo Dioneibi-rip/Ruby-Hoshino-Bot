@@ -43,7 +43,7 @@ let handler = async (m, { conn, args }) => {
           body: '🪄 Welcome, to Ruby Hoshino.',
           mediaType: 1,
           previewType: 0,
-          renderLargerThumbnail: true,
+          renderLargerThumbnail: false,
           sourceUrl: RUBY_SOURCE_URL,
           mediaUrl: RUBY_SOURCE_URL,
           ...(thumbnail ? { thumbnail, jpegThumbnail: thumbnail } : {})
