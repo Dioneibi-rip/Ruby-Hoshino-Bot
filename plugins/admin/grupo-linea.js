@@ -18,7 +18,7 @@ text: mensaje,
 mentions: participantesUnicos,
 externalAdReply: {
 title: '🌟 Ruby Hoshino Bot | Usuarios',
-body: 'Deymoon Bot MD - Desarrollado por David Chian',
+body: 'prueba de codigo',
 ...(thumbBuffer && { thumbnail: thumbBuffer }),
 sourceUrl: 'https://github.com/Dioneibi-rip',
 mediaType: 1,
