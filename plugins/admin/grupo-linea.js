@@ -1,4 +1,4 @@
-const RUBY_ONLINE_THUMBNAIL_URL = 'https://files.catbox.moe/c5s9g0.jpg'
+const RUBY_ONLINE_THUMBNAIL_URL = 'https://i.postimg.cc/m2ccrBmq/ㅤcolumbinaㅤ-ㅤicon.jpg'
 const RUBY_SOURCE_URL = 'https://github.com/Dioneibi-rip'
 
 async function fetchThumbnailBuffer(url) {
@@ -37,15 +37,17 @@ let handler = async (m, { conn, args }) => {
     await conn.sendMessage(m.chat, {
       text: mensaje,
       mentions: participantesUnicos,
-      externalAdReply: {
-        title: '🌟 Ruby Hoshino Bot | Usuarios',
-        body: 'prueba oficial',
-        mediaType: 1,
-        previewType: 0,
-        renderLargerThumbnail: true,
-        sourceUrl: RUBY_SOURCE_URL,
-        mediaUrl: RUBY_SOURCE_URL,
-        ...(thumbnail ? { thumbnail, jpegThumbnail: thumbnail } : {})
+      contextInfo: {
+        externalAdReply: {
+          title: '🌸 𝘙𝘶𝘣𝘺 𝘏𝘰𝘴𝘩𝘪𝘯𝘰 𝘉𝘰𝘵 ☆',
+          body: '🪄 Welcome, to Ruby Hoshino.',
+          mediaType: 1,
+          previewType: 0,
+          renderLargerThumbnail: true,
+          sourceUrl: RUBY_SOURCE_URL,
+          mediaUrl: RUBY_SOURCE_URL,
+          ...(thumbnail ? { thumbnail, jpegThumbnail: thumbnail } : {})
+        }
       }
     }, { quoted: m })
 
