@@ -28,7 +28,7 @@ let handler = async (m, { conn, usedPrefix }) => {
     }
     
     if (m.isGroup) {
-        let pp = 'https://files.catbox.moe/nssx5g.mp4'; 
+        let pp = 'https://media.tenor.com/48DDFOcNQBYAAAAM/anime-bite.gif'; 
         let pp2 = 'https://files.catbox.moe/c23bw3.mp4'; 
         let pp3 = 'https://files.catbox.moe/nxr7vx.mp4';
         let pp4 = 'https://files.catbox.moe/j5yobc.mp4';
