@@ -38,9 +38,9 @@ const featureNames = {
 };
 
 const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isROwner }) => {
-  let chat = global.db.data.chats[m.chat];
-  let user = global.db.data.users[m.sender];
-  let bot = global.db.data.settings[conn.user.jid] || {};
+  let chat = global.db.getChat(m.chat);
+  let user = global.db.getUser(m.sender);
+  let bot = global.db.getSettings(conn.user.jid) || {};
   let type = command.toLowerCase();
   let isAll = false, isUser = false;
   let isEnable = chat[type] || false;

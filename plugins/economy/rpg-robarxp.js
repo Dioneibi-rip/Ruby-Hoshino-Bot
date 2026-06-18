@@ -2,7 +2,7 @@ const ro = 3000;
 const cooldown = 2 * 60 * 60 * 1000;
 
 const handler = async (m, { conn, usedPrefix, command }) => {
-  const user = global.db.data.users[m.sender];
+  const user = global.db.getUser(m.sender);
   if (!user) return conn.reply(m.chat, `${emoji2} *Tu usuario no está registrado en la base de datos.*`, m);
 
   const now = Date.now();
@@ -24,7 +24,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     return conn.reply(m.chat, `${emoji} Debes mencionar a alguien para intentar robarle XP.`, m);
   }
 
-  if (!(who in global.db.data.users)) {
+  if (!(who in global.db.listUsers())) {
     return conn.reply(m.chat, `${emoji2} Ese usuario no está en la base de datos.`, m);
   }
 
@@ -32,7 +32,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     return conn.reply(m.chat, `${emoji2} *No puedes robarte a ti mismo.*`, m);
   }
 
-  const target = global.db.data.users[who];
+  const target = global.db.getUser(who);
   target.exp = Number.isFinite(target.exp) ? Math.max(0, target.exp) : 0;
   user.exp = Number.isFinite(user.exp) ? user.exp : 0;
 

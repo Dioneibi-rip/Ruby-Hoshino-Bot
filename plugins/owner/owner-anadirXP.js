@@ -8,9 +8,9 @@ who = m.chat
 }
 if (!who) return m.reply('⚠️ Por favor, menciona al usuario o cita un mensaje.')
 if (who.includes('@lid')) return m.reply('⚠️ Error de identificación (LID). Por favor menciona al usuario (@etiqueta) en lugar de citarlo para asegurar la transacción.')
-let user = global.db.data.users[who]
+let user = global.db.getUser(who)
 if (!user) {
-user = global.db.data.users[who] = { exp: 0 }
+user = global.db.updateUser(who, { exp: 0 })
 }
 let xpMatch = text.match(/(\d+)/)
 if (!xpMatch) return m.reply('⚠️ Ingresa la cantidad de experiencia (XP) que deseas añadir.')

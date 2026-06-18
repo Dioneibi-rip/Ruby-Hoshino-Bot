@@ -82,8 +82,8 @@ delete marriages[proposerJid];
 delete marriages[partner];
 await saveMarriages();
 
-if (global.db.data.users[proposerJid]) global.db.data.users[proposerJid].marry = '';
-if (global.db.data.users[partner]) global.db.data.users[partner].marry = '';
+global.db.updateUser(proposerJid, { marry: '' });
+global.db.updateUser(partner, { marry: '' });
 
 await conn.reply(m.chat, `✐ ${conn.getName(proposerJid)} y ${conn.getName(partner)} se han divorciado.`, m);
 }
@@ -121,8 +121,8 @@ marriages[proposer] = { partner: senderJid, date: fecha };
 marriages[senderJid] = { partner: proposer, date: fecha };
 await saveMarriages();
 
-if (global.db.data.users[proposer]) global.db.data.users[proposer].marry = senderJid;
-if (global.db.data.users[senderJid]) global.db.data.users[senderJid].marry = proposer;
+global.db.updateUser(proposer, { marry: senderJid });
+global.db.updateUser(senderJid, { marry: proposer });
 
 conn.sendMessage(m.chat, { text: `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩
 ¡Se han Casado! ฅ^•ﻌ•^ฅ*:･ﾟ✧\n\n*•.¸♡ Esposo ${conn.getName(proposer)}\n*•.¸♡ Esposa ${conn.getName(senderJid)}\n\n\`Disfruten de su luna de miel\`

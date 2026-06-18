@@ -1,7 +1,7 @@
 let handler = async (m, { text, usedPrefix, command }) => {
     const userId = m.sender;
-    if (!global.db.data.users[userId]) global.db.data.users[userId] = {};
-    const user = global.db.data.users[userId];
+    
+    const user = global.db.getUser(userId);
 
     if (command === 'setmeta') {
         if (!text) {
@@ -18,7 +18,7 @@ let handler = async (m, { text, usedPrefix, command }) => {
             user.text2 = ''; // Forzamos autor vacío para que no aparezca el bot
         }
 
-        await global.db.write();
+        global.db.updateUser(userId, { text1: user.text1, text2: user.text2 });
 
         return m.reply(`
 ╭━━━〔 *CONFIGURADO* 〕━━━⬣
@@ -31,9 +31,7 @@ let handler = async (m, { text, usedPrefix, command }) => {
 
     if (command === 'delmeta') {
         if (!user.text1 && !user.text2) return m.reply(`${global.emoji3} No tienes un pack establecido.`);
-        delete user.text1;
-        delete user.text2;
-        await global.db.write();
+        global.db.updateUser(userId, { text1: '', text2: '' });
         return m.reply(`${global.emoji} Se restableció el pack y autor por defecto.`);
     }
 };

@@ -1,6 +1,6 @@
 const handler = async (m, {conn, participants, groupMetadata}) => {
   const pp = await conn.profilePictureUrl(m.chat, 'image').catch((_) => null) || `${icono}`;
-  const {antiLink, detect, welcome, modoadmin, antiPrivate, nsfw, restrict, antiSpam, reaction, antiToxic} = global.db.data.chats[m.chat];
+  const {antiLink, detect, welcome, modoadmin, antiPrivate, nsfw, restrict, antiSpam, reaction, antiToxic} = global.db.getChat(m.chat);
   const groupAdmins = participants.filter((p) => p.admin);
   const listAdmin = groupAdmins.map((v, i) => `${i + 1}. @${v.id.split('@')[0]}`).join('\n');
   const owner = groupMetadata.owner || groupAdmins.find((p) => p.admin === 'superadmin')?.id || m.chat.split`-`[0] + '@s.whatsapp.net';

@@ -22,7 +22,7 @@ let handler = async (m, { conn, text, args, usedPrefix, command }) => {
 
     for (let res of anu.results) {
         let userId = m.sender
-        let packstickers = global.db.data.users[userId] || {}
+        let packstickers = global.db.getUser(userId) || {}
         let texto1 = packstickers.text1 || global.packsticker
         let texto2 = packstickers.text2 || global.packsticker2
         

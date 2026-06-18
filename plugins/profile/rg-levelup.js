@@ -7,7 +7,7 @@ let handler = async (m, { conn }) => {
     let citedMessage = m.quoted ? m.quoted.sender : null;
     let who = mentionedUser || citedMessage || m.sender; 
     let name = await conn.getName(who) || 'Usuario';
-    let user = global.db.data.users[who];
+    let user = global.db.getUser(who);
 
     if (!user) {
         await conn.sendMessage(m.chat, { text: "❌ No se encontraron datos del usuario." }, { quoted: m });
@@ -40,7 +40,7 @@ let handler = async (m, { conn }) => {
         `.trim(), m, false, { mentions: [who] });
     } else {
         // Mostrar progreso si no sube de nivel
-        let users = Object.entries(global.db.data.users).map(([key, value]) => {
+        let users = Object.entries(global.db.listUsers()).map(([key, value]) => {
             return { ...value, jid: key };
         });
 

@@ -5,7 +5,7 @@
 */
 
 const handler = async (m, { conn, args, usedPrefix, command, isAdmin, isOwner }) => {
-  const customEmoji = global.db.data.chats[m.chat]?.customEmoji || '⏰';
+  const customEmoji = global.db.getChat(m.chat)?.customEmoji || '⏰';
   m.react(customEmoji);
 
   if (!(isAdmin || isOwner)) {

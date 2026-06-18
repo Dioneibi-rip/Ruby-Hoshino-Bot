@@ -23,8 +23,8 @@ const handler = async (m, { conn, command, args, groupMetadata, isOwner }) => {
     const botJid = conn.decodeJid?.(conn.user?.jid || conn.user?.id) || conn.user?.jid
     if (who === botJid) return m.reply('No puedo mutearme a mí mismo. 🤖')
 
-    let user = global.db.data.users[who]
-    if (!user) user = global.db.data.users[who] = {}
+    let user = global.db.getUser(who)
+    if (!user) user = global.db.getUser(who)
     if (!user.mutedChats || typeof user.mutedChats !== 'object') user.mutedChats = {}
 
     const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []

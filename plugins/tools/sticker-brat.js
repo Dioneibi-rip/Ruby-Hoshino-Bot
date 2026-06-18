@@ -263,7 +263,7 @@ let handler = async (m, { conn, text }) => {
     await m.react?.('🕒')
 
     const userId = m.sender
-    const packstickers = global.db.data.users[userId] || {}
+    const packstickers = global.db.getUser(userId) || {}
     const texto1 = packstickers.text1 || global.packsticker
     const texto2 = packstickers.text2 || global.packsticker2
 

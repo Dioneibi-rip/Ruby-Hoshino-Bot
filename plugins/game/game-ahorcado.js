@@ -42,7 +42,7 @@ function juegoTerminado(sender, mensaje, palabra, letrasAdivinadas, intentos) {
         if (palabra.length >= 8) {
             expGanada = Math.floor(Math.random() * 3500); //difíciles
         }
-        global.db.data.users[sender].exp += expGanada;
+        global.db.addEconomy(sender, { exp: expGanada });
         gam.delete(sender);
         return `¡Que pro Ganaste 🥳! Adivinaste la palabra "${palabra}".\n\n*Has ganado:* ${expGanada} Exp.`;
     } else {
@@ -51,7 +51,7 @@ function juegoTerminado(sender, mensaje, palabra, letrasAdivinadas, intentos) {
 }
 
 let handler = async (m, { conn }) => {
-let users = global.db.data.users[m.sender]
+let users = global.db.getUser(m.sender)
 if (gam.has(m.sender)) {
 return conn.reply(m.chat, "Ya tienes un juego en curso. ¡Termina ese primero!", m)
 }
@@ -65,7 +65,7 @@ conn.reply(m.chat, text, m)
 }
 
 handler.before = async (m, { conn }) => {
-let users = global.db.data.users[m.sender]
+let users = global.db.getUser(m.sender)
 let juego = gam.get(m.sender)
 if (!juego) return
 let { palabra, letrasAdivinadas, intentos } = juego

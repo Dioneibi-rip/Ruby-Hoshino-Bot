@@ -5,8 +5,8 @@ let handler = async (m, { conn, text }) => {
         return conn.reply(m.chat, `${emoji} Por favor, ingrese un código para canjear.`, m);
     }
 
-    let codesDB = global.db.data.codes || {};
-    let user = global.db.data.users[m.sender];
+    let codesDB = global.db.listRecords('codes') || {};
+    let user = global.db.getUser(m.sender);
 
     if (!codesDB[code]) {
         return conn.reply(m.chat, `${emoji2} Código no válido.`, m);
@@ -20,8 +20,9 @@ let handler = async (m, { conn, text }) => {
         return conn.reply(m.chat, `${emoji2} Este código fue agotado completamente... Espera a que el creador ponga otro código.`, m);
     }
 
-    user.coin += codesDB[code].coin;
+    global.db.addEconomy(m.sender, { coin: codesDB[code].coin, money: codesDB[code].coin });
     codesDB[code].claimedBy.push(m.sender);
+    global.db.setRecord('codes', code, codesDB[code]);
 
     let remaining = Math.max(0, 5 - codesDB[code].claimedBy.length);
 

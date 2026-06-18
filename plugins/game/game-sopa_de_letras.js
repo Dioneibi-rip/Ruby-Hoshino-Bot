@@ -144,7 +144,7 @@ diamante = 24
 } else {
 diamante = 32
 }
-global.db.data.users[m.sender].coin += coin
+global.db.addEconomy(m.sender, { coin, money: coin })
 
 await m.reply(`\`\`\`${emoji} Has ganado ${m.moneda} ${rpgshop.emoticon('limit')}!!\`\`\`\n\n*Correcto!! la palabra _"${sopaPalabra}"_ Se encontraba en la dirección _${cambioLetra}_ De la fila _${fila}_ Y Columna _${columna}_*`)
 fila = null, columna = null, sopaNube = null, sopaPalabra = null, sopaDir = null, userSP = null, cambioLetra = null

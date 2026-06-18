@@ -1,9 +1,8 @@
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-  let chat = global.db.data.chats[m.chat];
-  if (!chat) chat = global.db.data.chats[m.chat] = {};
+  let chat = global.db.getChat(m.chat);
 
   if (text) {
-    chat.byeText = text;
+    global.db.updateChat(m.chat, { byeText: text });
     m.reply('${emoji2} El mensaje de despedida se ha configurado correctamente para este grupo.');
   } else {
     let bye = chat.byeText || 'No hay ningún mensaje configurado.';

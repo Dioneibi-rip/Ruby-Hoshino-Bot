@@ -1,5 +1,5 @@
 let handler = async (m) => {
-  let user = global.db.data.users[m.sender] || {};
+  let user = global.db.getUser(m.sender) || {};
   user.monthly = user.monthly || 0;
 
   const cooldown = 604800000 * 4;

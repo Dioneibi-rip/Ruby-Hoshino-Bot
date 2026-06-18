@@ -1,7 +1,7 @@
 import db from '../../lib/database.js'
 
 let handler = async (m, { args }) => {
-  let user = global.db.data.users[m.sender]
+  let user = global.db.getUser(m.sender)
   let emoji = '🏦', emoji2 = '❌'
 
   if (!args[0]) return m.reply(`${emoji} Ingresa la cantidad de *${m.moneda}* que deseas depositar.`)

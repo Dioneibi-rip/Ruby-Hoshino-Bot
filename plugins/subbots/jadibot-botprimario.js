@@ -18,13 +18,13 @@ let handler = async (m, { conn, text, participants, usedPrefix, command }) => {
         if (pInfo && pInfo.id) botJid = pInfo.id;
     }
 
-    if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {};
+    const chat = global.db.getChat(m.chat);
 
-    if (global.db.data.chats[m.chat].primaryBot === botJid) {
+    if (chat.primaryBot === botJid) {
         return conn.reply(m.chat, `✨ @${botJid.split`@`[0]} 𝙮𝙖 𝙚𝙨 𝙚𝙡 𝙗𝙤𝙩 𝙥𝙧𝙞𝙢𝙖𝙧𝙞𝙤 𝙙𝙚 𝙚𝙨𝙩𝙚 𝙜𝙧𝙪𝙥𝙤.`, m, { mentions: [botJid] });
     }
 
-    global.db.data.chats[m.chat].primaryBot = botJid;
+    global.db.updateChat(m.chat, { primaryBot: botJid });
 
     let response = `
 『 🤖 』⋮⋮ 𝙎𝙚 𝙝𝙖 𝙚𝙨𝙩𝙖𝙗𝙡𝙚𝙘𝙞𝙙𝙤 𝙖:

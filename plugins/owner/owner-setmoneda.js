@@ -3,12 +3,8 @@ let handler = async (m, { conn, text, isROwner }) => {
       throw `Este comando solo puede ser utilizado por el propietario del bot.`;
   }
 
-  let settings = global.db.data.settings[conn.user.jid];
+  let settings = global.db.getSettings(conn.user.jid);
 
-  if (!settings) {
-    global.db.data.settings[conn.user.jid] = {};
-    settings = global.db.data.settings[conn.user.jid];
-  }
 
   if (!text) {
     const currentMoneda = settings.moneda || 'No establecida';
@@ -22,7 +18,7 @@ Por favor, proporciona un nombre para la moneda.
     );
   }
 
-  settings.moneda = text.trim();
+  settings = global.db.updateSettings(conn.user.jid, { moneda: text.trim() });
 
   m.reply(`✅ El nombre de la moneda para este bot ha sido cambiado a: *${settings.moneda}*`);
 };

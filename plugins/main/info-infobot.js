@@ -11,8 +11,8 @@ let format = sizeFormatter({
 })
 
 let handler = async (m, { conn, usedPrefix }) => {
-    let bot = global.db.data.settings[conn.user.jid]
-    let totalStats = Object.values(global.db.data.stats).reduce((total, stat) => total + stat.total, 0)
+    let bot = global.db.getSettings(conn.user.jid)
+    let totalStats = Object.values(global.db.listRecords('stats')).reduce((total, stat) => total + stat.total, 0)
     let totalf = Object.values(global.plugins).filter((v) => v.help && v.tags).length
 
     let info = `✿  *Informacion de ${global.botname}*\n\n`

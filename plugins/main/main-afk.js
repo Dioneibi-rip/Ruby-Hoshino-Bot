@@ -1,7 +1,7 @@
 export function before(m, { conn }) {
     if (m.fromMe) return true; 
 
-    const user = global.db.data.users[m.sender];
+    const user = global.db.getUser(m.sender);
     if (!user) return true;
 
     const clockString = (ms) => {
@@ -33,7 +33,7 @@ export function before(m, { conn }) {
     for (const jid of jids) {
         if (jid === conn.user.jid) continue; 
 
-        const mentionedUser = global.db.data.users[jid];
+        const mentionedUser = global.db.getUser(jid);
         if (!mentionedUser) continue;
         
         const afkTime = mentionedUser.afk;
