@@ -18,8 +18,7 @@ import boxen from 'boxen'
 import pino from 'pino'
 import { Boom } from '@hapi/boom'
 import { makeWASocket, protoType, serialize } from './lib/simple.js'
-import { Low, JSONFile } from 'lowdb'
-import { mongoDB, mongoDBV2 } from './lib/mongoDB.js'
+import SQLiteDatabase from './lib/database.js'
 import store from './lib/store.js'
 import readline, { createInterface } from 'readline'
 import { RubyJadiBot } from './plugins/subbots/jadibot-serbot.js'
@@ -42,7 +41,7 @@ const __dirname = global.__dirname(import.meta.url)
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
 global.__bannerShown = false
 global.prefix = new RegExp('^[#/!.]')
-global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new mongoDB(opts['db']) : new JSONFile('./src/database/database.json'))
+global.db = new SQLiteDatabase(opts['db'] || './src/database/database.sqlite')
 global.DATABASE = global.db
 const bannerASCII = chalk.bold.hex('#FF0080')(`
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣤⣾⣿⡿⠿⠟⣿⣶⣶⣶⣤⣤⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -95,12 +94,16 @@ console.log(boxen(chalk.bold.hex('#9900ff')('୨୧ㅤ۫ Proyecto iniciado con E
 showBanner()
 global.loadDatabase = async function loadDatabase() {
 if (global.db.READ) { return new Promise((resolve) => setInterval(async function() { if (!global.db.READ) { clearInterval(this); resolve(global.db.data == null ? global.loadDatabase() : global.db.data); } }, 1 * 1000)) }
-if (global.db.data !== null) return
+if (global.db.data !== null) {
+  global.db.chain ||= chain(global.db.data)
+  return global.db.data
+}
 global.db.READ = true
 await global.db.read().catch(console.error)
 global.db.READ = null
-global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {}, ...(global.db.data || {}), }
+global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {}, ...(global.db.data || {}) }
 global.db.chain = chain(global.db.data)
+return global.db.data
 }
 loadDatabase()
 protoType()
