@@ -36,6 +36,7 @@ if(!selectedJobKey)return conn.reply(m.chat,`✘ Trabajo inválido: *${desiredIn
 const selectedJob=JOBS[selectedJobKey];
 if(user.job===selectedJobKey)return conn.reply(m.chat,`✅ Ya tienes ese trabajo: ${selectedJob.emoji} *${selectedJob.name}*.`,m);
 Object.assign(user,{job:selectedJobKey,jobSince:Date.now()});
+await global.db.write?.();
 return conn.reply(m.chat,`✅ Ahora tu trabajo es ${selectedJob.emoji} *${selectedJob.name}*.\n✦ Ya puedes usar *${usedPrefix}trabajar*, *${usedPrefix}crime* y *${usedPrefix}slut*.`,m);
 };
 
