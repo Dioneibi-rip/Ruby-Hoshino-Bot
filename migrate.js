@@ -5,7 +5,7 @@ import Database from 'better-sqlite3'
 
 const jsonPath = process.argv[2] || './src/database/database.json'
 const sqlitePath = process.argv[3] || './src/database/database.sqlite'
-const sections = ['users', 'chats', 'settings', 'stats', 'msgs', 'sticker', 'sessions']
+const sections = ['users', 'chats', 'settings', 'stats', 'msgs', 'sticker', 'sessions', 'codes']
 
 function table(name) {
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) throw new Error(`Tabla inválida: ${name}`)

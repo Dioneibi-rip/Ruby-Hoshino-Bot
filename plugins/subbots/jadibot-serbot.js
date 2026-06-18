@@ -39,6 +39,13 @@ const __dirname = path.dirname(__filename)
 const pairingCodeRequests = global.pairingCodeRequests || (global.pairingCodeRequests = new Map())
 const PAIRING_CODE_TTL_MS = 45000
 const PAIRING_CODE_COOLDOWN_MS = 60000
+function normalizeSubBotJid(jid = '') {
+return String(jid).split(':')[0].trim().toLowerCase()
+}
+function subBotSessionId(jid = '') {
+const normalized = normalizeSubBotJid(jid)
+return encodeURIComponent(normalized || `subbot-${Date.now()}`)
+}
 if (global.conns instanceof Array) console.log()
 else global.conns = []
 if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
@@ -52,16 +59,20 @@ if (subBotsCount >= limiteSubBots) {
 return m.reply(`${emoji2} Se ha alcanzado o superado el límite de *Sub-Bots* activos (${subBotsCount}/${limiteSubBots}).\n\nNo se pueden crear más conexiones hasta que un Sub-Bot se desconecte.`)
 }
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
-let id = `${who.split`@`[0]}`
-let pathRubyJadiBot = path.join(`./${jadi}/`, id)
-const existingById = global.conns.find(c => c?.subBotId === id && c?.ws?.socket?.readyState === ws.OPEN)
+const subBotJid = normalizeSubBotJid(who)
+const id = subBotSessionId(subBotJid)
+const legacyId = `${subBotJid.split`@`[0]}`
+const newPathRubyJadiBot = path.join(`./${jadi}/`, id)
+const legacyPathRubyJadiBot = path.join(`./${jadi}/`, legacyId)
+let pathRubyJadiBot = (await pathExists(newPathRubyJadiBot)) || !(await pathExists(legacyPathRubyJadiBot)) ? newPathRubyJadiBot : legacyPathRubyJadiBot
+const existingById = global.conns.find(c => (c?.subBotId === id || c?.subBotJid === subBotJid) && c?.ws?.socket?.readyState === ws.OPEN)
 if (existingById) {
 return conn.reply(m.chat, `${emoji} Ya tienes un *Sub-Bot* activo y estable.`, m)
 }
 if (!await pathExists(pathRubyJadiBot)){
 await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })
 }
-const options = { pathRubyJadiBot, m, conn, args: [...args], usedPrefix, command, fromCommand: true }
+const options = { pathRubyJadiBot, subBotJid, subBotId: id, m, conn, args: [...args], usedPrefix, command, fromCommand: true }
 RubyJadiBot(options)
 global.db.data.users[m.sender].Subs = new Date * 1
 }
@@ -70,12 +81,14 @@ handler.tags = ['serbot']
 handler.command = ['qr', 'code']
 export default handler
 export async function RubyJadiBot(options) {
-let { pathRubyJadiBot, m, conn, args, usedPrefix, command } = options
+let { pathRubyJadiBot, subBotJid, subBotId: requestedSubBotId, m, conn, args, usedPrefix, command } = options
 if (command === 'code') {
 command = 'qr';
 args.unshift('code')}
 const mcode = args[0] && /(--code|code)/.test(args[0].trim()) ? true : args[1] && /(--code|code)/.test(args[1].trim()) ? true : false
 let txtCode, codeBot, txtQR
+requestedSubBotId = requestedSubBotId || path.basename(pathRubyJadiBot)
+subBotJid = normalizeSubBotJid(subBotJid || m?.sender || (requestedSubBotId.includes('%40') ? decodeURIComponent(requestedSubBotId) : requestedSubBotId))
 if (mcode) {
 args[0] = args[0].replace(/^--code$|^code$/, "").trim()
 if (args[1]) args[1] = args[1].replace(/^--code$|^code$/, "").trim()
@@ -116,8 +129,9 @@ markOnlineOnConnect: false,
 syncFullHistory: false
 };
 let sock = makeWASocket(connectionOptions)
-const subBotId = path.basename(pathRubyJadiBot)
+const subBotId = requestedSubBotId || subBotSessionId(subBotJid || sock?.authState?.creds?.me?.jid || path.basename(pathRubyJadiBot))
 sock.subBotId = subBotId
+sock.subBotJid = subBotJid
 attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.jid || 'primary', path: pathRubyJadiBot })
 sock.isInit = false
 let isInit = true
@@ -154,7 +168,7 @@ try { sock.ev.removeAllListeners() } catch (e) {}
 removeSockFromPool(sock)
 cleanupSessionState(sock)
 if (global.subBotRegistry instanceof Map) global.subBotRegistry.delete(subBotId)
-upsertSubBotAuthRegistry(subBotId, sock, removeSession ? 'removed' : 'offline', { path: pathRubyJadiBot })
+upsertSubBotAuthRegistry(subBotId, sock, removeSession ? 'removed' : 'offline', { path: pathRubyJadiBot, jid: subBotJid })
 if (removeSession) {
 try { await fs.promises.rm(pathRubyJadiBot, { recursive: true, force: true }) } catch (e) {}
 }
@@ -176,10 +190,11 @@ try { sock.ws.close() } catch (e) { }
 try { sock.ev.removeAllListeners() } catch (e) {}
 sock = makeWASocket(connectionOptions, { chats: oldChats })
 sock.subBotId = subBotId
+sock.subBotJid = subBotJid
 attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.jid || 'primary', path: pathRubyJadiBot })
 isInit = true
 registerSubBot(global.subBotRegistry, subBotId, { sock, reconnecting: true, ts: Date.now() })
-upsertSubBotAuthRegistry(subBotId, sock, 'reconnecting', { path: pathRubyJadiBot })
+upsertSubBotAuthRegistry(subBotId, sock, 'reconnecting', { path: pathRubyJadiBot, jid: subBotJid })
 }
 if (!isInit) {
 sock.ev.off("messages.upsert", sock.handler)
@@ -319,7 +334,7 @@ sock.isInit = true
 reconnectAttempts = 0
 if (!global.conns.includes(sock)) global.conns.push(sock)
 registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() })
-upsertSubBotAuthRegistry(subBotId, sock, 'online', { path: pathRubyJadiBot, connectedAt: Date.now() })
+upsertSubBotAuthRegistry(subBotId, sock, 'online', { path: pathRubyJadiBot, jid: subBotJid, connectedAt: Date.now() })
 clearPairingCodeLock()
 await joinChannels(sock)
 m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `@${m.sender.split('@')[0]}, genial ya eres parte de nuestro ecosistema de bots.`}, {quoted: m}) : null
@@ -340,13 +355,20 @@ creloadHandler(false)
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function upsertSubBotAuthRegistry(id, sock, status, metadata = {}) {
-try {
 const db = global.authManagerDb
 if (!db) return
-const jid = sock?.user?.jid || sock?.authState?.creds?.me?.jid || `${id}@s.whatsapp.net`
-db.prepare('INSERT OR REPLACE INTO bot_registry (id, jid, status, metadata) VALUES (?, ?, ?, ?)').run(id, jid, status, JSON.stringify(metadata))
+const jid = normalizeSubBotJid(metadata.jid || sock?.user?.jid || sock?.authState?.creds?.me?.jid || `${id}@s.whatsapp.net`)
+const payload = JSON.stringify({ ...metadata, jid })
+for (let attempt = 0; attempt < 3; attempt++) {
+try {
+db.prepare('INSERT OR REPLACE INTO bot_registry (id, jid, status, metadata) VALUES (?, ?, ?, ?)').run(id, jid, status, payload)
+return
 } catch (error) {
+if (!['SQLITE_BUSY', 'SQLITE_LOCKED'].includes(error?.code) || attempt === 2) {
 console.error(`Error actualizando registro SQLite del Sub-Bot ${id}:`, error)
+return
+}
+}
 }
 }
 
