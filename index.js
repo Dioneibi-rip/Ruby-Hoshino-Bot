@@ -18,6 +18,7 @@ import boxen from 'boxen'
 import pino from 'pino'
 import { Boom } from '@hapi/boom'
 import { makeWASocket, protoType, serialize } from './lib/simple.js'
+import { useSQLiteAuthState, createManagerDatabase } from '@nevi-dev/sqlite-auth'
 import SQLiteDatabase from './lib/database.js'
 import store from './lib/store.js'
 import readline, { createInterface } from 'readline'
@@ -27,7 +28,7 @@ import { attachSessionState, createMessageRetryCache } from './src/core/session-
 import { startMonitor } from './src/core/stability-monitor.js'
 EventEmitter.defaultMaxListeners = 100
 const { proto } = (await import('@whiskeysockets/baileys')).default
-const { DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser } = await import('@whiskeysockets/baileys')
+const { DisconnectReason, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser } = await import('@whiskeysockets/baileys')
 import pkg from 'google-libphonenumber'
 const { PhoneNumberUtil } = pkg
 const phoneUtil = PhoneNumberUtil.getInstance()
@@ -108,7 +109,8 @@ return global.db.data
 loadDatabase()
 protoType()
 serialize()
-const { state, saveState, saveCreds } = await useMultiFileAuthState(global.Rubysessions)
+const { state, saveCreds } = useSQLiteAuthState(`./${global.Rubysessions}`, { dbName: 'auth.db', cleanOldFiles: true })
+global.authManagerDb = createManagerDatabase({ dbPath: `./${global.Rubysessions}/system.db`, tableName: 'bot_registry' })
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = createMessageRetryCache()
 const { version } = await fetchLatestBaileysVersion();
@@ -120,7 +122,7 @@ const rl = readline.createInterface({ input: process.stdin, output: process.stdo
 const question = (texto) => { rl.clearLine(rl.input, 0); return new Promise((resolver) => { rl.question(texto, (respuesta) => { rl.clearLine(rl.input, 0); resolver(respuesta.trim()) }) }) }
 let opcion
 if (methodCodeQR) { opcion = '1' }
-if (!methodCodeQR && !methodCode && !existsSync(`./${global.Rubysessions}/creds.json`)) {
+if (!methodCodeQR && !methodCode && !state.creds?.registered) {
 const lineM = '━'.repeat(45)
 do {
 showBanner()
@@ -140,7 +142,7 @@ if (!/^[1-2]$/.test(opcion)) {
 console.log(chalk.red.bold(`❌ OPCIÓN INVÁLIDA. POR FAVOR ELIJA 1 O 2.`));
 await new Promise(resolve => setTimeout(resolve, 1500));
 }
-} while (opcion !== '1' && opcion !== '2' || existsSync(`./${global.Rubysessions}/creds.json`))
+} while (opcion !== '1' && opcion !== '2' || state.creds?.registered)
 }
 const RECONNECT_REASONS = new Set([DisconnectReason.connectionLost, DisconnectReason.connectionClosed, DisconnectReason.restartRequired, DisconnectReason.connectionReplaced])
 const DISCONNECT_AUTH_STATUS = new Set([401, 403, DisconnectReason.loggedOut])
@@ -172,7 +174,7 @@ attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.
 let conn = global.conn
 conn.isInit = false;
 conn.well = false;
-if (!existsSync(`./${global.Rubysessions}/creds.json`)) {
+if (!state.creds?.registered) {
 if (opcion === '2' || methodCode) {
 opcion = '2'
 if (!conn.authState.creds.registered) {
@@ -273,11 +275,11 @@ console.log(chalk.bold.cyan(`✨ Cargando sub-Bots...`))
 }
 const readRutaJadiBot = readdirSync(global.rutaJadiBot)
 if (readRutaJadiBot.length > 0) {
-const creds = 'creds.json'
+const sessionMarkers = new Set(['creds.json', 'auth.db'])
 const subBotPaths = readRutaJadiBot
 .map(gjbts => join(global.rutaJadiBot, gjbts))
 .filter(botPath => {
-try { return statSync(botPath).isDirectory() && readdirSync(botPath).includes(creds) }
+try { return statSync(botPath).isDirectory() && readdirSync(botPath).some(file => sessionMarkers.has(file)) }
 catch (e) { return false }
 })
 const batchSize = Math.max(1, Number(global.subBotLoadBatch || 3))

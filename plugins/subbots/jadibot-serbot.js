@@ -7,7 +7,6 @@ return false
 }
 }
 const {
-useMultiFileAuthState,
 DisconnectReason,
 makeCacheableSignalKeyStore,
 fetchLatestBaileysVersion,
@@ -15,6 +14,7 @@ prepareWAMessageMedia,
 generateWAMessageFromContent,
 proto,
 } = (await import("@whiskeysockets/baileys"));
+import { useSQLiteAuthState, createManagerDatabase } from '@nevi-dev/sqlite-auth'
 import qrcode from "qrcode"
 import fs from "fs"
 import path from "path"
@@ -97,7 +97,8 @@ let { version, isLatest } = await fetchLatestBaileysVersion()
 const subSocketCfg = global.baileysSocketConfig || {}
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = createMessageRetryCache()
-const { state, saveState, saveCreds } = await useMultiFileAuthState(pathRubyJadiBot)
+const { state, saveCreds } = useSQLiteAuthState(pathRubyJadiBot, { dbName: 'auth.db', cleanOldFiles: true })
+global.authManagerDb ||= createManagerDatabase({ dbPath: `./${global.Rubysessions || 'sessions'}/system.db`, tableName: 'bot_registry' })
 const connectionOptions = {
 logger: pino({ level: "fatal" }),
 printQRInTerminal: false,
@@ -153,6 +154,7 @@ try { sock.ev.removeAllListeners() } catch (e) {}
 removeSockFromPool(sock)
 cleanupSessionState(sock)
 if (global.subBotRegistry instanceof Map) global.subBotRegistry.delete(subBotId)
+upsertSubBotAuthRegistry(subBotId, sock, removeSession ? 'removed' : 'offline', { path: pathRubyJadiBot })
 if (removeSession) {
 try { await fs.promises.rm(pathRubyJadiBot, { recursive: true, force: true }) } catch (e) {}
 }
@@ -177,6 +179,7 @@ sock.subBotId = subBotId
 attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.jid || 'primary', path: pathRubyJadiBot })
 isInit = true
 registerSubBot(global.subBotRegistry, subBotId, { sock, reconnecting: true, ts: Date.now() })
+upsertSubBotAuthRegistry(subBotId, sock, 'reconnecting', { path: pathRubyJadiBot })
 }
 if (!isInit) {
 sock.ev.off("messages.upsert", sock.handler)
@@ -316,6 +319,7 @@ sock.isInit = true
 reconnectAttempts = 0
 if (!global.conns.includes(sock)) global.conns.push(sock)
 registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() })
+upsertSubBotAuthRegistry(subBotId, sock, 'online', { path: pathRubyJadiBot, connectedAt: Date.now() })
 clearPairingCodeLock()
 await joinChannels(sock)
 m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `@${m.sender.split('@')[0]}, genial ya eres parte de nuestro ecosistema de bots.`}, {quoted: m}) : null
@@ -334,6 +338,18 @@ creloadHandler(false)
 })
 }
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+function upsertSubBotAuthRegistry(id, sock, status, metadata = {}) {
+try {
+const db = global.authManagerDb
+if (!db) return
+const jid = sock?.user?.jid || sock?.authState?.creds?.me?.jid || `${id}@s.whatsapp.net`
+db.prepare('INSERT OR REPLACE INTO bot_registry (id, jid, status, metadata) VALUES (?, ?, ?, ?)').run(id, jid, status, JSON.stringify(metadata))
+} catch (error) {
+console.error(`Error actualizando registro SQLite del Sub-Bot ${id}:`, error)
+}
+}
+
 function sleep(ms) {
 return new Promise(resolve => setTimeout(resolve, ms));
 }
