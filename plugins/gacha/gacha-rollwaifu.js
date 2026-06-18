@@ -75,9 +75,9 @@ let handler = async (m, { conn, participants = [] }) => {
         return await conn.reply(m.chat, `( ⸝⸝･̆⤚･̆⸝⸝) ¡Debes esperar *${minutes} minutos y ${seconds} segundos* para volver a usar *#rollwaifu* en este grupo.`, m)
     }
 
-    cooldowns[key] = now + 15 * 60 * 1000
-
     try {
+        await global.db.withGachaLock(`rollwaifu:${key}`, userId, 2 * 60 * 1000, async () => {
+        cooldowns[key] = now + 15 * 60 * 1000
         // ⚡ OPTIMIZACIÓN: Usar caché centralizado
         const characters = await loadCharactersOptimized()
         if (!characters.length) throw new Error('❀ No hay personajes disponibles para el gacha.')
@@ -149,9 +149,13 @@ let handler = async (m, { conn, participants = [] }) => {
             mimetype: "image/jpeg",
             caption: message
         }, { quoted: m })
+        })
 
     } catch (error) {
         delete cooldowns[key]
+        if (error?.code === 'SQLITE_CONSTRAINT_PRIMARYKEY' || error?.code === 'SQLITE_CONSTRAINT') {
+            return await conn.reply(m.chat, '⏳ Ya hay un roll en proceso para ti en este grupo. Espera unos segundos antes de intentar otra vez.', m)
+        }
         console.error(error)
         await conn.reply(m.chat, `✘ Error al cargar el personaje: ${error.message}`, m)
     }

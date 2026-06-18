@@ -15,7 +15,7 @@ return str.split('').map(c => map[c] || c).join('')
 }
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
 let pp = await conn.profilePictureUrl(who, 'image').catch((_) => 'https://files.catbox.moe/xr2m6u.jpg')
-let user = global.db.data.users[m.sender]
+let user = global.db.getUser(m.sender)
 let name2 = conn.getName(m.sender)
 if (user.registered === true) return m.reply(toFancy(`Ya estás registrado. Usa ${usedPrefix}unreg para eliminar tu registro.`))
 if (!text) return m.reply(toFancy(`Escribe tu nombre y edad para registrarte.\nEjemplo: ${usedPrefix + command} ${name2} 18`))
@@ -47,23 +47,24 @@ if (!age) {
 age = Math.floor(Math.random() * (22 - 15 + 1)) + 15
 }
 if (name.length >= 100) return m.reply(toFancy('El nombre es demasiado largo.'))
-user.name = name
-user.age = age
-user.regTime = +new Date
-user.registered = true
 let recompensa = {
 money: 40,
 estrellas: 10,
 exp: 300,
 joincount: 20
 }
-user.coin += recompensa.money
-user.exp += recompensa.exp
-user.joincount += recompensa.joincount
-if (global.db && global.db.write) {
-await global.db.write()
-}
 let sn = createHash('md5').update(m.sender).digest('hex').slice(0, 20)
+global.db.updateUser(m.sender, {
+name,
+age,
+regTime: Date.now(),
+registered: true,
+serialNumber: sn,
+coin: (user.coin || 0) + recompensa.money,
+money: (user.money || 0) + recompensa.money,
+exp: (user.exp || 0) + recompensa.exp,
+joincount: (user.joincount || 0) + recompensa.joincount
+})
 await m.react('📩')
 let mediaMessage = await prepareWAMessageMedia({ 
 image: { url: pp } 

@@ -93,18 +93,11 @@ cfonts.say('Ruby hoshino Bot', { font: 'chrome', align: 'center', gradient: ['#f
 console.log(boxen(chalk.bold.hex('#9900ff')('୨୧ㅤ۫ Proyecto iniciado con Exito. .ᐟ'), { padding: 1, margin: 1, borderStyle: 'double', borderColor: 'magenta', float: 'center' }))
 }
 showBanner()
+global.dbManager = global.db
 global.loadDatabase = async function loadDatabase() {
-if (global.db.READ) { return new Promise((resolve) => setInterval(async function() { if (!global.db.READ) { clearInterval(this); resolve(global.db.data == null ? global.loadDatabase() : global.db.data); } }, 1 * 1000)) }
-if (global.db.data !== null) {
-  global.db.chain ||= chain(global.db.data)
-  return global.db.data
-}
-global.db.READ = true
-await global.db.read().catch(console.error)
-global.db.READ = null
-global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {}, ...(global.db.data || {}) }
-global.db.chain = chain(global.db.data)
-return global.db.data
+  // SQLite nativo: no se hidrata global.db.data ni se crean Proxies.
+  // Los comandos nuevos deben usar global.db/global.dbManager con CRUD directo.
+  return global.db
 }
 loadDatabase()
 protoType()
