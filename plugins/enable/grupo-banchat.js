@@ -1,12 +1,14 @@
-let handler = async (m, {isROwner}) => {
-if (!isROwner) throw 'Este comando solo puede ser utilizado por el creador.'
-const chat = global.db.data.chats[m.chat] || (global.db.data.chats[m.chat] = {})
-chat.isBanned = true
-await m.react('🔕')
+import { normalizeSessionJid, setChatBannedForBot } from '../../src/core/session-utils.js'
+
+let handler = async (m, { conn, isROwner }) => {
+  const botJid = normalizeSessionJid(conn)
+  if (!isROwner && !m.fromMe) return m.react('❌')
+  const chat = global.db.data.chats[m.chat] || (global.db.data.chats[m.chat] = {})
+  const ok = setChatBannedForBot(chat, botJid, true)
+  await m.react(ok ? '✅' : '❌')
 }
 handler.help = ['banchat']
 handler.tags = ['owner']
 handler.command = ['banchat']
-handler.owner = true
 handler.group = true
 export default handler

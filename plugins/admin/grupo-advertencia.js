@@ -7,13 +7,14 @@ const handler = async (m, { conn, text, command, usedPrefix, participants }) => 
         who = m.chat;
     }
 
-    let user = global.db.getUser(who);
     const botJid = conn.user.jid.split`@`[0] + '@s.whatsapp.net';
     const reason = text || 'Comportamiento inadecuado';
     const warntext = `*❌ Etiqueta a alguien o responde a un mensaje para advertir.*`;
 
     // 2. VALIDACIONES DE SEGURIDAD
-    if (!who) return m.reply(warntext, m.chat, { mentions: conn.parseMention(warntext) });
+    if (!who || typeof who !== 'string' || !who.includes('@')) return m.reply(warntext, m.chat, { mentions: conn.parseMention(warntext) });
+
+    let user = global.db.getUser(who);
 
     // Evitar que el bot se advierta a sí mismo
     if (who === botJid) {
@@ -32,7 +33,6 @@ const handler = async (m, { conn, text, command, usedPrefix, participants }) => 
     }
 
     // 3. LÓGICA DE ADVERTENCIAS Y DECORACIÓN PROGRESIVA
-    if (!user) user = global.db.getUser(who); // Asegurar que el usuario existe en DB
     if (typeof user.warn !== 'number' || !Number.isFinite(user.warn)) user.warn = 0;
     user.warn += 1;
 
