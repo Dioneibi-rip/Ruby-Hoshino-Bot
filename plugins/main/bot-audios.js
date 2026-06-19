@@ -1,8 +1,9 @@
+import { isChatBannedForBot, normalizeSessionJid } from '../../src/core/session-utils.js'
 let handler = m => m
 handler.all = async function (m) {
     let chat = global.db.data.chats[m.chat]
     
-    if (chat.isBanned) return
+    if (isChatBannedForBot(chat, normalizeSessionJid(this))) return
 
     const sendBn = async (url) => {
         await this.sendPresenceUpdate('recording', m.chat)

@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { isChatBannedForBot, normalizeSessionJid } from '../../src/core/session-utils.js';
 
 let cachedCommands = new Set();
 let cachedPluginSize = -1;
@@ -54,14 +55,10 @@ export async function before(m, { conn, isAdmin, isOwner, isROwner }) {
   const usedPrefix = prefixMatch[0];
 
   const chat = global.db.data.chats[m.chat];
-  const botJid = conn?.user?.jid;
-  const isBotBannedInThisChat = Boolean(chat?.bannedBots && botJid && chat.bannedBots.includes(botJid));
+  const botJid = normalizeSessionJid(conn);
+  const isBotBannedInThisChat = isChatBannedForBot(chat, botJid);
 
-  if (isBotBannedInThisChat) {
-    const mode = chat?.banchatMode || 'silent';
-    if (mode === 'strict') return;
-    if (mode === 'silent' && !isOwner && !isROwner) return;
-  }
+  if (isBotBannedInThisChat) return;
   if (chat?.modoadmin && m.isGroup && !isAdmin && !isOwner && !isROwner) return;
   if (['>', '=>', '$'].includes(usedPrefix)) return;
 
@@ -76,12 +73,7 @@ export async function before(m, { conn, isAdmin, isOwner, isROwner }) {
   if (isKnownCommand) {
     const user = global.db.getUser(m.sender);
 
-    if (chat?.isBanned) {
-      const avisoDesactivado = `🍧 La bot *${global.botname}* está desactivada en este grupo.\n\n> ✦ Un *administrador* puede activarla con el comando:\n> » *${usedPrefix}bot on*`;
-      await m.reply(avisoDesactivado);
-      return;
-    }
-
+    if (isChatBannedForBot(chat, botJid)) return;
     if (user) {
       user.commands = (user.commands || 0) + 1;
     }

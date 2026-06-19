@@ -18,6 +18,7 @@ isNumber,
 normalizeLidReferences,
 runMaintenance,
 } from './src/core/handler-utils.js'
+import { getAntiPrivateState, isChatBannedForBot, normalizeSessionJid } from './src/core/session-utils.js'
 import { attachSessionState } from './src/core/session-manager.js'
 import messageQueue from './src/core/message-queue.js'
 
@@ -49,10 +50,7 @@ return IGNORED_BAILEYS_IDS.some((pattern) => pattern.test(id))
 
 
 function normalizeConnectionJid(conn) {
-const jid = String(conn?.user?.jid || conn?.user?.id || '')
-if (!jid) return ''
-const [local, domain] = jid.split('@')
-return domain ? `${local.split(':')[0]}@${domain}` : jid
+return normalizeSessionJid(conn)
 }
 
 function parseCommand(text, usedPrefix) {
@@ -91,7 +89,7 @@ const fail = plugin.fail || global.dfail
 const chat = global.db?.data?.chats?.[m.chat]
 const user = global.db?.data?.users?.[sender]
 
-if (m.isGroup && !UNBAN_COMMAND_FILES.includes(name) && chat?.isBanned === true && !isROwner) return true
+if (m.isGroup && !UNBAN_COMMAND_FILES.includes(name) && isChatBannedForBot(chat, normalizeConnectionJid(conn)) && !isROwner) return true
 if (m.text && user?.banned && !isROwner) {
 if (!user.lastBanMsg || Date.now() - user.lastBanMsg > 30_000) {
 m.reply(`《✦》Estas baneado/a, no puedes usar comandos en este bot!\n\n${user.bannedReason ? `✰ *Motivo:* ${user.bannedReason}` : '✰ *Motivo:* Sin Especificar'}\n\n> ✧ Si este Bot es cuenta ...`)
@@ -249,6 +247,15 @@ if (opts.swonly && m.chat !== 'status@broadcast') return
 
 const permissionContext = buildPermissionContext(this, m, sender, participants)
 const { userGroup, botGroup, isRAdmin, isAdmin, isBotAdmin, isROwner, isOwner, isMods, isPrems } = permissionContext
+if (!m.isGroup && !isROwner && !isOwner) {
+const botSettings = global.db?.data?.settings?.[normalizeConnectionJid(this)] || settings || {}
+const antiPrivateState = getAntiPrivateState(botSettings)
+if (antiPrivateState === 'ignore') return
+if (antiPrivateState === 'block') {
+await this.updateBlockStatus?.(sender, 'block').catch(() => {})
+return
+}
+}
 m.moneda = settings?.moneda || 'Coins'
 m.exp += Math.ceil(Math.random() * 10)
 
@@ -279,7 +286,7 @@ if (shouldIgnoreBaileysMessage(m)) return
 if (!isAccept) continue
 m.plugin = name
 const chatData = global.db?.data?.chats?.[m.chat] || {}
-const isBotBannedInThisChat = Array.isArray(chatData.bannedBots) && chatData.bannedBots.includes(this.user?.jid)
+const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJid(this))
 if (isBotBannedInThisChat && !UNBAN_COMMAND_FILES.includes(name)) return
 
 const extra = { match, usedPrefix, ...parsed, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }

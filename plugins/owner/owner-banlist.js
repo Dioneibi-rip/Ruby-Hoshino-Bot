@@ -1,5 +1,6 @@
+import { isChatBannedForBot } from '../../src/core/session-utils.js';
 const handler = async (m, {conn, isOwner}) => {
-  const chats = Object.entries(global.db.data.chats).filter((chat) => chat[1].isBanned);
+  const chats = Object.entries(global.db.data.chats).filter(([, chat]) => Object.keys(chat?.isBanned || {}).length || (chat?.bannedBots || []).some((jid) => isChatBannedForBot(chat, jid)));
   const users = Object.entries(global.db.listUsers()).filter((user) => user[1].banned);
   const caption = `
 ┌〔 Usuarios  -  Baneados 〕
