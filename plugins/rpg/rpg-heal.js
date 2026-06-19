@@ -1,5 +1,5 @@
 let handler = async (m, { conn }) => {
-    let user = global.db.data.users[m.sender];
+    let user = global.db.getUser(m.sender);
 
     if (!user) {
         return conn.reply(m.chat, `✧⃝❛ El usuario no está registrado en la base de datos.`, m);

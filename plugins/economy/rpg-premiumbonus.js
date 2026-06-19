@@ -1,5 +1,5 @@
 const handler = async (m, { conn, isPrems }) => {
-  const user = global.db.data.users[m.sender];
+  const user = global.db.getUser(m.sender);
   if (!isPrems && !user.premium) {
     return conn.reply(m.chat, '🔒 Este comando es exclusivo para usuarios premium.', m);
   }

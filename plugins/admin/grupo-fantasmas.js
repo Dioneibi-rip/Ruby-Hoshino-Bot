@@ -13,7 +13,7 @@ const handler = async (m, { conn, participants, command, text }) => {
 
   for (let i = 0; i < cantidad; i++) {
     const id = participantes[i];
-    const user = global.db.data.users?.[id];
+    const user = global.db.userExists(id) ? global.db.getUser(id) : undefined;
     const miembro = participants.find(p => areJidsSameUser(p.id, id));
 
     const esAdmin = miembro?.admin === 'admin' || miembro?.admin === 'superadmin';

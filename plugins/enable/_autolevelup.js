@@ -5,7 +5,7 @@ handler.before = async function (m) {
     const chat = global.db.data.chats[m.chat];
     if (!chat?.autolevelup) return;
 
-    const user = global.db.data.users[m.sender];
+    const user = global.db.getUser(m.sender);
     if (!user) return;
 
     const before = user.level * 1;

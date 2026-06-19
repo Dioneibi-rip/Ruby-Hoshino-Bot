@@ -26,7 +26,7 @@ return char?.name?.toLowerCase().includes(normalizedTarget)
 let handler = async (m, { conn, args, usedPrefix }) => {
 const userId = m.sender
 const groupId = m.chat
-const user = global.db.data.users[userId]
+const user = global.db.getUser(userId)
 const moneda = m.moneda || 'Coins'
 const prefix = usedPrefix || '#'
 if (!user) return conn.reply(m.chat, '✘ Usuario no registrado.', m)

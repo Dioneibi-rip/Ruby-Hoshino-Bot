@@ -27,15 +27,15 @@ if (!venta) return m.reply('✘ No se encontró ese personaje en venta en este g
 
 if (isSameUserId(venta.vendedor, m.sender)) return m.reply('✘ No puedes comprarte a ti mismo.')
 
-let comprador = global.db.data.users[m.sender]
+let comprador = global.db.getUser(m.sender)
 if (!comprador) return m.reply('✘ No estás registrado.')
 
 let precio = Number(venta.precio) || 0
 if ((comprador.coin || 0) < precio)
 return m.reply(`✘ Dinero insuficiente.\nNecesitas *¥${precio.toLocaleString()} ${m.moneda}*`)
 
-let vendedor = global.db.data.users[venta.vendedor]
-if (!vendedor) vendedor = global.db.data.users[venta.vendedor] = { coin: 0 }
+let vendedor = global.db.getUser(venta.vendedor)
+if (!vendedor) vendedor = global.db.getUser(venta.vendedor)
 
 comprador.coin = (comprador.coin || 0) - precio
 vendedor.coin = (vendedor.coin || 0) + precio

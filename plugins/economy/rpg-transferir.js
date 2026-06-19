@@ -29,7 +29,7 @@ async function handler(m, { conn, args, usedPrefix, command, participants }) {
 
   const count = Math.min(Number.MAX_SAFE_INTEGER, Math.max(1, parseInt(amountText)));
   
-  const user = global.db.data.users[senderJid];
+  const user = global.db.getUser(senderJid);
   const type = 'coin';
   const bankType = 'bank';
 
@@ -37,7 +37,7 @@ async function handler(m, { conn, args, usedPrefix, command, participants }) {
     return m.reply(`⚠️ ᥒ᥆ 𝗍іᥱᥒᥱs sᥙ𝖿іᥴіᥱᥒ𝗍ᥱs ${m.moneda} ᥱᥒ ᥱᥣ ᑲᥲᥒᥴ᥆ ⍴ᥲrᥲ rᥱᥲᥣіzᥲr ᥣᥲ transferenciᥲ.`);
   }
 
-  if (!(targetJid in global.db.data.users)) {
+  if (!global.db.userExists(targetJid)) {
     return m.reply(`❌ ᥱᥣ ᥙsᥙᥲrі᥆ ᥒ᥆ sᥱ ᥱᥒᥴᥙᥱᥒ𝗍rᥲ ᥱᥒ mі ᑲᥲsᥱ ძᥱ datos.`);
   }
 
@@ -46,7 +46,7 @@ async function handler(m, { conn, args, usedPrefix, command, participants }) {
   }
 
   user[bankType] -= count;
-  global.db.data.users[targetJid][type] += count;
+  global.db.getUser(targetJid)[type] += count;
 
   const mentionText = `@${who.split('@')[0]}`;
   m.reply(`✅ ¡𝗍rᥲᥒsFᥱrᥱᥒᥴіᥲ ᥱ᥊і𝗍᥆sᥲ!\n\n› һᥲs ᥱᥒ᥎іᥲძ᥆ *${count.toLocaleString()} ${m.moneda}* ᥲ ${mentionText}.\n› 𝗍ᥱ 𝗊ᥙᥱძᥲᥒ *${user[bankType].toLocaleString()} ${m.moneda}* en el banco.`, null, { mentions: [who] });

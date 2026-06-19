@@ -1,5 +1,5 @@
 const handler = async (m, { text, conn }) => {
-    const user = global.db.data.users[m.sender];
+    const user = global.db.getUser(m.sender);
     user.afk = +new Date();
     user.afkReason = text;
 

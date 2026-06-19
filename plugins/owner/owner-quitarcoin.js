@@ -20,9 +20,11 @@ let handler = async (m, { conn, text }) => {
         } catch (e) { console.error('[quitarcoin] Error resolviendo LID:', e) }
     }
 
-    let user = global.db?.getUser ? global.db.getUser(who) : global.db.data.users[who]
+    let user = global.db?.getUser ? global.db.getUser(who) : global.db.getUser(who)
     if (!user) {
-        user = global.db.data.users[who] = { coin: 0, bank: 0 }
+        user = global.db.getUser(who)
+        user.coin = 0
+        user.bank = 0
     }
 
     let txt = text.replace('@' + who.split('@')[0], '').trim()

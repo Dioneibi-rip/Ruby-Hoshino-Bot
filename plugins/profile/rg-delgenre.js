@@ -1,6 +1,6 @@
 const handler = async (m, { conn, command, usedPrefix }) => {
 
-const user = global.db.data.users[m.sender];
+const user = global.db.getUser(m.sender);
 
 if (!user.genre) {
 return conn.reply(m.chat, `${emoji2} No tienes un género asignado.`, m)

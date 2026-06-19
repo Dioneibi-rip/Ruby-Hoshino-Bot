@@ -20,10 +20,10 @@ const handler = async (m, { conn, text }) => {
         const participants = m.isGroup ? groupMetadata.participants : [];
         const users = m.isGroup ? participants.find(u => u.jid == user) : {};
         const userNumber = user.split('@')[0];
-        if (!global.global.db.data.users[user] || global.global.db.data.users[user] == '') {
+        if (!global.db.userExists(user)) {
             return conn.sendMessage(m.chat, {text: `${emoji4} El usuario @${userNumber} no se encuentra en mi base de datos.*`, mentions: [user]}, {quoted: fkontak});
          }
-        delete global.global.db.data.users[user];
+        global.db.delete('users', user);
         conn.sendMessage(m.chat, {text: `${done} Éxito Todos Los Datos Del User: @${userNumber} Ya Fuerón Eliminados De Mi Base De Datos.`, mentions: [user]}, {quoted: fkontak});
 };
 handler.tags = ['owner'];

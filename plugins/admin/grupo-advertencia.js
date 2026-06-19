@@ -7,7 +7,7 @@ const handler = async (m, { conn, text, command, usedPrefix, participants }) => 
         who = m.chat;
     }
 
-    let user = global.db.data.users[who];
+    let user = global.db.getUser(who);
     const botJid = conn.user.jid.split`@`[0] + '@s.whatsapp.net';
     const reason = text || 'Comportamiento inadecuado';
     const warntext = `*❌ Etiqueta a alguien o responde a un mensaje para advertir.*`;
@@ -32,7 +32,7 @@ const handler = async (m, { conn, text, command, usedPrefix, participants }) => 
     }
 
     // 3. LÓGICA DE ADVERTENCIAS Y DECORACIÓN PROGRESIVA
-    if (!user) user = global.db.data.users[who] = { warn: 0 }; // Asegurar que el usuario existe en DB
+    if (!user) user = global.db.getUser(who); // Asegurar que el usuario existe en DB
     if (typeof user.warn !== 'number' || !Number.isFinite(user.warn)) user.warn = 0;
     user.warn += 1;
 

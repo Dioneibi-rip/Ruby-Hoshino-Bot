@@ -11,7 +11,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
   const textoParts = text.split(/[\u2022|]/).map(part => part.trim());
   const userId = m.sender;
-  let packstickers = global.db.data.users[userId] || {};
+  let packstickers = global.db.getUser(userId) || {};
   let texto1 = textoParts[0] || packstickers.text1 || global.packsticker;
   let texto2 = textoParts[1] || packstickers.text2 || global.packsticker2;
 

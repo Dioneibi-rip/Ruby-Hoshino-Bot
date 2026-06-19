@@ -6,7 +6,7 @@ let handler = async (m, { conn, text }) => {
     }
 
     let codesDB = global.db.data.codes || {};
-    let user = global.db.data.users[m.sender];
+    let user = global.db.getUser(m.sender);
 
     if (!codesDB[code]) {
         return conn.reply(m.chat, `${emoji2} Código no válido.`, m);
