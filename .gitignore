@@ -21,3 +21,11 @@ tmp/
 # Sistemas
 .DS_Store
 Thumbs.db
+
+# SQLite runtime databases
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.db-shm
+*.db-wal

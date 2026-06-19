@@ -1,8 +1,5 @@
-import { promises as fs } from 'fs';
-
-import { isSameUserId } from '../../lib/gacha-group.js';
-
-const charactersFilePath = './src/database/characters.json';
+import { loadHarem, isSameUserId } from '../../lib/gacha-group.js';
+import { loadCharacters } from '../../lib/gacha-characters.js';
 
 const getCooldownMap = key => {
   if (!global.gachaCooldowns || typeof global.gachaCooldowns !== 'object') return {};
@@ -49,21 +46,8 @@ let handler = async (m, { conn }) => {
     const voteStatus = getCooldownStatus(getCooldownMap('vote'), baseKey, now);
     const robStatus = getCooldownStatus(getCooldownMap('robwaifu'), baseKey, now);
 
-    let allCharacters = [];
-    try {
-      const data = await fs.readFile(charactersFilePath, 'utf-8');
-      allCharacters = JSON.parse(data);
-    } catch (e) {
-      console.error('Error leyendo characters.json:', e.message);
-      return conn.reply(m.chat, 'Hubo un error al cargar la base de datos de personajes.', m);
-    }
-
-    let harem = [];
-    try {
-      harem = JSON.parse(await fs.readFile('./src/database/harem.json', 'utf-8'));
-    } catch (e) {
-      harem = [];
-    }
+    const allCharacters = await loadCharacters();
+    const harem = await loadHarem();
     const userCharacters = harem.filter(c => c.groupId === groupId && isSameUserId(c.userId, userId));
     const claimedCount = userCharacters.length;
     const totalCharacters = allCharacters.length;

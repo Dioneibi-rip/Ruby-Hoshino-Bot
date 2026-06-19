@@ -1,4 +1,3 @@
-import { promises as fs } from 'fs';
 import {
   loadHarem,
   saveHarem,
@@ -8,26 +7,9 @@ import {
   isSameUserId
 } from '../../lib/gacha-group.js';
 import { resetProtectionOnTransfer } from '../../lib/gacha-protection.js';
-import { findCharacterByName } from '../../lib/gacha-characters.js';
+import { loadCharacters, saveCharacters, findCharacterByName } from '../../lib/gacha-characters.js';
 
-const charactersFilePath = './src/database/characters.json';
 
-async function loadCharacters() {
-  try {
-    const data = await fs.readFile(charactersFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    throw new Error('No se pudo cargar el archivo characters.json.');
-  }
-}
-
-async function saveCharacters(characters) {
-  try {
-    await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8');
-  } catch (error) {
-    throw new Error('No se pudo guardar el archivo characters.json.');
-  }
-}
 
 let handler = async (m, { conn, args, participants }) => {
   const normalizeToJid = (rawJid) => {

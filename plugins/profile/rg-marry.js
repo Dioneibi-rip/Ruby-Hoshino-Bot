@@ -1,28 +1,17 @@
 //código creado por Destroy
 //fix LID + JID by Dioneibi
 
-import fs from 'fs';
-import path from 'path';
-
-const marriagesFile = path.resolve('src/database/casados.json');
-async function pathExists(file){
-try{
-await fs.promises.access(file)
-return true
-}catch{
-return false
-}
-}
 let proposals = {};
 let marriages = await loadMarriages();
 const confirmation = {};
 
 async function loadMarriages() {
-return await pathExists(marriagesFile) ? JSON.parse(await fs.promises.readFile(marriagesFile, 'utf8')) : {};
+return global.db?.getSection?.('marriages') || {}
 }
 
 async function saveMarriages() {
-await fs.promises.writeFile(marriagesFile, JSON.stringify(marriages, null, 2));
+global.db.replaceSection('marriages', marriages || {})
+await global.db.write?.()
 }
 
 const handler = async (m, { conn, command, participants }) => {

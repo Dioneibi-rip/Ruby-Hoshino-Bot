@@ -1,22 +1,6 @@
-import fs from'fs'
-import path from'path'
 import{formatJobLine,ensureJobFields}from'../../lib/rpg-jobs.js'
-const marriagesFile=path.resolve('src/database/casados.json')
-async function pathExists(file){
-try{
-await fs.promises.access(file)
-return true
-}catch{
-return false
-}
-}
 async function loadMarriages(){
-try{
-if(!await pathExists(marriagesFile))return{}
-return JSON.parse(await fs.promises.readFile(marriagesFile,'utf8'))||{}
-}catch(e){
-return{}
-}
+return global.db?.getSection?.('marriages') || {}
 }
 async function resolvePartnerJid(userId,user){
 if(user?.marry)return user.marry
