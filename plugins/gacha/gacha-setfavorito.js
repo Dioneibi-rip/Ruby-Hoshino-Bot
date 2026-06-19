@@ -1,19 +1,12 @@
-import { promises as fs } from 'fs';
 import { loadCharacters, saveCharacters, findCharacterByName } from '../../lib/gacha-characters.js';
 
-const userFavFilePath = './src/database/charactersfav.json';
-
 async function loadUserFavs() {
-  try {
-    const data = await fs.readFile(userFavFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (e) {
-    return {};
-  }
+  return global.db?.getSection?.('character_favorites') || {};
 }
 
 async function saveUserFavs(favs) {
-  await fs.writeFile(userFavFilePath, JSON.stringify(favs, null, 2), 'utf-8');
+  global.db.replaceSection('character_favorites', favs || {});
+  await global.db.write?.();
 }
 
 let handler = async (m, { args }) => {

@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs';
+import { loadCharacters, saveCharacters } from '../../lib/gacha-characters.js';
 import {
   loadHarem,
   saveHarem,
@@ -6,17 +6,7 @@ import {
 } from '../../lib/gacha-group.js';
 import { resetProtectionOnTransfer } from '../../lib/gacha-protection.js';
 
-const charactersFilePath = './src/database/characters.json';
-const confirmaciones = new Map();
 
-async function loadCharacters() {
-  const data = await fs.readFile(charactersFilePath, 'utf-8');
-  return JSON.parse(data);
-}
-
-async function saveCharacters(characters) {
-  await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8');
-}
 
 let handler = async (m, { conn, participants }) => {
   const normalizeToJid = (rawJid) => {

@@ -1,14 +1,12 @@
-import fs from 'fs';
-import path from 'path';
-
-const ownerPath = 'src/database/owners.json';
-async function pathExists(file){
-try{
-await fs.promises.access(file)
-return true
-}catch{
-return false
+function loadOwners() {
+const stored = Object.values(global.db?.getSection?.('owners') || {})
+if (stored.length > global.owner.length) global.owner = stored
 }
+
+async function saveOwners() {
+if (!global.db?.replaceSection) throw new Error('SQLite no está inicializado para guardar owners.')
+global.db.replaceSection('owners', Object.fromEntries((global.owner || []).map((owner) => [String(owner?.[0] || ''), owner])))
+await global.db.write?.()
 }
 
 const protectedOwners = [
@@ -22,15 +20,7 @@ const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡『 Ruby-Hoshino-Channel 』࿐�
 
 const handler = async (m, { conn, text, args, usedPrefix, command, participants }) => {
 try {
-if (!await pathExists(ownerPath)) {
-await fs.promises.mkdir(path.dirname(ownerPath), { recursive: true });
-await fs.promises.writeFile(ownerPath, JSON.stringify(global.owner, null, 2));
-} else {
-const savedOwners = JSON.parse(await fs.promises.readFile(ownerPath));
-if (savedOwners.length > global.owner.length) {
-global.owner = savedOwners;
-}
-}
+loadOwners();
 
 let name;
 try {
@@ -96,7 +86,7 @@ if (!added) {
 return conn.reply(m.chat, `🌸 *${contactName}* 𝙮𝙖 𝙚𝙨 𝙤𝙬𝙣𝙚𝙧, *${name}-chan*~`, m, { contextInfo });
 }
 
-await fs.promises.writeFile(ownerPath, JSON.stringify(global.owner, null, 2));
+await saveOwners();
 
 await conn.reply(
 m.chat,
@@ -123,7 +113,7 @@ const initialLength = global.owner.length;
 global.owner = global.owner.filter(o => o[0] !== jidNumber && o[0] !== lidNumber);
 
 if (global.owner.length < initialLength) {
-await fs.promises.writeFile(ownerPath, JSON.stringify(global.owner, null, 2));
+await saveOwners();
 await conn.reply(
 m.chat,
 `

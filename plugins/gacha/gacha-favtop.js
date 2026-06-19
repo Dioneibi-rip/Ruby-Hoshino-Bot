@@ -1,10 +1,4 @@
-import { promises as fs } from 'fs';
-const charactersFilePath = './src/database/characters.json';
-
-async function loadCharacters() {
-  const data = await fs.readFile(charactersFilePath, 'utf-8');
-  return JSON.parse(data);
-}
+import { loadCharacters, saveCharacters } from '../../lib/gacha-characters.js';
 
 let handler = async (m) => {
   const characters = await loadCharacters();

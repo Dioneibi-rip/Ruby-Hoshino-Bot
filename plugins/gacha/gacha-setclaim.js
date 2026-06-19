@@ -1,22 +1,13 @@
-import fs from 'fs/promises';
-
-const userConfigFile = './src/database/userClaimConfig.json';
 
 let handler = async (m, { args, command }) => {
     const userId = m.sender;
 
-    let config = {};
-    try {
-        const data = await fs.readFile(userConfigFile, 'utf-8');
-        config = JSON.parse(data);
-    } catch (e) {
-        config = {};
-    }
+    let config = global.db?.getSection?.('claim_config') || {};
 
     if (command === 'delclaimmsg') {
         if (config[userId]) {
             delete config[userId];
-            await fs.writeFile(userConfigFile, JSON.stringify(config, null, 2));
+            global.db.replaceSection('claim_config', config); await global.db.write?.();
             return m.reply(`《✧》Tu mensaje personalizado ha sido eliminado. Ahora usarás el mensaje por defecto.`);
         } else {
             return m.reply(`《✧》No tienes ningún mensaje personalizado guardado para eliminar.`);
@@ -34,7 +25,7 @@ let handler = async (m, { args, command }) => {
 
     config[userId] = texto;
 
-    await fs.writeFile(userConfigFile, JSON.stringify(config, null, 2));
+    global.db.replaceSection('claim_config', config); await global.db.write?.();
 
     m.reply(`✧ ¡Tu mensaje personalizado fue guardado correctamente!\n(Si tenías uno anterior, ha sido actualizado)\n\n*Vista previa del formato:*\n${texto}`);
 };

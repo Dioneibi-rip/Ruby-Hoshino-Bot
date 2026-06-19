@@ -33,8 +33,7 @@ function isUserInGroup(userId, participants = []) {
 
 async function loadClaimMessages() {
   try {
-    const data = await fs.readFile('./src/database/userClaimConfig.json', 'utf-8');
-    return JSON.parse(data);
+    return global.db?.getSection?.('claim_config') || {};
   } catch (e) {
     return {};
   }
@@ -113,7 +112,7 @@ let handler = async (m, { conn, participants = [] }) => {
       return conn.reply(m.chat, `❌ El personaje *${character.name}* ya fue reclamado por ${existingClaim.userId.split('@')[0]}.`, m);
     }
 
-    // Registrar claim en harem.json (por grupo). Si el dueño anterior salió del grupo,
+    // Registrar claim en harem SQLite (por grupo). Si el dueño anterior salió del grupo,
     // se transfiere limpiamente al nuevo usuario para no dejar personajes bloqueados.
     if (existingClaim && !isSameUserId(existingClaim.userId, userId)) {
       existingClaim.userId = userId;

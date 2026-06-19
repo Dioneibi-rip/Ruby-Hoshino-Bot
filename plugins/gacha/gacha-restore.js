@@ -60,7 +60,7 @@ let handler = async (m, { conn, args, participants }) => {
     const groupId = m.chat;
 
     const characters = await loadCharacters();
-    if (!characters.length) return m.reply('✘ No se encontraron personajes (characters.json vacío o no cargable).');
+    if (!characters.length) return m.reply('✘ No se encontraron personajes (personajes SQLite vacío o no cargable).');
 
     // Determinar nombres a asignar
     let namesToGive = [];

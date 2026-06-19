@@ -1,16 +1,6 @@
-import { promises as fs } from 'fs';
+import { loadCharacters, saveCharacters } from '../../lib/gacha-characters.js';
 import { loadGroupVotes, makeGroupCharacterKey } from '../../lib/groupVotes.js';
 
-const charactersFilePath = './src/database/characters.json';
-
-async function loadCharacters() {
-  try {
-    const data = await fs.readFile(charactersFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (e) {
-    throw new Error('《✧》No se pudo cargar el archivo characters.json.');
-  }
-}
 
 let handler = async (m, { conn, args }) => {
   try {

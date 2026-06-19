@@ -1,39 +1,5 @@
-import { promises as fs } from 'fs'
+import { loadCharacters, saveCharacters } from '../../lib/gacha-characters.js';
 import { loadHarem } from '../../lib/gacha-group.js'
-const charactersFilePath = './src/database/characters.json'
-function similarity(s1, s2) {
-let longer = s1.toLowerCase().trim()
-let shorter = s2.toLowerCase().trim()
-if (longer.length < shorter.length) { [longer, shorter] = [shorter, longer] }
-let longerLength = longer.length
-if (longerLength === 0) return 1.0
-return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength)
-}
-function editDistance(s1, s2) {
-let costs = []
-for (let i = 0; i <= s1.length; i++) {
-let lastValue = i
-for (let j = 0; j <= s2.length; j++) {
-if (i == 0) costs[j] = j
-else if (j > 0) {
-let newValue = costs[j - 1]
-if (s1.charAt(i - 1) != s2.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1
-costs[j - 1] = lastValue
-lastValue = newValue
-}
-}
-if (i > 0) costs[s2.length] = lastValue
-}
-return costs[s2.length]
-}
-async function loadCharacters() {
-try {
-const data = await fs.readFile(charactersFilePath, 'utf-8')
-return JSON.parse(data)
-} catch (error) {
-throw new Error('✘ No se pudo cargar la base de datos.')
-}
-}
 async function getSeriesImage(title) {
 try {
 const res = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(title)}&limit=1`)
