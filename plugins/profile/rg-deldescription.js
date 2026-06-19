@@ -2,7 +2,7 @@ import { createHash } from 'crypto';
 import fetch from 'node-fetch';
 
 const handler = async (m, { conn }) => {
-let user = global.db.data.users[m.sender];
+let user = global.db.getUser(m.sender);
 
 if (!user.description) {
 return conn.reply(m.chat, `${emoji2} No tienes una descripción establecida que se pueda eliminar.`, m);

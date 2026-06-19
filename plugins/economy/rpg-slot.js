@@ -7,7 +7,7 @@ const handler = async (m, { args, usedPrefix, command, conn }) => {
   if (!args[0] || isNaN(args[0]) || parseInt(args[0]) <= 0) throw fa;
   
   const apuesta = parseInt(args[0]);
-  const users = global.db.data.users[m.sender];
+  const users = global.db.getUser(m.sender);
   const time = users.lastslot + 10000;
   if (new Date() - users.lastslot < 10000) throw `${emoji2} Debes esperar ${msToTime(time - new Date())} para usar #slot nuevamente.`;
   if (apuesta < 100) throw `${emoji2} El minimo para apostar es de 100 XP.`;

@@ -30,8 +30,7 @@ try {
 if (global.db && typeof global.db.addMoney === 'function') {
 global.db.addMoney(who, dmt, 'coin')
 } else {
-if (!global.db.data.users[who]) global.db.data.users[who] = { coin: 0, bank: 0 }
-let user = global.db.data.users[who]
+let user = global.db.getUser(who)
 if (typeof user.coin !== 'number') user.coin = 0
 user.coin += dmt
 if (global.db && typeof global.db.write === 'function') await global.db.write()

@@ -33,7 +33,7 @@ var handler = async (m, { conn, text, usedPrefix, command }) => {
             }
         }
 
-        users = global.db.data.users
+        users = global.db.listUsers()
         if (!users[user]) {
             users[user] = { banned: false }
         }

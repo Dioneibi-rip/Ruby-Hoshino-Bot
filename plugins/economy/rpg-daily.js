@@ -1,5 +1,5 @@
 const handler = async (m, { conn }) => {
-  const user = global.db.data.users[m.sender];
+  const user = global.db.getUser(m.sender);
   const cooldown = 24 * 60 * 60 * 1000;
   const now = Date.now();
   const elapsed = now - (user.lastclaim || 0);

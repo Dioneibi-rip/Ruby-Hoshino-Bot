@@ -1,7 +1,7 @@
 const cooldowns = {};
 
 const handler = async (m, { conn, text, command, usedPrefix }) => {
-  const user = global.db.data.users[m.sender];
+  const user = global.db.getUser(m.sender);
   const now = Date.now();
   const cooldownMs = 30 * 1000;
 

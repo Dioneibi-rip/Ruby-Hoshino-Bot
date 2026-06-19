@@ -111,12 +111,18 @@ global.redes = [canal, canal2, git, github, correo].getRandom()
 
 //Imagen aleatoria
 let category = "imagen"
+const fallbackImage = 'https://files.catbox.moe/xr2m6u.jpg'
 const fakeLinks = global.db?.getSection?.('fake_links') || {}
-const links = fakeLinks.links?.[category] || []
-const random = Math.floor(Math.random() * links.length)
-const randomlink = links[random]
-const response = await fetch(randomlink)
-const rimg = await response.buffer()
+const links = Array.isArray(fakeLinks.links?.[category]) ? fakeLinks.links[category].filter(link => typeof link === 'string' && /^https?:\/\//i.test(link)) : []
+const randomlink = links.length ? pickRandom(links) : fallbackImage
+let rimg = global.icono
+try {
+  const response = await fetch(randomlink)
+  if (response.ok) rimg = await response.buffer()
+} catch (error) {
+  console.error(`Error cargando imagen fake (${randomlink}):`, error.message)
+  rimg = await getBuffer(fallbackImage).catch(() => global.icono)
+}
 global.icons = rimg
 
 // Saludo por hora

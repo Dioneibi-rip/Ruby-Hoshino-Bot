@@ -30,7 +30,7 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isROwn
 
   if (isOwner || isROwner || isAdmin || !isBotAdmin || isPrems) return
 
-  const user = global.db.data.users[m.sender]
+  const user = global.db.getUser(m.sender)
   const sender = m.sender
   const now = Date.now()
 

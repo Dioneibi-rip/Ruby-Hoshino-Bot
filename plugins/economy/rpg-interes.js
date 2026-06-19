@@ -1,5 +1,5 @@
 const handler = async (m, { conn }) => {
-  const user = global.db.data.users[m.sender];
+  const user = global.db.getUser(m.sender);
   const bank = Math.max(0, Number(user.bank) || 0);
 
   if (bank < 5000) {
