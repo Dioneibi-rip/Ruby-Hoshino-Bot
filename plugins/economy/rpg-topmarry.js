@@ -1,18 +1,6 @@
-import fs from 'fs'
-import path from 'path'
-
-const marriagesFile = path.resolve('src/database/casados.json')
-async function pathExists(file){
-try{
-await fs.promises.access(file)
-return true
-}catch{
-return false
-}
-}
 
 async function loadMarriages() {
-return await pathExists(marriagesFile) ? JSON.parse(await fs.promises.readFile(marriagesFile, 'utf8')) : {}
+return global.db?.getSection?.('marriages') || {}
 }
 
 let marriages = await loadMarriages()

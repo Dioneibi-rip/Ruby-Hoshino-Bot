@@ -3,10 +3,7 @@ import path from 'path'
 import axios from 'axios'
 import { spawn } from 'child_process'
 import { tmpdir } from 'os'
-import { findCharacterByName } from '../../lib/gacha-characters.js'
-
-const charactersFilePath = './src/database/characters.json'
-const haremFilePath = './src/database/harem.json'
+import { loadCharacters, findCharacterByName } from '../../lib/gacha-characters.js'
 
 // --- FUNCIÓN DE CONVERSIÓN (LA MAGIA) ---
 // Esta función toma el archivo descargado y lo "limpia/convierte" a un MP4
@@ -64,14 +61,6 @@ function formatUrl(url) {
     return url.trim()
 }
 
-async function loadCharacters() {
-    try {
-        const data = await fs.readFile(charactersFilePath, 'utf-8')
-        return JSON.parse(data)
-    } catch (error) {
-        throw new Error('❀ No se pudo cargar el archivo characters.json.')
-    }
-}
 
 let handler = async (m, { conn, args }) => {
     if (args.length === 0) {

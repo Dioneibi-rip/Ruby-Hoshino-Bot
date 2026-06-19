@@ -51,7 +51,7 @@ let handler = async (m, { args, conn, participants }) => {
   }
 
   // Validación: el usuario debe poseer el personaje en este grupo
-  // Comprobamos en harem.json si existe un claim en este grupo por user
+  // Comprobamos en harem SQLite si existe un claim en este grupo por user
   const haremRaw = await loadHarem();
   const claim = findClaimByUserAndChar(haremRaw, groupId, userId, personaje.id);
   if (!claim) return m.reply('✧ Esta waifu no te pertenece en este grupo.');

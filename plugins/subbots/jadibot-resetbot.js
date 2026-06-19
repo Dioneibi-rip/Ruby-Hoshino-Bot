@@ -1,12 +1,15 @@
-let handler = async (m, { conn }) => {
-let chat = global.db.data.chats[m.chat];
+let handler = async (m) => {
+const chat = global.db.get('chats', m.chat) || {};
 
-if (!chat || !chat.primaryBot) {
+if (!chat.primaryBot && !chat.botPrimario) {
 return m.reply('《✧》 No hay ningún bot primario establecido en este grupo.');
 }
 
 console.log(`[ResetBot] Reseteando configuración para el chat: ${m.chat}`);
 chat.primaryBot = null;
+chat.botPrimario = null;
+global.db.set('chats', m.chat, chat);
+await global.db.write?.();
 
 await m.reply(`✐ ¡Listo! Se ha restablecido la configuración.\n> A partir de ahora, todos los bots válidos responderán nuevamente en este grupo.`);
 }

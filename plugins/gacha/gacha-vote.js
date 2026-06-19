@@ -1,32 +1,7 @@
-import { promises as fs } from 'fs';
 import { loadGroupVotes, saveGroupVotes, makeGroupCharacterKey } from '../../lib/groupVotes.js';
-import { findCharacterByName } from '../../lib/gacha-characters.js';
+import { loadCharacters, saveCharacters, findCharacterByName } from '../../lib/gacha-characters.js';
 
-const charactersFilePath = './src/database/characters.json';
-export let cooldowns = {}; // clave: `${groupId}:${userId}` => expiration timestamp
 
-global.gachaCooldowns = global.gachaCooldowns || {};
-global.gachaCooldowns.vote = cooldowns;
-export const voteCooldownTime = 1 * 60 * 60 * 1000; // 1 hora
-
-let characterVotes = {}; // clave: `${groupId}:${characterId}` => expiration timestamp
-
-async function loadCharacters() {
-  try {
-    const data = await fs.readFile(charactersFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (e) {
-    throw new Error('No se pudo cargar el archivo characters.json.');
-  }
-}
-
-async function saveCharacters(characters) {
-  try {
-    await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8');
-  } catch (e) {
-    throw new Error('No se pudo guardar el archivo characters.json.');
-  }
-}
 
 let handler = async (m, { conn, args }) => {
   try {

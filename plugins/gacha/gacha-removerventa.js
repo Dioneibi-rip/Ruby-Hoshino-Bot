@@ -1,7 +1,5 @@
-import fs from 'fs';
 import { loadVentas, saveVentas, removeVenta } from '../../lib/gacha-group.js';
 
-const ventaFilePath = './src/database/waifusVenta.json';
 
 async function loadVentasFile() {
   return await loadVentas();

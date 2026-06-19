@@ -3,7 +3,7 @@
 #!/data/data/com.termux/files/usr/bin/bash 
 BOT_DIR="Ruby-Hoshino-Bot"  
 BOT_REPO="https://github.com/Dioneibi-rip/$BOT_DIR"
-DB_FILE="database.json"
+DB_FILE="database.sqlite"
 
 GREEN='\033[32m'
 BOLD='\033[1m'

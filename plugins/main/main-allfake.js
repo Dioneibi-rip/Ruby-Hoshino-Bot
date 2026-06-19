@@ -111,10 +111,10 @@ global.redes = [canal, canal2, git, github, correo].getRandom()
 
 //Imagen aleatoria
 let category = "imagen"
-const db = './src/database/db.json'
-const db_ = JSON.parse(fs.readFileSync(db))
-const random = Math.floor(Math.random() * db_.links[category].length)
-const randomlink = db_.links[category][random]
+const fakeLinks = global.db?.getSection?.('fake_links') || {}
+const links = fakeLinks.links?.[category] || []
+const random = Math.floor(Math.random() * links.length)
+const randomlink = links[random]
 const response = await fetch(randomlink)
 const rimg = await response.buffer()
 global.icons = rimg

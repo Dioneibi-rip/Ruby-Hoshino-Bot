@@ -47,6 +47,14 @@ const id = m?.id || m?.key?.id || ''
 return IGNORED_BAILEYS_IDS.some((pattern) => pattern.test(id))
 }
 
+
+function normalizeConnectionJid(conn) {
+const jid = String(conn?.user?.jid || conn?.user?.id || '')
+if (!jid) return ''
+const [local, domain] = jid.split('@')
+return domain ? `${local.split(':')[0]}@${domain}` : jid
+}
+
 function parseCommand(text, usedPrefix) {
 const noPrefix = text.replace(usedPrefix, '')
 const parts = noPrefix.trim().split` `.filter(Boolean)
@@ -156,7 +164,7 @@ if (m?.isGroup && participant) payload.participant = participant
 return payload
 }
 
-function updateStatsAndEconomy(conn, m, sender) {
+async function updateStatsAndEconomy(conn, m, sender) {
 const data = global.db?.data
 if (!data || !m) return
 const mutedUser = data.users?.[sender]
@@ -168,7 +176,10 @@ if (sender && data.users?.[sender]) {
 data.users[sender].exp += m.exp || 0
 data.users[sender].coin -= (m.coin || 0) * 1
 }
-if (!m.plugin) return
+if (!m.plugin) {
+await global.db?.write?.()
+return
+}
 const stats = data.stats ||= {}
 const now = Date.now()
 const stat = stats[m.plugin] ||= { total: 0, success: 0, last: now, lastSuccess: 0 }
@@ -182,6 +193,7 @@ if (m.error == null) {
 stat.success += 1
 stat.lastSuccess = now
 }
+await global.db?.write?.()
 }
 
 export async function handler(chatUpdate) {
@@ -212,7 +224,8 @@ const primaryBot = chat?.primaryBot || chat?.botPrimario
 if (primaryBot) {
 const universalWords = ['resetbot', 'resetprimario', 'botreset']
 const firstWord = m.text.trim().split(' ')[0]?.toLowerCase().replace(/^[./#]/, '') || ''
-if (!universalWords.includes(firstWord) && this?.user?.jid !== primaryBot) return
+const currentBot = normalizeConnectionJid(this)
+if (!universalWords.includes(firstWord) && currentBot !== primaryBot) return
 }
 }
 
@@ -274,7 +287,7 @@ break
 console.error(error)
 } finally {
 try {
-updateStatsAndEconomy(this, m, sender)
+await updateStatsAndEconomy(this, m, sender)
 } catch (error) {
 console.error(error)
 }
