@@ -6,7 +6,25 @@ import {
 } from '../../lib/gacha-group.js';
 import { resetProtectionOnTransfer } from '../../lib/gacha-protection.js';
 
+const CONFIRMATION_TTL_MS = 60_000
+const confirmaciones = globalThis.confirmacionesGiveAllHarem || new Map()
+globalThis.confirmacionesGiveAllHarem = confirmaciones
 
+function setConfirmation(key, payload) {
+  const previous = confirmaciones.get(key)
+  if (previous?.timeout) clearTimeout(previous.timeout)
+  const timeout = setTimeout(() => confirmaciones.delete(key), CONFIRMATION_TTL_MS)
+  timeout.unref?.()
+  confirmaciones.set(key, { ...payload, timeout })
+}
+
+function takeConfirmation(key) {
+  const data = confirmaciones.get(key)
+  if (!data) return null
+  if (data.timeout) clearTimeout(data.timeout)
+  confirmaciones.delete(key)
+  return data
+}
 
 let handler = async (m, { conn, participants }) => {
   const normalizeToJid = (rawJid) => {
@@ -35,7 +53,7 @@ let handler = async (m, { conn, participants }) => {
     return acc + (parseInt(ch?.value) || 0);
   }, 0);
 
-  confirmaciones.set(`${groupId}:${senderJid}`, {
+  setConfirmation(`${groupId}:${senderJid}`, {
     waifus: myWaifus.map(c => c.characterId),
     receptor: mentionedJid,
     valorTotal
@@ -66,11 +84,11 @@ handler.before = async function (m, { conn, participants }) {
   let senderJid = normalizeToJid(m.sender);
 
   const key = `${m.chat}:${senderJid}`;
-  const data = confirmaciones.get(key);
+  if (m.text?.trim().toLowerCase() !== 'aceptar') return;
+  const data = takeConfirmation(key);
   if (!data) return;
 
-  if (m.text?.trim().toLowerCase() === 'aceptar') {
-    confirmaciones.delete(key);
+  if (data) {
 
     const harem = await loadHarem();
     let regalados = 0;

@@ -1,30 +1,33 @@
-let handler = async (m, { conn, text, participants, usedPrefix, command }) => {
+function normalizeBotJid(rawJid, participants = []) {
+    if (!rawJid || typeof rawJid !== 'string') return null;
+    let jid = rawJid.includes('@') ? rawJid : `${rawJid.replace(/[^0-9]/g, '')}@s.whatsapp.net`;
+    const [local, domain] = jid.split('@');
+    if (domain) jid = `${local.split(':')[0]}@${domain}`;
+    if (jid.endsWith('@lid')) {
+        const pInfo = participants.find(p => p.lid === jid || p.id === jid || p.jid === jid);
+        if (pInfo?.id) jid = pInfo.id;
+    }
+    return jid;
+}
+
+let handler = async (m, { conn, text, participants }) => {
     if (!m.isGroup) throw '⚠️ 𝙀𝙨𝙩𝙚 𝙘𝙤𝙢𝙖𝙣𝙙𝙤 𝙨𝙤𝙡𝙤 𝙥𝙪𝙚𝙙𝙚 𝙪𝙨𝙖𝙧𝙨𝙚 𝙚𝙣 𝙜𝙧𝙪𝙥𝙤𝙨.';
 
-    let who;
-    if (m.mentionedJid.length > 0) {
-        who = m.mentionedJid[0];
-    } else if (m.quoted) {
-        who = m.quoted.sender;
-    } else if (text) {
-        who = text.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
-    } else {
-        return m.reply(`⚠️ 𝘿𝙚𝙗𝙚𝙨 𝙢𝙚𝙣𝙘𝙞𝙤𝙣𝙖𝙧, 𝙧𝙚𝙨𝙥𝙤𝙣𝙙𝙚𝙧 𝙤 𝙚𝙨𝙘𝙧𝙞𝙗𝙞𝙧 𝙚𝙡 𝙣𝙪́𝙢𝙚𝙧𝙤 𝙙𝙚𝙡 𝙗𝙤𝙩 𝙦𝙪𝙚 𝙙𝙚𝙨𝙚𝙖𝙨 𝙚𝙨𝙩𝙖𝙗𝙡𝙚𝙘𝙚𝙧 𝙘𝙤𝙢𝙤 𝙥𝙧𝙞𝙣𝙘𝙞𝙥𝙖𝙡.`);
+    const rawTarget = m.mentionedJid?.[0] || m.quoted?.sender || text;
+    const botJid = normalizeBotJid(rawTarget, participants);
+    if (!botJid) {
+        return m.reply('⚠️ 𝘿𝙚𝙗𝙚𝙨 𝙢𝙚𝙣𝙘𝙞𝙤𝙣𝙖𝙧, 𝙧𝙚𝙨𝙥𝙤𝙣𝙙𝙚𝙧 𝙤 𝙚𝙨𝙘𝙧𝙞𝙗𝙞𝙧 𝙚𝙡 𝙣𝙪́𝙢𝙚𝙧𝙤 𝙙𝙚𝙡 𝙗𝙤𝙩 𝙦𝙪𝙚 𝙙𝙚𝙨𝙚𝙖𝙨 𝙚𝙨𝙩𝙖𝙗𝙡𝙚𝙘𝙚𝙧 𝙘𝙤𝙢𝙤 𝙥𝙧𝙞𝙣𝙘𝙞𝙥𝙖𝙡.');
     }
 
-    let botJid = who;
-    if (who.endsWith('@lid')) {
-        const pInfo = participants.find(p => p.lid === who);
-        if (pInfo && pInfo.id) botJid = pInfo.id;
-    }
-
-    if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {};
-
-    if (global.db.data.chats[m.chat].primaryBot === botJid) {
+    const chat = global.db.get('chats', m.chat) || {};
+    if (chat.primaryBot === botJid || chat.botPrimario === botJid) {
         return conn.reply(m.chat, `✨ @${botJid.split`@`[0]} 𝙮𝙖 𝙚𝙨 𝙚𝙡 𝙗𝙤𝙩 𝙥𝙧𝙞𝙢𝙖𝙧𝙞𝙤 𝙙𝙚 𝙚𝙨𝙩𝙚 𝙜𝙧𝙪𝙥𝙤.`, m, { mentions: [botJid] });
     }
 
-    global.db.data.chats[m.chat].primaryBot = botJid;
+    chat.primaryBot = botJid;
+    chat.botPrimario = botJid;
+    global.db.set('chats', m.chat, chat);
+    await global.db.write?.();
 
     let response = `
 『 🤖 』⋮⋮ 𝙎𝙚 𝙝𝙖 𝙚𝙨𝙩𝙖𝙗𝙡𝙚𝙘𝙞𝙙𝙤 𝙖:
@@ -37,10 +40,7 @@ let handler = async (m, { conn, text, participants, usedPrefix, command }) => {
 > 𝙎𝙞 𝙦𝙪𝙞𝙚𝙧𝙚𝙨 𝙦𝙪𝙚 𝙩𝙤𝙙𝙤𝙨 𝙡𝙤𝙨 𝙗𝙤𝙩𝙨 𝙫𝙪𝙚𝙡𝙫𝙖𝙣 𝙖 𝙧𝙚𝙨𝙥𝙤𝙣𝙙𝙚𝙧, 𝙪𝙨𝙖 𝙚𝙡 𝙘𝙤𝙢𝙖𝙣𝙙𝙤 *resetbot* (𝙨𝙞𝙣 𝙥𝙧𝙚𝙛𝙞𝙟𝙤).
 `.trim();
 
-    await conn.sendMessage(m.chat, { 
-        text: response, 
-        mentions: [botJid] 
-    }, { quoted: m });
+    await conn.sendMessage(m.chat, { text: response, mentions: [botJid] }, { quoted: m });
 }
 
 handler.help = ['setprimary <número/mención>'];
