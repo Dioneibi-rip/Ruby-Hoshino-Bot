@@ -1,7 +1,7 @@
 let cooldowns = {}
 
 let handler = async (m, { conn }) => {
-  let users = global.db.data.users
+  let users = global.db.listUsers()
   let senderId = m.sender
 
   let tiempoEspera = 10 * 60
@@ -43,7 +43,7 @@ let handler = async (m, { conn }) => {
 ╰─────────────────────────`
 
   await conn.sendFile(m.chat, 'https://files.catbox.moe/357gtl.jpg', 'exploracion.jpg', info, fkontak)
-  global.db.write()
+  global.db.updateUser(senderId, { coin: users[senderId].coin, money: users[senderId].coin, exp: users[senderId].exp, health: users[senderId].health })
 }
 
 handler.tags = ['rpg']

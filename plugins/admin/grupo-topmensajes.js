@@ -24,7 +24,7 @@ let handler = async (m, { conn, args, usedPrefix, participants }) => {
   const days = second ? Math.min(first || DEFAULT_DAYS, 45) : DEFAULT_DAYS
   const page = Math.max(second || first || 1, 1)
 
-  const chat = global.db.data.chats[m.chat] || {}
+  const chat = global.db.getChat(m.chat) || {}
   const stats = chat.messageStats?.users || {}
   const validDays = getDaysToCount(days)
   const participantIds = new Set((participants || []).map(p => normalizeJid(p.id || p.jid)).filter(Boolean))

@@ -5,12 +5,12 @@ import { formatJobLine, ensureJobFields } from '../../lib/rpg-jobs.js';
 let handler = async (m, { conn, usedPrefix }) => {
     let who = m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
 
-    if (!(who in global.db.data.users)) {
+    if (!(who in global.db.listUsers())) {
         return conn.reply(m.chat, `${emoji} El usuario no se encuentra en mi base de Datos.`, m);
     }
 
     let img = 'https://qu.ax/fRMNm.jpg';
-    let user = global.db.data.users[who];
+    let user = global.db.getUser(who);
     ensureJobFields(user);
     let name = conn.getName(who);
 

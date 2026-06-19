@@ -16,7 +16,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     return m.reply(`${emoji2} Debes ingresar una cantidad válida mayor que cero.\nEjemplo: *${usedPrefix + command} cara 5000*`);
   }
 
-  let user = global.db.data.users[m.sender];
+  let user = global.db.getUser(m.sender);
   if (!user || user.coin < cantidad) {
     return m.reply(`${emoji2} No tienes suficientes ${m.moneda} para apostar. Tienes *${user.coin.toLocaleString()} ${m.moneda}*.`);
   }

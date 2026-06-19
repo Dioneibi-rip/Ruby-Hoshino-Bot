@@ -1,5 +1,5 @@
 let handler = async (m, { conn, args, usedPrefix, command }) => {
-  const settings = global.db.data.settings[conn.user.jid] || (global.db.data.settings[conn.user.jid] = {})
+  const settings = global.db.getSettings(conn.user.jid)
   if (!Array.isArray(settings.disabledCommands)) settings.disabledCommands = []
 
   const action = String(args[0] || '').toLowerCase()
@@ -24,10 +24,12 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   const disable = ['off', 'disable', 'desactivar'].includes(action)
   if (disable) {
     if (!settings.disabledCommands.includes(cmd)) settings.disabledCommands.push(cmd)
+    global.db.updateSettings(conn.user.jid, { disabledCommands: settings.disabledCommands })
     return conn.reply(m.chat, `✅ Comando *${cmd}* desactivado correctamente.`, m)
   }
 
   settings.disabledCommands = settings.disabledCommands.filter(c => c !== cmd)
+  global.db.updateSettings(conn.user.jid, { disabledCommands: settings.disabledCommands })
   return conn.reply(m.chat, `✅ Comando *${cmd}* activado nuevamente.`, m)
 }
 

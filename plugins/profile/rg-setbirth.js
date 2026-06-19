@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 
 const handler = async (m, { conn, command, usedPrefix, text }) => {
 
-let user = global.db.data.users[m.sender];
+let user = global.db.getUser(m.sender);
 
 if (user.birth) {
 return conn.reply(m.chat, `${emoji2} Ya tienes una fecha establecida, si quieres borrar la fecha actual usa:\n> » ${usedPrefix}delbirth`, m);

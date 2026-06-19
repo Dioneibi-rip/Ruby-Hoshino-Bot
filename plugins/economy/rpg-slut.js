@@ -3,7 +3,7 @@ import { ensureJobFields, getJobData } from '../../lib/rpg-jobs.js';
 let cooldowns = {};
 
 let handler = async (m, { conn, usedPrefix }) => {
-  let users = global.db.data.users;
+  let users = global.db.listUsers();
   let senderId = m.sender;
   let user = users[senderId];
   ensureJobFields(user);

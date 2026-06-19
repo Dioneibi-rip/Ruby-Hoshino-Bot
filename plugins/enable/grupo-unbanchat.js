@@ -1,6 +1,6 @@
 let handler = async (m, {isROwner}) => {
 if (!isROwner) throw 'Este comando solo puede ser utilizado por el creador.'
-const chat = global.db.data.chats[m.chat] || (global.db.data.chats[m.chat] = {})
+const chat = global.db.getChat(m.chat)
 chat.isBanned = false
 await m.react('✅')
 }

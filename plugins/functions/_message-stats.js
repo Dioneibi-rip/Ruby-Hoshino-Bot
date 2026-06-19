@@ -39,11 +39,11 @@ let handler = m => m
 
 handler.before = async function (m) {
   if (!m?.isGroup || !m.sender || m.fromMe || m._messageStatsCounted) return false
-  if (!global.db?.data?.chats?.[m.chat]) return false
+  if (!global.db.listChats()?.[m.chat]) return false
 
   m._messageStatsCounted = true
 
-  const chat = global.db.data.chats[m.chat]
+  const chat = global.db.getChat(m.chat)
   chat.messageStats = chat.messageStats && typeof chat.messageStats === 'object' ? chat.messageStats : {}
   chat.messageStats.users = chat.messageStats.users && typeof chat.messageStats.users === 'object' ? chat.messageStats.users : {}
 

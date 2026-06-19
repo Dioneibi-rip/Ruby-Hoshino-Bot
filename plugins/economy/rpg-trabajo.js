@@ -7,7 +7,7 @@ const listActions=new Set(['lista','list','jobs','empleos','menu']);
 
 function getJobsListMessage(usedPrefix){
 const lines=jobEntries.map((job,index)=>`*${index+1}.* ${job.emoji} *${job.name}* (${job.key})\n↳ ${job.description}`);
-return `💼 *BOLSA DE TRABAJO*\n\n${lines.join('\n\n')}\n\n✦ Para tomar un empleo responde con:\n• *${usedPrefix}trabajo elegir <trabajo>*\n• *${usedPrefix}trabajo <número>*\n• *${usedPrefix}trabajo <trabajo>*\n\n✦ Usa *${usedPrefix}trabajar* para ganar ${global.db?.data?.settings?.[global.conn?.user?.jid]?.moneda||'Coins'}.`;
+return `💼 *BOLSA DE TRABAJO*\n\n${lines.join('\n\n')}\n\n✦ Para tomar un empleo responde con:\n• *${usedPrefix}trabajo elegir <trabajo>*\n• *${usedPrefix}trabajo <número>*\n• *${usedPrefix}trabajo <trabajo>*\n\n✦ Usa *${usedPrefix}trabajar* para ganar ${global.db.listSettings()?.[global.conn?.user?.jid]?.moneda||'Coins'}.`;
 }
 
 function resolveSelectedJob(input){
@@ -18,8 +18,7 @@ return normalizeJobInput(normalizedInput);
 }
 
 let handler=async(m,{conn,usedPrefix,args})=>{
-const users=global.db.data.users;
-const user=users[m.sender]||(users[m.sender]={});
+const user=global.db.getUser(m.sender);
 ensureJobFields(user);
 const action=(args[0]||'').toLowerCase();
 if(!action||listActions.has(action))return conn.reply(m.chat,getJobsListMessage(usedPrefix),m);
@@ -35,8 +34,7 @@ const selectedJobKey=resolveSelectedJob(desiredInput);
 if(!selectedJobKey)return conn.reply(m.chat,`✘ Trabajo inválido: *${desiredInput}*.\nUsa *${usedPrefix}trabajo lista* para ver opciones disponibles.`,m);
 const selectedJob=JOBS[selectedJobKey];
 if(user.job===selectedJobKey)return conn.reply(m.chat,`✅ Ya tienes ese trabajo: ${selectedJob.emoji} *${selectedJob.name}*.`,m);
-Object.assign(user,{job:selectedJobKey,jobSince:Date.now()});
-await global.db.write?.();
+global.db.updateUser(m.sender,{job:selectedJobKey,jobSince:Date.now()});
 return conn.reply(m.chat,`✅ Ahora tu trabajo es ${selectedJob.emoji} *${selectedJob.name}*.\n✦ Ya puedes usar *${usedPrefix}trabajar*, *${usedPrefix}crime* y *${usedPrefix}slut*.`,m);
 };
 

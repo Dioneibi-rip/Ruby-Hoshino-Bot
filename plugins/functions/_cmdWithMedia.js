@@ -8,7 +8,7 @@ export async function all(m, chatUpdate) {
     if (m.isBaileys || !m.message || !m.msg.fileSha256) return
 
     const sha = Buffer.from(m.msg.fileSha256).toString('base64')
-    const hash = global.db.data.sticker[sha]
+    const hash = global.db.getRecord('sticker', sha)
     if (!hash) return
 
     const { text, mentionedJid } = hash

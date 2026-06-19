@@ -1,9 +1,8 @@
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-  let chat = global.db.data.chats[m.chat];
-  if (!chat) chat = global.db.data.chats[m.chat] = {};
+  let chat = global.db.getChat(m.chat);
 
   if (text) {
-    chat.welcomeText = text;
+    global.db.updateChat(m.chat, { welcomeText: text });
     m.reply('🫟 El mensaje de bienvenida se ha configurado correctamente para este grupo.');
   } else {
     let welcome = chat.welcomeText || 'No hay ningún mensaje configurado.';

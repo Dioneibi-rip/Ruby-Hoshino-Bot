@@ -6,7 +6,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
   const textpremERROR = `🎟️ Ingresa el @tag del usuario que quieras agregar como premium.`;
   if (!who) return m.reply(textpremERROR, null, { mentions: conn.parseMention(textpremERROR) });
 
-  const user = global.db.data.users[who];
+  const user = global.db.getUser(who);
   if (!user) return m.reply(`⚠️ Ese usuario no está en mi base de datos.`);
 
   const txt = text.replace('@' + who.split`@`[0], '').trim();

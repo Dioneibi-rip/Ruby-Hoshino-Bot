@@ -17,11 +17,7 @@ if (dbUser && dbUser.id) who = dbUser.id
 if (who.includes('@s.whatsapp.net')) {
 who = who.split(':')[0] + '@s.whatsapp.net'
 }
-if (!global.db.data.users[who]) {
-global.db.data.users[who] = { coin: 0, bank: 0 }
-}
-let user = global.db.data.users[who]
-if (typeof user.coin !== 'number') user.coin = 0
+let user = global.db.getUser(who)
 let txt = text.replace('@' + who.split('@')[0], '').trim()
 let dmt
 if (txt.toLowerCase().includes('all') || txt.toLowerCase().includes('todo')) {
@@ -32,8 +28,7 @@ if (!cleanNum) return m.reply('⚠️ Ingresa la cantidad a dar.')
 dmt = parseInt(cleanNum)
 }
 if (dmt <= 0) return m.reply('⚠️ La cantidad debe ser mayor a 0.')
-user.coin += dmt
-if (global.db && typeof global.db.write === 'function') await global.db.write()
+global.db.addEconomy(who, { coin: dmt, money: dmt })
 m.reply(`💰 *Dinero agregado*\n» ${dmt}\n👤 @${who.split('@')[0]}\n📥 Billetera`, null, { mentions: [who] })
 }
 handler.help = ['darcoin <@user> <cantidad>']

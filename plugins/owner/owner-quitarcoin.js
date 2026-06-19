@@ -22,9 +22,9 @@ let handler = async (m, { conn, text }) => {
         } catch (e) {}
     }
 
-    let user = global.db.data.users[who]
+    let user = global.db.getUser(who)
     if (!user) {
-        user = global.db.data.users[who] = { coin: 0, bank: 0 }
+        user = global.db.updateUser(who, { coin: 0, bank: 0 })
     }
 
     let txt = text.replace('@' + who.split('@')[0], '').trim()

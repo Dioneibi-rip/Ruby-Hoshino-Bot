@@ -1,6 +1,6 @@
 const handler = async (m, { conn, args, text, usedPrefix, command }) => {
     let user;
-    let db = global.db.data.users;
+    let db = global.db.listUsers();
     if (m.quoted) {
         user = m.quoted.sender;
     } else if (args.length >= 1) {

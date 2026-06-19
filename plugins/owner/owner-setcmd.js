@@ -1,10 +1,10 @@
 let handler = async (m, { text, usedPrefix, command }) => {
-global.db.data.sticker = global.db.data.sticker || {}
+global.db.listRecords('sticker') = global.db.listRecords('sticker') || {}
 if (!m.quoted) return conn.reply(m.chat, `${emoji} Responda a un sticker para agregar un comando.`, m)
 if (!m.quoted.fileSha256) return conn.reply(m.chat, `${emoji} Responda a un sticker para agregar un comando.`, m)
 if (!text) return conn.reply(m.chat, `${emoji2} Ingresa el nombre del comamdo.`, m)
 try {
-let sticker = global.db.data.sticker
+let sticker = global.db.listRecords('sticker')
 let hash = m.quoted.fileSha256.toString('base64')
 if (sticker[hash] && sticker[hash].locked) return conn.reply(m.chat, `${emoji2} No tienes permiso para cambiar este comando de Sticker.`, m)
 sticker[hash] = {

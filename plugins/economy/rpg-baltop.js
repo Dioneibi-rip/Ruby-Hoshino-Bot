@@ -2,7 +2,7 @@ let handler = async (m, { conn, args, participants }) => {
 const jidLocal = jid => String(jid || '').split('@')[0].split(':')[0]
 const groupLocals = new Set(participants.map(p => jidLocal(p.id)).filter(Boolean))
 
-const users = Object.entries(global.db.data.users)
+const users = Object.entries(global.db.listUsers())
 .filter(([jid]) => groupLocals.has(jidLocal(jid)))
 .map(([key, value]) => ({ ...value, jid: key }))
 

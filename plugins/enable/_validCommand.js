@@ -53,7 +53,7 @@ export async function before(m, { conn, isAdmin, isOwner, isROwner }) {
 
   const usedPrefix = prefixMatch[0];
 
-  const chat = global.db.data.chats[m.chat];
+  const chat = global.db.getChat(m.chat);
   const botJid = conn?.user?.jid;
   const isBotBannedInThisChat = Boolean(chat?.bannedBots && botJid && chat.bannedBots.includes(botJid));
 
@@ -74,7 +74,7 @@ export async function before(m, { conn, isAdmin, isOwner, isROwner }) {
   const isKnownCommand = cachedCommands.has(command);
 
   if (isKnownCommand) {
-    const user = global.db.data.users[m.sender];
+    const user = global.db.getUser(m.sender);
 
     if (chat?.isBanned) {
       const avisoDesactivado = `🍧 La bot *${global.botname}* está desactivada en este grupo.\n\n> ✦ Un *administrador* puede activarla con el comando:\n> » *${usedPrefix}bot on*`;

@@ -1,7 +1,7 @@
 import { areJidsSameUser } from '@whiskeysockets/baileys'
 export async function before(m, { participants, conn }) {
     if (m.isGroup) {
-        let chat = global.db.data.chats[m.chat];
+        let chat = global.db.getChat(m.chat);
 
          if (!chat.antiBot2) {
             return

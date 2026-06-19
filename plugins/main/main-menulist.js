@@ -23,7 +23,7 @@ before: `𝙃𝙤𝙡𝙖 *%name*-san ${ucapan()}
 
 let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
 try {
-let { exp, level, role } = global.db.data.users[m.sender];
+let { exp, level, role } = global.db.getUser(m.sender);
 let name = await conn.getName(m.sender);
 
 let _uptime = process.uptime() * 1000;
@@ -38,7 +38,7 @@ setTimeout(resolve, 1000);
 
 let muptime = clockString(_muptime);
 let uptime = clockString(_uptime);
-let totalreg = Object.keys(global.db.data.users).length;
+let totalreg = Object.keys(global.db.listUsers()).length;
 
 const fkontak = await getMenuQuoted(m)
 const media = await getMenuMedia(conn)

@@ -1,6 +1,6 @@
 const handler = async (m, {conn, isOwner}) => {
-  const chats = Object.entries(global.db.data.chats).filter((chat) => chat[1].isBanned);
-  const users = Object.entries(global.db.data.users).filter((user) => user[1].banned);
+  const chats = Object.entries(global.db.listChats()).filter((chat) => chat[1].isBanned);
+  const users = Object.entries(global.db.listUsers()).filter((user) => user[1].banned);
   const caption = `
 ┌〔 Usuarios  -  Baneados 〕
 ├ Total : ${users.length} ${users ? '\n' + users.map(([jid], i) => `

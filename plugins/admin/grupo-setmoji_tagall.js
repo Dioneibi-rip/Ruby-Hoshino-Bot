@@ -16,7 +16,7 @@ let handler = async (m, { conn, text, isRowner }) => {
   }
 
   try {
-    global.db.data.chats[m.chat].customEmoji = emoji;
+    global.db.updateChat(m.chat, { customEmoji: emoji });
 
     m.reply(`${emoji2} El emoji del grupo ha sido actualizado correctamente a: ${emoji}`);
   } catch (error) {

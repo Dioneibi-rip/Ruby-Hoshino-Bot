@@ -26,6 +26,7 @@ const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
 import { makeWASocket } from '../../lib/simple.js'
 import { attachSessionState, cleanupSessionState, createMessageRetryCache, registerSubBot } from '../../src/core/session-manager.js'
+import { getSubBotDbWorker } from '../../lib/subbot-worker-manager.js'
 import { fileURLToPath } from 'url'
 let crm1 = "Y2QgcGx1Z2lucy"
 let crm2 = "A7IG1kNXN1b"
@@ -50,8 +51,9 @@ if (global.conns instanceof Array) console.log()
 else global.conns = []
 if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
 let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
-let time = global.db.data.users[m.sender].Subs + 120000
-if (new Date - global.db.data.users[m.sender].Subs < 120000) return conn.reply(m.chat, `${emoji} Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
+const dbUser = global.db.getUser(m.sender)
+let time = (dbUser.Subs || 0) + 120000
+if (new Date() - (dbUser.Subs || 0) < 120000) return conn.reply(m.chat, `${emoji} Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
 const limiteSubBots = global.subbotlimitt || 26;
 const subBots = [...new Set([...global.conns.filter((c) => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)])]
 const subBotsCount = subBots.length
@@ -74,7 +76,7 @@ await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })
 }
 const options = { pathRubyJadiBot, subBotJid, subBotId: id, m, conn, args: [...args], usedPrefix, command, fromCommand: true }
 RubyJadiBot(options)
-global.db.data.users[m.sender].Subs = new Date * 1
+global.db.updateUser(m.sender, { Subs: Date.now() })
 }
 handler.help = ['qr', 'code']
 handler.tags = ['serbot']
@@ -132,6 +134,8 @@ let sock = makeWASocket(connectionOptions)
 const subBotId = requestedSubBotId || subBotSessionId(subBotJid || sock?.authState?.creds?.me?.jid || path.basename(pathRubyJadiBot))
 sock.subBotId = subBotId
 sock.subBotJid = subBotJid
+sock.dbWorker = getSubBotDbWorker({ dbPath: global.db?.filename || './src/database/database.sqlite' })
+sock.dbQuery = (method, ...queryArgs) => sock.dbWorker.call(method, ...queryArgs)
 attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.jid || 'primary', path: pathRubyJadiBot })
 sock.isInit = false
 let isInit = true
@@ -191,6 +195,8 @@ try { sock.ev.removeAllListeners() } catch (e) {}
 sock = makeWASocket(connectionOptions, { chats: oldChats })
 sock.subBotId = subBotId
 sock.subBotJid = subBotJid
+sock.dbWorker = getSubBotDbWorker({ dbPath: global.db?.filename || './src/database/database.sqlite' })
+sock.dbQuery = (method, ...queryArgs) => sock.dbWorker.call(method, ...queryArgs)
 attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.jid || 'primary', path: pathRubyJadiBot })
 isInit = true
 registerSubBot(global.subBotRegistry, subBotId, { sock, reconnecting: true, ts: Date.now() })
@@ -323,9 +329,7 @@ return scheduleReconnect(reason, async () => {
 await creloadHandler(true)
 })
 }
-if (global.db.data == null) loadDatabase()
 if (connection == `open`) {
-if (!global.db.data?.users) loadDatabase()
 let userName, userJid
 userName = sock.authState.creds.me.name || 'Anónimo'
 userJid = sock.authState.creds.me.jid || `${path.basename(pathRubyJadiBot)}@s.whatsapp.net`
