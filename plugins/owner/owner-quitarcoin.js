@@ -1,5 +1,3 @@
-import db from '../../lib/database.js'
-
 let handler = async (m, { conn, text }) => {
     let who
     if (m.isGroup) {
@@ -19,10 +17,10 @@ let handler = async (m, { conn, text }) => {
             const pp = await conn.groupMetadata(m.chat)
             const dbUser = pp.participants.find(u => u.lid === who)
             if (dbUser) who = dbUser.id
-        } catch (e) {}
+        } catch (e) { console.error('[quitarcoin] Error resolviendo LID:', e) }
     }
 
-    let user = global.db.data.users[who]
+    let user = global.db?.getUser ? global.db.getUser(who) : global.db.data.users[who]
     if (!user) {
         user = global.db.data.users[who] = { coin: 0, bank: 0 }
     }
@@ -43,12 +41,24 @@ let handler = async (m, { conn, text }) => {
         return m.reply(`⚠️ No tiene suficiente dinero.\n💸 Billetera: ${user.coin}\n🏦 Banco: ${user.bank}`)
 
     // 🔻 quitar primero de la billetera
-    if (user.coin >= dmt) {
-        user.coin -= dmt
-    } else {
-        let resto = dmt - user.coin
-        user.coin = 0
-        user.bank -= resto
+    try {
+        if (global.db && typeof global.db.updateUser === 'function') {
+            const nextCoin = Math.max(0, (Number(user.coin) || 0) - dmt)
+            const remainder = Math.max(0, dmt - (Number(user.coin) || 0))
+            const nextBank = Math.max(0, (Number(user.bank) || 0) - remainder)
+            global.db.updateUser(who, { coin: nextCoin, bank: nextBank })
+        } else if (user.coin >= dmt) {
+            user.coin -= dmt
+            await global.db.write?.()
+        } else {
+            let resto = dmt - user.coin
+            user.coin = 0
+            user.bank -= resto
+            await global.db.write?.()
+        }
+    } catch (error) {
+        console.error(`[quitarcoin] No se pudo quitar dinero a ${who}:`, error)
+        return m.reply('❌ No se pudo actualizar la economía en SQLite. Revisa la consola.')
     }
 
     m.reply(
