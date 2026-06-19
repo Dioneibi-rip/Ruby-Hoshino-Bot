@@ -1,47 +1,26 @@
-import { loadCharacters, saveCharacters, findCharacterByName } from '../../lib/gacha-characters.js';
-
-async function loadUserFavs() {
-  return global.db?.getSection?.('character_favorites') || {};
-}
-
-async function saveUserFavs(favs) {
-  global.db.replaceSection('character_favorites', favs || {});
-  await global.db.write?.();
-}
+import { loadCharacters, findCharacterByName } from '../../lib/gacha-characters.js';
 
 let handler = async (m, { args }) => {
   if (!args[0]) return m.reply('✿ Debes escribir el nombre del personaje que deseas establecer como favorito.');
 
-  let characters = await loadCharacters();
-  let favs = await loadUserFavs();
-
+  const characters = await loadCharacters();
   const characterName = args.join(' ').toLowerCase().trim();
   const userId = m.sender;
-
-  let character = findCharacterByName(characters, characterName);
+  const character = findCharacterByName(characters, characterName);
   if (!character) return m.reply('✿ Personaje no encontrado.');
 
-  if (favs[userId] === character.name) {
-    return m.reply(`✿ *${character.name}* ya es tu personaje favorito.`);
-  }
+  const favId = String(character.id || character.name);
+  const current = global.db.sqlite.prepare('SELECT character_id FROM character_favorites WHERE user_id = ?').get(userId);
+  if (current?.character_id === favId) return m.reply(`✿ *${character.name}* ya es tu personaje favorito.`);
 
-  if (favs[userId] && favs[userId] !== character.name) {
-    let prevChar = findCharacterByName(characters, favs[userId]);
-    if (prevChar && prevChar.favorites > 0) prevChar.favorites--;
-  }
-
-  character.favorites = (character.favorites || 0) + 1;
-  favs[userId] = character.name;
-
-  await saveCharacters(characters);
-  await saveUserFavs(favs);
+  global.db.sqlite.prepare('INSERT INTO character_favorites(user_id, character_id, updated_at) VALUES(?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET character_id = excluded.character_id, updated_at = excluded.updated_at').run(userId, favId, Date.now());
 
   await m.reply(`✐ Ahora *${character.name}* es tu personaje favorito!`);
 };
 
 handler.help = ['setfav <nombre>'];
 handler.tags = ['anime'];
-handler.command = ['setfav', 'setfavorito'];
+handler.command = ['setfav', 'setfavorito', 'setprimary'];
 handler.group = true;
 handler.register = true;
 

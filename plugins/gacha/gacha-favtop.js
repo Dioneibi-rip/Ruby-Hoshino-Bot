@@ -1,17 +1,14 @@
-import { loadCharacters, saveCharacters } from '../../lib/gacha-characters.js';
+import { loadCharacters, findCharacterById } from '../../lib/gacha-characters.js';
 
 let handler = async (m) => {
   const characters = await loadCharacters();
-  const top = characters
-    .filter(c => c.favorites)
-    .sort((a, b) => b.favorites - a.favorites)
-    .slice(0, 11);
-
-  if (top.length === 0) return m.reply('✿ Aún no hay personajes favoritos.');
+  const rows = global.db.sqlite.prepare('SELECT character_id, COUNT(*) AS total FROM character_favorites GROUP BY character_id ORDER BY total DESC LIMIT 11').all();
+  if (!rows.length) return m.reply('✿ Aún no hay personajes favoritos.');
 
   let txt = `✰ *Top de personajes favoritos:*\n\n`;
-  top.forEach((c, i) => {
-    txt += `#${i + 1} » *${c.name}*\n\t\t♡ ${c.favorites} favoritos.\n`;
+  rows.forEach((row, i) => {
+    const c = findCharacterById(characters, row.character_id) || characters.find(ch => ch.name === row.character_id);
+    txt += `#${i + 1} » *${c?.name || row.character_id}*\n\t\t♡ ${row.total} favoritos.\n`;
   });
 
   m.reply(txt.trim());
@@ -19,7 +16,7 @@ let handler = async (m) => {
 
 handler.help = ['favtop'];
 handler.tags = ['anime'];
-handler.command = ['favtop', 'favoritetop'];
+handler.command = ['favtop', 'favoritetop', 'topfav'];
 handler.group = true;
 handler.register = true;
 

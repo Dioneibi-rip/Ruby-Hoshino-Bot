@@ -95,7 +95,7 @@ if (m.isGroup && !UNBAN_COMMAND_FILES.includes(name) && chat?.isBanned === true 
 if (m.text && user?.banned && !isROwner) {
 if (!user.lastBanMsg || Date.now() - user.lastBanMsg > 30_000) {
 m.reply(`《✦》Estas baneado/a, no puedes usar comandos en este bot!\n\n${user.bannedReason ? `✰ *Motivo:* ${user.bannedReason}` : '✰ *Motivo:* Sin Especificar'}\n\n> ✧ Si este Bot es cuenta ...`)
-user.lastBanMsg = Date.now()
+global.db?.updateUser?.(sender, { lastBanMsg: Date.now() })
 }
 return true
 }
@@ -172,9 +172,12 @@ if (m.isGroup && isUserMutedInChat(mutedUser, m.chat)) {
 const deletePayload = getMessageDeletePayload(m, sender)
 if (deletePayload) conn.sendMessage?.(m.chat, { delete: deletePayload }).catch(() => {})
 }
-if (sender && data.users?.[sender]) {
-data.users[sender].exp += m.exp || 0
-data.users[sender].coin -= (m.coin || 0) * 1
+if (sender) {
+const current = global.db?.getUser?.(sender)
+if (current) global.db.updateUser(sender, {
+exp: (Number(current.exp) || 0) + (m.exp || 0),
+coin: (Number(current.coin) || 0) - ((m.coin || 0) * 1)
+})
 }
 if (!m.plugin) {
 await global.db?.write?.()
