@@ -3,7 +3,7 @@ const handler = async (m, {conn, text, command, usedPrefix}) => {
   let who;
   if (m.isGroup) who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text;
   else who = m.chat;
-  const user = global.db.data.users[who];
+  const user = global.db.getUser(who);
   const bot = global.db.data.settings[conn.user.jid] || {};
   const warntext = `${emoji} Etiqueta a un usuario para quitarle las advertencias.\n${emoji2} Ejemplo: *${usedPrefix + command} @${global.suittag}*`;
   if (!who) throw m.reply(warntext, m.chat, {mentions: conn.parseMention(warntext)});

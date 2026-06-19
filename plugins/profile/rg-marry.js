@@ -1,24 +1,24 @@
-//código creado por Destroy
 //fix LID + JID by Dioneibi
 
 let proposals = {};
-let marriages = await loadMarriages();
 const confirmation = {};
 
 async function loadMarriages() {
 return global.db?.getSection?.('marriages') || {}
 }
 
-async function saveMarriages() {
-global.db.replaceSection('marriages', marriages || {})
-await global.db.write?.()
+function isUserMarried(marriages, user) {
+return Boolean(global.db.getUser(user)?.marry || marriages[user]?.partner)
+}
+
+function getPartner(marriages, user) {
+return global.db.getUser(user)?.marry || marriages[user]?.partner || ''
 }
 
 const handler = async (m, { conn, command, participants }) => {
 const isPropose = /^marry$/i.test(command);
 const isDivorce = /^divorce$/i.test(command);
-
-const userIsMarried = (user) => marriages[user] !== undefined;
+const marriages = await loadMarriages();
 
 try {
 let proposerJid = m.sender;
@@ -27,12 +27,14 @@ const pInfo = participants.find(p => p.lid === m.sender);
 if (pInfo && pInfo.id) proposerJid = pInfo.id;
 }
 
+global.db.getUser(proposerJid)
+
 if (isPropose) {
 const rawProposee = m.quoted?.sender || m.mentionedJid?.[0];
 
 if (!rawProposee) {
-if (userIsMarried(proposerJid)) {
-return await conn.reply(m.chat, `《✧》 Ya estás casado con *${conn.getName(marriages[proposerJid].partner)}*\n> Puedes divorciarte con el comando: *#divorce*`, m);
+if (isUserMarried(marriages, proposerJid)) {
+return await conn.reply(m.chat, `《✧》 Ya estás casado con *${conn.getName(getPartner(marriages, proposerJid))}*\n> Puedes divorciarte con el comando: *#divorce*`, m);
 } else {
 throw new Error('Debes mencionar a alguien para aceptar o proponer matrimonio.\n> Ejemplo » *#marry @Usuario*');
 }
@@ -44,8 +46,10 @@ const pInfo = participants.find(p => p.lid === rawProposee);
 if (pInfo && pInfo.id) proposeeJid = pInfo.id;
 }
 
-if (userIsMarried(proposerJid)) throw new Error(`Ya estás casado con ${conn.getName(marriages[proposerJid].partner)}.`);
-if (userIsMarried(proposeeJid)) throw new Error(`${conn.getName(proposeeJid)} ya está casado con ${conn.getName(marriages[proposeeJid].partner)}.`);
+global.db.getUser(proposeeJid)
+
+if (isUserMarried(marriages, proposerJid)) throw new Error(`Ya estás casado con ${conn.getName(getPartner(marriages, proposerJid))}.`);
+if (isUserMarried(marriages, proposeeJid)) throw new Error(`${conn.getName(proposeeJid)} ya está casado con ${conn.getName(getPartner(marriages, proposeeJid))}.`);
 if (proposerJid === proposeeJid) throw new Error('¡No puedes proponerte matrimonio a ti mismo!');
 
 proposals[proposerJid] = proposeeJid;
@@ -64,16 +68,9 @@ delete confirmation[proposeeJid];
 };
 
 } else if (isDivorce) {
-if (!userIsMarried(proposerJid)) throw new Error('No estás casado con nadie.');
-
-const partner = marriages[proposerJid].partner;
-delete marriages[proposerJid];
-delete marriages[partner];
-await saveMarriages();
-
-if (global.db.data.users[proposerJid]) global.db.data.users[proposerJid].marry = '';
-if (global.db.data.users[partner]) global.db.data.users[partner].marry = '';
-
+if (!isUserMarried(marriages, proposerJid)) throw new Error('No estás casado con nadie.');
+const partner = global.db.divorcePair(proposerJid);
+await global.db.write?.();
 await conn.reply(m.chat, `✐ ${conn.getName(proposerJid)} y ${conn.getName(partner)} se han divorciado.`, m);
 }
 } catch (error) {
@@ -103,15 +100,16 @@ return conn.sendMessage(m.chat, { text: '*《✧》Han rechazado tu propuesta de
 
 if (/^Si$/i.test(m.text)) {
 delete proposals[proposer];
+const marriages = await loadMarriages();
+if (isUserMarried(marriages, proposer) || isUserMarried(marriages, senderJid)) {
+clearTimeout(timeout);
+delete confirmation[senderJid];
+return conn.sendMessage(m.chat, { text: '*《✧》La propuesta ya no es válida porque una de las personas ya está casada.*' }, { quoted: m });
+}
 
 const fecha = Date.now();
-
-marriages[proposer] = { partner: senderJid, date: fecha };
-marriages[senderJid] = { partner: proposer, date: fecha };
-await saveMarriages();
-
-if (global.db.data.users[proposer]) global.db.data.users[proposer].marry = senderJid;
-if (global.db.data.users[senderJid]) global.db.data.users[senderJid].marry = proposer;
+global.db.setMarriagePair(proposer, senderJid, fecha);
+await global.db.write?.();
 
 conn.sendMessage(m.chat, { text: `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩
 ¡Se han Casado! ฅ^•ﻌ•^ฅ*:･ﾟ✧\n\n*•.¸♡ Esposo ${conn.getName(proposer)}\n*•.¸♡ Esposa ${conn.getName(senderJid)}\n\n\`Disfruten de su luna de miel\`

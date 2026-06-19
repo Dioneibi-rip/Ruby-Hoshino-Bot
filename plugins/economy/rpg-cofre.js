@@ -1,5 +1,5 @@
 const handler = async (m, { conn }) => {
-  const user = global.db.data.users[m.sender];
+  const user = global.db.getUser(m.sender);
   if (!user) throw `${emoji4} Usuario no encontrado.`;
 
   const lastCofreTime = user.lastcofre || 0;

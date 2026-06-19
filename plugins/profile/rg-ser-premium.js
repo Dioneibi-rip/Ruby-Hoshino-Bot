@@ -1,5 +1,5 @@
 const handler = async (m, { conn, text, usedPrefix, command }) => {
-  const user = global.db.data.users[m.sender];
+  const user = global.db.getUser(m.sender);
   text = (text || '').toLowerCase().trim();
 
   const plans = {

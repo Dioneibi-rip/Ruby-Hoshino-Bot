@@ -17,7 +17,7 @@ let handler = async (m, { conn, usedPrefix, participants }) => {
   }
 
   const chatUsers = global.db.data.chats?.[m.chat]?.users || {}
-  const globalUsers = global.db.data.users || {}
+  const globalUsers = global.db.listUsers()
 
   const user =
     chatUsers[primaryJid] ||

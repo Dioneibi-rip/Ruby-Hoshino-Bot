@@ -1,7 +1,7 @@
 let cooldowns = {};
 
 let handler = async (m, { conn }) => {
-  let users = global.db.data.users;
+  let users = global.db.listUsers();
   let senderId = m.sender;
 
   let tiempoEspera = 8 * 60;

@@ -50,8 +50,8 @@ if (global.conns instanceof Array) console.log()
 else global.conns = []
 if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
 let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
-let time = global.db.data.users[m.sender].Subs + 120000
-if (new Date - global.db.data.users[m.sender].Subs < 120000) return conn.reply(m.chat, `${emoji} Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
+let time = global.db.getUser(m.sender).Subs + 120000
+if (new Date - global.db.getUser(m.sender).Subs < 120000) return conn.reply(m.chat, `${emoji} Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
 const limiteSubBots = global.subbotlimitt || 26;
 const subBots = [...new Set([...global.conns.filter((c) => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)])]
 const subBotsCount = subBots.length
@@ -74,7 +74,7 @@ await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })
 }
 const options = { pathRubyJadiBot, subBotJid, subBotId: id, m, conn, args: [...args], usedPrefix, command, fromCommand: true }
 RubyJadiBot(options)
-global.db.data.users[m.sender].Subs = new Date * 1
+global.db.getUser(m.sender).Subs = new Date * 1
 }
 handler.help = ['qr', 'code']
 handler.tags = ['serbot']

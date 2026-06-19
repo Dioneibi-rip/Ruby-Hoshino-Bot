@@ -67,7 +67,7 @@ let handler = async (m, { conn, participants }) => {
 
   if (isSameUserId(victimJid, userId)) return conn.reply(m.chat, '✘ No puedes robarte a ti mismo.', m)
 
-  const thief = global.db.data.users[userId]
+  const thief = global.db.getUser(userId)
   if (!thief) return conn.reply(m.chat, '✘ No estás registrado.', m)
 
   const funds = getUserFunds(thief)

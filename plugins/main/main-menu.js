@@ -20,7 +20,7 @@ let userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
 
 let name = await conn.getName(userId);
 
-let user = global.db.data.users[userId];
+let user = global.db.getUser(userId);
 let exp = user.exp || 0;
 let level = user.level || 0;
 let role = user.role || 'Sin Rango';
@@ -28,7 +28,7 @@ let coins = user.coin || 0;
 
 let _uptime = process.uptime() * 1000;
 let uptime = clockString(_uptime);
-let totalreg = Object.keys(global.db.data.users).length;
+let totalreg = Object.keys(global.db.listUsers()).length;
 let totalCommands = Object.values(global.plugins).filter(v => v.help && v.tags).length;
 
 const gifVideosDir = path.join(cwd, 'src', 'menu');

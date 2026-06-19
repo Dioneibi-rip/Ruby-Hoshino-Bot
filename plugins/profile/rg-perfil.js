@@ -13,7 +13,7 @@ let userId
 if(m.quoted?.sender)userId=m.quoted.sender
 else if(m.mentionedJid?.[0])userId=m.mentionedJid[0]
 else userId=m.sender
-let user=global.db.data.users[userId]
+let user=global.db.getUser(userId)
 if(!user)return m.reply('⚠️ El usuario no existe en la base de datos.')
 ensureJobFields(user)
 try{
@@ -27,7 +27,7 @@ const name=user.customName||user.name||whatsappName
 const cumpleanos=user.birth||'𖠿 No especificado'
 const genero=user.genre||'𖠿 No especificado'
 const age=Number.isFinite(user.age)&&user.age>=0?`${user.age}`:`Desconocida (Usa ${usedPrefix}setage para añadirla)`
-let parejaId=resolvePartnerJid(userId,user)
+let parejaId=await resolvePartnerJid(userId,user)
 let parejaTag='✘ Nadie'
 let mentions=[userId]
 if(parejaId && typeof parejaId === 'string'){

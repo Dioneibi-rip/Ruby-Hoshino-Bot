@@ -1,9 +1,6 @@
-
 async function loadMarriages() {
 return global.db?.getSection?.('marriages') || {}
 }
-
-let marriages = await loadMarriages()
 
 function formatTime(ms) {
 const totalMinutes = Math.floor(ms / (1000 * 60))
@@ -23,13 +20,16 @@ return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'nu
 }
 
 const handler = async (m, { conn, args }) => {
+const marriages = await loadMarriages()
 let parejas = []
 const procesados = new Set()
 
 for (let user in marriages) {
 if (!procesados.has(user)) {
-const partner = marriages[user]?.partner || marriages[user]
-const date = marriages[user]?.date || marriages[partner]?.date
+const livePartner = global.db.getUser(user)?.marry
+const partner = livePartner || marriages[user]?.partner || marriages[user]
+const reverseDate = partner ? marriages[partner]?.date : 0
+const date = marriages[user]?.date || reverseDate
 if (partner && !procesados.has(partner) && date) {
 parejas.push({ user, partner, date })
 procesados.add(user)
@@ -45,7 +45,7 @@ let page = args[0] && !isNaN(args[0]) ? parseInt(args[0]) : 1
 const perPage = 10
 const start = (page - 1) * perPage
 const end = start + perPage
-const totalPages = Math.ceil(parejas.length / perPage)
+const totalPages = Math.max(1, Math.ceil(parejas.length / perPage))
 
 let texto = `「✿」Top parejas casadas por tiempo de matrimonio:\n\n`
 

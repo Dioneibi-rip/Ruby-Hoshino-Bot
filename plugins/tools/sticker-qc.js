@@ -70,7 +70,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     const buffer = Buffer.from(json.data.result.image, 'base64');
 
     let userId = m.sender;
-    let packstickers = global.db.data.users[userId] || {};
+    let packstickers = global.db.getUser(userId) || {};
     let texto1 = packstickers.text1 || global.packsticker;
     let texto2 = packstickers.text2 || global.packsticker2;
 

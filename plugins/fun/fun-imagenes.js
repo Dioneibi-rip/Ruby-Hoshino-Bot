@@ -33,7 +33,7 @@ const handler = async (m, { conn, command, text }) => {
     if (command == 'suicide' || command == 'suicidar') {
     const caption = `*[ ⚰️ ] @${m.sender.split('@')[0]} SE HA SUICIDADO...*`
     conn.sendMessage(m.chat, {image: { url: 'https://files.catbox.moe/w3v3e0.jpg' }, caption: caption, mentions: conn.parseMention(caption)}, {quoted: m});
-    delete global.global.db.data.users[m.sender]; 
+    global.db.delete('users', m.sender);
     }
 };
 

@@ -1,7 +1,7 @@
 const handler=async(m,{conn,command,usedPrefix,text})=>{
 const emoji='✨'
 const emoji2='❌'
-const user=global.db.data.users[m.sender]||(global.db.data.users[m.sender]={})
+const user=global.db.getUser(m.sender)
 const name=text?.trim().replace(/\s+/g,' ')
 if(!name)return conn.reply(m.chat,`${emoji} Escribe el nombre personalizado que quieres usar.\n> Ejemplo » *${usedPrefix+command} Ruby*`,m)
 if(name.length>40)return conn.reply(m.chat,`${emoji2} El nombre personalizado no puede superar 40 caracteres.`,m)

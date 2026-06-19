@@ -3,7 +3,7 @@ import { sticker } from '../../lib/sticker.js'
 let handler = async (m, { conn, args }) => {
 let stiker = null
 let userId = m.sender
-let packstickers = global.db.data.users[userId] || {}
+let packstickers = global.db.getUser(userId) || {}
 let texto1 = packstickers.text1 ?? global.packsticker
 let texto2 = packstickers.text2 ?? global.packsticker2
 

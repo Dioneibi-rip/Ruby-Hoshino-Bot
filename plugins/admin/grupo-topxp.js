@@ -1,7 +1,7 @@
 import { xpRange } from '../../lib/levelling.js'
 
 let handler = async (m, { conn, args }) => {
-  let users = Object.entries(global.db.data.users)
+  let users = Object.entries(global.db.listUsers())
     .filter(([_, u]) => u.exp > 0 && u.level >= 0)
     .map(([jid, u]) => ({ ...u, jid }));
 
