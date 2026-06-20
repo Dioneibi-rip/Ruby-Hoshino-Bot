@@ -1,5 +1,19 @@
 const handler = async (m, { conn }) => {
-  const user = global.db.getUser(m.sender);
+  // Función para normalizar JID
+  const normalizeJid = (jid) => {
+    if (!jid) return null;
+    jid = jid.replace(/[^\d@]/g, '');
+    if (!jid.includes('@')) return null;
+    if (jid.endsWith('@s.whatsapp.net')) return jid;
+    if (jid.endsWith('@g.us')) return jid;
+    if (!jid.endsWith('@s.whatsapp.net')) {
+      jid = jid.split('@')[0] + '@s.whatsapp.net';
+    }
+    return jid;
+  };
+
+  const normalizedSender = normalizeJid(m.sender);
+  const user = global.db.getUser(normalizedSender);
   const cooldown = 24 * 60 * 60 * 1000;
   const now = Date.now();
   const elapsed = now - (user.lastclaim || 0);
