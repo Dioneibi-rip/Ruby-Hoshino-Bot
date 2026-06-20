@@ -29,7 +29,6 @@ const groupId = m.chat
 const user = global.db.getUser(userId)
 const moneda = m.moneda || 'Coins'
 const prefix = usedPrefix || '#'
-if (!user) return conn.reply(m.chat, '✘ Usuario no registrado.', m)
 if (args.length < 2) return conn.reply(m.chat, `◢✿ *RENOVAR PROTECCIÓN* ✿◤\n\n✧ Uso: *${prefix}renovarproteccion <días> <personaje|all>*\n✧ Límite máximo acumulado: *${MAX_PROTECTION_DAYS} días*\n✧ Puedes elegir cualquier cantidad entre *1* y *${MAX_PROTECTION_DAYS}* días.`, m)
 const durationData = normalizeProtectionDuration(args[0])
 const target = args.slice(1).join(' ').trim().toLowerCase()

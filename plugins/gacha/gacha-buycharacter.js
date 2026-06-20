@@ -28,7 +28,6 @@ if (!venta) return m.reply('✘ No se encontró ese personaje en venta en este g
 if (isSameUserId(venta.vendedor, m.sender)) return m.reply('✘ No puedes comprarte a ti mismo.')
 
 let comprador = global.db.getUser(m.sender)
-if (!comprador) return m.reply('✘ No estás registrado.')
 
 let precio = Number(venta.precio) || 0
 if ((comprador.coin || 0) < precio)
