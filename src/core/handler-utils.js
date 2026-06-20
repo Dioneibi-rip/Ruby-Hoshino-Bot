@@ -2,6 +2,7 @@ import { join } from 'path'
 import { fileURLToPath } from 'url'
 import { TTLCache, getPrefixMatcherCache } from '../../lib/optimizer.js'
 import { chatDefault, ensureDatabaseShape, ensureRecord, settingsDefault, userDefault } from './defaults.js'
+import { normalizeSessionJid } from './session-utils.js'
 
 export const GROUP_METADATA_TTL = 60 * 1000
 export const GROUP_METADATA_MAX = 2000
@@ -71,14 +72,19 @@ return normalizedSender
 
 export function hydrateDatabaseForMessage(conn, m, sender) {
 const data = ensureDatabaseShape(global.db)
-const whatsappName = String(m?.pushName || m?.name || conn?.getName?.(sender) || '').trim()
-const user = ensureRecord(data.users, sender, userDefault, { name: whatsappName || userDefault.name })
+const botJid = normalizeSessionJid(conn) || 'primary'
+const settings = ensureRecord(data.settings, botJid, settingsDefault)
+const chat = m?.chat ? ensureRecord(data.chats, m.chat, chatDefault) : {}
+if (!sender || typeof sender !== 'string') return { data, user: {}, chat, settings }
+const currentUser = global.db?.getUser?.(sender) || data.users?.[sender] || {}
+const safeUser = currentUser && typeof currentUser === 'object' ? currentUser : {}
+const whatsappName = String(m?.pushName || m?.name || safeUser?.name || '').trim()
+const user = ensureRecord(data.users, sender, userDefault, { name: whatsappName || safeUser?.name || userDefault.name })
+if (user && typeof user === 'object') {
 if (user.registered !== true) user.registered = true
 if (whatsappName && !user.customName && user.name !== whatsappName) user.name = whatsappName
-const chat = m?.chat ? ensureRecord(data.chats, m.chat, chatDefault) : {}
-const botJid = conn?.user?.jid || conn?.session?.id || 'primary'
-const settings = ensureRecord(data.settings, botJid, settingsDefault)
-return { data, user, chat, settings }
+}
+return { data, user: user && typeof user === 'object' ? user : {}, chat, settings }
 }
 
 export function normalizeAdmin(participant) {

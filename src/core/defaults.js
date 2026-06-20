@@ -39,7 +39,7 @@ Subs: 0,
 })
 export const chatDefault = Object.freeze({
 welcome: true,
-isBanned: null,
+isBanned: {},
 autolevelup: false,
 delete: false,
 detect: true,
@@ -64,7 +64,7 @@ export const settingsDefault = Object.freeze({
 self: false,
 restrict: true,
 jadibotmd: true,
-antiPrivate: 0,
+antiPrivate: 'off',
 antiGroup: 0,
 moneda: 'Coins',
 autoread: false,

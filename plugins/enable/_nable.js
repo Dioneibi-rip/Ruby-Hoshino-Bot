@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 import fetch from 'node-fetch';
+import { getAntiPrivateState, normalizeSessionJid } from '../../src/core/session-utils.js';
 
 const fancyFontMap = {
   'A': '𝘼', 'B': '𝘽', 'C': '𝘾', 'D': '𝘿', 'E': '𝙀', 'F': '𝙁', 'G': '𝙂', 'H': '𝙃', 'I': '𝙄', 'J': '𝙅', 'K': '𝙆', 'L': '𝙇', 'M': '𝙈', 'N': '𝙉', 'O': '𝙊', 'P': '𝙋', 'Q': '𝙌', 'R': '𝙍', 'S': '𝙎', 'T': '𝙏', 'U': '𝙐', 'V': '𝙑', 'W': '𝙒', 'X': '𝙓', 'Y': '𝙔', 'Z': '𝙕',
@@ -40,19 +41,20 @@ const featureNames = {
 const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isROwner }) => {
   let chat = global.db.data.chats[m.chat];
   let user = global.db.getUser(m.sender);
-  let bot = global.db.data.settings[conn.user.jid] || {};
+  const botJid = normalizeSessionJid(conn);
+  let bot = global.db.data.settings[botJid] || (global.db.data.settings[botJid] = {});
   let type = command.toLowerCase();
   let isAll = false, isUser = false;
   let isEnable = chat[type] || false;
 
-  if (args[0] === 'on' || args[0] === 'enable' || args[0] === '1') {
-    isEnable = true;
-  } else if (args[0] === 'silent' || args[0] === 'silencioso' || args[0] === '2') {
-    isEnable = 2;
+  if (args[0] === 'on' || args[0] === 'enable' || args[0] === '1' || args[0] === 'block' || args[0] === 'bloquear') {
+    isEnable = (type === 'antiprivado' || type === 'antipriv' || type === 'antiprivate') ? 'block' : true;
+  } else if (args[0] === 'silent' || args[0] === 'silencioso' || args[0] === '2' || args[0] === 'ignore' || args[0] === 'ignorar') {
+    isEnable = (type === 'antiprivado' || type === 'antipriv' || type === 'antiprivate') ? 'ignore' : 2;
   } else if (args[0] === 'off' || args[0] === 'disable' || args[0] === 'false' || args[0] === '0') {
-    isEnable = false;
+    isEnable = (type === 'antiprivado' || type === 'antipriv' || type === 'antiprivate') ? 'off' : false;
   } else {
-    const estado = (chat[type] || ((type === 'antiprivado' || type === 'antipriv' || type === 'antiprivate') && bot.antiPrivate) || ((type === 'antigrupos' || type === 'antigroup' || type === 'antigrupo') && bot.antiGroup) || (type === 'restrict' && bot.restrict) || (type === 'autoread' && global.opts['autoread']) || (type === 'antispam' && bot.antiSpam) || (type === 'jadibotmd' && bot.jadibotmd)) ? '✓ 𝘼𝙘𝙩𝙞𝙫𝙖𝙙𝙤' : '✗ 𝘿𝙚𝙨𝙖𝙘𝙩𝙞𝙫𝙖𝙙𝙤';
+    const estado = ((type === 'antiprivado' || type === 'antipriv' || type === 'antiprivate') ? getAntiPrivateState(bot) !== 'off' : (chat[type] || ((type === 'antigrupos' || type === 'antigroup' || type === 'antigrupo') && bot.antiGroup) || (type === 'restrict' && bot.restrict) || (type === 'autoread' && global.opts['autoread']) || (type === 'antispam' && bot.antiSpam) || (type === 'jadibotmd' && bot.jadibotmd))) ? '✓ 𝘼𝙘𝙩𝙞𝙫𝙖𝙙𝙤' : '✗ 𝘿𝙚𝙨𝙖𝙘𝙩𝙞𝙫𝙖𝙙𝙤';
     const estadoFancy = toFancyText(estado);
     const comandoFancy = toFancyText(command);
     const prefijoFancy = toFancyText(usedPrefix);
@@ -82,7 +84,7 @@ const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, i
         global.dfail('rowner', m, conn);
         throw false;
       }
-      bot.antiPrivate = isEnable === 2 ? 2 : isEnable ? 1 : false;
+      bot.antiPrivate = ['block', 'ignore', 'off'].includes(isEnable) ? isEnable : (isEnable ? 'block' : 'off');
       break;
     case 'antigrupos':
     case 'antigroup':
@@ -303,12 +305,15 @@ const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, i
   let replyText = '';
   const scope = isAll ? 'para este Bot' : 'para este chat';
 
-  if (isEnable) {
+  const enabledForDisplay = type === 'antiprivado' || type === 'antipriv' || type === 'antiprivate' ? getAntiPrivateState(bot) !== 'off' : Boolean(isEnable);
+  const antiPrivateMode = type === 'antiprivado' || type === 'antipriv' || type === 'antiprivate' ? ` (${getAntiPrivateState(bot)})` : '';
+
+  if (enabledForDisplay) {
       fkontakName = `🔔 ¡${toFancyText(displayName.toUpperCase())} ${toFancyText('ACTIVADO')}!`;
-      replyText = `✅ *${toFancyText(`Se ha activado la función`)}: ${toFancyText(displayName)}* ${toFancyText(scope)}.`;
+      replyText = `✅ *${toFancyText(`Se ha activado la función`)}: ${toFancyText(displayName + antiPrivateMode)}* ${toFancyText(scope)}.`;
   } else {
       fkontakName = `🔕 ¡${toFancyText(displayName.toUpperCase())} ${toFancyText('DESACTIVADO')}!`;
-      replyText = `❌ *${toFancyText(`Se ha desactivado la función`)}: ${toFancyText(displayName)}* ${toFancyText(scope)}.`;
+      replyText = `❌ *${toFancyText(`Se ha desactivado la función`)}: ${toFancyText(displayName + antiPrivateMode)}* ${toFancyText(scope)}.`;
   }
 
   let fkontak = null;
