@@ -1,25 +1,21 @@
 let handler = async (m, { conn }) => {
-    let user = global.db.getUser(m.sender);
+let user = global.db.getUser(m.sender);
 
-    if (!user) {
-        return conn.reply(m.chat, `✧⃝❛ El usuario no está registrado en la base de datos.`, m);
-    }
+const costoCura = 1000;
+const cura = 75;
 
-    const costoCura = 1000;
-    const cura = 75;
+if (user.coin < costoCura) {
+return conn.reply(m.chat, `💔 No tienes suficientes *${m.moneda}* para curarte.\nNecesitas al menos *¥${costoCura.toLocaleString()} ${m.moneda}*.`, m);
+}
 
-    if (user.coin < costoCura) {
-        return conn.reply(m.chat, `💔 No tienes suficientes *${m.moneda}* para curarte.\nNecesitas al menos *¥${costoCura.toLocaleString()} ${m.moneda}*.`, m);
-    }
+user.health += cura;
+user.coin -= costoCura;
 
-    user.health += cura;
-    user.coin -= costoCura;
+if (user.health > 100) user.health = 100;
 
-    if (user.health > 100) user.health = 100;
+user.lastHeal = new Date();
 
-    user.lastHeal = new Date();
-
-    const mensaje = `
+const mensaje = `
 ╭───────❍
 │🌸 *¡Curación exitosa!*  
 │❤️ *+${cura}* puntos de vida restaurados
@@ -31,7 +27,7 @@ let handler = async (m, { conn }) => {
 › 💰 Monedas: *¥${user.coin.toLocaleString()} ${m.moneda}*
 `;
 
-    await conn.sendMessage(m.chat, { text: mensaje.trim() }, { quoted: m });
+await conn.sendMessage(m.chat, { text: mensaje.trim() }, { quoted: m });
 };
 
 handler.help = ['heal'];
