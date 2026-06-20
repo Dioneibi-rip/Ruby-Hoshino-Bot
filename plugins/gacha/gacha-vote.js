@@ -1,9 +1,7 @@
 import { loadGroupVotes, saveGroupVotes, makeGroupCharacterKey } from '../../lib/groupVotes.js';
-import { loadCharacters, saveCharacters, findCharacterByName } from '../../lib/gacha-characters.js';
+import { loadCharacters, findCharacterByName } from '../../lib/gacha-characters.js';
 
 const voteCooldownTime = 60 * 60 * 1000;
-const characterVotes = {};
-
 let handler = async (m, { conn, args }) => {
 try {
 const userId = m.sender;
@@ -30,8 +28,16 @@ if (!character) {
 await conn.reply(m.chat, 'Personaje no encontrado. Asegúrate del nombre correcto.', m);
 return;
 }
-const charVoteKey = `${groupId}:${character.id}`;
-const charExpiration = Number(characterVotes[charVoteKey] || 0);
+const groupVotes = await loadGroupVotes();
+const groupCharacterKey = makeGroupCharacterKey(groupId, character.id);
+const currentGroupData = groupVotes[groupCharacterKey] || {
+groupId,
+characterId: character.id,
+valueBonus: 0,
+votes: 0,
+characterCooldownUntil: 0,
+};
+const charExpiration = Number(currentGroupData.characterCooldownUntil || 0);
 if (charExpiration > now) {
 const timeLeft = charExpiration - now;
 const minutes = Math.floor((timeLeft / 1000 / 60) % 60);
@@ -40,27 +46,17 @@ await conn.reply(m.chat, `El personaje *${character.name}* ya fue votado recient
 return;
 }
 const incrementValue = Math.floor(Math.random() * 8) + 1;
-const groupVotes = await loadGroupVotes();
-const groupCharacterKey = makeGroupCharacterKey(groupId, character.id);
 const baseValue = Number(character.value || 0);
-const currentGroupData = groupVotes[groupCharacterKey] || {
-groupId,
-characterId: character.id,
-valueBonus: 0,
-votes: 0,
-};
 currentGroupData.valueBonus += incrementValue;
 currentGroupData.votes += 1;
 currentGroupData.groupId = groupId;
 currentGroupData.characterId = character.id;
+const nextVoteAt = now + voteCooldownTime;
+currentGroupData.characterCooldownUntil = nextVoteAt;
 groupVotes[groupCharacterKey] = currentGroupData;
 await saveGroupVotes(groupVotes);
-character.votes = (character.votes || 0) + 1;
-await saveCharacters(characters);
-const nextVoteAt = now + voteCooldownTime;
 voteCooldowns[groupId] = nextVoteAt;
 global.db.updateUser(userId, { lastvote: nextVoteAt, cooldowns_vote: voteCooldowns });
-characterVotes[charVoteKey] = nextVoteAt;
 const groupValue = baseValue + currentGroupData.valueBonus;
 await conn.reply(m.chat, `✰ Votaste por el personaje *${character.name}*\n› Valor en este grupo: *${groupValue}* (incrementado en *${incrementValue}*)\n› Votos en este grupo: *${currentGroupData.votes}*`, m);
 } catch (e) {
