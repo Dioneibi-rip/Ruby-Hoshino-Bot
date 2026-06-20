@@ -3,7 +3,6 @@ import { formatJobLine, ensureJobFields } from '../../lib/rpg-jobs.js'
 let handler = async (m, {conn, usedPrefix}) => {
 let who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
 if (who == conn.user.jid) return error 
-if (!global.db.userExists(who)) return conn.reply(m.chat, `${emoji4} El usuario no se encuentra en mi base de Datos.`, m)
 let user = global.db.getUser(who)
 ensureJobFields(user)
 let trabajo = formatJobLine(user)
