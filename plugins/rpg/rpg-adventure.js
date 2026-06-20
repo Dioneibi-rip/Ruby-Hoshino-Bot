@@ -3,9 +3,6 @@ import fetch from 'node-fetch';
 let handler = async (m, { conn }) => {
 let user = global.db.getUser(m.sender);
 let img = 'https://files.catbox.moe/bj45rp.jpg';
-if (!user) {
-return conn.reply(m.chat, `${emoji} El usuario no se encuentra en la base de Datos.`, m);
-}
 if (user.health < 80) {
 return conn.reply(m.chat, '💔 No tienes suficiente salud para aventurarte. Usa el comando .heal para curarte.', m);
 }
