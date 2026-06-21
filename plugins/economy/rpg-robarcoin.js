@@ -10,12 +10,7 @@ if (pInfo?.id) senderJid = pInfo.id;
 
 const user = global.db.getUser(senderJid);
 
-let target = null;
-if (m.isGroup) {
-target = m.mentionedJid?.[0] || m.quoted?.sender || null;
-} else {
-target = m.chat;
-}
+let target = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
 
 if (!target) return conn.reply(m.chat, `${emoji2} Debes mencionar a alguien para intentar robar.`, m);
 

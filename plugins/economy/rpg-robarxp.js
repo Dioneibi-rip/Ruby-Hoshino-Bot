@@ -12,12 +12,7 @@ const time = msToTime(last + cooldown - now);
 return conn.reply(m.chat, `${emoji3} Debes esperar ${time} para usar *#robxp* de nuevo.`, m);
 }
 
-let who = null;
-if (m.isGroup) {
-who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : null;
-} else {
-who = m.chat;
-}
+let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
 
 if (!who) {
 return conn.reply(m.chat, `${emoji} Debes mencionar a alguien para intentar robarle XP.`, m);

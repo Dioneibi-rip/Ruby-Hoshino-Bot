@@ -10,7 +10,7 @@ let randomkamu = `${Math.floor(Math.random() * 55)}`.trim()
 let Aku = (randomaku * 1)
 let Kamu = (randomkamu * 1)
 let count = args[0]
-let who = m.fromMe ? conn.user.jid : m.sender
+let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
 let username = conn.getName(who)
 let tiempoEspera = 15
 if (cooldowns[m.sender] && Date.now() - cooldowns[m.sender] < tiempoEspera * 1000) {

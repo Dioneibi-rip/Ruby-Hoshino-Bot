@@ -1,4 +1,4 @@
-import { loadCharacters, saveCharacters } from '../../lib/gacha-characters.js';
+import { loadCharacters } from '../../lib/gacha-characters.js';
 import {
   loadHarem,
   saveHarem,

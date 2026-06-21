@@ -7,7 +7,7 @@ import {
   isSameUserId
 } from '../../lib/gacha-group.js';
 import { resetProtectionOnTransfer } from '../../lib/gacha-protection.js';
-import { loadCharacters, saveCharacters, findCharacterByName } from '../../lib/gacha-characters.js';
+import { loadCharacters, findCharacterByName } from '../../lib/gacha-characters.js';
 
 
 
