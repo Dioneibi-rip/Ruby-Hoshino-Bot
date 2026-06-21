@@ -1,3 +1,4 @@
+import { jidNormalizedUser } from '@whiskeysockets/baileys'
 import { smsg } from './lib/simple.js'
 import { format } from 'util'
 import * as ws from 'ws'
@@ -51,6 +52,56 @@ return IGNORED_BAILEYS_IDS.some((pattern) => pattern.test(id))
 
 function normalizeConnectionJid(conn) {
 return normalizeSessionJid(conn)
+}
+
+async function normalizeJidForDatabase(conn, jid, participantsByLid = null) {
+if (!jid || typeof jid !== 'string') return jid
+let normalized = jidNormalizedUser(jid) || jid
+if (normalized.endsWith('@lid') || normalized.endsWith('@hosted.lid')) {
+const participant = participantsByLid?.get?.(normalized) || participantsByLid?.get?.(jid)
+if (participant?.jid) normalized = jidNormalizedUser(participant.jid) || participant.jid
+else {
+const mapped = await conn?.signalRepository?.lidMapping?.getPNForLID?.(normalized).catch(() => null)
+if (mapped) normalized = jidNormalizedUser(mapped) || mapped
+}
+}
+return normalized
+}
+
+async function normalizeMessageIdentifiers(conn, m, sender, participantsByLid = null) {
+const normalizedSender = await normalizeJidForDatabase(conn, sender, participantsByLid)
+if (m?.key?.participant) m.key.participant = await normalizeJidForDatabase(conn, m.key.participant, participantsByLid)
+if (m?.participant) m.participant = await normalizeJidForDatabase(conn, m.participant, participantsByLid)
+if (m?.sender) {
+try { m.sender = await normalizeJidForDatabase(conn, m.sender, participantsByLid) } catch {}
+}
+if (m?.chat && !m.chat.endsWith('@g.us') && !m.chat.endsWith('@broadcast')) {
+try { m.chat = await normalizeJidForDatabase(conn, m.chat, participantsByLid) } catch {}
+if (m?.key?.remoteJid) m.key.remoteJid = m.chat
+}
+if (m?.quoted?.sender) {
+const quotedSender = await normalizeJidForDatabase(conn, m.quoted.sender, participantsByLid)
+try { m.quoted.sender = quotedSender } catch {}
+if (m.quoted.key?.participant) m.quoted.key.participant = quotedSender
+}
+if (Array.isArray(m?.mentionedJid)) {
+const mentionedJid = []
+for (const jid of m.mentionedJid) mentionedJid.push(await normalizeJidForDatabase(conn, jid, participantsByLid))
+try { m.mentionedJid = mentionedJid } catch {}
+}
+return normalizedSender
+}
+
+function pluginNeedsJob(plugin, name, command) {
+const tags = Array.isArray(plugin?.tags) ? plugin.tags.map((tag) => String(tag).toLowerCase()) : []
+const economyTagged = tags.some((tag) => ['economy', 'economia', 'rpg'].includes(tag)) || String(name || '').startsWith('rpg-')
+if (!economyTagged) return false
+return !['trabajo', 'job', 'empleo'].includes(String(command || '').toLowerCase())
+}
+
+function userHasJob(user) {
+const job = String(user?.job || '').trim().toLowerCase()
+return Boolean(job && !['ninguno', 'none', 'null', 'undefined', 'sin trabajo'].includes(job))
 }
 
 function parseCommand(text, usedPrefix) {
@@ -110,6 +161,10 @@ if (plugin.premium && !isPrems) { fail('premium', m, conn); return false }
 if (plugin.admin && !isAdmin) { fail('admin', m, conn); return false }
 if (plugin.private && m.isGroup) { fail('private', m, conn); return false }
 if (plugin.group && !m.isGroup) { fail('group', m, conn); return false }
+if (pluginNeedsJob(plugin, name, extra.command) && !userHasJob(user)) {
+conn.reply(m.chat, `💼 Primero debes elegir una chamba. Usa *${extra.usedPrefix}trabajo lista* y luego *${extra.usedPrefix}trabajo elegir <trabajo>* para desbloquear la economía RPG.`, m)
+return false
+}
 
 m.isCommand = true
 const xp = 'exp' in plugin ? parseInt(plugin.exp) : 17
@@ -235,7 +290,9 @@ if (!sender) return
 m.__deleteKey = m.key ? { ...m.key } : null
 const groupMetadata = m.isGroup ? await getCachedGroupMetadata(this, m.chat) : {}
 const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
-sender = normalizeLidReferences(m, sender, m.isGroup ? createParticipantIndex(participants) : null)
+const participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
+sender = normalizeLidReferences(m, sender, participantsByLid)
+sender = await normalizeMessageIdentifiers(this, m, sender, participantsByLid)
 
 m.exp = 0
 m.coin = false
@@ -282,7 +339,7 @@ const usedPrefix = match[0][0]
 const parsed = parseCommand(m.text, usedPrefix)
 const isAccept = commandMatches(plugin.command, parsed.command)
 global.comando = parsed.command
-if (shouldIgnoreBaileysMessage(m)) return
+if (shouldIgnoreBaileysMessage(m) && !isAccept) return
 if (!isAccept) continue
 m.plugin = name
 const chatData = global.db?.data?.chats?.[m.chat] || {}
