@@ -46,6 +46,12 @@ function subBotSessionId(jid = '') {
 const normalized = normalizeSubBotJid(jid)
 return encodeURIComponent(normalized || `subbot-${Date.now()}`)
 }
+
+function getPairingPhone(m, subBotJid = '') {
+const raw = subBotJid || m?.sender || ''
+const number = String(raw).split('@')[0].split(':')[0].replace(/\D/g, '')
+return number || String(m?.sender || '').split('@')[0].split(':')[0].replace(/\D/g, '')
+}
 if (global.conns instanceof Array) console.log()
 else global.conns = []
 if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
@@ -236,7 +242,12 @@ pairingCodeMessageKey = activeRequest.key || null
 return
 }
 pairingCodeSent = true
-const rawCode = await sock.requestPairingCode(m.sender.split`@`[0], "RUBYCHAN")
+const pairingPhone = getPairingPhone(m, subBotJid)
+if (!pairingPhone) {
+pairingCodeSent = false
+return conn.reply(m.chat, `${emoji2} No pude detectar tu número para generar el código de vinculación.`, m)
+}
+const rawCode = await sock.requestPairingCode(pairingPhone, "RUBYCHAN")
 const formattedCode = rawCode.match(/.{1,4}/g)?.join("-") || rawCode
 const mediaMessage = await prepareWAMessageMedia({
 image: { url: "https://files.catbox.moe/rt1yfo.jpeg" }
