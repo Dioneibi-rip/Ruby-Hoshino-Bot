@@ -20,7 +20,7 @@ return conn.reply(m.chat, `✧ Ya chambeaste hace rato we, descansa la espalda. 
 let premiumBoost = user.premium ? 1.2 : 1;
 let successChance = (user.premium ? 0.88 : 0.82) + Math.min(0.08, (user.jobXp || 0) / 200000);
 let ok = Math.random() < successChance;
-let useGeneric = Math.random() < 0.35; 
+let useGeneric = Math.random() < 0.35;
 
 let jobBonus = 1;
 if (job.key === 'comerciante') jobBonus = 1.25;
@@ -33,7 +33,7 @@ let jobName = job.name.toUpperCase();
 let jobEmoji = job.emoji;
 
 if (ok) {
-let baseAmount = Math.floor(Math.random() * 3000 + 2000);
+let baseAmount = Math.floor(Math.random() * 1800 + 1200);
 let amount = Math.floor(baseAmount * job.workMultiplier * premiumBoost * jobBonus);
 let xpEarned = Math.floor(amount * 0.15);
 user.coin = (user.coin || 0) + amount;
