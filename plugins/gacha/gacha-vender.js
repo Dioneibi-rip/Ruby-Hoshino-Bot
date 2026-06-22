@@ -1,4 +1,4 @@
-import { loadHarem, saveHarem, removeClaim, isSameUserId } from '../../lib/gacha-group.js'
+import { loadHarem, saveHarem, removeClaim, isSameUserId, addOrUpdateVenta } from '../../lib/gacha-group.js'
 import { loadCharacters, findCharacterById, findCharacterByName, extractCharacterIdFromText } from '../../lib/gacha-characters.js'
 
 function normalizeToJid(rawJid, participants = []) {
@@ -27,35 +27,42 @@ if (m.quoted?.text) {
 const id = extractCharacterIdFromText(m.quoted.text)
 if (!id) return { error: '✧ No se pudo encontrar el ID del personaje citado.' }
 const character = findCharacterById(characters, id)
-return character ? { character } : { error: '✧ Ese personaje citado no existe en el catálogo.' }
+const priceInput = args.join(' ').trim()
+return character ? { character, priceInput } : { error: '✧ Ese personaje citado no existe en el catálogo.' }
 }
-const query = args.join(' ').trim()
-if (!query) return { error: '✧ Ingresa el nombre o responde al mensaje del personaje que quieres vender.' }
+const raw = args.join(' ').trim()
+if (!raw) return { error: '✧ Ingresa el nombre del personaje y el precio de venta.' }
+const parts = raw.split(/\s+/)
+const last = parts.at(-1)
+const hasPrice = /^\d+$/.test(last || '')
+const priceInput = hasPrice ? last : ''
+const query = hasPrice ? parts.slice(0, -1).join(' ').trim() : raw
+if (!query) return { error: '✧ Ingresa el nombre del personaje antes del precio.' }
 const character = findCharacterByName(characters, query) || findCharacterById(characters, query)
-return character ? { character } : { error: `✧ Personaje *"${query}"* no encontrado.` }
+return character ? { character, priceInput } : { error: `✧ Personaje *"${query}"* no encontrado.` }
 }
 
 let handler = async (m, { args, conn, participants }) => {
 const userId = normalizeToJid(m.sender, participants)
 const groupId = m.chat
-const { character, error } = await resolveCharacter(m, args)
+const { character, priceInput, error } = await resolveCharacter(m, args)
 if (error) return m.reply(error)
+const price = Number.parseInt(priceInput)
+if (!Number.isFinite(price) || price < 1) return m.reply('✧ Ingresa un precio válido. Ejemplo: *#vender Rem 5000*')
 const harem = await loadHarem()
 const claim = harem.find(entry => entry.groupId === groupId && String(entry.characterId) === String(character.id) && isSameUserId(entry.userId, userId))
 const user = global.db.getUser(userId)
 const removedFromExtras = removeFromUserInventory(user, character.id)
 if (!claim && !removedFromExtras) return m.reply('✧ Esta waifu no te pertenece en este grupo.')
 if (claim) removeClaim(harem, groupId, userId, character.id)
-const reward = Math.max(1, Number.parseInt(character.value) || Number.parseInt(character.price) || 1000)
-user.coin = Math.max(0, Number(user.coin) || 0) + reward
-global.db.updateUser(userId, { coin: user.coin, extras: user.extras })
+if (removedFromExtras) global.db.updateUser(userId, { extras: user.extras })
 await saveHarem(harem)
+await addOrUpdateVenta([], groupId, { id: String(character.id), name: character.name, precio: price, vendedor: userId, fecha: Date.now() })
 await global.db.write?.()
-return conn.reply(m.chat, `✿ Vendiste a *${character.name}* por *¥${reward.toLocaleString()} ${m.moneda}*.
-› Nuevo saldo: *¥${user.coin.toLocaleString()} ${m.moneda}*.`, m)
+return conn.reply(m.chat, `✿ Pusiste a *${character.name}* en el mercado por *¥${price.toLocaleString()} ${m.moneda}*.`, m)
 }
 
-handler.help = ['venderwaifu <personaje>']
+handler.help = ['venderwaifu <personaje> <precio>']
 handler.tags = ['waifus', 'economia']
 handler.command = ['vender', 'sell']
 handler.group = true

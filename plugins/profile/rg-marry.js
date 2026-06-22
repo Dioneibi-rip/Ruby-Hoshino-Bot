@@ -1,5 +1,3 @@
-//fix LID + JID by Dioneibi
-
 let proposals = {};
 const confirmation = {};
 
@@ -88,17 +86,18 @@ if (pInfo && pInfo.id) senderJid = pInfo.id;
 }
 
 if (!(senderJid in confirmation)) return;
-if (!m.text) return;
+const responseText = String(m.text || m.message?.conversation || m.message?.extendedTextMessage?.text || '').toLowerCase().trim();
+if (!responseText) return;
 
 const { proposer, timeout } = confirmation[senderJid];
 
-if (/^No$/i.test(m.text)) {
+if (responseText === 'no') {
 clearTimeout(timeout);
 delete confirmation[senderJid];
 return conn.sendMessage(m.chat, { text: '*《✧》Han rechazado tu propuesta de matrimonio.*' }, { quoted: m });
 }
 
-if (/^Si$/i.test(m.text)) {
+if (responseText === 'si' || responseText === 'sí') {
 delete proposals[proposer];
 const marriages = await loadMarriages();
 if (isUserMarried(marriages, proposer) || isUserMarried(marriages, senderJid)) {

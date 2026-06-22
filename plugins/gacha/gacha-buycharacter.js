@@ -21,7 +21,10 @@ let index = Number(input) - 1
 if (!ventasGrupo[index]) return m.reply('✘ Número inválido.')
 venta = ventasGrupo[index]
 } else {
-venta = ventasGrupo.find(v => v.name.toLowerCase() === input.toLowerCase())
+venta = ventasGrupo.find(v => {
+const personaje = findCharacterById(personajes, v.id)
+return String(v.name || personaje?.name || '').toLowerCase() === input.toLowerCase() || String(v.id) === input
+})
 if (!venta) return m.reply('✘ No se encontró ese personaje en venta en este grupo.')
 }
 
@@ -51,16 +54,17 @@ await saveHarem(harem)
 
 ventas = ventas.filter(v => !(v.groupId === groupId && v.id === venta.id))
 await saveVentas(ventas)
-
+global.db.updateUser(m.sender, { coin: comprador.coin })
+global.db.updateUser(venta.vendedor, { coin: vendedor.coin })
 await global.db.write()
-
 let personaje = findCharacterById(personajes, venta.id)
+let nombrePersonaje = personaje?.name || venta.name || venta.id
 let valorOriginal = personaje?.value || 'Desconocido'
 
 m.reply(
 `◢✿ *COMPRA EXITOSA* ✿◤
 
-✧ Personaje: *${venta.name}*
+✧ Personaje: *${nombrePersonaje}*
 ✧ Valor original: *${valorOriginal}*
 ✧ Precio: *¥${precio.toLocaleString()} ${m.moneda}*
 
