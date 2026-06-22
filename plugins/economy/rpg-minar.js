@@ -1,3 +1,4 @@
+import { applyDebtWithholding, debtNotice } from '../../lib/bank-loans.js';
 const handler = async (m, { conn }) => {
 const user = global.db.getUser(m.sender);
 if (!user) return;
@@ -15,7 +16,8 @@ const esEventoPositivo = Math.random() < (user.premium ? 0.68 : 0.56);
 const evento = esEventoPositivo ? pickRandom(eventosBuenos) : pickRandom(eventosMalos);
 const cambios = evento.cambios(bonus);
 
-user.coin = Math.max(0, (user.coin || 0) + cambios.coin);
+const debtPayment = applyDebtWithholding(user, cambios.coin);
+user.coin = Math.max(0, (user.coin || 0) + debtPayment.net);
 user.iron = Math.max(0, (user.iron || 0) + cambios.iron);
 user.gold = Math.max(0, (user.gold || 0) + cambios.gold);
 user.emerald = Math.max(0, (user.emerald || 0) + cambios.emerald);
@@ -29,13 +31,13 @@ user.lastmiming = now;
 const resultado =
 `⛏️ *${evento.texto}*\n\n` +
 `✨ Exp: ${formato(cambios.exp)}\n` +
-`💸 ${m.moneda}: ${formato(cambios.coin)}\n` +
+`💸 ${m.moneda}: ${formato(debtPayment.net)}\n` +
 `♦️ Esmeralda: ${formato(cambios.emerald)}\n` +
 `🔩 Hierro: ${formato(cambios.iron)}\n` +
 `🏅 Oro: ${formato(cambios.gold)}\n` +
 `🕋 Carbón: ${formato(cambios.coal)}\n` +
 `🪨 Piedra: ${formato(cambios.stone)}\n` +
-`👑 Multiplicador premium: x${bonus}`;
+`👑 Multiplicador premium: x${bonus}${debtNotice(debtPayment,m.moneda)}`;
 
 await conn.sendFile(m.chat, 'https://files.catbox.moe/qfx5pn.jpg', 'minado.jpg', resultado, m);
 await m.react('⛏️');

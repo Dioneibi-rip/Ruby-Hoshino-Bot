@@ -25,6 +25,10 @@ let handler = async (m, { conn }) => {
 > ✦ Ver tus ${m.moneda} en la cartera.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#banco • #bank*
 > ✦ Ver tus ${m.moneda} en el banco.
+ൃ⵿꤬ᩚ̸̷͠ᩘ🏦̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#prestamo • #loan*
+> ✦ Pide un préstamo con 20% de interés.
+ൃ⵿꤬ᩚ̸̷͠ᩘ💳̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#pagar • #paydebt*
+> ✦ Paga tu deuda bancaria.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─ *#deposit • #depositar • #d*
 > ✦ Deposita tus ${m.moneda} al banco.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🪷̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#with • #retirar • #withdraw*

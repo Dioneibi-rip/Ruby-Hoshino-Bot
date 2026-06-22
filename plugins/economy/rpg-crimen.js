@@ -1,4 +1,5 @@
 import { ensureJobFields, getJobData } from '../../lib/rpg-jobs.js';
+import { applyDebtWithholding, debtNotice } from '../../lib/bank-loans.js';
 
 let cooldowns = {};
 let jail = {};
@@ -59,14 +60,15 @@ return conn.reply(m.chat, textoJail, m);
 if (roll < jailChance + successChance) {
 let baseAmount = Math.floor(Math.random() * 4500 + 3000);
 let amount = Math.floor(baseAmount * job.crimeRewardMultiplier * (user.premium ? 1.18 : 1) * crimeBonus * 0.33);
-user.coin = (user.coin || 0) + amount;
-global.db.updateUser(senderId, { coin: user.coin });
+let debtPayment = applyDebtWithholding(user, amount);
+user.coin = (user.coin || 0) + debtPayment.net;
+global.db.updateUser(senderId, { coin: user.coin, debt: user.debt || 0 });
 cooldowns[senderId] = now;
 
 let phraseList = useGeneric ? frasesCrimenGenericas.success : (frasesCrimenPorTrabajo[job.key]?.success || frasesCrimenGenericas.success);
 let phrase = pickRandom(phraseList);
 
-let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐁𝐨𝐭𝐢́𝐧: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}\n\nㅤㅤ ⬫   ͜ ۬ ︵࣪᷼⏜݊᷼✿⃘𐇽۫ꥈ࣪࣪࣪࣪࣪࣪࣪࣪࣪۬۬۬࣪࣪࣪۬۬۬𝇈ٜ࣪࣪࣪࣪࣪۬۬࣪࣪࣪۬۬𑁍ٜ𐇽࣪࣪࣪࣪࣪۬۬࣪࣪࣪۬ 𝇈⃘۫ꥈ࣪࣪࣪࣪࣪࣪࣪࣪࣪۬۬۬࣪࣪࣪۬۬۬✿݊᷼⏜࣪᷼︵۬ ͜   ⬫`;
+let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐁𝐨𝐭𝐢́𝐧: *${toNum(debtPayment.net)}* ( *${debtPayment.net}* ) ${m.moneda}\n\nㅤㅤ ⬫   ͜ ۬ ︵࣪᷼⏜݊᷼✿⃘𐇽۫ꥈ࣪࣪࣪࣪࣪࣪࣪࣪࣪۬۬۬࣪࣪࣪۬۬۬𝇈ٜ࣪࣪࣪࣪࣪۬۬࣪࣪࣪۬۬𑁍ٜ𐇽࣪࣪࣪࣪࣪۬۬࣪࣪࣪۬ 𝇈⃘۫ꥈ࣪࣪࣪࣪࣪࣪࣪࣪࣪۬۬۬࣪࣪࣪۬۬۬✿݊᷼⏜࣪᷼︵۬ ͜   ⬫${debtNotice(debtPayment,m.moneda)}`;
 return conn.reply(m.chat, texto, m);
 }
 

@@ -20,6 +20,7 @@ const jobLine = formatJobLine(user)
 
 const coin = Number(user.coin || user.coins || 0)
 const bank = Number(user.bank || 0)
+const debt = Number(user.debt || 0)
 const total = coin + bank
 
 let texto = `
@@ -28,9 +29,10 @@ let texto = `
 │ 💸 Dinero » *¥${coin.toLocaleString()} ${m.moneda}*
 │ 🏦 Banco » *¥${bank.toLocaleString()} ${m.moneda}*
 │ 🧾 Total » *¥${total.toLocaleString()} ${m.moneda}*
+│ 🏦 Deuda » *¥${debt.toLocaleString()} ${m.moneda}*
 │ 💼 Trabajo » *${jobLine}*
 ╰─────────────────────
-> 📌 Usa *${usedPrefix}deposit* para proteger tu dinero en el banco.
+> 📌 Usa *${usedPrefix}prestamo <cantidad>* para pedir crédito y *${usedPrefix}pagar <cantidad>* para liquidar deuda.
 `.trim()
 
 await conn.reply(m.chat, texto, m)

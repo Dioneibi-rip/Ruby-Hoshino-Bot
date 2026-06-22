@@ -1,4 +1,5 @@
 import { ensureJobFields, getJobData } from '../../lib/rpg-jobs.js';
+import { applyDebtWithholding, debtNotice } from '../../lib/bank-loans.js';
 
 let cooldowns = {};
 
@@ -36,14 +37,15 @@ if (ok) {
 let baseAmount = Math.floor(Math.random() * 1800 + 1200);
 let amount = Math.floor(baseAmount * job.workMultiplier * premiumBoost * jobBonus * 0.33);
 let xpEarned = Math.floor(amount * 0.15);
-user.coin = (user.coin || 0) + amount;
+let debtPayment = applyDebtWithholding(user, amount);
+user.coin = (user.coin || 0) + debtPayment.net;
 user.jobXp = (user.jobXp || 0) + xpEarned;
-global.db.updateUser(m.sender, { coin: user.coin, jobXp: user.jobXp });
+global.db.updateUser(m.sender, { coin: user.coin, jobXp: user.jobXp, debt: user.debt || 0 });
 
 let phraseList = useGeneric ? frasesGenericas.success : (frasesPorTrabajo[job.key]?.success || frasesGenericas.success);
 let phrase = pickRandom(phraseList);
 
-let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐆𝐚𝐧𝐚𝐬𝐭𝐞: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐗𝐏: *+${xpEarned}*\n\nㅤㅤ ⬫   ͜ ۬ ︵࣪᷼⏜݊᷼✿⃘𐇽۫ꥈ࣪࣪࣪࣪࣪࣪࣪࣪࣪۬۬۬࣪࣪࣪۬۬۬𝇈ٜ࣪࣪࣪࣪࣪۬۬࣪࣪࣪۬۬𑁍ٜ𐇽࣪࣪࣪࣪࣪۬۬࣪࣪࣪۬ 𝇈⃘۫ꥈ࣪࣪࣪࣪࣪࣪࣪࣪࣪۬۬۬࣪࣪࣪۬۬۬✿݊᷼⏜࣪᷼︵۬ ͜   ⬫`;
+let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐆𝐚𝐧𝐚𝐬𝐭𝐞: *${toNum(debtPayment.net)}* ( *${debtPayment.net}* ) ${m.moneda}\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐗𝐏: *+${xpEarned}*\n\nㅤㅤ ⬫   ͜ ۬ ︵࣪᷼⏜݊᷼✿⃘𐇽۫ꥈ࣪࣪࣪࣪࣪࣪࣪࣪࣪۬۬۬࣪࣪࣪۬۬۬𝇈ٜ࣪࣪࣪࣪࣪۬۬࣪࣪࣪۬۬𑁍ٜ𐇽࣪࣪࣪࣪࣪۬۬࣪࣪࣪۬ 𝇈⃘۫ꥈ࣪࣪࣪࣪࣪࣪࣪࣪࣪۬۬۬࣪࣪࣪۬۬۬✿݊᷼⏜࣪᷼︵۬ ͜   ⬫${debtNotice(debtPayment,m.moneda)}`;
 return conn.reply(m.chat, texto, m);
 }
 
