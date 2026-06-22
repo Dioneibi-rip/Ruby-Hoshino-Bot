@@ -86,7 +86,7 @@ if (pInfo && pInfo.id) senderJid = pInfo.id;
 }
 
 if (!(senderJid in confirmation)) return;
-const responseText = String(m.text || m.message?.conversation || m.message?.extendedTextMessage?.text || '').toLowerCase().trim();
+const responseText = String(m.text || m.message?.conversation || m.message?.extendedTextMessage?.text || m.body || '').toLowerCase().trim();
 if (!responseText) return;
 
 const { proposer, timeout } = confirmation[senderJid];
@@ -98,10 +98,10 @@ return conn.sendMessage(m.chat, { text: '*《✧》Han rechazado tu propuesta de
 }
 
 if (responseText === 'si' || responseText === 'sí') {
+clearTimeout(timeout);
 delete proposals[proposer];
 const marriages = await loadMarriages();
 if (isUserMarried(marriages, proposer) || isUserMarried(marriages, senderJid)) {
-clearTimeout(timeout);
 delete confirmation[senderJid];
 return conn.sendMessage(m.chat, { text: '*《✧》La propuesta ya no es válida porque una de las personas ya está casada.*' }, { quoted: m });
 }
@@ -115,7 +115,6 @@ conn.sendMessage(m.chat, { text: `✩.･:｡≻───── ⋆♡⋆ ──
 
 ✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩`, mentions: [proposer, senderJid] }, { quoted: m });
 
-clearTimeout(timeout);
 delete confirmation[senderJid];
 }
 };

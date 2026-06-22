@@ -11,7 +11,7 @@ return conn.reply(m.chat, `⛏️ Aún te recuperas del último minado.\n⏳ Esp
 }
 
 const bonus = user.premium ? 1.25 : 1;
-const esEventoPositivo = Math.random() < (user.premium ? 0.86 : 0.78);
+const esEventoPositivo = Math.random() < (user.premium ? 0.68 : 0.56);
 const evento = esEventoPositivo ? pickRandom(eventosBuenos) : pickRandom(eventosMalos);
 const cambios = evento.cambios(bonus);
 
@@ -65,7 +65,7 @@ return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function n(min, max, bonus) {
-return Math.floor(r(min, max) * bonus);
+return Math.floor(r(min, max) * bonus * 0.33);
 }
 
 function formato(num) {

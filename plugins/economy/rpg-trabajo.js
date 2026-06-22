@@ -34,7 +34,8 @@ const selectedJobKey=resolveSelectedJob(desiredInput);
 if(!selectedJobKey)return conn.reply(m.chat,`✘ Trabajo inválido: *${desiredInput}*.\nUsa *${usedPrefix}trabajo lista* para ver opciones disponibles.`,m);
 const selectedJob=JOBS[selectedJobKey];
 if(user.job===selectedJobKey)return conn.reply(m.chat,`✅ Ya tienes ese trabajo: ${selectedJob.emoji} *${selectedJob.name}*.`,m);
-global.db.updateUser(m.sender,{job:selectedJobKey,jobSince:Date.now()});
+global.db.updateUser(m.sender,{job:selectedJobKey,jobSince:Date.now(),jobXp:user.jobXp||0});
+await global.db.write?.();
 return conn.reply(m.chat,`✅ Ahora tu trabajo es ${selectedJob.emoji} *${selectedJob.name}*.\n✦ Ya puedes usar *${usedPrefix}trabajar*, *${usedPrefix}crime* y *${usedPrefix}slut*.`,m);
 };
 

@@ -33,13 +33,15 @@ if (isSameUserId(venta.vendedor, m.sender)) return m.reply('✘ No puedes compra
 let comprador = global.db.getUser(m.sender)
 
 let precio = Number(venta.precio) || 0
-if ((comprador.coin || 0) < precio)
-return m.reply(`✘ Dinero insuficiente.\nNecesitas *¥${precio.toLocaleString()} ${m.moneda}*`)
+let impuesto = Math.floor(precio * 0.10)
+let total = precio + impuesto
+if ((comprador.coin || 0) < total)
+return m.reply(`✘ Dinero insuficiente.\nNecesitas *¥${total.toLocaleString()} ${m.moneda}* (precio *¥${precio.toLocaleString()}* + IVA *¥${impuesto.toLocaleString()}*)`)
 
 let vendedor = global.db.getUser(venta.vendedor)
 if (!vendedor) vendedor = global.db.getUser(venta.vendedor)
 
-comprador.coin = (comprador.coin || 0) - precio
+comprador.coin = (comprador.coin || 0) - total
 vendedor.coin = (vendedor.coin || 0) + precio
 
 let harem = await loadHarem()
@@ -67,6 +69,8 @@ m.reply(
 ✧ Personaje: *${nombrePersonaje}*
 ✧ Valor original: *${valorOriginal}*
 ✧ Precio: *¥${precio.toLocaleString()} ${m.moneda}*
+✧ IVA 10%: *¥${impuesto.toLocaleString()} ${m.moneda}*
+✧ Total pagado: *¥${total.toLocaleString()} ${m.moneda}*
 
 ✿ El personaje ahora forma parte de tu harem en este grupo.`
 )

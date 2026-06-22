@@ -34,7 +34,7 @@ let jobEmoji = job.emoji;
 
 if (ok) {
 let baseAmount = Math.floor(Math.random() * 1800 + 1200);
-let amount = Math.floor(baseAmount * job.workMultiplier * premiumBoost * jobBonus);
+let amount = Math.floor(baseAmount * job.workMultiplier * premiumBoost * jobBonus * 0.33);
 let xpEarned = Math.floor(amount * 0.15);
 user.coin = (user.coin || 0) + amount;
 user.jobXp = (user.jobXp || 0) + xpEarned;
@@ -48,7 +48,7 @@ return conn.reply(m.chat, texto, m);
 }
 
 let lossResist = (job.key === 'comerciante' || job.key === 'basurero') ? 0.7 : 1;
-let rawLoss = Math.floor((Math.random() * 400 + 200) * (user.premium ? 0.9 : 1) * lossResist);
+let rawLoss = Math.floor((Math.random() * 900 + 600) * (user.premium ? 0.95 : 1.25) * lossResist);
 let loss = Math.min((user.coin || 0) + (user.bank || 0), rawLoss);
 
 let rest = loss;

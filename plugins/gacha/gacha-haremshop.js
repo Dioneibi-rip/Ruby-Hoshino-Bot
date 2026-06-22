@@ -60,7 +60,12 @@ username = `@${(vendedor || '').split('@')[0] || 'desconocido'}`;
 }
 
 texto += `✰ ${inicio + i + 1} » *${name}* (*${valorOriginal}*)\n`;
-texto += `  🛒 Precio de venta: *¥${(precio || 0).toLocaleString()} ${m.moneda}*\n`;
+const precioBase = Number(precio) || 0;
+const iva = Math.floor(precioBase * 0.10);
+const total = precioBase + iva;
+texto += `  🛒 Precio de venta: *¥${precioBase.toLocaleString()} ${m.moneda}*\n`;
+texto += `  🧾 IVA 10%: *¥${iva.toLocaleString()} ${m.moneda}*\n`;
+texto += `  💳 Total comprador: *¥${total.toLocaleString()} ${m.moneda}*\n`;
 texto += `  🆔 ID: *${idPersonaje}*\n`;
 texto += `  👤 Vendedor: ${username}\n`;
 texto += `  📅 Publicado: ${formatoFecha(fecha)}\n\n`;
