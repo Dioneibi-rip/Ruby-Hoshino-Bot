@@ -35,9 +35,9 @@ if (job.key === 'albañil') { crimeBonus = 1.10; jailNerf = 0.05; }
 if (job.key === 'repartidor') { crimeBonus = 1.05; jailNerf = 0.02; }
 if (job.key === 'basurero') { lossResist = 0.8; }
 
-let baseJailChance = Math.max(0.04, (user.premium ? 0.09 : 0.13) - (job.crimeSuccessBonus * 0.4) - (skill * 0.5));
-let jailChance = Math.max(0.01, baseJailChance - jailNerf); 
-let successChance = Math.min(0.86, (user.premium ? 0.6 : 0.5) + job.crimeSuccessBonus + skill + jailNerf);
+let baseJailChance = Math.max(0.16, (user.premium ? 0.22 : 0.30) - (job.crimeSuccessBonus * 0.25) - (skill * 0.25));
+let jailChance = Math.max(0.12, baseJailChance - jailNerf);
+let successChance = Math.min(0.58, (user.premium ? 0.42 : 0.34) + (job.crimeSuccessBonus * 0.5) + (skill * 0.5) + (jailNerf * 0.5));
 
 let roll = Math.random();
 let useGeneric = Math.random() < 0.35; 
@@ -58,7 +58,7 @@ return conn.reply(m.chat, textoJail, m);
 
 if (roll < jailChance + successChance) {
 let baseAmount = Math.floor(Math.random() * 4500 + 3000);
-let amount = Math.floor(baseAmount * job.crimeRewardMultiplier * (user.premium ? 1.18 : 1) * crimeBonus);
+let amount = Math.floor(baseAmount * job.crimeRewardMultiplier * (user.premium ? 1.18 : 1) * crimeBonus * 0.33);
 user.coin = (user.coin || 0) + amount;
 global.db.updateUser(senderId, { coin: user.coin });
 cooldowns[senderId] = now;
@@ -70,8 +70,8 @@ let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐁
 return conn.reply(m.chat, texto, m);
 }
 
-let rawLossAmount = Math.floor((Math.random() * 1000 + 500) * (user.premium ? 0.85 : 1) * lossResist);
-let loss = Math.min(Math.floor((user.coin || 0) * 0.55), rawLossAmount);
+let rawLossAmount = Math.floor((Math.random() * 2400 + 1600) * (user.premium ? 1.05 : 1.35) * lossResist);
+let loss = Math.min(Math.floor((user.coin || 0) * 0.75), rawLossAmount);
 user.coin = Math.max(0, (user.coin || 0) - loss);
 global.db.updateUser(senderId, { coin: user.coin });
 cooldowns[senderId] = now;
