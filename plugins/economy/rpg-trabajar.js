@@ -1,6 +1,5 @@
 import { ensureJobFields, getJobData } from '../../lib/rpg-jobs.js';
 
-let cooldowns = {};
 
 let handler = async (m, { conn, usedPrefix }) => {
 let user = global.db.getUser(m.sender);
@@ -9,12 +8,6 @@ ensureJobFields(user);
 let job = getJobData(user);
 if (!job) {
 return conn.reply(m.chat, `💼 No tienes chamba todavía rey.\nUsa *${usedPrefix}trabajo elegir <trabajo>* para empezar a facturar.`, m);
-}
-
-let tiempo = 3 * 60;
-if (cooldowns[m.sender] && Date.now() - cooldowns[m.sender] < tiempo * 1000) {
-let tiempo2 = segundosAHMS(Math.ceil((cooldowns[m.sender] + tiempo * 1000 - Date.now()) / 1000));
-return conn.reply(m.chat, `✧ Ya chambeaste hace rato we, descansa la espalda. Vuelve en *${tiempo2}*.`, m);
 }
 
 let premiumBoost = user.premium ? 1.2 : 1;
@@ -28,7 +21,6 @@ if (job.key === 'chef') jobBonus = 1.20;
 if (job.key === 'albañil') jobBonus = 1.10;
 if (job.key === 'repartidor') jobBonus = 1.05;
 
-cooldowns[m.sender] = Date.now();
 let jobName = job.name.toUpperCase();
 let jobEmoji = job.emoji;
 
@@ -70,6 +62,7 @@ handler.tags = ['economy'];
 handler.command = ['chamba', 'trabajar', 'w', 'work', 'chambear'];
 handler.group = true;
 handler.register = true;
+handler.cooldown = 180000;
 
 export default handler;
 
@@ -79,11 +72,6 @@ if (number >= 1000000) return (number / 1000000).toFixed(1) + 'M';
 return number.toString();
 }
 
-function segundosAHMS(segundos) {
-let minutos = Math.floor((segundos % 3600) / 60);
-let segundosRestantes = segundos % 60;
-return `${minutos} minutos y ${segundosRestantes} segundos`;
-}
 
 function pickRandom(list) {
 return list[Math.floor(list.length * Math.random())];
