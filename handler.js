@@ -11,7 +11,7 @@ import {
 buildPermissionContext,
 createParticipantIndex,
 getCachedGroupMetadata,
-commandMatches,
+commandsMap,
 getPluginDirectory,
 getPrefixMatch,
 hydrateDatabaseForMessage,
@@ -358,6 +358,9 @@ m.moneda = settings?.moneda || 'Coins'
 m.exp += Math.ceil(Math.random() * 10)
 
 const pluginDir = getPluginDirectory()
+const prefixMatch = getPrefixMatch(this, {}, m.text)
+const parsed = prefixMatch?.[0]?.[0] ? parseCommand(m.text, prefixMatch[0][0]) : null
+const commandEntry = parsed?.command ? commandsMap.get(parsed.command) : null
 for (const name in (global.plugins || {})) {
 const plugin = global.plugins[name]
 if (!plugin || plugin.disabled) continue
@@ -365,33 +368,37 @@ const __filename = join(pluginDir, name)
 const baseContext = { chatUpdate, __dirname: pluginDir, __filename }
 await runPluginHooks(this, plugin, name, m, baseContext)
 if (!opts.restrict && plugin.tags?.includes?.('admin')) continue
-
 const match = getPrefixMatch(this, plugin, m.text)
 const beforeContext = { match, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
 if (typeof plugin.before === 'function') {
 const beforeResult = await plugin.before.call(this, m, beforeContext)
 if (m.__pluginHalt) return
-if (beforeResult) continue
+if (beforeResult && commandEntry?.name === name) return
 }
 if (m.__pluginHalt) return
-if (typeof plugin !== 'function' || !match?.[0]?.[0]) continue
-
+}
+if (!commandEntry) {
+if (shouldIgnoreBaileysMessage(m)) return
+return
+}
+const { name, plugin } = commandEntry
+if (!plugin || plugin.disabled || typeof plugin !== 'function') return
+const match = getPrefixMatch(this, plugin, m.text)
+if (!match?.[0]?.[0]) return
 const usedPrefix = match[0][0]
-const parsed = parseCommand(m.text, usedPrefix)
-const isAccept = commandMatches(plugin.command, parsed.command)
-global.comando = parsed.command
-if (shouldIgnoreBaileysMessage(m) && !isAccept) return
-if (!isAccept) continue
+const commandParsed = parseCommand(m.text, usedPrefix)
+const mappedEntry = commandsMap.get(commandParsed.command)
+if (mappedEntry?.plugin !== plugin) return
+global.comando = commandParsed.command
+if (shouldIgnoreBaileysMessage(m)) return
 m.plugin = name
 const chatData = global.db?.data?.chats?.[m.chat] || {}
 const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJid(this))
 if (isBotBannedInThisChat && !UNBAN_COMMAND_FILES.includes(name)) return
-
-const extra = { match, usedPrefix, ...parsed, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
-if (!await validateRedisCooldown(this, plugin, name, m, parsed.command, sender)) break
+const __filename = join(pluginDir, name)
+const extra = { match, usedPrefix, ...commandParsed, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
+if (!await validateRedisCooldown(this, plugin, name, m, commandParsed.command, sender)) return
 await executePlugin(this, plugin, name, m, extra, permissionContext, sender)
-break
-}
 } catch (error) {
 console.error(error)
 } finally {

@@ -26,6 +26,7 @@ import { RubyJadiBot } from './plugins/subbots/jadibot-serbot.js'
 import { EventEmitter } from 'events'
 import { attachSessionState, createMessageRetryCache } from './src/core/session-manager.js'
 import { startMonitor } from './src/core/stability-monitor.js'
+import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from './src/core/handler-utils.js'
 EventEmitter.defaultMaxListeners = 100
 const { proto } = (await import('@whiskeysockets/baileys')).default
 const { DisconnectReason, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser } = await import('@whiskeysockets/baileys')
@@ -299,6 +300,7 @@ if (i + batchSize < subBotPaths.length) await new Promise(resolve => setTimeout(
 const pluginFolder = global.__dirname(join(__dirname, './plugins/index'))
 const pluginFilter = (filename) => /\.js$/.test(filename)
 global.plugins = {}
+global.commandsMap = global.commandsMap || new Map()
 function getPluginFiles(folder, base = folder) {
 return readdirSync(folder, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)).sort((a, b) => (b.name === 'enable') - (a.name === 'enable')).flatMap((entry) => {
 const fullPath = join(folder, entry.name)
@@ -320,23 +322,23 @@ if (entry.isDirectory()) watchPluginTree(join(folder, entry.name), base)
 }
 async function filesInit() {
 for (const filename of getPluginFiles(pluginFolder).filter(pluginFilter)) {
-try { const file = global.__filename(join(pluginFolder, filename)); const module = await import(file); global.plugins[filename] = module.default || module } catch (e) { conn.logger.error(e); delete global.plugins[filename] }
+try { const file = global.__filename(join(pluginFolder, filename)); const module = await import(file); global.plugins[filename] = module.default || module; registerPluginCommands(filename, global.plugins[filename]) } catch (e) { conn.logger.error(e); delete global.plugins[filename]; unregisterPluginCommands(filename) }
 }
 }
-filesInit().then((_) => Object.keys(global.plugins)).catch(console.error);
+filesInit().then((_) => rebuildCommandsMap(global.plugins)).catch(console.error);
 global.reload = async (_ev, filename) => {
 if (pluginFilter(filename)) {
 const dir = global.__filename(join(pluginFolder, filename), true);
 if (filename in global.plugins) {
 if (existsSync(dir)) conn.logger.info(`✨ Plugin actualizado: '${filename}'`)
-else { conn.logger.warn(`🗑️ Plugin eliminado: '${filename}'`); return delete global.plugins[filename] }
+else { conn.logger.warn(`🗑️ Plugin eliminado: '${filename}'`); delete global.plugins[filename]; unregisterPluginCommands(filename); return }
 } else conn.logger.info(`✨ Nuevo plugin: '${filename}'`);
 const err = syntaxerror(readFileSync(dir), filename, { sourceType: 'module', allowAwaitOutsideFunction: true, });
 if (err) conn.logger.error(`❌ Error sintaxis: '${filename}'
 ${format(err)}`)
 else {
-try { const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`)); global.plugins[filename] = module.default || module; } catch (e) { conn.logger.error(`❌ Error sintaxis: '${filename}
-${format(e)}'`) } finally { global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => (b.startsWith('enable/') - a.startsWith('enable/')) || a.localeCompare(b))) }
+try { const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`)); global.plugins[filename] = module.default || module; registerPluginCommands(filename, global.plugins[filename]) } catch (e) { conn.logger.error(`❌ Error sintaxis: '${filename}
+${format(e)}'`); unregisterPluginCommands(filename) } finally { global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => (b.startsWith('enable/') - a.startsWith('enable/')) || a.localeCompare(b))); rebuildCommandsMap(global.plugins) }
 }
 }
 }
