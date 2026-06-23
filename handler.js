@@ -11,6 +11,8 @@ import {
 buildPermissionContext,
 createParticipantIndex,
 getCachedGroupMetadata,
+allHooks,
+beforeHooks,
 commandsMap,
 getPluginDirectory,
 getPrefixMatch,
@@ -357,20 +359,24 @@ const pluginDir = getPluginDirectory()
 const prefixMatch = getPrefixMatch(this, {}, m.text)
 const parsed = prefixMatch?.[0]?.[0] ? parseCommand(m.text, prefixMatch[0][0]) : null
 const commandEntry = parsed?.command ? commandsMap.get(parsed.command) : null
-for (const name in (global.plugins || {})) {
-const plugin = global.plugins[name]
+for (const hook of global.allHooks || allHooks || []) {
+const { name, plugin } = hook || {}
 if (!plugin || plugin.disabled) continue
 const __filename = join(pluginDir, name)
 const baseContext = { chatUpdate, __dirname: pluginDir, __filename }
 await runPluginHooks(this, plugin, name, m, baseContext)
+if (m.__pluginHalt) return
+}
+for (const hook of global.beforeHooks || beforeHooks || []) {
+const { name, plugin } = hook || {}
+if (!plugin || plugin.disabled) continue
 if (!opts.restrict && plugin.tags?.includes?.('admin')) continue
+const __filename = join(pluginDir, name)
 const match = getPrefixMatch(this, plugin, m.text)
 const beforeContext = { match, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
-if (typeof plugin.before === 'function') {
 const beforeResult = await plugin.before.call(this, m, beforeContext)
 if (m.__pluginHalt) return
 if (beforeResult && commandEntry?.name === name) return
-}
 if (m.__pluginHalt) return
 }
 if (!commandEntry) {

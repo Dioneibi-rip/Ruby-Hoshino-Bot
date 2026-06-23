@@ -122,6 +122,40 @@ if (conn.__prefixMatcherCache?.size > 2000) conn.__prefixMatcherCache.clear()
 
 
 export const commandsMap = global.commandsMap ||= new Map()
+export const beforeHooks = global.beforeHooks ||= []
+export const allHooks = global.allHooks ||= []
+
+function removeHookEntries(name) {
+if (!name) return
+for (let index = beforeHooks.length - 1; index >= 0; index--) if (beforeHooks[index]?.name === name) beforeHooks.splice(index, 1)
+for (let index = allHooks.length - 1; index >= 0; index--) if (allHooks[index]?.name === name) allHooks.splice(index, 1)
+}
+
+export function registerPluginHooks(name, plugin) {
+removeHookEntries(name)
+if (!name || !plugin || plugin.disabled) return { beforeHooks, allHooks }
+if (typeof plugin.before === 'function') beforeHooks.push({ name, plugin })
+if (typeof plugin.all === 'function') allHooks.push({ name, plugin })
+global.beforeHooks = beforeHooks
+global.allHooks = allHooks
+return { beforeHooks, allHooks }
+}
+
+export function unregisterPluginHooks(name) {
+removeHookEntries(name)
+global.beforeHooks = beforeHooks
+global.allHooks = allHooks
+return { beforeHooks, allHooks }
+}
+
+export function rebuildPluginHooks(plugins = global.plugins || {}) {
+beforeHooks.length = 0
+allHooks.length = 0
+for (const [name, plugin] of Object.entries(plugins || {})) registerPluginHooks(name, plugin)
+global.beforeHooks = beforeHooks
+global.allHooks = allHooks
+return { beforeHooks, allHooks }
+}
 
 export function getCommandKeys(pluginCommand) {
 if (!pluginCommand) return []
