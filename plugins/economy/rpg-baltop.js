@@ -32,7 +32,7 @@ texto += `${icono} ${i + 1} » *${nombre}:*\n`
 texto += `\t\t Total→ *${yenes}*\n`
 }
 
-texto += `\n> • Página *${page}* de *${totalPages}*`
+texto += `\n> • Pagina *${page}* de *${totalPages}*`
 
 await conn.reply(m.chat, texto.trim(), m)
 }
