@@ -46,6 +46,31 @@ global.prefix = new RegExp('^[#/!.]')
 global.db = new SQLiteDatabase(opts['db'] || './src/database/database.sqlite')
 global.DATABASE = global.db
 let databaseShutdownStarted = false
+global.authCredsFlushers ||= new Set()
+function createDebouncedSaveCreds(saveCreds, delayMs = 4000) {
+let timer
+let pending = false
+let running = Promise.resolve()
+const flush = () => {
+if (timer) {
+clearTimeout(timer)
+timer = undefined
+}
+if (!pending) return running
+pending = false
+running = running.then(() => saveCreds()).catch(console.error)
+return running
+}
+const debounced = () => {
+pending = true
+if (timer) clearTimeout(timer)
+timer = setTimeout(flush, delayMs)
+timer.unref?.()
+return running
+}
+debounced.flush = flush
+return debounced
+}
 const bannerASCII = chalk.bold.hex('#FF0080')(`
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣤⣾⣿⡿⠿⠟⣿⣶⣶⣶⣤⣤⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⡿⠟⣛⣉⣧⣶⠟⢋⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -130,6 +155,7 @@ databaseShutdownStarted = true
 if (error) console.error(error)
 try {
 clearInterval(databaseAutosaveInterval)
+await Promise.all([...global.authCredsFlushers].map(flush => flush()))
 await global.saveDatabase()
 if (typeof global.db?.close === 'function') global.db.close()
 } catch (saveError) {
@@ -143,6 +169,8 @@ process.once('SIGTERM', () => shutdownDatabaseAndExit(0))
 protoType()
 serialize()
 const { state, saveCreds } = useSQLiteAuthState(`./${global.Rubysessions}`, { dbName: 'auth.db', cleanOldFiles: true })
+const debouncedSaveCreds = createDebouncedSaveCreds(() => saveCreds.call(global.conn, true))
+global.authCredsFlushers.add(debouncedSaveCreds.flush)
 global.authManagerDb = createManagerDatabase({ dbPath: `./${global.Rubysessions}/system.db`, tableName: 'bot_registry' })
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = createMessageRetryCache()
@@ -290,7 +318,7 @@ isInit = true
 if (!isInit) { conn.ev.off('messages.upsert', conn.handler); conn.ev.off('connection.update', conn.connectionUpdate); conn.ev.off('creds.update', conn.credsUpdate); }
 conn.handler = handler.handler.bind(global.conn)
 conn.connectionUpdate = connectionUpdate.bind(global.conn)
-conn.credsUpdate = saveCreds.bind(global.conn, true)
+conn.credsUpdate = debouncedSaveCreds
 conn.ev.on('messages.upsert', conn.handler)
 conn.ev.on('connection.update', conn.connectionUpdate)
 conn.ev.on('creds.update', conn.credsUpdate)
