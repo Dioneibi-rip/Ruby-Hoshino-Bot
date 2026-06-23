@@ -273,10 +273,7 @@ exp: (Number(current.exp) || 0) + (m.exp || 0),
 coin: (Number(current.coin) || 0) - ((m.coin || 0) * 1)
 })
 }
-if (!m.plugin) {
-await global.db?.write?.()
-return
-}
+if (!m.plugin) return
 const stats = data.stats ||= {}
 const now = Date.now()
 const stat = stats[m.plugin] ||= { total: 0, success: 0, last: now, lastSuccess: 0 }
@@ -290,7 +287,6 @@ if (m.error == null) {
 stat.success += 1
 stat.lastSuccess = now
 }
-await global.db?.write?.()
 }
 
 export async function handler(chatUpdate) {
