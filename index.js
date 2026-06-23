@@ -45,6 +45,7 @@ global.__bannerShown = false
 global.prefix = new RegExp('^[#/!.]')
 global.db = new SQLiteDatabase(opts['db'] || './src/database/database.sqlite')
 global.DATABASE = global.db
+let databaseShutdownStarted = false
 const bannerASCII = chalk.bold.hex('#FF0080')(`
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣤⣾⣿⡿⠿⠟⣿⣶⣶⣶⣤⣤⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⡿⠟⣛⣉⣧⣶⠟⢋⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -107,7 +108,38 @@ global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, setti
 global.db.chain = chain(global.db.data)
 return global.db.data
 }
-loadDatabase()
+global.saveDatabase = async function saveDatabase() {
+if (!global.db) return false
+if (global.db.READ) await global.loadDatabase()
+if (typeof global.db.write === 'function') await global.db.write()
+if (typeof global.db.flush === 'function') global.db.flush()
+return true
+}
+await loadDatabase()
+const databaseAutosaveInterval = setInterval(async () => {
+try {
+await global.saveDatabase()
+} catch (error) {
+console.error(error)
+}
+}, 60000)
+databaseAutosaveInterval.unref?.()
+async function shutdownDatabaseAndExit(code, error) {
+if (databaseShutdownStarted) return
+databaseShutdownStarted = true
+if (error) console.error(error)
+try {
+clearInterval(databaseAutosaveInterval)
+await global.saveDatabase()
+if (typeof global.db?.close === 'function') global.db.close()
+} catch (saveError) {
+console.error(saveError)
+code = 1
+}
+process.exit(code)
+}
+process.once('SIGINT', () => shutdownDatabaseAndExit(0))
+process.once('SIGTERM', () => shutdownDatabaseAndExit(0))
 protoType()
 serialize()
 const { state, saveCreds } = useSQLiteAuthState(`./${global.Rubysessions}`, { dbName: 'auth.db', cleanOldFiles: true })
@@ -239,7 +271,7 @@ await global.reloadHandler(true).catch(console.error)
 reconnectTimer.unref?.()
 }
 }
-process.on('uncaughtException', console.error)
+process.once('uncaughtException', error => shutdownDatabaseAndExit(1, error))
 process.on('unhandledRejection', console.error)
 startMonitor()
 let isInit = true;
