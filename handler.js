@@ -22,6 +22,7 @@ runMaintenance,
 import { getAntiPrivateState, isChatBannedForBot, normalizeSessionJid } from './src/core/session-utils.js'
 import { attachSessionState } from './src/core/session-manager.js'
 import messageQueue from './src/core/message-queue.js'
+import { getCooldownKey, getCooldownSeconds, isRedisReady, redis } from './lib/redis.js'
 
 global.uptimeStart = Date.now()
 
@@ -104,6 +105,45 @@ const job = String(user?.job || '').trim().toLowerCase()
 return Boolean(job && !['ninguno', 'none', 'null', 'undefined', 'sin trabajo'].includes(job))
 }
 
+function pluginUsesRedisCooldown(plugin, name) {
+const seconds = getCooldownSeconds(plugin)
+if (!seconds) return false
+const tags = Array.isArray(plugin?.tags) ? plugin.tags.map((tag) => String(tag).toLowerCase()) : []
+return tags.some((tag) => ['economy', 'economia', 'rpg'].includes(tag)) || String(name || '').startsWith('rpg-')
+}
+
+async function validateRedisCooldown(conn, plugin, name, m, command, sender) {
+if (!pluginUsesRedisCooldown(plugin, name)) return true
+if (!isRedisReady()) return true
+const key = getCooldownKey(command || name, sender)
+try {
+const ttl = await redis.ttl(key)
+if (ttl > 0) {
+const minutes = Math.floor(ttl / 60)
+const seconds = ttl % 60
+conn.reply(m.chat, `✧ Ese comando está en cooldown. Vuelve en *${minutes} minutos y ${seconds} segundos*.`, m)
+return false
+}
+return true
+} catch (error) {
+console.error('[redis] cooldown ttl error', error)
+return true
+}
+}
+
+async function setRedisCooldown(plugin, name, command, sender) {
+if (!pluginUsesRedisCooldown(plugin, name)) return
+if (!isRedisReady()) return
+const seconds = getCooldownSeconds(plugin)
+if (!seconds) return
+const key = getCooldownKey(command || name, sender)
+try {
+await redis.set(key, '1', 'EX', seconds)
+} catch (error) {
+console.error('[redis] cooldown set error', error)
+}
+}
+
 function parseCommand(text, usedPrefix) {
 const noPrefix = text.replace(usedPrefix, '')
 const parts = noPrefix.trim().split` `.filter(Boolean)
@@ -182,6 +222,7 @@ return false
 
 try {
 await plugin.call(conn, m, extra)
+if (m.error == null) await setRedisCooldown(plugin, name, extra.command, sender)
 if (!isPrems) m.coin = m.coin || plugin.coin || false
 } catch (error) {
 m.error = error
@@ -347,6 +388,7 @@ const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJi
 if (isBotBannedInThisChat && !UNBAN_COMMAND_FILES.includes(name)) return
 
 const extra = { match, usedPrefix, ...parsed, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
+if (!await validateRedisCooldown(this, plugin, name, m, parsed.command, sender)) break
 await executePlugin(this, plugin, name, m, extra, permissionContext, sender)
 break
 }
