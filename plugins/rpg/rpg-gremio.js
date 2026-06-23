@@ -1,17 +1,8 @@
-let cooldowns = {};
 
 let handler = async (m, { conn }) => {
 let senderId = m.sender;
 let user = global.db.getUser(senderId);
 
-let tiempoEspera = 10 * 60;
-
-if (cooldowns[senderId] && Date.now() - cooldowns[senderId] < tiempoEspera * 1000) {
-let tiempoRestante = segundosAHMS(Math.ceil((cooldowns[senderId] + tiempoEspera * 1000 - Date.now()) / 1000));
-return conn.reply(m.chat, `⏱️ Ya has cazado recientemente. Espera ⏳ *${tiempoRestante}* antes de intentar de nuevo.`, m);
-}
-
-cooldowns[senderId] = Date.now();
 
 const eventos = [
 { nombre: 'Batalla contra los Goblins', tipo: 'victoria', coin: randomNumber(20, 40), exp: randomNumber(10, 20), health: 0, mensaje: `🏆 ¡Has derrotado a los Goblins! Al caer, dejaron caer un montón de ${m.moneda}.` },
@@ -63,16 +54,11 @@ handler.tags = ['rpg'];
 handler.help = ['gremio'];
 handler.command = ['gremio', 'mision'];
 handler.register = true;
-handler.group = true;
+handler.group = true
+handler.cooldown = 600000;
 
 export default handler;
 
 function randomNumber(min, max) {
 return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function segundosAHMS(segundos) {
-let minutos = Math.floor(segundos / 60);
-let segundosRestantes = segundos % 60;
-return `${minutos} minutos y ${segundosRestantes} segundos`;
 }

@@ -1,6 +1,5 @@
 import { ensureJobFields, getJobData } from '../../lib/rpg-jobs.js';
 
-let cooldowns = {};
 
 let handler = async (m, { conn, usedPrefix }) => {
 let senderId = m.sender;
@@ -12,11 +11,6 @@ if (!job) {
 return conn.reply(m.chat, `💼 Primero consigue trabajo con *#trabajo lista*. Tu oficio afecta el rendimiento en #slut.`, m);
 }
 
-let tiempo = 5 * 60;
-if (cooldowns[senderId] && Date.now() - cooldowns[senderId] < tiempo * 1000) {
-let tiempo2 = segundosAHMS(Math.ceil((cooldowns[senderId] + tiempo * 1000 - Date.now()) / 1000));
-return conn.reply(m.chat, `🥵 Ya te venís usando mucho eso we, necesitas recuperar el aliento. Vuelve en *${tiempo2}*.`, m);
-}
 
 let users = global.db.listUsers();
 let userIds = Object.keys(users).filter(u => u !== senderId && !users[u].banned);
@@ -31,9 +25,8 @@ if (job.key === 'basurero') { slutBonus = 0.85; slutLossResist = 0.75; }
 
 let winChance = Math.min(0.87, 0.64 + (user.premium ? 0.06 : 0) + prof + slutWinChance);
 let didWin = Math.random() < winChance;
-let useGeneric = Math.random() < 0.35; 
+let useGeneric = Math.random() < 0.35;
 
-cooldowns[senderId] = Date.now();
 let jobName = job.name.toUpperCase();
 let jobEmoji = job.emoji;
 let mentionStr = '@' + targetId.split('@')[0];
@@ -72,6 +65,7 @@ handler.tags = ['economy'];
 handler.command = ['slut', 'prostituirse'];
 handler.group = true;
 handler.register = true;
+handler.cooldown = 300000;
 
 export default handler;
 
@@ -81,11 +75,7 @@ if (number >= 1000000) return (number / 1000000).toFixed(1) + 'M';
 return number.toString();
 }
 
-function segundosAHMS(segundos) {
-let minutos = Math.floor((segundos % 3600) / 60);
-let segundosRestantes = segundos % 60;
-return `${minutos} minutos y ${segundosRestantes} segundos`;
-}
+
 
 function pickRandom(list) {
 return list[Math.floor(list.length * Math.random())];

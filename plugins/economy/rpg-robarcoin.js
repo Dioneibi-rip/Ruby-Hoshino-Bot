@@ -1,6 +1,5 @@
 const handler = async (m, { conn, participants }) => {
 try {
-const now = Date.now();
 
 let senderJid = m.sender;
 if (m.sender.endsWith('@lid') && m.isGroup) {
@@ -24,12 +23,6 @@ if (targetJid === senderJid) return conn.reply(m.chat, `${emoji2} No puedes roba
 
 const targetUser = global.db.getUser(targetJid);
 
-const cooldown = user.premium ? 75 * 60 * 1000 : 120 * 60 * 1000;
-if (user.lastrob2 && now - Number(user.lastrob2) < cooldown) {
-const remaining = Number(user.lastrob2) + cooldown - now;
-return conn.reply(m.chat, `${emoji3} Debes esperar *${msToTime(remaining)}* para volver a robar.`, m);
-}
-
 const minVictimCash = 2500;
 const victimCash = Math.max(0, Number(targetUser.coin) || 0);
 if (victimCash < minVictimCash) {
@@ -40,7 +33,6 @@ const successChance = user.premium ? 0.47 : 0.40;
 const maxSteal = Math.max(1200, Math.floor(victimCash * 0.12));
 const minSteal = 600;
 
-user.lastrob2 = now;
 
 if (Math.random() < successChance) {
 const amount = Math.min(victimCash, randomInt(minSteal, maxSteal));
@@ -75,15 +67,9 @@ handler.tags = ['rpg'];
 handler.command = ['robar', 'steal', 'rob'];
 handler.group = true;
 handler.register = true;
+handler.cooldown = 7200000;
 
 export default handler;
-
-function msToTime(duration) {
-const totalSeconds = Math.max(0, Math.floor(duration / 1000));
-const hours = Math.floor(totalSeconds / 3600);
-const minutes = Math.floor((totalSeconds % 3600) / 60);
-return `${hours}h ${minutes}m`;
-}
 
 function randomInt(min, max) {
 return Math.floor(Math.random() * (max - min + 1)) + min;
