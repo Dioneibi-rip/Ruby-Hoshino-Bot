@@ -39,6 +39,30 @@ const __dirname = path.dirname(__filename)
 const pairingCodeRequests = global.pairingCodeRequests || (global.pairingCodeRequests = new Map())
 const PAIRING_CODE_TTL_MS = 45000
 const PAIRING_CODE_COOLDOWN_MS = 60000
+function createDebouncedSaveCreds(saveCreds, delayMs = 4000) {
+let timer
+let pending = false
+let running = Promise.resolve()
+const flush = () => {
+if (timer) {
+clearTimeout(timer)
+timer = undefined
+}
+if (!pending) return running
+pending = false
+running = running.then(() => saveCreds()).catch(console.error)
+return running
+}
+const debounced = () => {
+pending = true
+if (timer) clearTimeout(timer)
+timer = setTimeout(flush, delayMs)
+timer.unref?.()
+return running
+}
+debounced.flush = flush
+return debounced
+}
 function normalizeSubBotJid(jid = '') {
 return String(jid).split(':')[0].trim().toLowerCase()
 }
@@ -117,6 +141,9 @@ const subSocketCfg = global.baileysSocketConfig || {}
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = createMessageRetryCache()
 const { state, saveCreds } = useSQLiteAuthState(pathRubyJadiBot, { dbName: 'auth.db', cleanOldFiles: true })
+const debouncedSaveCreds = createDebouncedSaveCreds(() => saveCreds.call(sock, true))
+global.authCredsFlushers ||= new Set()
+global.authCredsFlushers.add(debouncedSaveCreds.flush)
 global.authManagerDb ||= createManagerDatabase({ dbPath: `./${global.Rubysessions || 'sessions'}/system.db`, tableName: 'bot_registry' })
 const connectionOptions = {
 logger: pino({ level: "fatal" }),
@@ -173,6 +200,7 @@ try { sock.ws.close() } catch (e) {}
 try { sock.ev.removeAllListeners() } catch (e) {}
 removeSockFromPool(sock)
 cleanupSessionState(sock)
+global.authCredsFlushers?.delete(debouncedSaveCreds.flush)
 if (global.subBotRegistry instanceof Map) global.subBotRegistry.delete(subBotId)
 upsertSubBotAuthRegistry(subBotId, sock, removeSession ? 'removed' : 'offline', { path: pathRubyJadiBot, jid: subBotJid })
 if (removeSession) {
@@ -209,7 +237,7 @@ sock.ev.off('creds.update', sock.credsUpdate)
 }
 sock.handler = handlerModule.handler.bind(sock)
 sock.connectionUpdate = connectionUpdate.bind(sock)
-sock.credsUpdate = saveCreds.bind(sock, true)
+sock.credsUpdate = debouncedSaveCreds
 sock.ev.on("messages.upsert", sock.handler)
 sock.ev.on("connection.update", sock.connectionUpdate)
 sock.ev.on("creds.update", sock.credsUpdate)
