@@ -121,6 +121,41 @@ if (conn.__prefixMatcherCache?.size > 2000) conn.__prefixMatcherCache.clear()
 }
 
 
+export const commandsMap = global.commandsMap ||= new Map()
+
+export function getCommandKeys(pluginCommand) {
+if (!pluginCommand) return []
+if (typeof pluginCommand === 'string') return [pluginCommand.toLowerCase()]
+if (Array.isArray(pluginCommand)) return pluginCommand.filter((cmd) => typeof cmd === 'string').map((cmd) => cmd.toLowerCase())
+return []
+}
+
+export function rebuildCommandsMap(plugins = global.plugins || {}) {
+commandsMap.clear()
+for (const [name, plugin] of Object.entries(plugins || {})) {
+if (!plugin || plugin.disabled) continue
+for (const command of getCommandKeys(plugin.command)) commandsMap.set(command, { name, plugin })
+}
+global.commandsMap = commandsMap
+return commandsMap
+}
+
+export function registerPluginCommands(name, plugin) {
+if (!name) return commandsMap
+for (const [command, entry] of commandsMap) if (entry?.name === name) commandsMap.delete(command)
+if (!plugin || plugin.disabled) return commandsMap
+for (const command of getCommandKeys(plugin.command)) commandsMap.set(command, { name, plugin })
+global.commandsMap = commandsMap
+return commandsMap
+}
+
+export function unregisterPluginCommands(name) {
+if (!name) return commandsMap
+for (const [command, entry] of commandsMap) if (entry?.name === name) commandsMap.delete(command)
+global.commandsMap = commandsMap
+return commandsMap
+}
+
 export function commandMatches(pluginCommand, command = '') {
 if (!pluginCommand) return false
 if (pluginCommand instanceof RegExp) {
