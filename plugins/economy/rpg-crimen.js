@@ -1,6 +1,5 @@
 import { ensureJobFields, getJobData } from '../../lib/rpg-jobs.js';
 
-let cooldowns = {};
 let jail = {};
 
 let handler = async (m, { conn, usedPrefix }) => {
@@ -13,8 +12,7 @@ if (!job) {
 return conn.reply(m.chat, `💼 No tienes trabajo. Busca uno con *${usedPrefix}trabajo lista* para desbloquear #crime.`, m);
 }
 
-let cooldown = 8 * 60; 
-let jailCooldown = 16 * 60; 
+let jailCooldown = 16 * 60;
 let now = Date.now();
 
 if (jail[senderId] && now < jail[senderId]) {
@@ -22,10 +20,6 @@ let remaining = segundosAHMS(Math.ceil((jail[senderId] - now) / 1000));
 return conn.reply(m.chat, `🚔 Sigues en la cárcel we. Te faltan *${remaining}* para ver la luz del sol.`, m);
 }
 
-if (cooldowns[senderId] && now - cooldowns[senderId] < cooldown * 1000) {
-let remaining = segundosAHMS(Math.ceil((cooldowns[senderId] + cooldown * 1000 - now) / 1000));
-return conn.reply(m.chat, `🚨 La zona está muy caliente loco, espera *${remaining}* pa no caer preso.`, m);
-}
 
 let skill = Math.min(0.07, (user.jobXp || 0) / 300000);
 
@@ -40,14 +34,13 @@ let jailChance = Math.max(0.12, baseJailChance - jailNerf);
 let successChance = Math.min(0.58, (user.premium ? 0.42 : 0.34) + (job.crimeSuccessBonus * 0.5) + (skill * 0.5) + (jailNerf * 0.5));
 
 let roll = Math.random();
-let useGeneric = Math.random() < 0.35; 
+let useGeneric = Math.random() < 0.35;
 
 let jobName = job.name.toUpperCase();
 let jobEmoji = job.emoji;
 
 if (roll < jailChance) {
 jail[senderId] = now + (jailCooldown * 1000);
-cooldowns[senderId] = now;
 
 let phraseList = useGeneric ? frasesCrimenGenericas.jail : (frasesCrimenPorTrabajo[job.key]?.jail || frasesCrimenGenericas.jail);
 let phrase = pickRandom(phraseList);
@@ -61,7 +54,6 @@ let baseAmount = Math.floor(Math.random() * 4500 + 3000);
 let amount = Math.floor(baseAmount * job.crimeRewardMultiplier * (user.premium ? 1.18 : 1) * crimeBonus * 0.33);
 user.coin = (user.coin || 0) + amount;
 global.db.updateUser(senderId, { coin: user.coin });
-cooldowns[senderId] = now;
 
 let phraseList = useGeneric ? frasesCrimenGenericas.success : (frasesCrimenPorTrabajo[job.key]?.success || frasesCrimenGenericas.success);
 let phrase = pickRandom(phraseList);
@@ -74,7 +66,6 @@ let rawLossAmount = Math.floor((Math.random() * 2400 + 1600) * (user.premium ? 1
 let loss = Math.min(Math.floor((user.coin || 0) * 0.75), rawLossAmount);
 user.coin = Math.max(0, (user.coin || 0) - loss);
 global.db.updateUser(senderId, { coin: user.coin });
-cooldowns[senderId] = now;
 
 let phraseList = useGeneric ? frasesCrimenGenericas.fail : (frasesCrimenPorTrabajo[job.key]?.fail || frasesCrimenGenericas.fail);
 let phrase = pickRandom(phraseList);
@@ -88,6 +79,7 @@ handler.tags = ['economy'];
 handler.command = ['crimen', 'crime'];
 handler.group = true;
 handler.register = true;
+handler.cooldown = 480000;
 
 export default handler;
 
@@ -97,11 +89,7 @@ if (number >= 1000000) return (number / 1000000).toFixed(1) + 'M';
 return number.toString();
 }
 
-function segundosAHMS(segundos) {
-let minutos = Math.floor((segundos % 3600) / 60);
-let segundosRestantes = segundos % 60;
-return `${minutos} minutos y ${segundosRestantes} segundos`;
-}
+
 
 function pickRandom(list) {
 return list[Math.floor(list.length * Math.random())];

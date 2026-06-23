@@ -2,14 +2,6 @@ const handler = async (m, { conn }) => {
 const user = global.db.getUser(m.sender);
 if (!user) return;
 
-const tiempoMinar = 10 * 60 * 1000;
-const now = Date.now();
-
-if (now - (user.lastmiming || 0) < tiempoMinar) {
-const restante = msToTime((user.lastmiming + tiempoMinar) - now);
-return conn.reply(m.chat, `⛏️ Aún te recuperas del último minado.\n⏳ Espera *${restante}*.`, m);
-}
-
 const bonus = user.premium ? 1.25 : 1;
 const esEventoPositivo = Math.random() < (user.premium ? 0.68 : 0.56);
 const evento = esEventoPositivo ? pickRandom(eventosBuenos) : pickRandom(eventosMalos);
@@ -24,7 +16,6 @@ user.stone = Math.max(0, (user.stone || 0) + cambios.stone);
 user.exp = (user.exp || 0) + cambios.exp;
 user.health = Math.max(0, (user.health || 100) - 10);
 user.pickaxedurability = Math.max(0, (user.pickaxedurability || 100) - 8);
-user.lastmiming = now;
 
 const resultado =
 `⛏️ *${evento.texto}*\n\n` +
@@ -46,6 +37,7 @@ handler.tags = ['economy'];
 handler.command = ['minar', 'miming', 'mine'];
 handler.register = true;
 handler.group = true;
+handler.cooldown = 600000;
 
 export default handler;
 
@@ -74,10 +66,4 @@ return num >= 0 ? `+${num}` : `-${Math.abs(num)}`;
 
 function pickRandom(arr) {
 return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function msToTime(duration) {
-const seconds = Math.floor((duration / 1000) % 60);
-const minutes = Math.floor((duration / (1000 * 60)) % 60);
-return `${minutes}m y ${seconds}s`;
 }

@@ -1,16 +1,7 @@
 const ro = 3000;
-const cooldown = 2 * 60 * 60 * 1000;
 
 const handler = async (m, { conn, usedPrefix, command }) => {
 const user = global.db.getUser(m.sender);
-
-const now = Date.now();
-const last = user.lastrob || 0;
-
-if (now - last < cooldown) {
-const time = msToTime(last + cooldown - now);
-return conn.reply(m.chat, `${emoji3} Debes esperar ${time} para usar *#robxp* de nuevo.`, m);
-}
 
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
 
@@ -38,7 +29,6 @@ const finalRob = Math.min(rob, target.exp);
 
 user.exp += finalRob;
 target.exp -= finalRob;
-user.lastrob = now;
 
 await conn.reply(m.chat, `${emoji} Le robaste *${finalRob} XP* a @${who.split('@')[0]}`, m, { mentions: [who] });
 };
@@ -48,17 +38,6 @@ handler.tags = ['economy'];
 handler.command = ['robxp', 'robarxp'];
 handler.group = true;
 handler.register = true;
+handler.cooldown = 7200000;
 
 export default handler;
-
-function msToTime(duration) {
-let seconds = Math.floor((duration / 1000) % 60);
-let minutes = Math.floor((duration / (1000 * 60)) % 60);
-let hours = Math.floor((duration / (1000 * 60 * 60)));
-
-hours = (hours < 10) ? '0' + hours : hours;
-minutes = (minutes < 10) ? '0' + minutes : minutes;
-seconds = (seconds < 10) ? '0' + seconds : seconds;
-
-return `${hours} Hora(s) ${minutes} Minuto(s)`;
-}

@@ -1,17 +1,8 @@
-let cooldowns = {};
 
 let handler = async (m, { conn }) => {
 let senderId = m.sender;
 let user = global.db.getUser(senderId);
 
-let tiempoEspera = 8 * 60;
-
-if (cooldowns[m.sender] && Date.now() - cooldowns[m.sender] < tiempoEspera * 1000) {
-let tiempoRestante = segundosAHMS(Math.ceil((cooldowns[m.sender] + tiempoEspera * 1000 - Date.now()) / 1000));
-return conn.reply(m.chat, `⏱️ Ya exploraste la mazmorra recientemente. Espera *${tiempoRestante}* para volver.`, m);
-}
-
-cooldowns[m.sender] = Date.now();
 
 const eventos = [
 { nombre: 'Mazmorras de los Caídos', tipo: 'victoria', coin: randomNumber(18000, 36000), exp: randomNumber(900, 1800), health: 0, mensaje: `🏆 Derrotaste al guardián y abriste su cofre.` },
@@ -48,16 +39,11 @@ handler.tags = ['rpg'];
 handler.help = ['explorar'];
 handler.command = ['dungeon', 'mazmorra', 'cueva'];
 handler.register = true;
-handler.group = true;
+handler.group = true
+handler.cooldown = 480000;
 
 export default handler;
 
 function randomNumber(min, max) {
 return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function segundosAHMS(segundos) {
-let minutos = Math.floor(segundos / 60);
-let segundosRestantes = segundos % 60;
-return `${minutos} minutos y ${segundosRestantes} segundos`;
 }

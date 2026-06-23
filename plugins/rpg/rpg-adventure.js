@@ -6,10 +6,6 @@ let img = 'https://files.catbox.moe/bj45rp.jpg';
 if (user.health < 80) {
 return conn.reply(m.chat, '💔 No tienes suficiente salud para aventurarte. Usa el comando .heal para curarte.', m);
 }
-if (user.lastAdventure && new Date() - user.lastAdventure <= 1500000) {
-let timeLeft = 1500000 - (new Date() - user.lastAdventure);
-return conn.reply(m.chat, `${emoji3} Debés esperar. ${msToTime(timeLeft)} antes de aventurarte de nuevo.`, m);
-}
 let kingdoms = [
 'Reino de Eldoria',
 'Reino de Drakonia',
@@ -40,7 +36,6 @@ user.stone += stone;
 user.diamonds += diamonds;
 user.exp += exp;
 user.health -= 50;
-user.lastAdventure = new Date();
 if (user.health < 0) {
 user.health = 0;
 }
@@ -69,10 +64,4 @@ export default handler;
 
 function pickRandom(list) {
 return list[Math.floor(Math.random() * list.length)];
-}
-
-function msToTime(duration) {
-let minutes = Math.floor((duration / (1000 * 60)) % 60);
-let seconds = Math.floor((duration / 1000) % 60);
-return `${minutes} m y ${seconds} s`;
 }

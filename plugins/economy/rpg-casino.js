@@ -1,7 +1,6 @@
 import db from '../../lib/database.js'
 
 let buatall = 1
-let cooldowns = {}
 
 let handler = async (m, { conn, args, usedPrefix, command, DevMode }) => {
 let user = global.db.getUser(m.sender)
@@ -12,13 +11,6 @@ let Kamu = (randomkamu * 1)
 let count = args[0]
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
 let username = conn.getName(who)
-let tiempoEspera = 15
-if (cooldowns[m.sender] && Date.now() - cooldowns[m.sender] < tiempoEspera * 1000) {
-let tiempoRestante = segundosAHMS(Math.ceil((cooldowns[m.sender] + tiempoEspera * 1000 - Date.now()) / 1000))
-conn.reply(m.chat, `${emoji3} Ya has iniciado una apuesta recientemente, espera *⏱️ ${tiempoRestante}* para apostar nuevamente`, m)
-return
-}
-cooldowns[m.sender] = Date.now()
 count = count ? /all/i.test(count) ? Math.floor(global.db.getUser(m.sender).limit / buatall) : parseInt(count) : args[0] ? parseInt(args[0]) : 1
 count = Math.max(1, count)
 if (args.length < 1) return conn.reply(m.chat, `${emoji} Ingresa la cantidad de ` + `💸 *${m.moneda}*` + ' que deseas aportar contra' + ` *${botname}*` + `\n\n` + '`Ejemplo:`\n' + `> *${usedPrefix + command}* 100`, m)
@@ -37,7 +29,8 @@ conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botna
 handler.help = ['apostar *<cantidad>*']
 handler.tags = ['economy']
 handler.command = ['apostar','casino']
-handler.group = true;
+handler.group = true
+handler.cooldown = 15000;
 handler.register = true
 handler.fail = null
 export default handler
@@ -45,10 +38,7 @@ export default handler
 function pickRandom(list) {
 return list[Math.floor(Math.random() * list.length)]
 }
-function segundosAHMS(segundos) {
-let segundosRestantes = segundos % 60
-return `${segundosRestantes} segundos`
-}
+
 function formatNumber(number) {
 return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }

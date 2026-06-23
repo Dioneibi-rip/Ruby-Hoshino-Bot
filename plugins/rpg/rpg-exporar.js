@@ -1,16 +1,8 @@
-let cooldowns = {}
 
 let handler = async (m, { conn }) => {
 let senderId = m.sender
 let user = global.db.getUser(senderId)
 
-let tiempoEspera = 10 * 60
-if (cooldowns[m.sender] && Date.now() - cooldowns[m.sender] < tiempoEspera * 1000) {
-let tiempoRestante = segundosAHMS(Math.ceil((cooldowns[m.sender] + tiempoEspera * 1000 - Date.now()) / 1000))
-return conn.reply(m.chat, `⏱️ Ya exploraste recientemente. Espera *${tiempoRestante}* para volver al bosque.`, m)
-}
-
-cooldowns[m.sender] = Date.now()
 
 const eventos = [
 { nombre: '🌲 Tesoro bajo el Árbol Sagrado', coin: 45000, exp: 1800, health: 0, mensaje: `¡Descubriste un cofre antiguo lleno de ${m.moneda}!` },
@@ -49,11 +41,6 @@ handler.help = ['explorar']
 handler.command = ['explorar', 'bosque']
 handler.register = true
 handler.group = true
+handler.cooldown = 600000
 
 export default handler
-
-function segundosAHMS(segundos) {
-let minutos = Math.floor(segundos / 60)
-let segundosRestantes = segundos % 60
-return `${minutos} minutos y ${segundosRestantes} segundos`
-}
