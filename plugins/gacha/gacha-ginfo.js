@@ -1,10 +1,12 @@
 import { loadHarem, isSameUserId } from '../../lib/gacha-group.js';
 import { loadCharacters } from '../../lib/gacha-characters.js';
+import { getCooldownKey, isRedisReady, redis } from '../../lib/redis.js';
 
-const getCooldownMap = key => {
-if (!global.gachaCooldowns || typeof global.gachaCooldowns !== 'object') return {};
-const map = global.gachaCooldowns[key];
-return map && typeof map === 'object' ? map : {};
+const cooldownAliases = {
+rollwaifu: ['rw', 'rollwaifu'],
+claim: ['claim', 'reclamar', 'c'],
+vote: ['vote', 'votar'],
+robwaifu: ['robwaifu', 'stealwaifu', 'robarwaifu']
 };
 
 function formatTime(ms) {
@@ -12,13 +14,22 @@ if (!ms || ms <= 0) return 'Ahora.';
 const totalSeconds = Math.ceil(ms / 1000);
 const minutes = Math.floor(totalSeconds / 60);
 const seconds = totalSeconds % 60;
+if (minutes <= 0) return `${seconds} segundos`;
 return `${minutes} minutos ${seconds} segundos`;
 }
 
-function getCooldownStatus(cooldowns, key, now) {
-const expiration = Number(cooldowns?.[key] || 0);
-const remaining = expiration - now;
-return formatTime(remaining);
+async function getCooldownStatus(commands, userId) {
+if (!isRedisReady()) return 'Ahora.';
+const ttls = [];
+for (const command of commands) {
+const key = getCooldownKey(command, userId);
+const value = await redis.get(key);
+if (!value) continue;
+const ttl = await redis.pttl(key);
+if (ttl > 0) ttls.push(ttl);
+}
+if (!ttls.length) return 'Ahora.';
+return formatTime(Math.max(...ttls));
 }
 
 function normalizeUserId(userId) {
@@ -29,7 +40,6 @@ return userId;
 
 let handler = async (m, { conn }) => {
 const userId = normalizeUserId(m.sender);
-const now = Date.now();
 const groupId = m.chat;
 let userName;
 
@@ -40,11 +50,10 @@ userName = userId;
 }
 
 try {
-const baseKey = `${groupId}:${userId}`;
-const rwStatus = getCooldownStatus(getCooldownMap('rollwaifu'), baseKey, now);
-const claimStatus = getCooldownStatus(getCooldownMap('claim'), baseKey, now);
-const voteStatus = getCooldownStatus(getCooldownMap('vote'), baseKey, now);
-const robStatus = getCooldownStatus(getCooldownMap('robwaifu'), baseKey, now);
+const rwStatus = await getCooldownStatus(cooldownAliases.rollwaifu, userId);
+const claimStatus = await getCooldownStatus(cooldownAliases.claim, userId);
+const voteStatus = await getCooldownStatus(cooldownAliases.vote, userId);
+const robStatus = await getCooldownStatus(cooldownAliases.robwaifu, userId);
 
 const allCharacters = await loadCharacters();
 const charactersById = new Map(allCharacters.map(character => [character.id, character]));
