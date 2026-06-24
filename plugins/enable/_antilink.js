@@ -14,7 +14,7 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isROwner, 
 if (!m.isGroup) return;
 if (isAdmin || isOwner || m.fromMe || isROwner) return;
 
-let chat = global.db.data.chats[m.chat];
+let chat = global.db.getChat(m.chat);
 
 if (!chat.antiLink) return;
 

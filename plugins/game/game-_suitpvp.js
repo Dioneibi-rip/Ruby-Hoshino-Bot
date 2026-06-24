@@ -1,7 +1,7 @@
 const handler = (m) => m;
 handler.before = async function(m) {
   this.suit = this.suit ? this.suit : {};
-  if (db.data.users[m.sender].suit < 0) db.data.users[m.sender].suit = 0;
+  if ((global.db.getUser(m.sender).suit || 0) < 0) global.db.updateUser(m.sender, { suit: 0 });
   const room = Object.values(this.suit).find((room) => room.id && room.status && [room.p, room.p2].includes(m.sender));
   if (room) {
     let win = '';
@@ -38,9 +38,9 @@ tijera\nGanador +${room.poin}XP\nPerdedor ${room.poin_lose}XP\n*responda al mens
           win = !room.pilih ? room.p2 : room.p;
           const textnull = `${emoji2} @${(room.pilih ? room.p2 : room.p).split`@`[0]} No elegiste ninguna opción, fin del PVP.`;
           this.sendMessage(m.chat, {text: textnull}, {quoted: m}, {mentions: this.parseMention(textnull)});
-          db.data.users[win == room.p ? room.p : room.p2].exp += room.poin;
-          db.data.users[win == room.p ? room.p : room.p2].exp += room.poin_bot;
-          db.data.users[win == room.p ? room.p2 : room.p].exp -= room.poin_lose;
+          global.db.incrementUserField(win == room.p ? room.p : room.p2, 'exp', room.poin);
+          global.db.incrementUserField(win == room.p ? room.p : room.p2, 'exp', room.poin_bot);
+          global.db.incrementUserField(win == room.p ? room.p2 : room.p, 'exp', -room.poin_lose);
         }
         delete this.suit[room.id];
         return !0;
@@ -81,9 +81,9 @@ tijera\nGanador +${room.poin}XP\nPerdedor ${room.poin_lose}XP\n*responda al mens
 *@${room.p2.split`@`[0]} (${room.text2})* ${tie ? '' : room.p2 == win ? ` *Gano 🥳 +${room.poin}XP*` : ` *Perdio 🤡 ${room.poin_lose}XP*`}
 `.trim(), m, {mentions: [room.p, room.p2]} );
       if (!tie) {
-        db.data.users[win == room.p ? room.p : room.p2].exp += room.poin;
-        db.data.users[win == room.p ? room.p : room.p2].exp += room.poin_bot;
-        db.data.users[win == room.p ? room.p2 : room.p].exp += room.poin_lose;
+        global.db.incrementUserField(win == room.p ? room.p : room.p2, 'exp', room.poin);
+        global.db.incrementUserField(win == room.p ? room.p : room.p2, 'exp', room.poin_bot);
+        global.db.incrementUserField(win == room.p ? room.p2 : room.p, 'exp', room.poin_lose);
       }
       delete this.suit[room.id];
     }

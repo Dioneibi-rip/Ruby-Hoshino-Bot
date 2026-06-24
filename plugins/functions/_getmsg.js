@@ -1,10 +1,10 @@
 import { isChatBannedForBot, normalizeSessionJid } from '../../src/core/session-utils.js'
 export async function all(m) {
     if (!m.chat.endsWith('.net') || m.fromMe || m.key.remoteJid.endsWith('status@broadcast')) return
-    if (isChatBannedForBot(global.db.data.chats[m.chat], normalizeSessionJid(this))) return
+    if (isChatBannedForBot(global.db.getChat(m.chat), normalizeSessionJid(this))) return
     if (global.db.getUser(m.sender).banned) return
     if (m.isBaileys) return
-    let msgs = global.db.data.msgs
+    let msgs = global.db.getSection('msgs')
     if (!(m.text in msgs)) return
     let _m = this.serializeM(JSON.parse(JSON.stringify(msgs[m.text]), (_, v) => {
         if (

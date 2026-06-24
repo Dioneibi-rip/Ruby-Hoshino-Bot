@@ -1,7 +1,7 @@
 import { isChatBannedForBot, normalizeSessionJid } from '../../src/core/session-utils.js'
 let handler = m => m
 handler.all = async function (m) {
-    let chat = global.db.data.chats[m.chat]
+    let chat = global.db.getChat(m.chat)
     
     if (isChatBannedForBot(chat, normalizeSessionJid(this))) return
 
@@ -12,7 +12,7 @@ handler.all = async function (m) {
 
 
     if (/^A Bueno master|Bueno master|Bueno Máster|🫂$/i.test(m.text) && chat.audios) {  
-        if (!db.data.chats[m.chat].audios && m.isGroup) throw 0    
+        if (!global.db.getChat(m.chat).audios && m.isGroup) throw 0    
         await sendBn('https://qu.ax/xynz.mp3')
     }  
 

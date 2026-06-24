@@ -1,7 +1,7 @@
 //Codígo creado por Destroy wa.me/584120346669
 
 let handler = async (m, { conn, command, text }) => {
-if (!db.data.chats[m.chat].nsfw && m.isGroup) {
+if (!global.db.getChat(m.chat).nsfw && m.isGroup) {
     return m.reply(`${emoji} El contenido *NSFW* está desactivado en este grupo.\n> Un administrador puede activarlo con el comando » *#nsfw on*`);
     }
     

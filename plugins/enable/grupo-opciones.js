@@ -1,5 +1,5 @@
 const handler = async (m, { conn }) => {
-  const chat = global.db.data.chats[m.chat] || {};
+  const chat = global.db.getChat(m.chat);
   const metadata = await conn.groupMetadata(m.chat).catch(_ => null) || {};
   const groupName = metadata.subject || 'este Grupo';
 

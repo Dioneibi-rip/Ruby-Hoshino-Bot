@@ -39,11 +39,9 @@ let handler = m => m
 
 handler.before = async function (m) {
   if (!m?.isGroup || !m.sender || m.fromMe || m._messageStatsCounted) return false
-  if (!global.db?.data?.chats?.[m.chat]) return false
-
   m._messageStatsCounted = true
 
-  const chat = global.db.data.chats[m.chat]
+  const chat = global.db.getChat(m.chat)
   chat.messageStats = chat.messageStats && typeof chat.messageStats === 'object' ? chat.messageStats : {}
   chat.messageStats.users = chat.messageStats.users && typeof chat.messageStats.users === 'object' ? chat.messageStats.users : {}
 
@@ -62,6 +60,7 @@ handler.before = async function (m) {
   chat.messageStats.updatedAt = now
   chat.messageStats.keepDays = MAX_DAYS_TO_KEEP
   pruneOldDays(users, now)
+  global.db.updateChat(m.chat, { messageStats: chat.messageStats })
 
   return false
 }

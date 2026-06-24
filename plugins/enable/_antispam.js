@@ -20,12 +20,12 @@ function resetUserSpamState(userData, user) {
 
 let handler = m => m
 handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isROwner, isPrems }) {
-  const bot = global.db.data.settings[conn.user.jid] || {}
+  const bot = (global.db.get('settings', conn.user.jid) || {})
   if (!bot.antiSpam) return
 
   if (!m.isGroup) return
 
-  const chat = global.db.data.chats[m.chat]
+  const chat = global.db.getChat(m.chat)
   if (chat.modoadmin) return
 
   if (isOwner || isROwner || isAdmin || !isBotAdmin || isPrems) return

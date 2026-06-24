@@ -7,7 +7,7 @@ const MAX_VIDEO_BYTES = 8 * 1024 * 1024
 let handler = m => m
 
 handler.all = async function (m) {
-let chat = db.data.chats[m.chat]
+let chat = global.db.getChat(m.chat)
 if (!chat?.autosticker || !m.isGroup) return !0
 let q = m
 let media = q.msg || q
