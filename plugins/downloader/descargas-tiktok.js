@@ -5,7 +5,7 @@ const emoji="🌸";
 const tiktokRegex=/^(https?:\/\/)?(www\.|vm\.|vt\.|t\.)?tiktok\.com\/.+/i;
 
 if(!args[0]||!tiktokRegex.test(args[0])){
-return conn.reply(m.chat,`*< DESCARGAS - TIKTOK />*\n\n*☁️ Iɴɢʀᴇsᴇ Uɴ Eɴʟᴀᴄᴇ Dᴇ Vɪᴅᴇᴏ Dᴇ Tɪᴋᴛᴏᴋ.*\n\n*💌 Eᴊᴇᴍᴘʟᴏ:* _${usedPrefix+command} https://vm.tiktok.com/ZM6UHJYtE/_`.trim(),m,rcanal);
+return conn.reply(m.chat,`*< DESCARGAS - TIKTOK />*\n\n*☁️ Iɴɢʀᴇsᴇ Uɴ Eɴʟᴀᴄᴇ Dᴇ Vɪᴅᴇᴏ Dᴇ Tɪᴋᴛᴏᴋ.*\n\n*💌 Eᴊᴇᴍᴘʟᴏ:* _${usedPrefix+command} https://vm.tiktok.com/ZM6UHJYtE/_`.trim(),m);
 }
 
 try{
