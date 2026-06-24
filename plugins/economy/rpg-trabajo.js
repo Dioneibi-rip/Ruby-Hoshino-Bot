@@ -17,8 +17,13 @@ if(Number.isInteger(numericIndex)&&String(numericIndex)===normalizedInput&&numer
 return normalizeJobInput(normalizedInput);
 }
 
-let handler=async(m,{conn,usedPrefix,args})=>{
-const user=global.db.getUser(m.sender);
+let handler=async(m,{conn,usedPrefix,args,participants})=>{
+let primaryJid=m.sender;
+if(primaryJid.endsWith('@lid')&&m.isGroup){
+const p=participants.find(x=>x.lid===primaryJid);
+if(p?.id)primaryJid=p.id;
+}
+const user=global.db.getUser(primaryJid);
 ensureJobFields(user);
 const action=(args[0]||'').toLowerCase();
 if(!action||listActions.has(action))return conn.reply(m.chat,getJobsListMessage(usedPrefix),m);
@@ -34,7 +39,7 @@ const selectedJobKey=resolveSelectedJob(desiredInput);
 if(!selectedJobKey)return conn.reply(m.chat,`✘ Trabajo inválido: *${desiredInput}*.\nUsa *${usedPrefix}trabajo lista* para ver opciones disponibles.`,m);
 const selectedJob=JOBS[selectedJobKey];
 if(user.job===selectedJobKey)return conn.reply(m.chat,`✅ Ya tienes ese trabajo: ${selectedJob.emoji} *${selectedJob.name}*.`,m);
-global.db.updateUser(m.sender,{job:selectedJobKey,jobSince:Date.now(),jobXp:user.jobXp||0});
+global.db.updateUser(primaryJid,{job:selectedJobKey,jobSince:Date.now(),jobXp:user.jobXp||0});
 await global.db.write?.();
 return conn.reply(m.chat,`✅ Ahora tu trabajo es ${selectedJob.emoji} *${selectedJob.name}*.\n✦ Ya puedes usar *${usedPrefix}trabajar*, *${usedPrefix}crime* y *${usedPrefix}slut*.`,m);
 };
