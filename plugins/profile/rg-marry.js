@@ -13,23 +13,35 @@ function getPartner(marriages, user) {
 return global.db.getUser(user)?.marry || marriages[user]?.partner || ''
 }
 
-const handler = async (m, { conn, command, participants }) => {
+const normalizeJid = (jid) => {
+if (!jid) return null;
+let cleaned = jid.replace(/[^\d@]/g, '');
+if (cleaned.includes('@')) {
+const [number] = cleaned.split('@');
+return number + '@s.whatsapp.net';
+}
+return cleaned + '@s.whatsapp.net';
+};
+
+const handler = async (m, { conn, command }) => {
 const isPropose = /^marry$/i.test(command);
 const isDivorce = /^divorce$/i.test(command);
 const marriages = await loadMarriages();
 
 try {
 let proposerJid = m.sender;
-if (m.sender.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find(p => p.lid === m.sender);
-if (pInfo && pInfo.id) proposerJid = pInfo.id;
+if (proposerJid.endsWith('@lid') && m.isGroup) {
+try {
+const pp = await conn.groupMetadata(m.chat);
+const dbUser = pp.participants.find(u => u.lid === proposerJid);
+if (dbUser && dbUser.id) proposerJid = dbUser.id;
+} catch (e) {}
 }
-
-global.db.getUser(proposerJid)
+proposerJid = normalizeJid(proposerJid);
+global.db.getUser(proposerJid);
 
 if (isPropose) {
 const rawProposee = m.quoted?.sender || m.mentionedJid?.[0];
-
 if (!rawProposee) {
 if (isUserMarried(marriages, proposerJid)) {
 return await conn.reply(m.chat, `《✧》 Ya estás casado con *${conn.getName(getPartner(marriages, proposerJid))}*\n> Puedes divorciarte con el comando: *#divorce*`, m);
@@ -39,21 +51,24 @@ throw new Error('Debes mencionar a alguien para aceptar o proponer matrimonio.\n
 }
 
 let proposeeJid = rawProposee;
-if (rawProposee.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find(p => p.lid === rawProposee);
-if (pInfo && pInfo.id) proposeeJid = pInfo.id;
+if (proposeeJid.endsWith('@lid') && m.isGroup) {
+try {
+const pp = await conn.groupMetadata(m.chat);
+const dbUser = pp.participants.find(u => u.lid === proposeeJid);
+if (dbUser && dbUser.id) proposeeJid = dbUser.id;
+} catch (e) {}
 }
+proposeeJid = normalizeJid(proposeeJid);
+global.db.getUser(proposeeJid);
 
-global.db.getUser(proposeeJid)
-
-if (isUserMarried(marriages, proposerJid)) throw new Error(`Ya estás casado con ${conn.getName(getPartner(marriages, proposerJid))}.`);
-if (isUserMarried(marriages, proposeeJid)) throw new Error(`${conn.getName(proposeeJid)} ya está casado con ${conn.getName(getPartner(marriages, proposeeJid))}.`);
+if (isUserMarried(marriages, proposerJid)) throw new Error(`Ya estás casado con @${getPartner(marriages, proposerJid).split('@')[0]}.`);
+if (isUserMarried(marriages, proposeeJid)) throw new Error(`@${proposeeJid.split('@')[0]} ya está casado(a).`);
 if (proposerJid === proposeeJid) throw new Error('¡No puedes proponerte matrimonio a ti mismo!');
 
 proposals[proposerJid] = proposeeJid;
 const proposerName = conn.getName(proposerJid);
 const proposeeName = conn.getName(proposeeJid);
-const confirmationMessage = `♡ ${proposerName} te ha propuesto matrimonio. ${proposeeName}  ¿aceptas? •(=^●ω●^=)•\n\n*Debes Responder con:*\n> ✐"Si" » para aceptar\n> ✐"No" » para rechazar.`;
+const confirmationMessage = `♡ ${proposerName} te ha propuesto matrimonio. ${proposeeName} ¿aceptas? •(=^●ω●^=)•\n\n*Debes Responder con:*\n> ✐"Si" » para aceptar\n> ✐"No" » para rechazar.`;
 
 await conn.reply(m.chat, confirmationMessage, m, { mentions: [proposeeJid, proposerJid] });
 
@@ -72,32 +87,37 @@ await global.db.write?.();
 await conn.reply(m.chat, `✐ ${conn.getName(proposerJid)} y ${conn.getName(partner)} se han divorciado.`, m);
 }
 } catch (error) {
-await conn.reply(m.chat, `《✧》 ${error.message}`, m);
+await conn.reply(m.chat, `《✧》 ${error.message}`, m, { mentions: m.mentionedJid || [] });
 }
 }
 
-handler.before = async (m, { conn, participants }) => {
+handler.before = async (m, { conn }) => {
 if (m.isBaileys) return;
 
 let senderJid = m.sender;
-if (m.sender.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find(p => p.lid === m.sender);
-if (pInfo && pInfo.id) senderJid = pInfo.id;
+if (senderJid.endsWith('@lid') && m.isGroup) {
+try {
+const pp = await conn.groupMetadata(m.chat);
+const dbUser = pp.participants.find(u => u.lid === senderJid);
+if (dbUser && dbUser.id) senderJid = dbUser.id;
+} catch (e) {}
 }
+senderJid = normalizeJid(senderJid);
 
 if (!(senderJid in confirmation)) return;
-const responseText = String(m.text || m.message?.conversation || m.message?.extendedTextMessage?.text || m.body || '').toLowerCase().trim();
+
+const responseText = String(m.text || m.message?.conversation || m.message?.extendedTextMessage?.text || m.body || '').trim();
 if (!responseText) return;
 
 const { proposer, timeout } = confirmation[senderJid];
 
-if (responseText === 'no') {
+if (/^[#\.\/!]?(no|rechazar)$/i.test(responseText)) {
 clearTimeout(timeout);
 delete confirmation[senderJid];
 return conn.sendMessage(m.chat, { text: '*《✧》Han rechazado tu propuesta de matrimonio.*' }, { quoted: m });
 }
 
-if (responseText === 'si' || responseText === 'sí') {
+if (/^[#\.\/!]?(si|s[íi]|yes|acepto)$/i.test(responseText)) {
 clearTimeout(timeout);
 delete proposals[proposer];
 const marriages = await loadMarriages();
@@ -110,10 +130,7 @@ const fecha = Date.now();
 global.db.setMarriagePair(proposer, senderJid, fecha);
 await global.db.write?.();
 
-conn.sendMessage(m.chat, { text: `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩
-¡Se han Casado! ฅ^•ﻌ•^ฅ*:･ﾟ✧\n\n*•.¸♡ Esposo ${conn.getName(proposer)}\n*•.¸♡ Esposa ${conn.getName(senderJid)}\n\n\`Disfruten de su luna de miel\`
-
-✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩`, mentions: [proposer, senderJid] }, { quoted: m });
+conn.sendMessage(m.chat, { text: `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩\n\n¡Se han Casado! ฅ^•ﻌ•^ฅ*:･ﾟ✧\n\n*•.¸♡ Esposo @${proposer.split('@')[0]}\n*•.¸♡ Esposa @${senderJid.split('@')[0]}\n\n\`Disfruten de su luna de miel\`\n\n✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩`, mentions: [proposer, senderJid] }, { quoted: m });
 
 delete confirmation[senderJid];
 }
