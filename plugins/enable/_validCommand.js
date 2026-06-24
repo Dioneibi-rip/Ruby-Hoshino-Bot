@@ -54,7 +54,7 @@ export async function before(m, { conn, isAdmin, isOwner, isROwner }) {
 
   const usedPrefix = prefixMatch[0];
 
-  const chat = global.db.data.chats[m.chat];
+  const chat = global.db.getChat(m.chat);
   const botJid = normalizeSessionJid(conn);
   const isBotBannedInThisChat = isChatBannedForBot(chat, botJid);
 

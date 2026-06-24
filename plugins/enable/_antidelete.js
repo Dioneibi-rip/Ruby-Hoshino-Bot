@@ -7,7 +7,7 @@ export async function before(m, { conn, isAdmin, isBotAdmin }) {
     if (!m.isGroup) return;
     if (m.key.fromMe) return;
 
-    let chat = global.db.data.chats[m.chat];
+    let chat = global.db.getChat(m.chat);
 
     if (chat.delete) {
         if (global.delete.length > 500) global.delete = [];

@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 let handler = async (m, { conn, command }) => {
-  if (!db.data.chats[m.chat].nsfw && m.isGroup) {
+  if (!global.db.getChat(m.chat).nsfw && m.isGroup) {
     return conn.reply(m.chat, '🚫 El contenido *NSFW* está desactivado en este grupo.\nUn administrador puede activarlo con *#nsfw on*.', m);
   }
 

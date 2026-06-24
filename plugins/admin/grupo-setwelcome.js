@@ -1,13 +1,21 @@
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-  let chat = global.db.data.chats[m.chat];
-  if (!chat) chat = global.db.data.chats[m.chat] = {};
+  const chat = global.db.getChat(m.chat);
 
   if (text) {
-    chat.welcomeText = text;
+    global.db.updateChat(m.chat, { welcomeText: text });
     m.reply('🫟 El mensaje de bienvenida se ha configurado correctamente para este grupo.');
   } else {
     let welcome = chat.welcomeText || 'No hay ningún mensaje configurado.';
-    m.reply(`✳️ El mensaje de bienvenida actual de este grupo es:\n\n*${welcome}*\n\nPara cambiarlo, usa: *${usedPrefix + command} <texto>*\n\nPuedes usar las siguientes variables en tu mensaje:\n- *@user*: Menciona al nuevo miembro.\n- *@subject*: Muestra el nombre del grupo.\n- *@desc*: Muestra la descripción del grupo.`);
+    m.reply(`✳️ El mensaje de bienvenida actual de este grupo es:
+
+*${welcome}*
+
+Para cambiarlo, usa: *${usedPrefix + command} <texto>*
+
+Puedes usar las siguientes variables en tu mensaje:
+- *@user*: Menciona al nuevo miembro.
+- *@subject*: Muestra el nombre del grupo.
+- *@desc*: Muestra la descripción del grupo.`);
   }
 };
 

@@ -5,7 +5,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     
     // OPCIONAL: Si quieres que siga siendo NSFW, descomenta esto:
     /*
-    if (!db.data.chats[m.chat].nsfw && m.isGroup) {
+    if (!global.db.getChat(m.chat).nsfw && m.isGroup) {
         return m.reply(`⸺      \`ㅤ  A V I S Oㅤ\`\n\`ㅤ ݰ   \`\n          𝗁 𝗲𝘆 ㅤܐㅤׄㅤ𝗬 𝗈𝗎!      *;* ⎖  𓌛ㅤㅤㅤ\n⎯⎯̸⎯⎯꯭⎯꯭⎯꯭⎯꯭⎯꯭⎯⎯̸⎯⎯\n\n> ㅤㅤㅤ𝖤𝗅 𝖼𝗈𝗇𝗍𝖾𝗇𝗂𝖽𝗈 𝖭𝖲𝖥𝖶 𝖾𝗌𝗍𝖺 𝖽𝖾𝗌𝖺𝖼𝗍𝗂𝗏𝖺𝖽𝗈  .\n\n\`ㅤㅤㅤܐ⸺𝘗𝘪𝘥𝘦 𝘢 𝘶𝘯 𝘢𝘥𝘮𝘪𝘯 𝘲𝘶𝘦 𝘭𝘰 𝘢𝘤𝘵𝘪𝘷𝘦\` ㅤׅ     ㅤׄ`)
     }
     */

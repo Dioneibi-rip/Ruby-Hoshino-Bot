@@ -362,9 +362,9 @@ return scheduleReconnect(reason, async () => {
 await creloadHandler(true)
 })
 }
-if (global.db.data == null) loadDatabase()
+if (!global.db?.getSection) loadDatabase()
 if (connection == `open`) {
-if (!global.db.data?.users) loadDatabase()
+if (!global.db?.getSection?.('users')) loadDatabase()
 let userName, userJid
 userName = sock.authState.creds.me.name || 'Anónimo'
 userJid = sock.authState.creds.me.jid || `${path.basename(pathRubyJadiBot)}@s.whatsapp.net`

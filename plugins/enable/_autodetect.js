@@ -147,7 +147,7 @@ let handler = m => m
 handler.before = async function (m, { conn }) {
 if (!m.messageStubType || !m.isGroup) return
 
-const chat = global.db.data.chats[m.chat]
+const chat = global.db.getChat(m.chat)
 if (!chat.detect) return
 
 const senderJid = normalizeMentionJid(m.sender) || m.sender

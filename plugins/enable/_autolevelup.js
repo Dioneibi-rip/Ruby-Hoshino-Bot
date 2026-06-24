@@ -2,7 +2,7 @@ import { canLevelUp } from '../../lib/levelling.js';
 
 let handler = m => m;
 handler.before = async function (m) {
-    const chat = global.db.data.chats[m.chat];
+    const chat = global.db.getChat(m.chat);
     if (!chat?.autolevelup) return;
 
     const user = global.db.getUser(m.sender);
