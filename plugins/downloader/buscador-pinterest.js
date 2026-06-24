@@ -1,7 +1,7 @@
 import axios from 'axios'
-import baileys from '@whiskeysockets/baileys'
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 async function sendAlbumMessage(conn, jid, medias, options = {}) {
+const { generateWAMessageFromContent, generateWAMessage } = (await import('@whiskeysockets/baileys')).default
 if (typeof jid !== "string") throw new TypeError(`jid debe ser string, se recibió: ${jid}`)
 if (medias.length < 2) throw new RangeError("Se necesitan al menos 2 imágenes para un álbum")
 const caption = options.text || options.caption || ""
@@ -11,7 +11,7 @@ delete options.text
 delete options.caption
 delete options.delay
 delete options.quoted
-const album = baileys.generateWAMessageFromContent(
+const album = generateWAMessageFromContent(
 jid,
 { messageContextInfo: {}, albumMessage: { expectedImageCount: medias.length } },
 quoted ? { quoted } : {}
@@ -19,7 +19,7 @@ quoted ? { quoted } : {}
 await conn.relayMessage(album.key.remoteJid, album.message, { messageId: album.key.id })
 for (let i = 0; i < medias.length; i++) {
 const { type, data } = medias[i]
-const img = await baileys.generateWAMessage(
+const img = await generateWAMessage(
 album.key.remoteJid,
 { [type]: data, ...(i === 0 ? { caption } : {}) },
 { upload: conn.waUploadToServer }
