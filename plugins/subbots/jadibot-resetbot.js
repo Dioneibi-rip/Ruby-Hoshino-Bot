@@ -1,22 +1,31 @@
-let handler = async (m) => {
-const chat = global.db.get('chats', m.chat) || {};
+async function resetPrimaryBot(m) {
+const chat = (global.db.data.chats ||= {})[m.chat] ||= {};
 
 if (!chat.primaryBot && !chat.botPrimario) {
 return m.reply('《✧》 No hay ningún bot primario establecido en este grupo.');
 }
 
-console.log(`[ResetBot] Reseteando configuración para el chat: ${m.chat}`);
 chat.primaryBot = null;
 chat.botPrimario = null;
-global.db.set('chats', m.chat, chat);
 await global.db.write?.();
 
-await m.reply(`✐ ¡Listo! Se ha restablecido la configuración.\n> A partir de ahora, todos los bots válidos responderán nuevamente en este grupo.`);
+return m.reply('✐ ¡Listo! Se ha restablecido la configuración.\n> A partir de ahora, todos los bots válidos responderán nuevamente en este grupo.');
 }
 
-handler.customPrefix = /^(resetbot|resetprimario|botreset)$/i;
-handler.command=/^$/;
+let handler = async (m) => resetPrimaryBot(m);
 
+handler.before = async function (m, { isAdmin, isOwner, isROwner }) {
+if (!m.isGroup) return false;
+const command = m.text.trim().split(' ')[0]?.toLowerCase().replace(/^[./#]/, '') || '';
+if (!['resetbot', 'resetprimario', 'botreset'].includes(command)) return false;
+if (!isAdmin && !isOwner && !isROwner) return false;
+await resetPrimaryBot(m);
+return true;
+};
+
+handler.help = ['resetbot', 'resetprimario', 'botreset'];
+handler.tags = ['jadibot'];
+handler.command = ['resetbot', 'resetprimario', 'botreset'];
 handler.group = true;
 handler.admin = true;
 

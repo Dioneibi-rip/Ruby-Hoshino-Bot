@@ -114,11 +114,8 @@ return Boolean(getCooldownSeconds(plugin))
 async function validateRedisCooldown(conn, plugin, name, m, command, sender) {
 if (!pluginUsesRedisCooldown(plugin)) return true
 if (!isRedisReady()) return true
-const seconds = getCooldownSeconds(plugin)
 const key = getCooldownKey(command || name, sender)
 try {
-const locked = await redis.set(key, '1', 'EX', seconds, 'NX')
-if (locked) return true
 const ttl = await redis.ttl(key)
 if (ttl > 0) {
 const minutes = Math.floor(ttl / 60)
@@ -128,8 +125,20 @@ return false
 }
 return true
 } catch (error) {
-console.error('[redis] cooldown error', error)
+console.error('[redis] cooldown read error', error)
 return true
+}
+}
+
+async function applyRedisCooldown(plugin, name, command, sender) {
+if (!pluginUsesRedisCooldown(plugin)) return
+if (!isRedisReady()) return
+const seconds = getCooldownSeconds(plugin)
+const key = getCooldownKey(command || name, sender)
+try {
+await redis.set(key, '1', 'EX', seconds)
+} catch (error) {
+console.error('[redis] cooldown write error', error)
 }
 }
 
@@ -211,8 +220,10 @@ return false
 
 if (!await validateRedisCooldown(conn, plugin, name, m, extra.command, sender)) return false
 
+let pluginResult
 try {
-await plugin.call(conn, m, extra)
+pluginResult = await plugin.call(conn, m, extra)
+if (pluginResult !== false && !m.error) await applyRedisCooldown(plugin, name, extra.command, sender)
 if (!isPrems) m.coin = m.coin || plugin.coin || false
 } catch (error) {
 m.error = error
