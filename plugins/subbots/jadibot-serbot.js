@@ -81,12 +81,12 @@ else global.conns = []
 if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
 let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
 let time = global.db.getUser(m.sender).Subs + 120000
-if (new Date - global.db.getUser(m.sender).Subs < 120000) return conn.reply(m.chat, `${emoji} Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
+if (new Date - global.db.getUser(m.sender).Subs < 120000) return conn.reply(m.chat, `🌟 Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
 const limiteSubBots = global.subbotlimitt || 26;
 const subBots = [...new Set([...global.conns.filter((c) => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)])]
 const subBotsCount = subBots.length
 if (subBotsCount >= limiteSubBots) {
-return m.reply(`${emoji2} Se ha alcanzado o superado el límite de *Sub-Bots* activos (${subBotsCount}/${limiteSubBots}).\n\nNo se pueden crear más conexiones hasta que un Sub-Bot se desconecte.`)
+return m.reply(`🥀 Se ha alcanzado o superado el límite de *Sub-Bots* activos (${subBotsCount}/${limiteSubBots}).\n\nNo se pueden crear más conexiones hasta que un Sub-Bot se desconecte.`)
 }
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
 const subBotJid = normalizeSubBotJid(who)
@@ -97,7 +97,7 @@ const legacyPathRubyJadiBot = path.join(`./${jadi}/`, legacyId)
 let pathRubyJadiBot = (await pathExists(newPathRubyJadiBot)) || !(await pathExists(legacyPathRubyJadiBot)) ? newPathRubyJadiBot : legacyPathRubyJadiBot
 const existingById = global.conns.find(c => (c?.subBotId === id || c?.subBotJid === subBotJid) && c?.ws?.socket?.readyState === ws.OPEN)
 if (existingById) {
-return conn.reply(m.chat, `${emoji} Ya tienes un *Sub-Bot* activo y estable.`, m)
+return conn.reply(m.chat, `🔥 Ya tienes un *Sub-Bot* activo y estable.`, m)
 }
 if (!await pathExists(pathRubyJadiBot)){
 await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })
@@ -130,7 +130,7 @@ await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })}
 try {
 args[0] && args[0] != undefined ? await fs.promises.writeFile(pathCreds, JSON.stringify(JSON.parse(Buffer.from(args[0], "base64").toString("utf-8")), null, '\t')) : ""
 } catch (e) {
-conn.reply(m.chat, `${emoji} Use correctamente el comando » ${usedPrefix + command} code`, m)
+conn.reply(m.chat, `🌺 Use correctamente el comando » ${usedPrefix + command} code`, m)
 return
 }
 const comb = Buffer.from(crm1 + crm2 + crm3 + crm4, "base64")
@@ -273,7 +273,7 @@ pairingCodeSent = true
 const pairingPhone = getPairingPhone(m, subBotJid)
 if (!pairingPhone) {
 pairingCodeSent = false
-return conn.reply(m.chat, `${emoji2} No pude detectar tu número para generar el código de vinculación.`, m)
+return conn.reply(m.chat, `🥀 No pude detectar tu número para generar el código de vinculación.`, m)
 }
 const rawCode = await sock.requestPairingCode(pairingPhone, "RUBYCHAN")
 const formattedCode = rawCode.match(/.{1,4}/g)?.join("-") || rawCode
