@@ -1,22 +1,22 @@
-import { watchFile, unwatchFile } from 'fs' 
+import { watchFile, unwatchFile } from 'fs'
 import chalk from 'chalk'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
 import cheerio from 'cheerio'
 import fetch from 'node-fetch'
 import axios from 'axios'
-import moment from 'moment-timezone' 
+import moment from 'moment-timezone'
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
-global.botNumber = '' 
+global.botNumber = ''
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.owner = [
 // <-- Número @s.whatsapp.net -->
   ['18093519169', '⏤͟͞ू⃪ ፝͜⁞𝘿𝙞𝙤𝙣𝙚𝙞𝙗𝙞-ʳⁱᵖ ִֶ ࣪˖ ִֶָ🐇་༘', true],
-  ['573235915041', '⏤͟͞ू⃪ ፝͜𝐅ꫀl͟𝐢𝘅 o͜͡𝗳𝐜⁞་༘', true],
+  ['573235915041', '⏤͟͞ू⃪ ፝͜𝐅ꫀl͟𝐢𝘅 o͜͡𝗳𝐜⁞་༘', true],
   ['18096758983', '⟆⃝༉⃟⸙ ᯽ N͙e͙v͙i͙-D͙e͙v͙ ⌗⚙️࿐', true],
   ['573508941325', 'FELIX-DEV', true],
   ['5216671548329', 'ू⃪ ꒰˘͈ᵕ ˘͈ 𝑳𝒆𝒈𝒏𝒂-𝒄𝒉𝒂𝒏 🪽 ꒱𖦹', true],
@@ -28,7 +28,7 @@ global.owner = [
   ['260081845334105', 'nevi', true],
   ['58566677377081', 'legna', true],
   ['177266856313074', 'speed3xz', true]
-];
+]
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
@@ -39,15 +39,16 @@ global.prems = []
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.libreria = 'Baileys'
-global.baileys = 'V 6.7.16' 
+global.baileys = 'V 6.7.16'
 global.languaje = 'Español'
 global.vs = '2.2.0'
 global.nameqr = 'Ruby-Hoshino-Bot-MD'
 global.namebot = '꒰ 🥥 ꒱ؘ 𝙍𝙪𝙗𝙮-𝙃𝙤𝙨𝙝𝙞𝙣𝙤-𝘽𝙤𝙩 ♪ ࿐ ࿔*:･ﾟ'
 global.Rubysessions = 'RubySessions'
-global.jadi = 'RubyJadiBots' 
+global.jadi = 'RubyJadiBots'
 global.RubyJadibts = true
 global.subbotlimitt = 22
+
 global.baileysSocketConfig = {
   connectTimeoutMs: 45000,
   keepAliveIntervalMs: 20000,
@@ -57,7 +58,7 @@ global.baileysSocketConfig = {
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
-global.packname = '⏤̛̣̣̣̣̣̣̣̣̣̣̣͟͟͞͞⏤͟͟͞͞🍭𝐑υׁׅ𝐛𝐲 𝐇ᨵׁׅׅ𝐬𝐡𝐢𝐧ᨵׁׅׅ ૮(˶ᵔᵕᵔ˶)ა'
+global.packname = '⏤̛̣̣̣̣̣̣̣̣̣̣̣͟͟͞͞⏤͟͟͞͞🍭𝐑υׁׅ𝐛𝐲 𝐇ᨵׁׅׅ𝐬𝐡𝐢𝐧ᨵׁׅׅ ૮(˶ᵔᵕᵔ˶)ა'
 global.botname = ' ࣪☀ ࣭𝗥𝘂𝗯𝘆 𝗛𝗼𝘀𝗵𝗶𝗻𝗼 𝗕𝗼𝘁࣪ 𝟹𝟹 ✿'
 global.wm = '‧˚꒰🍷꒱ ፝͜⁞R͢ᴜʙʏ-H͢ᴼ꯭s፝֟ʜɪɴᴏ-𝘉𝘰𝘵-𝑴𝑫✰⃔⃝🦋'
 global.author = 'Made By 𐔌Dioneibi-rip ͡꒱ ۫'
@@ -70,6 +71,7 @@ global.etiqueta = 'ˑ 𓈒 𐔌 D͙i͙o͙n͙e͙i͙b͙i͙-r͙i͙p͙ ͡꒱ ۫'
 global.moneda = 'Zenis'
 global.banner = 'https://files.catbox.moe/b93cts.jpg'
 global.avatar = 'https://qu.ax/RYjEw.jpeg'
+global.catalogo = fs.readFileSync('./src/catalogo.jpg')
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
@@ -79,15 +81,13 @@ global.channel = 'https://whatsapp.com/channel/0029VakLbM76mYPPFL0IFI3P'
 global.channel2 = 'https://whatsapp.com/channel/0029VakLbM76mYPPFL0IFI3P'
 global.md = 'https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot'
 global.correo = 'nimierdalopondre@gmail.com'
-global.cn ='https://whatsapp.com/channel/0029VakLbM76mYPPFL0IFI3P';
+global.cn = 'https://whatsapp.com/channel/0029VakLbM76mYPPFL0IFI3P'
+global.ch = { ch1: '120363335626706839@newsletter' }
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
-global.catalogo = fs.readFileSync('./src/catalogo.jpg');
-global.estilo = { key: {  fromMe: false, participant: `0@s.whatsapp.net`, ...(false ? { remoteJid: "5219992095479-1625305606@g.us" } : {}) }, message: { orderMessage: { itemCount : -999999, status: 1, surface : 1, message: packname, orderTitle: 'Bang', thumbnail: catalogo, sellerJid: '0@s.whatsapp.net'}}}
+global.estilo = { key: { fromMe: false, participant: `0@s.whatsapp.net`, ...(false ? { remoteJid: "5219992095479-1625305606@g.us" } : {}) }, message: { orderMessage: { itemCount : -999999, status: 1, surface : 1, message: packname, orderTitle: 'Bang', thumbnail: catalogo, sellerJid: '0@s.whatsapp.net'}}}
 
-// Configuración global centralizada para mensajes fake/contextInfo.
-// Antes vivía en plugins/main/main-allfake.js y se ejecutaba tarde como hook de plugin.
 global.getBuffer = global.getBuffer || async function getBuffer(url, options = {}) {
   try {
     const res = await axios({
@@ -123,6 +123,8 @@ global.fakeIconUrls = [
   'https://files.catbox.moe/fe6pw6.jpeg'
 ]
 
+//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
+
 global.creador = 'Wa.me/18294868853'
 global.asistencia = 'Wa.me/18294868853'
 global.namechannel = '⏤͟͞ू⃪፝͜⁞⟡『 𝐓͢ᴇ𝙖፝ᴍ⃨ 𝘾𝒉꯭𝐚𝑛𝑛𝒆𝑙: 𝑹ᴜ⃜ɓ𝑦-𝑯ᴏ𝒔𝑯𝙞꯭𝑛𝒐 』࿐⟡'
@@ -133,6 +135,7 @@ global.listo = '❀ *Aquí tienes ฅ^•ﻌ•^ฅ*'
 global.fotoperfil = global.avatar || 'https://files.catbox.moe/xr2m6u.jpg'
 global.canalIdM = ['120363335626706839@newsletter', '120363335626706839@newsletter']
 global.canalNombreM = [global.namechannel, global.namechannel2]
+
 global.rwait = '🕒'
 global.done = '✅'
 global.error = '✖️'
@@ -144,6 +147,7 @@ global.emoji4 = '💗'
 global.emoji5 = '🍡'
 global.emojis = global.emoji
 global.wait = '⚘𖠵⃕❖𖥔 𝑪𝒂𝒓𝒈𝒂𝒏𝒅𝒐...ꪶꪾ❍̵̤̂ꫂ\n❝ 𝐴𝑔𝑢𝑎𝑟𝑑𝑒 𝑢𝑛 𝑚𝑜𝑚𝑒𝑛𝑡𝑜 ❞'
+
 global.redesList = [global.channel, global.channel2, 'https://github.com/Dioneibi-rip', global.md, global.correo].filter(Boolean)
 global.redes = global.redesList[0]
 global.icono = global.catalogo
@@ -151,6 +155,8 @@ global.icons = global.catalogo
 global.readMore = String.fromCharCode(8206).repeat(850)
 global.packsticker = global.packsticker || global.botname
 global.packsticker2 = '𝚁𝚄𝙱𝚈 𝙱𝙾𝚃 𝙼𝙳 ˃ 𖥦 ˂'
+
+//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.getRandomChannel = function getRandomChannel() {
   const ids = global.canalIdM || []
@@ -197,6 +203,9 @@ global.updateMessageGlobals = async function updateMessageGlobals(m = {}, conn =
   global.nombre = m.pushName || 'Anónimo'
   global.taguser = '@' + String(sender).split('@')[0]
   global.packsticker = global.nombre
+}
+
+//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 const imagenes = [
   "https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%F0%9F%A4%8D%20(1).jpeg",
@@ -243,12 +252,10 @@ const imagenes = [
 const fallbackImage = 'https://files.catbox.moe/xr2m6u.jpg'
 const matchedUrl = 'https://github.com/Dioneibi-rip'
 
-// Convertimos global.rcanal en una función asíncrona que construye todo el payload
 global.rcanal = async (textoDelMensaje, m) => {
-  const randomUrl = imagenes[Math.floor(Math.random() * imagenes.length)] || fallbackImage;
-  let rimg;
+  const randomUrl = imagenes[Math.floor(Math.random() * imagenes.length)] || fallbackImage
+  let rimg
 
-  // 1. Descargamos la imagen para convertirla en Buffer (Requisito de la "nueva lógica")
   try {
     const response = await fetch(randomUrl)
     if (response.ok) {
@@ -265,10 +272,9 @@ global.rcanal = async (textoDelMensaje, m) => {
     }
   }
 
-  // 2. Retornamos la estructura EXACTA del extendedTextMessage que usa relayMessage
   return {
     extendedTextMessage: {
-      text: `${matchedUrl}\n\n${textoDelMensaje}`, // El texto que quieres que envíe
+      text: `${matchedUrl}\n\n${textoDelMensaje}`,
       matchedText: matchedUrl,
       canonicalUrl: matchedUrl,
       title: global.botname || '⏤͟͞ू⃪  ̸̷͢𝐑𝐮𝐛y͟ 𝐇𝐨𝐬𝐡in͟ᴏ 𝐁𝐨t͟˚₊·—̳͟͞͞♡̥',
@@ -297,11 +303,6 @@ global.channelRD = global.getRandomChannel()
 global.saludo = global.getSaludo()
 global.nombre = 'Anónimo'
 global.taguser = '@0'
-global.rcanal = { contextInfo: { isForwarded: true, forwardedNewsletterMessageInfo: { newsletterJid: global.channelRD.id, serverMessageId: 100, newsletterName: global.channelRD.name }, externalAdReply: { showAdAttribution: true, title: global.botname, body: global.dev, thumbnail: global.icono, sourceUrl: global.redes, mediaType: 1 } } }
-
-global.ch = {
-ch1: '120363335626706839@newsletter',
-}
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
