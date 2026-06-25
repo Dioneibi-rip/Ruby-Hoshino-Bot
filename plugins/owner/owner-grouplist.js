@@ -42,6 +42,7 @@ try {
     *➤ Link:* ${isBotAdmin ? '--- (Error) ---' : '--- (No admin) ---'}\n\n`;
   }
   m.reply(`*Lista de grupos del Bot* 👾\n\n*—◉ Total de grupos:* ${totalGroups}\n\n${txt}`.trim());
+  return false;
  }    
 };
 handler.help = ['groups', 'grouplist'];

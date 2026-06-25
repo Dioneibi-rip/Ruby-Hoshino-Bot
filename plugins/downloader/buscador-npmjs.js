@@ -34,6 +34,7 @@ await m.react(done)
 } catch (e) {
 await conn.reply(m.chat, `${msm} Ocurrió un error.`, m)
 await m.react(error)
+  return false;
 }}
 
 handler.help = ['npmjs']

@@ -101,13 +101,13 @@ async function acceptTrade(m, { conn, participants = [] }) {
     if (!offeredClaim || !isSameUserId(offeredClaim.userId, trade.requesterId)) {
       clearTrade(trade);
       await conn.reply(m.chat, `《✧》Intercambio cancelado: ${mentionTag(trade.requesterId)} ya no tiene *${offered.name}*.`, m, { mentions: [trade.requesterId] });
-      return;
+      return false;
     }
 
     if (!requestedClaim || !isSameUserId(requestedClaim.userId, trade.targetId)) {
       clearTrade(trade);
       await conn.reply(m.chat, `《✧》Intercambio cancelado: ${mentionTag(trade.targetId)} ya no tiene *${requested.name}*.`, m, { mentions: [trade.targetId] });
-      return;
+      return false;
     }
 
     const now = Date.now();

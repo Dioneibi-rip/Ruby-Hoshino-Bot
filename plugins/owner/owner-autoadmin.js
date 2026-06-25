@@ -6,6 +6,7 @@ const handler = async (m, {conn, isAdmin, groupMetadata }) => {
    m.reply(`${emoji} Ya te di admin.`);
   } catch (e) {
     m.reply(`${msm} Ocurrio un error.`);
+  return false;
   }
 };
 handler.tags = ['owner'];

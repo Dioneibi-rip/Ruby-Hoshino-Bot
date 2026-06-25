@@ -24,7 +24,7 @@ let handler = async (m, { conn, args, participants }) => {
 
   if (args.length < 1) {
     await conn.reply(m.chat, 'Debes especificar el nombre del personaje. Ej: #regalar Aika Sano @user o responde a un mensaje: #regalar Aika Sano', m);
-    return;
+    return false;
   }
 
   let rawWho = m.mentionedJid?.[0] || m.quoted?.sender;
@@ -46,18 +46,18 @@ let handler = async (m, { conn, args, participants }) => {
   const characterName = characterArgs.join(' ').toLowerCase().trim();
   if (!characterName) {
     await conn.reply(m.chat, 'Debes indicar el nombre del personaje a regalar.', m);
-    return;
+    return false;
   }
 
   if (!rawWho) {
     await conn.reply(m.chat, 'Debes mencionar o responder a un mensaje del usuario al que quieres regalarle el personaje.', m);
-    return;
+    return false;
   }
 
   let who = normalizeToJid(rawWho);
   if (!who || who === userId) {
     await conn.reply(m.chat, 'Debes elegir un usuario válido y distinto de ti para regalar.', m);
-    return;
+    return false;
   }
 
   try {
@@ -66,14 +66,14 @@ let handler = async (m, { conn, args, participants }) => {
 
     if (!character) {
       await conn.reply(m.chat, `No se encontró el personaje *${characterName}*.`, m);
-      return;
+      return false;
     }
 
     const harem = await loadHarem();
     const claim = harem.find(c => c.groupId === groupId && c.characterId === character.id && isSameUserId(c.userId, userId));
     if (!claim) {
       await conn.reply(m.chat, `El personaje *${character.name}* no está reclamado por ti en este grupo.`, m);
-      return;
+      return false;
     }
 
     if (claim) {

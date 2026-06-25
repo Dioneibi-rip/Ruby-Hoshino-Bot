@@ -64,6 +64,7 @@ await m.react('🎀')
 } catch (e) {
 await m.react('✖️')
 conn.reply(m.chat, '꒰ ⚠️ ꒱ ⋆ ࣪. ¡E-Eʀʀᴏʀ ᴇɴ ᴇʟ sɪsᴛᴇᴍᴀ! (｡>﹏<｡)\n> 🔧 Úsᴀ `*' + usedPrefix + 'report*` ᴘᴀʀᴀ ᴀᴠɪsᴀʀ ᴀ ᴍɪ ᴄʀᴇᴀᴅᴏʀ.\n\n`' + e.message + '`', m)
+  return false;
 }
 }
 handler.help = ['pinterest <texto>']

@@ -44,6 +44,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
   } catch (e) {
     console.error(e);
     await conn.reply(m.chat, '❌ Lo siento, ocurrió un error al buscar tu waifu.', m);
+  return false;
   }
 };
 

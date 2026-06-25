@@ -8,6 +8,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
     } catch (error) {
         console.log(error)
         conn.reply(m.chat, `${error}`, m)
+  return false;
     }
 }
 

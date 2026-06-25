@@ -29,6 +29,7 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
     conn.reply(m.chat, teks, m);
   } catch (e) {
     return conn.reply(m.chat, `${msm} Ocurrió un error: ${e.message}`, m);
+  return false;
   }
 };
 

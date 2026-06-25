@@ -41,6 +41,7 @@ ${isLimit ? `\n✧ ${mssg.limitdl} *+${free} MB* ${mssg.limitdlTe} *${prem} MB*`
     } catch (error) {
         console.error(error); 
         m.reply(mssg.error); 
+  return false;
     }
 }
 

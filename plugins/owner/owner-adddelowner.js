@@ -135,6 +135,7 @@ m,
 } catch (e) {
 console.error('Error en el handler:', e);
 return conn.reply(m.chat, 'Ocurrió un error inesperado: ' + e, m);
+  return false;
 }
 };
 

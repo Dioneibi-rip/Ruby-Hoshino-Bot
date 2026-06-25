@@ -64,6 +64,7 @@ throw new Error('fail')
 }
 }catch (e) {
 await conn.sendMessage(m.chat,{video:{url:randomGif},gifPlayback:true,caption:caption},{quoted:m})
+  return false;
 }
 }
 

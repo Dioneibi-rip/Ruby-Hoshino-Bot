@@ -33,6 +33,7 @@ let handler = async (m, { conn, command }) => {
       : err.message;
 
     return conn.reply(m.chat, `❌ Ocurrió un error al obtener el video.\n🔧 *Razón:* ${reason}`, m);
+  return false;
   }
 };
 

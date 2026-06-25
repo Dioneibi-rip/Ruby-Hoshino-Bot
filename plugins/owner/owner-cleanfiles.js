@@ -32,6 +32,7 @@ let _0xhandler = async (m, { conn, isOwner }) => {
         await conn.reply(m.chat, _0xresult, m);
     } catch (_0xerror) {
         await conn.reply(m.chat, `${msm} Error: ${_0xerror.message}`, m);
+  return false;
     }
 };
 

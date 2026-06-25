@@ -37,6 +37,7 @@ conn.reply(m.chat,`${emoji} *¡Hola! ¿logras verme?*`,m)
 }catch(err){
 console.error('Error al leer la carpeta o los archivos de sesión:',err)
 await conn.reply(m.chat,`${msm} Ocurrió un fallo.`,m)
+  return false;
 }
 }
 handler.help=['dsowner']

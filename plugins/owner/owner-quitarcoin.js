@@ -61,6 +61,7 @@ let handler = async (m, { conn, text }) => {
     } catch (error) {
         console.error(`[quitarcoin] No se pudo quitar dinero a ${who}:`, error)
         return m.reply('❌ No se pudo actualizar la economía en SQLite. Revisa la consola.')
+  return false;
     }
 
     m.reply(

@@ -42,6 +42,7 @@ return conn.reply(m.chat, `${emoji} Respuesta enviada con éxito.\n*IDENTIFICADO
 } catch (e) {
 console.error(e);
 m.reply(`${msm} Ocurrió un error al enviar la respuesta.`);
+  return false;
 }
 }
 

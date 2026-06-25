@@ -6,7 +6,7 @@ let handler = async (m, { conn }) => {
   exec('npm install ytdl-core sharp', (err, stdout, stderr) => {
     if (err) {
       conn.reply(m.chat, `${msm} log de la instalacion:.\nRazón: ${err.message}`, m);
-      return;
+      return false;
     }
 
     if (stderr) {

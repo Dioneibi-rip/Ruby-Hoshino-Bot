@@ -15,6 +15,7 @@ let handler = async (m, { conn }) => {
   } catch (e) {
     console.error(e);
     return conn.reply(m.chat, `${msm} Ocurrió un error al intentar cambiar la foto de perfil.`, m);
+  return false;
   }
 };
 

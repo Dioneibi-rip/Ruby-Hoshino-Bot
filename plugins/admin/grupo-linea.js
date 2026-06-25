@@ -55,6 +55,7 @@ let handler = async (m, { conn, args }) => {
   } catch (error) {
     console.error(error)
     await m.reply('Hubo un error al enviar la lista de usuarios.')
+  return false;
   }
 }
 

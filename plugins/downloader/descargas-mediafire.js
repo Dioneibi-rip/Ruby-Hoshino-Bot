@@ -136,6 +136,7 @@ let handler = async (m, { conn, text }) => {
     console.error('MEDIAFIRE_ERROR:', error)
     await conn.sendMessage(m.chat, { react: { text: '✖️', key: m.key } })
     throw m.reply(`${emoji} Ocurrió un error al procesar el enlace de MediaFire.`)
+  return false;
   }
 }
 

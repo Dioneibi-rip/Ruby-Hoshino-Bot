@@ -26,11 +26,13 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
       } catch (error) {
         console.error('Error al enviar el archivo:', error);
         m.reply(`${msm} Error al enviar el archivo: ${fileName}`);
+  return false;
       }
     }
   } catch (err) {
     console.error('Error general:', err);
     m.reply('Error al descargar el archivo.');
+  return false;
   }
 };
 

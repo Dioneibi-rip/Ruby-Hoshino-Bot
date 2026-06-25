@@ -144,6 +144,7 @@ let handler = async (m, { conn, args }) => {
                 }, { quoted: m });
             } catch (e) {
                  await conn.reply(m.chat, `✘ Error crítico: No se pudo procesar el enlace del personaje.`, m)
+                 return false;
             }
   return false;
         }

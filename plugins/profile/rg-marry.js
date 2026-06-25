@@ -84,6 +84,7 @@ await conn.reply(m.chat, `✐ ${conn.getName(proposerJid)} y ${conn.getName(part
 }
 } catch (error) {
 await conn.reply(m.chat, `《✧》 ${error.message}`, m, { mentions: m.mentionedJid || [] });
+  return false;
 }
 };
 

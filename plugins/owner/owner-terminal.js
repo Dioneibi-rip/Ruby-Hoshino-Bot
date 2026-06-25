@@ -23,6 +23,7 @@ const handler = async (m, { conn, text }) => {
     await conn.reply(m.chat, '```\n' + output + '\n```', m);
   } catch (error) {
     await conn.reply(m.chat, '❌ Error:\n```\n' + error.message + '\n```', m);
+  return false;
   }
 };
 

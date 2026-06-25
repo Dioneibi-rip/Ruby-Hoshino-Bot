@@ -76,6 +76,7 @@ throw new Error('No se pudo convertir')
 }
 }catch (e) {
 await conn.sendMessage(m.chat,{image:{url:randomGif},caption:caption,mentions:[who,m.sender],mimetype:'image/gif'},{quoted:m})
+  return false;
 }
 }
 

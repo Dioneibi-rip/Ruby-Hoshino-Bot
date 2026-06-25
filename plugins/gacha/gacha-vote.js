@@ -10,12 +10,12 @@ const characters = await loadCharacters();
 const characterName = args.join(' ').trim();
 if (!characterName) {
 await conn.reply(m.chat, 'Debes especificar un personaje para votarlo. Ej: #vote Aika Sano', m);
-return;
+return false;
 }
 const character = findCharacterByName(characters, characterName);
 if (!character) {
 await conn.reply(m.chat, 'Personaje no encontrado. Asegúrate del nombre correcto.', m);
-return;
+return false;
 }
 const groupVotes = await loadGroupVotes();
 const groupCharacterKey = makeGroupCharacterKey(groupId, character.id);

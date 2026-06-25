@@ -120,6 +120,7 @@ console.log(`${emoji3} Método de enlace.`)
 } catch (e) {
 m.reply(`${emoji2} Grupo no encontrado.`)
 return
+  return false;
 }}}
 if (info) {
 await conn.sendMessage(m.chat, { text: info, contextInfo: {
@@ -251,6 +252,7 @@ const response = await axios.get(match2 ? match2 : text.match(imageUrlRegex), { 
 imageBuffer = Buffer.from(response.data, 'binary')
 } catch (error) {
 return await conn.reply(m.chat, `${msm} Error al descargar la imagen de la URL proporcionada.`, m)
+  return false;
 }
 media = imageBuffer
 }

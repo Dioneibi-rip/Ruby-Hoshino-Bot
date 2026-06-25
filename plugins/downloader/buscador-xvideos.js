@@ -28,6 +28,7 @@ const handler = async (m, { conn, args, command, usedPrefix }) => {
     } catch (e) {
         console.error(e);
         return conn.reply(m.chat, `${msm} Ocurrió un error al buscar videos. Por favor, intenta de nuevo más tarde.`, m);
+  return false;
     }
 };
 

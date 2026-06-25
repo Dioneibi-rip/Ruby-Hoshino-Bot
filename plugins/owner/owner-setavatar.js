@@ -25,6 +25,7 @@ let handler = async (m, { conn, isRowner }) => {
   } catch (error) {
     console.error(error);
     m.reply(`${msm} Hubo un error al intentar cambiar la Imagen.`);
+  return false;
   }
 };
 

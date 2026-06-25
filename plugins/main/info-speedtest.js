@@ -21,6 +21,7 @@ const handler = async (m) => {
     } catch (e) {
         o = e.message;
         return m.reply(o)
+  return false;
     }
 };
 handler.help = ['speedtest'];

@@ -25,6 +25,7 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
         enviando = false;
         console.error(error);         
         conn.reply(m.chat, `${msm} Error al descargar su archivo`, m);
+  return false;
     }
 };
 
