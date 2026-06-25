@@ -4,7 +4,10 @@ let handler = async (m, { conn, text }) => {
 //await m.reply('🧑🏻‍💻 Buscando...')
 let bot = '🍭 Buscando espere un momento....'
 conn.reply(m.chat, bot, m)
-  if (!text) return conn.reply(m.chat, `${emoji} Por favor, ingresa una *IP*.`, m)
+  if (!text) {
+  await conn.reply(m.chat, `${emoji} Por favor, ingresa una *IP*.`, m);
+  return false;
+  }
 
   axios.get(`http://ip-api.com/json/${text}?fields=status,message,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,isp,org,as,mobile,hosting,query`).then ((res) => {
     const data = res.data

@@ -8,7 +8,8 @@ ensureJobFields(user);
 
 let job = getJobData(user);
 if (!job) {
-return conn.reply(m.chat, `💼 Primero consigue trabajo con *#trabajo lista*. Tu oficio afecta el rendimiento en #slut.`, m);
+await conn.reply(m.chat, `💼 Primero consigue trabajo con *#trabajo lista*. Tu oficio afecta el rendimiento en #slut.`, m);
+return false;
 }
 
 

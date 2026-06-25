@@ -16,6 +16,7 @@ const handler = async (m, { args, usedPrefix, command, conn }) => {
   } catch (e) {
     console.error(e);
     m.reply('❌ Ocurrió un error al generar el QR.');
+  return false;
   }
 };
 

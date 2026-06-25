@@ -11,7 +11,10 @@ const user = global.db.getUser(senderJid);
 
 let target = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
 
-if (!target) return conn.reply(m.chat, `${emoji2} Debes mencionar a alguien para intentar robar.`, m);
+if (!target) {
+await conn.reply(m.chat, `${emoji2} Debes mencionar a alguien para intentar robar.`, m);
+return false;
+}
 
 let targetJid = target;
 if (target.endsWith('@lid') && m.isGroup) {
@@ -19,14 +22,18 @@ const pInfo = participants.find((p) => p.lid === target);
 if (pInfo?.id) targetJid = pInfo.id;
 }
 
-if (targetJid === senderJid) return conn.reply(m.chat, `${emoji2} No puedes robarte a ti mismo.`, m);
+if (targetJid === senderJid) {
+await conn.reply(m.chat, `${emoji2} No puedes robarte a ti mismo.`, m);
+return false;
+}
 
 const targetUser = global.db.getUser(targetJid);
 
 const minVictimCash = 2500;
 const victimCash = Math.max(0, Number(targetUser.coin) || 0);
 if (victimCash < minVictimCash) {
-return conn.reply(m.chat, `${emoji2} @${target.split('@')[0]} no tiene efectivo suficiente (mínimo ${minVictimCash.toLocaleString()} ${m.moneda}).`, m, { mentions: [target] });
+await conn.reply(m.chat, `${emoji2} @${target.split('@')[0]} no tiene efectivo suficiente (mínimo ${minVictimCash.toLocaleString()} ${m.moneda}).`, m, { mentions: [target] });
+return false;
 }
 
 const successChance = user.premium ? 0.47 : 0.40;
@@ -58,7 +65,8 @@ m,
 );
 } catch (err) {
 console.error('Error en comando rob:', err);
-return conn.reply(m.chat, `${emoji2} Ocurrió un error al ejecutar el robo.`, m);
+await conn.reply(m.chat, `${emoji2} Ocurrió un error al ejecutar el robo.`, m);
+return false;
 }
 };
 

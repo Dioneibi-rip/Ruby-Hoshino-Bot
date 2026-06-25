@@ -3,26 +3,30 @@ const handler = async (m, { conn, text, command, usedPrefix }) => {
 const user = global.db.getUser(m.sender);
 
 if (!text) {
-return conn.reply(m.chat, `《✧》Uso correcto:
+await conn.reply(m.chat, `《✧》Uso correcto:
 *${usedPrefix + command} <cantidad> <red|black|green>*
 Ejemplo: *${usedPrefix + command} 1500 red*`, m);
+return false;
 }
 
 const args = text.trim().split(/\s+/);
 if (args.length !== 2) {
-return conn.reply(m.chat, `《✧》Debes indicar cantidad y color.
+await conn.reply(m.chat, `《✧》Debes indicar cantidad y color.
 Ejemplo: *${usedPrefix + command} 1500 red*`, m);
+return false;
 }
 
 const bet = Number(args[0]);
 const color = args[1].toLowerCase();
 
 if (!Number.isInteger(bet) || bet < 200) {
-return conn.reply(m.chat, `《✧》La apuesta mínima es *200 ${m.moneda}*.`, m);
+await conn.reply(m.chat, `《✧》La apuesta mínima es *200 ${m.moneda}*.`, m);
+return false;
 }
 
 if (!['red', 'black', 'green'].includes(color)) {
-return conn.reply(m.chat, `《✧》Color inválido. Usa *red*, *black* o *green*.`, m);
+await conn.reply(m.chat, `《✧》Color inválido. Usa *red*, *black* o *green*.`, m);
+return false;
 }
 
 const maxByTier = user.premium ? 150000 : 50000;
@@ -30,11 +34,13 @@ const maxByBalance = Math.max(200, Math.floor((user.coin || 0) * 0.25));
 const maxBet = Math.min(maxByTier, maxByBalance);
 
 if (bet > maxBet) {
-return conn.reply(m.chat, `《✧》Tu apuesta máxima ahora es *${maxBet.toLocaleString()} ${m.moneda}* para mantener la economía estable.`, m);
+await conn.reply(m.chat, `《✧》Tu apuesta máxima ahora es *${maxBet.toLocaleString()} ${m.moneda}* para mantener la economía estable.`, m);
+return false;
 }
 
 if (bet > user.coin) {
-return conn.reply(m.chat, `《✧》No tienes suficientes *${m.moneda}* para apostar eso.`, m);
+await conn.reply(m.chat, `《✧》No tienes suficientes *${m.moneda}* para apostar eso.`, m);
+return false;
 }
 
 user.coin -= bet;

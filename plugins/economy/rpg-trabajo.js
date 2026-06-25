@@ -34,9 +34,15 @@ const days=getJobTenureDays(user);
 return conn.reply(m.chat,`💼 Tu trabajo actual: ${current.emoji} *${current.name}*\n✦ Antigüedad: *${days} día(s)*\n✦ XP laboral: *${(user.jobXp||0).toLocaleString()}*`,m);
 }
 const desiredInput=jobActions.has(action)?args.slice(1).join(' ').trim():args.join(' ').trim();
-if(!desiredInput)return conn.reply(m.chat,`✦ Debes indicar un trabajo.\n> Ejemplo: *${usedPrefix}trabajo elegir programador*\n\n${getJobsListMessage(usedPrefix)}`,m);
+if(!desiredInput){
+await conn.reply(m.chat,`✦ Debes indicar un trabajo.\n> Ejemplo: *${usedPrefix}trabajo elegir programador*\n\n${getJobsListMessage(usedPrefix)}`,m);
+return false;
+}
 const selectedJobKey=resolveSelectedJob(desiredInput);
-if(!selectedJobKey)return conn.reply(m.chat,`✘ Trabajo inválido: *${desiredInput}*.\nUsa *${usedPrefix}trabajo lista* para ver opciones disponibles.`,m);
+if(!selectedJobKey){
+await conn.reply(m.chat,`✘ Trabajo inválido: *${desiredInput}*.\nUsa *${usedPrefix}trabajo lista* para ver opciones disponibles.`,m);
+return false;
+}
 const selectedJob=JOBS[selectedJobKey];
 if(user.job===selectedJobKey)return conn.reply(m.chat,`✅ Ya tienes ese trabajo: ${selectedJob.emoji} *${selectedJob.name}*.`,m);
 global.db.updateUser(primaryJid,{job:selectedJobKey,jobSince:Date.now(),jobXp:user.jobXp||0});

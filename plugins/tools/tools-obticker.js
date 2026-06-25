@@ -71,6 +71,7 @@ coverBuffer = buffer
 stickersArray.push({ media: buffer, isAnimated: sticker.isAnimated, emojis: ['🎀'] })
 } catch (err) {
 console.log(`Error al procesar sticker ${i + 1}:`, err.message)
+  return false;
 }
 }
 if (stickersArray.length === 0) {
@@ -85,6 +86,7 @@ await m.react('🎀')
 console.error(e)
 await m.react('🥀')
 m.reply(`───│ ❌ 𝖮𝖼𝗎𝗋𝗋𝗂𝗈́ 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋:\n${e.message} ✉𓈒𓂂ׅ◝ׄ`)
+  return false;
 }
 }
 handler.help = ['stickerly <texto/url>']

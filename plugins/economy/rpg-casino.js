@@ -13,7 +13,10 @@ let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m
 let username = conn.getName(who)
 count = count ? /all/i.test(count) ? Math.floor(global.db.getUser(m.sender).limit / buatall) : parseInt(count) : args[0] ? parseInt(args[0]) : 1
 count = Math.max(1, count)
-if (args.length < 1) return conn.reply(m.chat, `${emoji} Ingresa la cantidad de ` + `💸 *${m.moneda}*` + ' que deseas aportar contra' + ` *${botname}*` + `\n\n` + '`Ejemplo:`\n' + `> *${usedPrefix + command}* 100`, m)
+if (args.length < 1) {
+await conn.reply(m.chat, `${emoji} Ingresa la cantidad de ` + `💸 *${m.moneda}*` + ' que deseas aportar contra' + ` *${botname}*` + `\n\n` + '`Ejemplo:`\n' + `> *${usedPrefix + command}* 100`, m);
+return false;
+}
 if (user.coin >= count * 1) {
 user.coin -= count * 1
 if (Aku > Kamu) {

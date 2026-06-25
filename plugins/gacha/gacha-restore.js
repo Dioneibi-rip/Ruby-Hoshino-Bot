@@ -123,10 +123,12 @@ let handler = async (m, { conn, args, participants }) => {
       await conn.sendMessage(m.chat, { text: reply, mentions: [targetJid] }, { quoted: m });
     } catch (e) {
       m.reply(reply);
+  return false;
     }
   } catch (e) {
     console.error(e);
     m.reply(`✘ Error al ejecutar #addwaifus: ${e.message}`);
+  return false;
   }
 };
 

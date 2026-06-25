@@ -26,6 +26,7 @@ let handler = async (m, { conn, participants, args }) => {
         await new Promise(resolve => setTimeout(resolve, 150));
       } catch (e) {
         console.error('Error al eliminar (all):', e);
+  return false;
       }
     }
     return m.reply(`✅ Se eliminaron los últimos ${allMessages.length} mensajes del grupo.`);
@@ -47,6 +48,7 @@ let handler = async (m, { conn, participants, args }) => {
       await new Promise(resolve => setTimeout(resolve, 150));
     } catch (e) {
       console.error('Error al eliminar (usuario):', e);
+  return false;
     }
   }
 

@@ -135,7 +135,10 @@ async function acceptTrade(m, { conn, participants = [] }) {
 
 let handler = async (m, { conn, text, usedPrefix, participants }) => {
   const parsed = parseTradeText(text);
-  if (!parsed) return conn.reply(m.chat, usage(usedPrefix), m);
+  if (!parsed) {
+  await conn.reply(m.chat, usage(usedPrefix), m);
+  return false;
+  }
 
   const requesterId = normalizeToJid(m.sender, participants);
   const groupId = m.chat;
@@ -145,26 +148,36 @@ let handler = async (m, { conn, text, usedPrefix, participants }) => {
     const offeredCharacter = findCharacterByName(characters, parsed.offeredName);
     const requestedCharacter = findCharacterByName(characters, parsed.requestedName);
 
-    if (!offeredCharacter) return conn.reply(m.chat, `《✧》No encontré el personaje que quieres entregar: *${parsed.offeredName}*.`, m);
-    if (!requestedCharacter) return conn.reply(m.chat, `《✧》No encontré el personaje que quieres recibir: *${parsed.requestedName}*.`, m);
+    if (!offeredCharacter) {
+    await conn.reply(m.chat, `《✧》No encontré el personaje que quieres entregar: *${parsed.offeredName}*.`, m);
+    return false;
+    }
+    if (!requestedCharacter) {
+    await conn.reply(m.chat, `《✧》No encontré el personaje que quieres recibir: *${parsed.requestedName}*.`, m);
+    return false;
+    }
     if (String(offeredCharacter.id) === String(requestedCharacter.id)) {
-      return conn.reply(m.chat, '《✧》No puedes intercambiar el mismo personaje. Elige dos personajes distintos.', m);
+      await conn.reply(m.chat, '《✧》No puedes intercambiar el mismo personaje. Elige dos personajes distintos.', m);
+      return false;
     }
 
     const offeredClaim = harem.find(entry => entry.groupId === groupId && String(entry.characterId) === String(offeredCharacter.id));
     const requestedClaim = harem.find(entry => entry.groupId === groupId && String(entry.characterId) === String(requestedCharacter.id));
 
     if (!offeredClaim || !isSameUserId(offeredClaim.userId, requesterId)) {
-      return conn.reply(m.chat, `《✧》*${offeredCharacter.name}* no está reclamado por ti en este grupo.`, m);
+      await conn.reply(m.chat, `《✧》*${offeredCharacter.name}* no está reclamado por ti en este grupo.`, m);
+      return false;
     }
 
     if (!requestedClaim) {
-      return conn.reply(m.chat, `《✧》*${requestedCharacter.name}* no está reclamado por ningún usuario en este grupo.`, m);
+      await conn.reply(m.chat, `《✧》*${requestedCharacter.name}* no está reclamado por ningún usuario en este grupo.`, m);
+      return false;
     }
 
     const targetId = normalizeToJid(requestedClaim.userId, participants);
     if (!targetId || isSameUserId(targetId, requesterId)) {
-      return conn.reply(m.chat, '《✧》No puedes intercambiar contigo mismo. El segundo personaje debe pertenecer a otro usuario.', m);
+      await conn.reply(m.chat, '《✧》No puedes intercambiar contigo mismo. El segundo personaje debe pertenecer a otro usuario.', m);
+      return false;
     }
 
     for (const trade of pendingTrades.values()) {
@@ -204,6 +217,7 @@ let handler = async (m, { conn, text, usedPrefix, participants }) => {
     pendingTrades.set(messageId, trade);
   } catch (error) {
     await conn.reply(m.chat, `✘ Error al crear el intercambio: ${error.message}`, m);
+  return false;
   }
 };
 

@@ -28,6 +28,7 @@ let handler = async (m, { conn, text }) => {
   } catch (e) {
     if (e == undefined) return m.reply(`${emoji} Ingresa la ecuación.\nsímbolos compatibles -, +, *, /, ×, ÷, π, e, (, )`)
     return m.reply(`${emoji2} Formato incorrecto, solo 0-9 y símbolo -, +, *, /, ×, ÷, π, e, (, ) que puedes usar`)
+  return false;
   }
 }
 handler.help = ['cal *<ecuacion>*']

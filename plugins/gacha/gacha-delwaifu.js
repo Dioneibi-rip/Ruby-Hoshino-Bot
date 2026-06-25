@@ -29,6 +29,7 @@ let handler = async (m, { conn, text }) => {
   } catch (e) {
     console.error(e);
     m.reply(`✘ Ocurrió un error al intentar eliminar el personaje: ${e.message}`);
+  return false;
   }
 };
 
