@@ -37,6 +37,7 @@ await m.react('✅')
 }catch(e){
 await m.react('❌')
 await conn.reply(m.chat,`⸺      \`ㅤ  E R R O Rㅤ\`\n\`ㅤ ݰ   \`\n          𝗁 𝗲𝘆 ㅤܐㅤׄㅤ𝗬 𝗈𝗎!      *;* ⎖  𓌛ㅤㅤㅤ\n⎯⎯̸⎯⎯꯭⎯꯭⎯꯭⎯꯭⎯꯭⎯⎯̸⎯⎯\n\n> ㅤㅤㅤ𝖮𝖼𝗎𝗋𝗋𝗂𝗈 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋 𝗂𝗇𝖾𝗌𝗉𝖾𝗋𝖺𝖽𝗈  .\n\n\`ㅤㅤㅤܐ⸺${e.message}\` ㅤׅ     ㅤׄ`,m)
+  return false;
 }
 }
 handler.help=['3hentai buscar <texto>','3hentai <id|url>']

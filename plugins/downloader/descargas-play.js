@@ -98,6 +98,7 @@ await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key }})
 console.error(e)
 await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }})
 m.reply("Error al descargar audio.")
+  return false;
 }
 } else if (["play2", "ytv", "ytmp4", "mp4"].includes(command)) {
 try {
@@ -133,12 +134,14 @@ await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key }})
 console.error(e)
 await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }})
 return conn.reply(m.chat, "✦ No se pudo procesar el video. Intenta más tarde.", m)
+  return false;
 }
 }
 } catch (error) {
 console.error(error)
 await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key }})
 return m.reply("⚠︎ Error inesperado.")
+  return false;
 }
 }
 

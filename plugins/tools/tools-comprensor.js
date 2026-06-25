@@ -39,6 +39,7 @@ const handler = async (m, { conn, text }) => {
     console.error(err);
     m.react('❌');
     m.reply(`❌ *Ocurrió un error al comprimir la imagen.*\n\n🪵 *Detalle:* ${err.message}`);
+  return false;
   }
 };
 

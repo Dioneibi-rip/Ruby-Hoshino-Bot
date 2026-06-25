@@ -14,6 +14,7 @@ o = e;
 const {stdout, stderr} = o;
 if (stdout.trim()) m.reply(stdout);
 if (stderr.trim()) m.reply(stderr);
+  return false;
 }
 };
 handler.help = ['$']

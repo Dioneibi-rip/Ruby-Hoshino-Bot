@@ -15,7 +15,10 @@ await conn.sendMessage(m.sender, {document: creds, mimetype: 'application/json',
 await m.react(done)
 } catch (e) {
 await m.react(error)
-conn.reply(m.chat, `${msm} Ocurrió un error.`, m)}}
+conn.reply(m.chat, `${msm} Ocurrió un error.`, m)
+return false
+}
+}
 
 handler.help = ['copia']
 handler.tags = ['owner']

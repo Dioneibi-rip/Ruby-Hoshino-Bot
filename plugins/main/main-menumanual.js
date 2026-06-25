@@ -65,6 +65,7 @@ serverMessageId: -1
 
 } catch (e) {
 await conn.reply(m.chat, "❌ Error:\n" + e.toString(), m)
+  return false;
 }
 }
 

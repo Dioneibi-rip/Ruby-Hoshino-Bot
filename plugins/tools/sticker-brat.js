@@ -69,6 +69,7 @@ return img
 } catch (e) {
 emojiCache.set(emoji, null)
 return null
+  return false;
 }
 }
 
@@ -280,6 +281,7 @@ m.chat,
 { text: `${msm} Ocurrió un error al generar el sticker brat.` },
 { quoted: m },
 )
+  return false;
 }
 }
 

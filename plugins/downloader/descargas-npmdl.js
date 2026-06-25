@@ -53,6 +53,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     await npmdownloader(text2, ver || 'latest');
   } catch (error) {
     m.reply('Sepertinya terjadi kesalahan atau package tidak ditemukan');
+  return false;
   }
 };
 

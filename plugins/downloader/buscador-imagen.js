@@ -36,6 +36,7 @@ await m.react('✅');
 console.error(error);
 await m.react('✖️');
 conn.reply(m.chat, '*🥀 Ocurrió un error de conexión al buscar las imágenes. Intenta con otra palabra.*', m);
+  return false;
 }
 };
 handler.help = ['imagen <texto>'];

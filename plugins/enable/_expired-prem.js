@@ -1,6 +1,6 @@
-cont handler = (m) => m;
+const handler = (m) => m;
 
-exprt async function all(m) {
+handler.all = async function all(m) {
   for (const user of Object.values(global.db.listUsers())) {
     if (user.premiumTime != 0 && user.premium) {
       if (new Date() * 1 >= user.premiumTime) {
@@ -14,3 +14,5 @@ exprt async function all(m) {
     }
   }
 }
+
+export default handler;

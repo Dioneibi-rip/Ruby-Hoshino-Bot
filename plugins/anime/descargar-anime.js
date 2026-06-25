@@ -93,6 +93,7 @@ let handler = async (m, { command, usedPrefix, conn, text, args }) => {
   } catch (e) {
     console.error("Error en handler anime:", e);
     m.reply("⚠️ Ocurrió un error al procesar AnimeDL: " + e.message);
+  return false;
   }
 };
 
@@ -144,6 +145,7 @@ handler.before = async (m, { conn }) => {
     session.downloading = false;
     if (session.timeout) clearTimeout(session.timeout);
     delete conn.anime[m.sender];
+  return false;
   }
 };
 

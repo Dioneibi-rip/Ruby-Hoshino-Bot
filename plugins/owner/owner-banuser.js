@@ -46,6 +46,7 @@ var handler = async (m, { conn, text, usedPrefix, command }) => {
         await conn.reply(`${suittag}@s.whatsapp.net`, `❀ El usuario *${nametag}* ha sido Baneado por *${nn}*.`, m)
     } catch (e) {
         await conn.reply(m.chat, `⚠︎ Ocurrió un error.`, m)
+  return false;
     }
 }
 

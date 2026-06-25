@@ -55,6 +55,7 @@ const handler = async (m, { conn, text }) => {
   } catch (error) {
     console.error(`[addcoin] Error al agregar dinero a ${who}:`, error);
     return m.reply('❌ No se pudo actualizar la economía. Revisa la consola.');
+  return false;
   }
 };
 

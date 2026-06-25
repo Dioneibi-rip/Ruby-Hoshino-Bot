@@ -1,7 +1,8 @@
 const handler = async (m, { conn, isPrems }) => {
 const user = global.db.getUser(m.sender);
 if (!isPrems && !user.premium) {
-return conn.reply(m.chat, '🔒 Este comando es exclusivo para usuarios premium.', m);
+await conn.reply(m.chat, '🔒 Este comando es exclusivo para usuarios premium.', m);
+return false;
 }
 
 const coinReward = randomInt(18000, 36000);

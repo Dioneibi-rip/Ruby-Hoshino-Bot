@@ -42,6 +42,7 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args, co
   texto += `╰─「 ${botname} 」`;
 
   conn.sendMessage(m.chat, { text: texto, mentions: participants.map((a) => a.id) }, { quoted: fkontak });
+  return false;
 };
 
 handler.help = ['tagall *<mensaje opcional>*'];

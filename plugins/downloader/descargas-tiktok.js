@@ -37,6 +37,7 @@ await m.react("🌸");
 }catch(e){
 console.error(e);
 return conn.reply(m.chat,`❌ 𝑬𝒓𝒓𝒐𝒓 𝒂𝒍 𝒅𝒆𝒔𝒄𝒂𝒓𝒈𝒂𝒓:\n${e.message}`,m);
+  return false;
 }
 };
 

@@ -64,7 +64,7 @@ let handler = async (m, { conn, args, participants = [] }) => {
     if (userClaims.length === 0) {
       const emptyText = userId === m.sender ? '❀ No tienes personajes reclamados en este grupo.' : `❀ @${userId.split('@')[0]} no tiene personajes reclamados en este grupo.`;
       await conn.reply(m.chat, emptyText, m, { mentions: [userId] });
-      return;
+      return false;
     }
 
     let pageArg = numberTarget ? null : args.find(arg => /^\d+$/.test(arg));
@@ -77,7 +77,7 @@ let handler = async (m, { conn, args, participants = [] }) => {
 
     if (page < 1 || page > totalPages) {
       await conn.reply(m.chat, `❀ Página no válida. Hay un total de *${totalPages}* páginas.`, m);
-      return;
+      return false;
     }
 
     let message = `✿ Personajes reclamados en este grupo ✿\n`;
@@ -101,6 +101,7 @@ let handler = async (m, { conn, args, participants = [] }) => {
     await conn.reply(m.chat, message, m, { mentions: [userId] });
   } catch (error) {
     await conn.reply(m.chat, `✘ Error al cargar el harem: ${error.message}`, m);
+  return false;
   }
 };
 

@@ -29,7 +29,10 @@ await conn.sendMessage(m.chat,{text:txtHeader,contextInfo:{}},{quoted:m})
 await m.react(done)
 }catch(e){
 await m.react(error)
-conn.reply(m.chat,`🚩 *${toFancy("No se encontraron resultados para")}:* ${text}`,m,fake)}}
+conn.reply(m.chat,`🚩 *${toFancy("No se encontraron resultados para")}:* ${text}`,m,fake)
+return false
+}
+}
 handler.help=['githubsearch']
 handler.tags=['buscador']
 handler.command=['githubsearch']

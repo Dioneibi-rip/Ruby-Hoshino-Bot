@@ -4,7 +4,7 @@ import { loadCharacters, findCharacterByName } from '../../lib/gacha-characters.
 let handler = async (m, { conn, args }) => {
   if (args.length === 0) {
     await conn.reply(m.chat, 'Debes especificar un personaje para ver su información.\n> Ejemplo » *#winfo Aika Sano*', m);
-    return;
+    return false;
   }
 
   const characterName = args.join(' ').toLowerCase().trim();
@@ -16,7 +16,7 @@ let handler = async (m, { conn, args }) => {
 
     if (!character) {
       await conn.reply(m.chat, `No se encontró el personaje *${characterName}*.`, m);
-      return;
+      return false;
     }
 
     const harem = await loadHarem();
@@ -34,6 +34,7 @@ let handler = async (m, { conn, args }) => {
 
   } catch (error) {
     await conn.reply(m.chat, `✘ Error al cargar la información del personaje: ${error.message}`, m);
+  return false;
   }
 };
 

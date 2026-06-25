@@ -11,6 +11,7 @@ const handler = async (m, {conn, args, command, usedPrefix}) => {
       await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
     } catch (e) {
       await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
     }
   }
   if (command == 'logochristmas') {
@@ -20,6 +21,7 @@ const handler = async (m, {conn, args, command, usedPrefix}) => {
       await conn.sendFile(m.chat, res2.imageUrl, 'error.jpg', null, m);
     } catch (e) {
       await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
     }
   }
   if (command == 'logopareja') {
@@ -29,6 +31,7 @@ const handler = async (m, {conn, args, command, usedPrefix}) => {
       await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
     } catch (e) {
       await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
     }
   }
   if (command == 'logoglitch') {
@@ -38,6 +41,7 @@ const handler = async (m, {conn, args, command, usedPrefix}) => {
       await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
     } catch (e) {
       await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
     }
   }
   if (command == 'logosad') {
@@ -47,6 +51,7 @@ const handler = async (m, {conn, args, command, usedPrefix}) => {
       await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
     } catch (e) {
       await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
     }
   }
 if (command == 'logogaming') {
@@ -56,6 +61,7 @@ if (command == 'logogaming') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logosolitario') {
@@ -65,6 +71,7 @@ if (command == 'logosolitario') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logodragonball') {
@@ -74,6 +81,7 @@ if (command == 'logodragonball') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logoneon') {
@@ -83,6 +91,7 @@ if (command == 'logoneon') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logogatito') {
@@ -92,6 +101,7 @@ if (command == 'logogatito') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logochicagamer') {
@@ -101,6 +111,7 @@ if (command == 'logochicagamer') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logonaruto') {
@@ -110,6 +121,7 @@ if (command == 'logonaruto') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logofuturista') {
@@ -119,6 +131,7 @@ if (command == 'logofuturista') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logonube') {
@@ -128,6 +141,7 @@ if (command == 'logonube') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logoangel') {
@@ -137,6 +151,7 @@ if (command == 'logoangel') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logocielo') {
@@ -146,6 +161,7 @@ if (command == 'logocielo') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logograffiti3d') {
@@ -155,6 +171,7 @@ if (command == 'logograffiti3d') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logomatrix') {
@@ -164,6 +181,7 @@ if (command == 'logomatrix') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logohorror') {
@@ -173,6 +191,7 @@ if (command == 'logohorror') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logoalas') {
@@ -182,6 +201,7 @@ if (command == 'logoalas') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 if (command == 'logoarmy') {
@@ -191,6 +211,7 @@ if (command == 'logoarmy') {
     await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
     await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 
@@ -201,6 +222,7 @@ if (command == 'logopubg') {
   await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
   } catch (e) {
   await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
   }
 }
 
@@ -211,6 +233,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 
@@ -221,6 +244,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 
@@ -231,6 +255,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 
@@ -241,6 +266,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 
@@ -251,6 +277,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 
@@ -261,6 +288,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 
@@ -271,6 +299,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 
@@ -281,6 +310,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 
@@ -291,6 +321,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 
@@ -301,6 +332,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 
@@ -312,6 +344,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 
@@ -322,6 +355,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 
@@ -332,6 +366,7 @@ if (command == 'logopubgfem') {
    await conn.sendFile(m.chat, res.imageUrl, 'error.jpg', null, m);
    } catch (e) {
    await conn.reply(m.chat, '*ERROR, POR FAVOR INTENTE DE NUEVO 💗*', m);
+  return false;
    }
  }
 

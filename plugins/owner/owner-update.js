@@ -8,7 +8,7 @@ let handler = async (m, { conn }) => {
   exec(comando, (err, stdout, stderr) => {
     if (err) {
       conn.reply(m.chat, `🍭 Error: No se pudo realizar la actualización.\nRazón: ${err.message}`, m);
-      return;
+      return false;
     }
 
     if (stderr) {

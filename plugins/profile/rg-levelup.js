@@ -11,7 +11,7 @@ let handler = async (m, { conn }) => {
 
     if (!user) {
         await conn.sendMessage(m.chat, { text: "❌ No se encontraron datos del usuario." }, { quoted: m });
-        return;
+        return false;
     }
 
     let { min, xp } = xpRange(user.level, global.multiplier);

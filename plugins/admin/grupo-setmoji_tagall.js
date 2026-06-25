@@ -22,6 +22,7 @@ let handler = async (m, { conn, text, isRowner }) => {
   } catch (error) {
     console.error(error);
     m.reply(`${msm} Hubo un error al intentar cambiar el emoji.`);
+  return false;
   }
 };
 

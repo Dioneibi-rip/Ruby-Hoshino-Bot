@@ -14,6 +14,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
       m.react(done)
     } catch (e) {
       m.reply(`︎${msm} Ocurrió un error: ${e.message}`);
+  return false;
     }
   } else {
     return m.reply(`${emoji} Te faltó la imagen para cambiar el perfil del grupo.`);

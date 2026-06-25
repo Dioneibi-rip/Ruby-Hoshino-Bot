@@ -1,5 +1,8 @@
-function handler(m, { text }) {
-if (!text) return conn.reply(m.chat, `${emoji} Por favor, ingresa el texto que quieres transformar.`, m)
+async function handler(m, { text }) {
+if (!text) {
+await conn.reply(m.chat, `${emoji} Por favor, ingresa el texto que quieres transformar.`, m);
+return false;
+}
 
 let teks = text ? text : m.quoted && m.quoted.text ? m.quoted.text : m.text
 m.reply(teks.replace(/[a-z]/gi, v => {

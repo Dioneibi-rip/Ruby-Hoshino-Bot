@@ -61,6 +61,7 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
     console.log(e)
     await m.react(error)
     return conn.reply(m.chat, `🛑 *${toFancy("Ocurrió un fallo al buscar")}*`, m, rcanal)
+  return false;
   }
 }
 

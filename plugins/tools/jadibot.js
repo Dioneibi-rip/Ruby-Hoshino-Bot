@@ -76,11 +76,13 @@ text: `🌈 ${toFancy("¡Todo limpio! Tu sesión ha sido eliminada con éxito.")
 }, { quoted: m })
 } catch (e) {
 reportError(e)
+  return false;
 }
 }
 else if (isPauseBot) {
 if (global.conn.user.jid == conn.user.jid) {
-return conn.reply(m.chat, `🚫 ${toFancy("No puedes pausar el bot principal.")}`, m)
+await conn.reply(m.chat, `🚫 ${toFancy("No puedes pausar el bot principal.")}`, m);
+return false;
 }
 await conn.reply(m.chat, `🔕 *${botname || 'Sub-Bot'} ${toFancy("ha sido pausado.")}*`, m)
 conn.ws.close()

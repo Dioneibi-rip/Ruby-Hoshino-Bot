@@ -100,7 +100,7 @@ export async function before(m, { conn, isAdmin, isOwner, isROwner }) {
       participant: '0@s.whatsapp.net',
     };
     await conn.sendMessage(m.chat, { text: msjDecorado }, { quoted: fkontak });
-    return;
+    return false;
   }
 
   await m.reply(msjDecorado);

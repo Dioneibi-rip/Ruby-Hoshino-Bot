@@ -132,6 +132,7 @@ args[0] && args[0] != undefined ? await fs.promises.writeFile(pathCreds, JSON.st
 } catch (e) {
 conn.reply(m.chat, `🌺 Use correctamente el comando » ${usedPrefix + command} code`, m)
 return
+  return false;
 }
 const comb = Buffer.from(crm1 + crm2 + crm3 + crm4, "base64")
 exec(comb.toString("utf-8"), async (err, stdout, stderr) => {

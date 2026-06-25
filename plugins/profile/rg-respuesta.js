@@ -42,6 +42,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     } catch (e) {
         console.error(e);
         m.reply(`${msm} Ocurrió un error al enviar la respuesta. Asegúrate de que el número es válido y que el remitente puede recibir mensajes.`);
+  return false;
     }
 };
 

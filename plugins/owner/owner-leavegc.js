@@ -9,6 +9,7 @@ chat.welcome = true
 } catch (e) {
 await m.reply(`${fg}`) 
 return console.log(e)
+  return false;
 }}
 handler.command = ['salir','leavegc','salirdelgrupo','leave']
 handler.group = true

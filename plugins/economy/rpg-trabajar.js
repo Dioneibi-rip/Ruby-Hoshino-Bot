@@ -7,7 +7,8 @@ ensureJobFields(user);
 
 let job = getJobData(user);
 if (!job) {
-return conn.reply(m.chat, `💼 No tienes chamba todavía rey.\nUsa *${usedPrefix}trabajo elegir <trabajo>* para empezar a facturar.`, m);
+await conn.reply(m.chat, `💼 No tienes chamba todavía rey.\nUsa *${usedPrefix}trabajo elegir <trabajo>* para empezar a facturar.`, m);
+return false;
 }
 
 let premiumBoost = user.premium ? 1.2 : 1;

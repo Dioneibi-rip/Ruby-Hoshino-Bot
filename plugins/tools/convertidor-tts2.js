@@ -71,6 +71,7 @@ async function getVoiceList() {
     console.error('Error:', error);
     return { resultado: `${msm} Error, no se obtuvo respuesta de la API.` };
     throw error;
+  return false;
   }
 }
 
@@ -92,5 +93,6 @@ async function makeTTSRequest(texto, efecto) {
   } catch (error) {
     console.error('Error:', error);
     return { resultado: `${msm} Error, no se obtuvo respuesta de la API.` };
+  return false;
   }
 }

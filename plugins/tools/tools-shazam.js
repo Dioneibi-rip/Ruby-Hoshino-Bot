@@ -11,7 +11,10 @@ access_secret: 'bvgaIAEtADBTbLwiPGYlxupWqkNGIjT7J9Ag2vIu'
 let handler = async (m, { conn, usedPrefix, command }) => {
 let q = m.quoted ? m.quoted : m
 let mime = (q.msg || q).mimetype || q.mediaType || ''
-if (!/audio|video/.test(mime)) return conn.reply(m.chat, `🐚 𝗘𝘁𝗶𝗾𝘂𝗲𝘁𝗮 𝘂𝗻 𝗮𝘂𝗱𝗶𝗼 𝗼 𝘃𝗶𝗱𝗲𝗼 𝗰𝗼𝗿𝘁𝗼 𝗰𝗼𝗻 *${usedPrefix + command}* 𝗽𝗮𝗿𝗮 𝗯𝘂𝘀𝗰𝗮𝗿 𝗹𝗮 𝗺𝘂́𝘀𝗶𝗰𝗮`, m)
+if (!/audio|video/.test(mime)) {
+await conn.reply(m.chat, `🐚 𝗘𝘁𝗶𝗾𝘂𝗲𝘁𝗮 𝘂𝗻 𝗮𝘂𝗱𝗶𝗼 𝗼 𝘃𝗶𝗱𝗲𝗼 𝗰𝗼𝗿𝘁𝗼 𝗰𝗼𝗻 *${usedPrefix + command}* 𝗽𝗮𝗿𝗮 𝗯𝘂𝘀𝗰𝗮𝗿 𝗹𝗮 𝗺𝘂́𝘀𝗶𝗰𝗮`, m);
+return false;
+}
 
 let buffer = await q.download()
 
@@ -47,11 +50,17 @@ await conn.sendMessage(m.chat, { react: { text: "🎶", key: m.key } })
 
 let search = await yts(`${title} ${artist}`)
 let result = search?.all?.[0] || search?.videos?.[0]
-if (!result) return conn.reply(m.chat, "⚠️ No pude encontrar la canción en YouTube.", m)
+if (!result) {
+await conn.reply(m.chat, "⚠️ No pude encontrar la canción en YouTube.", m);
+return false;
+}
 
 let url = result.url
 let dl = await ytmp3(url)
-if (!dl?.download?.url) return conn.reply(m.chat, "⚠️ No pude descargar la canción.", m)
+if (!dl?.download?.url) {
+await conn.reply(m.chat, "⚠️ No pude descargar la canción.", m);
+return false;
+}
 
 await conn.sendMessage(m.chat, {
 audio: { url: dl.download.url },

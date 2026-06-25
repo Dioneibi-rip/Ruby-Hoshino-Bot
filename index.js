@@ -1,5 +1,4 @@
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0'
-import './settings.js'
 import { createRequire } from 'module'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { platform } from 'process'
@@ -22,7 +21,6 @@ import { useSQLiteAuthState, createManagerDatabase } from '@nevi-dev/sqlite-auth
 import SQLiteDatabase from './lib/database.js'
 import store from './lib/store.js'
 import readline, { createInterface } from 'readline'
-import { RubyJadiBot } from './plugins/subbots/jadibot-serbot.js'
 import { EventEmitter } from 'events'
 import { attachSessionState, createMessageRetryCache } from './src/core/session-manager.js'
 import { startMonitor } from './src/core/stability-monitor.js'
@@ -38,6 +36,8 @@ const { chain } = lodash
 global.__filename = function filename(pathURL = import.meta.url, rmPrefix = platform !== 'win32') { return rmPrefix ? /file:\/\/\//.test(pathURL) ? fileURLToPath(pathURL) : pathURL : pathToFileURL(pathURL).toString(); };
 global.__dirname = function dirname(pathURL) { return path.dirname(global.__filename(pathURL, true)) };
 global.__require = function createLocalRequire(dir = import.meta.url) { return createRequire(dir) }
+// Carga obligatoria de configuraciones globales antes de handler.js y antes de leer plugins/.
+await import('./settings.js')
 global.timestamp = {start: new Date}
 const __dirname = global.__dirname(import.meta.url)
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
@@ -47,6 +47,8 @@ global.db = new SQLiteDatabase(opts['db'] || './src/database/database.sqlite')
 global.DATABASE = global.db
 let databaseShutdownStarted = false
 global.authCredsFlushers ||= new Set()
+// Este plugin se importa después de settings.js para que encuentre global.* disponible.
+const { RubyJadiBot } = await import('./plugins/subbots/jadibot-serbot.js')
 function createDebouncedSaveCreds(saveCreds, delayMs = 4000) {
 let timer
 let pending = false

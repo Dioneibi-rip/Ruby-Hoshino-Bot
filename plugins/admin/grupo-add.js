@@ -40,6 +40,7 @@ let handler = async (m, { conn, participants, text, usedPrefix, command }) => {
   } catch (e) {
     console.error("Error al enviar invitación:", e);
     m.reply(`❌ Ocurrió un error al enviar la invitación.\n\n*Detalle del error:*\n${e.message || e}`);
+  return false;
   }
 };
 

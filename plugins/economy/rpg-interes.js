@@ -3,7 +3,8 @@ const user = global.db.getUser(m.sender);
 const bank = Math.max(0, Number(user.bank) || 0);
 
 if (bank < 5000) {
-return conn.reply(m.chat, `🏦 Necesitas al menos *5,000 ${m.moneda}* en el banco para cobrar interés.`, m);
+await conn.reply(m.chat, `🏦 Necesitas al menos *5,000 ${m.moneda}* en el banco para cobrar interés.`, m);
+return false;
 }
 
 const rate = user.premium ? 0.0285 : 0.028;

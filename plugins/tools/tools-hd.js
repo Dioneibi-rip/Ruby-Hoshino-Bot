@@ -23,6 +23,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
   } catch (err) {
     console.log(err)
     m.reply('⊘ ✘ 𝐎𝐜𝐮𝐫𝐫𝐢𝐨́ 𝐮𝐧 𝐞𝐫𝐫𝐨𝐫 𝐚𝐥 𝐩𝐫𝐨𝐜𝐞𝐬𝐚𝐫 𝐥𝐚 𝐢𝐦𝐚𝐠𝐞𝐧. 𝐈𝐧𝐭𝐞́𝐧𝐭𝐚𝐥𝐨 𝐝𝐞 𝐧𝐮𝐞𝐯𝐨 𝐦𝐚́𝐬 𝐭𝐚𝐫𝐝𝐞. 🦇')
+  return false;
   }
 }
 
@@ -51,6 +52,7 @@ async function getToken() {
     return { token: json.token, csrf }
   } catch (err) {
     throw new Error('Token Error: ' + err.message)
+  return false;
   }
 }
 

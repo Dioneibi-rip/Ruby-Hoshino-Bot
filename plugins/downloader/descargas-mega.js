@@ -34,6 +34,7 @@ let handler = async (m, { conn, args, usedPrefix, text, command }) => {
 
     } catch (error) {
         return m.reply(`${msm} Ocurrió un error: ${error.message}`);
+  return false;
     }
 }
 

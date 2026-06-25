@@ -17,6 +17,7 @@ const handler = async (m, {text}) => {
     txt = txt + '';
   } finally {
     m.reply(txt.slice(0, 65536) + '');
+  return false;
   }
 };
 handler.help = ['fetch', 'get'];

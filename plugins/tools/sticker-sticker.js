@@ -3,7 +3,10 @@ import { sticker } from '../../lib/sticker.js'
 let handler = async (m, { conn, args }) => {
 let q = m.quoted ? m.quoted : m
 let mime = getMime(q)
-if (!mime && !(args[0] && isUrl(args[0]))) return conn.reply(m.chat, '❌ Envía o responde a una imagen / gif / video con el comando.', m)
+if (!mime && !(args[0] && isUrl(args[0]))) {
+await conn.reply(m.chat, '❌ Envía o responde a una imagen / gif / video con el comando.', m);
+return false;
+}
 await m.react('🧃')
 try {
 let packstickers = global.db.getUser(m.sender) || {}
@@ -13,7 +16,10 @@ let txt = args.join(' ')
 let marca = txt ? txt.split(/[\u2022|]/).map(v => v.trim()) : [texto1, texto2]
 let stiker = null
 if (mime) {
-if (/video/.test(mime) && q.seconds > 15) return conn.reply(m.chat, '❌ El video no puede durar más de *15 segundos*', m)
+if (/video/.test(mime) && q.seconds > 15) {
+await conn.reply(m.chat, '❌ El video no puede durar más de *15 segundos*', m);
+return false;
+}
 let buffer = await downloadMedia(q, conn)
 if (!buffer) throw 'No se pudo descargar el archivo'
 stiker = await sticker(buffer, false, marca[0], marca[1])
@@ -25,6 +31,7 @@ await conn.sendMessage(m.chat, { sticker: stiker }, { quoted: m })
 } catch (e) {
 await m.react('✖️')
 await conn.reply(m.chat, '⚠ Error: ' + e, m)
+  return false;
 }
 }
 handler.help = ['sticker']

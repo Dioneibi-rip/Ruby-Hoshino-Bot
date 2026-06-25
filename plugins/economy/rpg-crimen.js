@@ -9,7 +9,8 @@ ensureJobFields(user);
 
 let job = getJobData(user);
 if (!job) {
-return conn.reply(m.chat, `💼 No tienes trabajo. Busca uno con *${usedPrefix}trabajo lista* para desbloquear #crime.`, m);
+await conn.reply(m.chat, `💼 No tienes trabajo. Busca uno con *${usedPrefix}trabajo lista* para desbloquear #crime.`, m);
+return false;
 }
 
 let jailCooldown = 16 * 60;
@@ -17,7 +18,8 @@ let now = Date.now();
 
 if (jail[senderId] && now < jail[senderId]) {
 let remaining = segundosAHMS(Math.ceil((jail[senderId] - now) / 1000));
-return conn.reply(m.chat, `🚔 Sigues en la cárcel we. Te faltan *${remaining}* para ver la luz del sol.`, m);
+await conn.reply(m.chat, `🚔 Sigues en la cárcel we. Te faltan *${remaining}* para ver la luz del sol.`, m);
+return false;
 }
 
 

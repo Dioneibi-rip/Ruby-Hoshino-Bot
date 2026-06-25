@@ -10,12 +10,12 @@ const characters = await loadCharacters();
 const characterName = args.join(' ').trim();
 if (!characterName) {
 await conn.reply(m.chat, 'Debes especificar un personaje para votarlo. Ej: #vote Aika Sano', m);
-return;
+return false;
 }
 const character = findCharacterByName(characters, characterName);
 if (!character) {
 await conn.reply(m.chat, 'Personaje no encontrado. Asegúrate del nombre correcto.', m);
-return;
+return false;
 }
 const groupVotes = await loadGroupVotes();
 const groupCharacterKey = makeGroupCharacterKey(groupId, character.id);
@@ -38,6 +38,7 @@ const groupValue = baseValue + currentGroupData.valueBonus;
 await conn.reply(m.chat, `✰ Votaste por el personaje *${character.name}*\n› Valor en este grupo: *${groupValue}* (incrementado en *${incrementValue}*)\n› Votos en este grupo: *${currentGroupData.votes}*`, m);
 } catch (e) {
 await conn.reply(m.chat, `✘ Error al procesar el voto: ${e.message}`, m);
+  return false;
 }
 };
 

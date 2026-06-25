@@ -223,12 +223,16 @@ if (!await validateRedisCooldown(conn, plugin, name, m, extra.command, sender)) 
 let pluginResult
 try {
 pluginResult = await plugin.call(conn, m, extra)
-if (pluginResult !== false && !m.error) await applyRedisCooldown(plugin, name, extra.command, sender)
-if (!isPrems) m.coin = m.coin || plugin.coin || false
+const pluginSucceeded = pluginResult !== false && !m.error
+m.pluginFailed = !pluginSucceeded
+if (pluginSucceeded) await applyRedisCooldown(plugin, name, extra.command, sender)
+if (pluginSucceeded && !isPrems) m.coin = m.coin || plugin.coin || false
 } catch (error) {
 m.error = error
 console.error(error)
 if (error) m.reply(sanitizeError(error))
+m.pluginFailed = true
+pluginResult = false
 } finally {
 if (typeof plugin.after === 'function') {
 try {
@@ -239,7 +243,7 @@ console.error(error)
 }
 if (m.coin) conn.reply(m.chat, `❮✦❯ Utilizaste ${+m.coin} ${m.moneda}`, m)
 }
-return true
+return pluginResult !== false
 }
 
 function isUserMutedInChat(user, chatId) {
@@ -284,7 +288,7 @@ if (!isNumber(stat.last)) stat.last = now
 if (!isNumber(stat.lastSuccess)) stat.lastSuccess = 0
 stat.total += 1
 stat.last = now
-if (m.error == null) {
+if (m.error == null && !m.pluginFailed) {
 stat.success += 1
 stat.lastSuccess = now
 }
@@ -311,6 +315,7 @@ m = smsg(this, rawMessage) || rawMessage
 if (!m) return
 const opts = this.opts || global.opts || {}
 if (typeof m.text !== 'string') m.text = ''
+await global.updateMessageGlobals?.(m, this)
 
 if (m.isGroup) {
 const chat = global.db?.data?.chats?.[m.chat]

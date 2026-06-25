@@ -2,13 +2,15 @@ let handler = async (m, { conn, text }) => {
     let code = text.trim().toUpperCase();
 
     if (!code) {
-        return conn.reply(m.chat, `${emoji} Por favor, ingrese un código para canjear.`, m);
+        await conn.reply(m.chat, `${emoji} Por favor, ingrese un código para canjear.`, m);
+        return false;
     }
 
     let codesDB = global.db.getSection('codes') || {};
 
     if (!codesDB[code]) {
-        return conn.reply(m.chat, `${emoji2} Código no válido.`, m);
+        await conn.reply(m.chat, `${emoji2} Código no válido.`, m);
+        return false;
     }
 
     if (codesDB[code].claimedBy.includes(m.sender)) {
@@ -16,7 +18,8 @@ let handler = async (m, { conn, text }) => {
     }
 
     if (codesDB[code].claimedBy.length >= 5) {
-        return conn.reply(m.chat, `${emoji2} Este código fue agotado completamente... Espera a que el creador ponga otro código.`, m);
+        await conn.reply(m.chat, `${emoji2} Este código fue agotado completamente... Espera a que el creador ponga otro código.`, m);
+        return false;
     }
 
     global.db.addMoney(m.sender, codesDB[code].coin);

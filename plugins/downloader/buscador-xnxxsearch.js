@@ -41,6 +41,7 @@ const handler = async (m, {text, usedPrefix, command}) => {
     global.videoListXXX.push(vids_);
   } catch (e) {
     return conn.reply(m.chat, `${msm} Ocurrió un error: ${e.message}`, m);
+  return false;
   }
 };
 

@@ -11,6 +11,7 @@ await fs.promises.writeFile(ruta, m.quoted.text)
 m.reply(`${global.emoji || '✦'} Guardando plugin en ${ruta}`)
 } catch (error) {
 m.reply(`${global.msm || '✘'} Ocurrió un error al guardar el plugin: ${error.message}`)
+  return false;
 }
 }
 handler.help = ['saveplugin']

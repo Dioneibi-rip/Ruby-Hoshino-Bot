@@ -41,6 +41,7 @@ const handler = async (m, {conn, args, command, usedPrefix}) => {
     conn.sendMessage(m.chat, {document: {url: json.high}, mimetype: 'video/mp4', fileName: res.result.title}, {quoted: m});
   } catch (error) {
     return conn.reply(m.chat, `${msm} Ocurrió un error.\n\n- El enlace debe ser similar a:\n◉ https://www.xnxx.com/video-14lcwbe8/rubia_novia_follada_en_cuarto_de_bano\n\nDetalles del error: ${error}`, m);
+  return false;
   }
 };
 

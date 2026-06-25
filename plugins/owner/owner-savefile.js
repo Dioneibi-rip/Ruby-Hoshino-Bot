@@ -8,6 +8,7 @@ await fs.promises.writeFile(path, m.quoted.text)
 m.reply(`${emoji} Guardado en *${path}*.`)
 } catch (e) {
 await m.reply(`Responde al mensaje.`)
+  return false;
 }}
 handler.tags = ['owner']
 handler.help = ["savefile <ruta/nombre>"]
