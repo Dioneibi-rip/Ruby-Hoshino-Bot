@@ -101,6 +101,7 @@ let handler = async (m, { conn, args, participants = [] }) => {
     await conn.reply(m.chat, message, m, { mentions: [userId] });
   } catch (error) {
     await conn.reply(m.chat, `✘ Error al cargar el harem: ${error.message}`, m);
+  return false;
   }
 };
 

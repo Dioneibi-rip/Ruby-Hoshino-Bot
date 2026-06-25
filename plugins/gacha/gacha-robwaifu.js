@@ -31,7 +31,8 @@ victimJid = m.chat
 }
 
 if (!victimJid) {
-return conn.reply(m.chat, '✘ Menciona a un usuario o cita su mensaje: *#robwaifu @usuario*', m)
+await conn.reply(m.chat, '✘ Menciona a un usuario o cita su mensaje: *#robwaifu @usuario*', m);
+return false;
 }
 
 try {
@@ -47,14 +48,18 @@ if (vUser) victimJid = vUser.id
 }
 } catch (e) {}
 
-if (isSameUserId(victimJid, userId)) return conn.reply(m.chat, '✘ No puedes robarte a ti mismo.', m)
+if (isSameUserId(victimJid, userId)) {
+await conn.reply(m.chat, '✘ No puedes robarte a ti mismo.', m);
+return false;
+}
 
 const thief = global.db.getUser(userId)
 
 const funds = getUserFunds(thief)
 if (funds.total < ROB_ATTEMPT_COST) {
-return conn.reply(m.chat, `✘ Necesitas al menos *¥${ROB_ATTEMPT_COST.toLocaleString()} ${moneda}* para intentar un robo.\n` +
+await conn.reply(m.chat, `✘ Necesitas al menos *¥${ROB_ATTEMPT_COST.toLocaleString()} ${moneda}* para intentar un robo.\n` +
 `✧ Cartera: *¥${funds.coin.toLocaleString()} ${moneda}*\n✧ Banco: *¥${funds.bank.toLocaleString()} ${moneda}*`, m)
+return false;
 }
 
 try {
@@ -63,7 +68,10 @@ const victimName = await conn.getName(victimJid)
 const victimChars = harem.filter(c => c.groupId === groupId && isSameUserId(c.userId, victimJid))
 const thiefChars = harem.filter(c => c.groupId === groupId && isSameUserId(c.userId, userId))
 
-if (!victimChars.length) return conn.reply(m.chat, `👤 *${victimName}* no tiene personajes para robar.`, m)
+if (!victimChars.length) {
+await conn.reply(m.chat, `👤 *${victimName}* no tiene personajes para robar.`, m);
+return false;
+}
 
 const eligibleChars = victimChars.filter(char => {
 const restriction = canUserClaimCharacter(char.characterId, userId)
@@ -93,7 +101,8 @@ const charName = charData?.name || `ID ${stolen.characterId}`
 
 const victimIdx = harem.findIndex(c => c.groupId === groupId && c.characterId === stolen.characterId && isSameUserId(c.userId, victimJid))
 if (victimIdx === -1) {
-return conn.reply(m.chat, '✘ No se pudo completar el robo. Intenta de nuevo.', m)
+await conn.reply(m.chat, '✘ No se pudo completar el robo. Intenta de nuevo.', m);
+return false;
 }
 
 harem[victimIdx].userId = userId
@@ -103,10 +112,12 @@ spendUserFunds(thief, ROB_SUCCESS_FEE)
 
 await saveHarem(harem)
 
-return conn.reply(m.chat, `◢✿ *ROBO EXITOSO* ✿◤\n\n✧ Robaste a *${charName}* de *${victimName}*.\n✧ Costo del intento: *¥${ROB_ATTEMPT_COST.toLocaleString()} ${moneda}*\n✧ Tarifa de escape: *¥${ROB_SUCCESS_FEE.toLocaleString()} ${moneda}*\n✧ El personaje queda protegido por *${Math.floor(CLAIM_GRACE_MS / 60000)} minutos* (anti robo en cadena).`, m)
+await conn.reply(m.chat, `◢✿ *ROBO EXITOSO* ✿◤\n\n✧ Robaste a *${charName}* de *${victimName}*.\n✧ Costo del intento: *¥${ROB_ATTEMPT_COST.toLocaleString()} ${moneda}*\n✧ Tarifa de escape: *¥${ROB_SUCCESS_FEE.toLocaleString()} ${moneda}*\n✧ El personaje queda protegido por *${Math.floor(CLAIM_GRACE_MS / 60000)} minutos* (anti robo en cadena).`, m);
+return false;
 } catch (error) {
 console.error(error)
-return conn.reply(m.chat, `✘ Error en robwaifu: ${error.message}`, m)
+await conn.reply(m.chat, `✘ Error en robwaifu: ${error.message}`, m);
+return false;
 }
 }
 

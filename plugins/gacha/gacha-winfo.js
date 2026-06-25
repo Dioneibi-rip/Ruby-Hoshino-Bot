@@ -34,6 +34,7 @@ let handler = async (m, { conn, args }) => {
 
   } catch (error) {
     await conn.reply(m.chat, `✘ Error al cargar la información del personaje: ${error.message}`, m);
+  return false;
   }
 };
 

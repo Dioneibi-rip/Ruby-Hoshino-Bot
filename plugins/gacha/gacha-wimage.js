@@ -21,7 +21,8 @@ function formatUrl(url) {
 
 let handler = async (m, { conn, args }) => {
   if (!args.length) {
-    return conn.reply(m.chat, '《✧》Por favor, proporciona el nombre de un personaje.', m);
+    await conn.reply(m.chat, '《✧》Por favor, proporciona el nombre de un personaje.', m);
+    return false;
   }
 
   const query = args.join(' ').trim();
@@ -31,14 +32,16 @@ let handler = async (m, { conn, args }) => {
     const character = findCharacterByName(characters, query);
 
     if (!character) {
-      return conn.reply(m.chat, `《✧》No se ha encontrado el personaje *${query}*.`, m);
+      await conn.reply(m.chat, `《✧》No se ha encontrado el personaje *${query}*.`, m);
+      return false;
     }
 
     const imageList = Array.isArray(character.img) ? character.img : [];
     let randomImage = imageList[Math.floor(Math.random() * imageList.length)];
 
     if (!randomImage) {
-      return conn.reply(m.chat, `《✧》No se encontró una imagen para *${character.name}*.`, m);
+      await conn.reply(m.chat, `《✧》No se encontró una imagen para *${character.name}*.`, m);
+      return false;
     }
 
     randomImage = formatUrl(randomImage);
@@ -55,6 +58,7 @@ let handler = async (m, { conn, args }) => {
     }, { quoted: m });
   } catch (error) {
     await conn.reply(m.chat, `✘ Error al cargar la imagen del personaje: ${error.message}`, m);
+  return false;
   }
 };
 

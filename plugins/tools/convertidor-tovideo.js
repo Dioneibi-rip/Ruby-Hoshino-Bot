@@ -3,12 +3,14 @@ import {ffmpeg} from '../../lib/converter.js';
 
 const handler = async (m, {conn, usedPrefix, command}) => {
   if (!m.quoted) {
-    return conn.reply(m.chat, `${emoji} Responda A Un Sticker Que Desee Convertir En Video.`, m);
+    await conn.reply(m.chat, `${emoji} Responda A Un Sticker Que Desee Convertir En Video.`, m);
+    return false;
   }
   
   const mime = m.quoted.mimetype || '';
   if (!/webp/.test(mime)) {
-    return conn.reply(m.chat, `${emoji} Responda A Un Sticker Que Desee Convertir En Video.`, m);
+    await conn.reply(m.chat, `${emoji} Responda A Un Sticker Que Desee Convertir En Video.`, m);
+    return false;
   }
   
   const media = await m.quoted.download();

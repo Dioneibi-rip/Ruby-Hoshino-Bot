@@ -37,6 +37,7 @@ function gifToMp4(buffer) {
                             resolve(mp4Buffer);
                         } catch (e) {
                             reject(e);
+  return false;
                         }
                     } else {
                         reject(new Error(`FFmpeg falló con código ${code}`));
@@ -126,6 +127,7 @@ let handler = async (m, { conn, args }) => {
             } catch (ffmpegError) {
                 console.error("Falló la conversión FFmpeg:", ffmpegError);
                 throw new Error("Conversion Failed"); // Forzar salto al catch del handler
+  return false;
             }
 
         } catch (downloadError) {
@@ -143,11 +145,13 @@ let handler = async (m, { conn, args }) => {
             } catch (e) {
                  await conn.reply(m.chat, `✘ Error crítico: No se pudo procesar el enlace del personaje.`, m)
             }
+  return false;
         }
 
     } catch (error) {
         console.error(error)
         await conn.reply(m.chat, `✘ Ocurrió un error al buscar el personaje.`, m)
+  return false;
     }
 }
 

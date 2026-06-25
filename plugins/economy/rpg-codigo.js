@@ -2,7 +2,8 @@ let handler = async (m, { conn, text }) => {
     let amount = parseInt(text.trim());
 
     if (isNaN(amount) || amount <= 0) {
-        return conn.reply(m.chat, `${emoji} Por favor, ingrese una cantidad válida de ${m.moneda}.`, m);
+        await conn.reply(m.chat, `${emoji} Por favor, ingrese una cantidad válida de ${m.moneda}.`, m);
+        return false;
     }
 
     let code = Math.random().toString(36).substring(2, 10).toUpperCase();

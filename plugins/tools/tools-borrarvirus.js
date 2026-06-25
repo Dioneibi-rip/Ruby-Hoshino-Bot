@@ -31,6 +31,7 @@ let handler = async (m, { conn }) => {
       await new Promise(resolve => setTimeout(resolve, 150));
     } catch (e) {
       console.error('Error al eliminar:', e);
+  return false;
     }
   }
 

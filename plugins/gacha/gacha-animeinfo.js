@@ -8,12 +8,16 @@ if (json.data && json.data.length > 0) return json.data[0].images.jpg.large_imag
 return null
 } catch (e) {
 return null
+  return false;
 }
 }
 let handler = async (m, { conn, args }) => {
 const groupId = m.chat
 let query = args.join(' ').replace(/\d+$/,'').trim()
-if (!query) return conn.reply(m.chat, '✿ Ingresa el nombre de una serie. Ejemplo: `#ainfo blue lock`', m)
+if (!query) {
+await conn.reply(m.chat, '✿ Ingresa el nombre de una serie. Ejemplo: `#ainfo blue lock`', m);
+return false;
+}
 try {
 const allCharacters = await loadCharacters()
 const harem = await loadHarem()
@@ -29,7 +33,10 @@ let matches = allNormalizedSources.map(s => ({ source: s, score: similarity(quer
 matches.sort((a, b) => b.score - a.score)
 if (matches[0] && matches[0].score > 0.4) bestMatchNormalized = matches[0].source
 }
-if (!bestMatchNormalized) return conn.reply(m.chat, `✘ No encontré nada parecido a "${query}".`, m)
+if (!bestMatchNormalized) {
+await conn.reply(m.chat, `✘ No encontré nada parecido a "${query}".`, m);
+return false;
+}
 const animeChars = allCharacters.filter(c => String(c.source || '').toLowerCase().trim() === bestMatchNormalized)
 const totalChars = animeChars.length
 const claimedEntriesInGroup = harem.filter(e => e.groupId === groupId && animeChars.some(ac => ac.id === e.characterId))
@@ -41,7 +48,10 @@ const perPage = 25
 const totalPages = Math.max(1, Math.ceil(totalChars / perPage))
 const startIndex = (page - 1) * perPage
 const endIndex = Math.min(startIndex + perPage, totalChars)
-if (page < 1 || page > totalPages) return conn.reply(m.chat, `✿ Página no válida. Total: *${totalPages}*`, m)
+if (page < 1 || page > totalPages) {
+await conn.reply(m.chat, `✿ Página no válida. Total: *${totalPages}*`, m);
+return false;
+}
 const displayTitle = animeChars[0]?.source || sourceMap.get(bestMatchNormalized) || query
 let message = `◢✿ *${displayTitle.toUpperCase()}* ✿◤\n\n`
 message += `✧ Personajes: *${totalChars}*\n`
@@ -58,6 +68,7 @@ const name = await conn.getName(claim.userId)
 status = `Reclamado por ${name}`
 } catch (e) {
 status = `Reclamado por @${String(claim.userId).split('@')[0]}`
+  return false;
 }
 mentionSet.add(claim.userId)
 }
@@ -74,6 +85,7 @@ await conn.sendMessage(m.chat, { text: message, mentions }, { quoted: m })
 } catch (error) {
 console.error(error)
 await conn.reply(m.chat, `✘ Error: ${error.message}`, m)
+  return false;
 }
 }
 handler.help = ['ainfo <serie>']

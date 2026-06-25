@@ -38,6 +38,7 @@ const groupValue = baseValue + currentGroupData.valueBonus;
 await conn.reply(m.chat, `✰ Votaste por el personaje *${character.name}*\n› Valor en este grupo: *${groupValue}* (incrementado en *${incrementValue}*)\n› Votos en este grupo: *${currentGroupData.votes}*`, m);
 } catch (e) {
 await conn.reply(m.chat, `✘ Error al procesar el voto: ${e.message}`, m);
+  return false;
 }
 };
 

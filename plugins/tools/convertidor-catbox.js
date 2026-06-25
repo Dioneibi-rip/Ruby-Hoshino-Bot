@@ -6,7 +6,10 @@ import { fileTypeFromBuffer } from "file-type";
 let handler = async (m, { conn }) => {
   let q = m.quoted ? m.quoted : m;
   let mime = (q.msg || q).mimetype || '';
-  if (!mime) return conn.reply(m.chat, `${emoji} Por favor, responda a un archivo válido (imagen, video, etc.).`, m);
+  if (!mime) {
+  await conn.reply(m.chat, `${emoji} Por favor, responda a un archivo válido (imagen, video, etc.).`, m);
+  return false;
+  }
   
   await m.react(rwait);
   
@@ -26,6 +29,7 @@ let handler = async (m, { conn }) => {
     await m.react(done);
   } catch (e) {
     await m.react(error);
+  return false;
   }
 };
 

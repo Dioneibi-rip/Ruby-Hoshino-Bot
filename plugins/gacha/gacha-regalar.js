@@ -88,6 +88,7 @@ let handler = async (m, { conn, args, participants }) => {
     await conn.reply(m.chat, `✰ *${character.name}* ha sido regalado a @${who.split('@')[0]}!`, m, { mentions: [who] });
   } catch (error) {
     await conn.reply(m.chat, `✘ Error al regalar el personaje: ${error.message}`, m);
+  return false;
   }
 };
 
