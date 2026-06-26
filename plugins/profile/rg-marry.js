@@ -1,24 +1,45 @@
 let proposals = {};
-const confirmation = {};
+const CONFIRMATION_TTL_MS = 60000;
+const confirmacionesMarry = globalThis.confirmacionesMarry || new Map();
+globalThis.confirmacionesMarry = confirmacionesMarry;
+function setConfirmation(key, payload, onTimeout) {
+const previous = confirmacionesMarry.get(key);
+if (previous?.timeout) clearTimeout(previous.timeout);
+const timeout = setTimeout(() => {
+confirmacionesMarry.delete(key);
+if (onTimeout) onTimeout();
+}, CONFIRMATION_TTL_MS);
+timeout.unref?.();
+confirmacionesMarry.set(key, { ...payload, timeout });
+}
+function takeConfirmation(key) {
+const data = confirmacionesMarry.get(key);
+if (!data) return null;
+if (data.timeout) clearTimeout(data.timeout);
+confirmacionesMarry.delete(key);
+return data;
+}
 async function loadMarriages() {
-return global.db?.getSection?.('marriages') || {}
+return global.db?.getSection?.('marriages') || {};
 }
 function isUserMarried(marriages, user) {
-return Boolean(global.db.getUser(user)?.marry || marriages[user]?.partner)
+return Boolean(global.db.getUser(user)?.marry || marriages[user]?.partner);
 }
 function getPartner(marriages, user) {
-return global.db.getUser(user)?.marry || marriages[user]?.partner || ''
+return global.db.getUser(user)?.marry || marriages[user]?.partner || '';
 }
-const handler = async (m, { conn, command, participants = [] }) => {
+const handler = async (m, { conn, command, participants }) => {
+const normalizeToJid = (rawJid) => {
+if (!rawJid || typeof rawJid !== 'string') return rawJid;
+if (!rawJid.endsWith('@lid')) return rawJid;
+const pInfo = participants?.find(p => p?.lid === rawJid);
+return pInfo?.id || rawJid;
+};
 const isPropose = /^marry$/i.test(command);
 const isDivorce = /^divorce$/i.test(command);
 const marriages = await loadMarriages();
 try {
-let proposerJid = m.sender;
-if (proposerJid.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find(p => p.lid === proposerJid);
-if (pInfo?.id) proposerJid = pInfo.id;
-}
+let proposerJid = normalizeToJid(m.sender);
 global.db.getUser(proposerJid);
 if (isPropose) {
 const rawProposee = m.quoted?.sender || m.mentionedJid?.[0];
@@ -31,11 +52,7 @@ return await conn.reply(m.chat, `《✧》 Ya estás casado con *${partnerName}*
 throw new Error('Debes mencionar a alguien para aceptar o proponer matrimonio.\n> Ejemplo » *#marry @Usuario*');
 }
 }
-let proposeeJid = rawProposee;
-if (proposeeJid.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find(p => p.lid === proposeeJid);
-if (pInfo?.id) proposeeJid = pInfo.id;
-}
+let proposeeJid = normalizeToJid(rawProposee);
 global.db.getUser(proposeeJid);
 if (isUserMarried(marriages, proposerJid)) {
 let partner = getPartner(marriages, proposerJid);
@@ -50,15 +67,10 @@ let proposerName = conn.getName(proposerJid) || `@${proposerJid.split('@')[0]}`;
 let proposeeName = conn.getName(proposeeJid) || `@${proposeeJid.split('@')[0]}`;
 const confirmationMessage = `♡ ${proposerName} te ha propuesto matrimonio. ${proposeeName} ¿aceptas? •(=^●ω●^=)•\n\n*Debes Responder con:*\n> ✐ "Si" » para aceptar\n> ✐ "No" » para rechazar.`;
 await conn.reply(m.chat, confirmationMessage, m, { mentions: [proposeeJid, proposerJid] });
-confirmation[proposeeJid] = {
-proposer: proposerJid,
-timeout: setTimeout(async () => {
-if (confirmation[proposeeJid]) {
-await conn.sendMessage(m.chat, { text: '*《✧》Se acabó el tiempo, no se obtuvo respuesta. La propuesta de matrimonio fue cancelada.*' }, { quoted: m });
-delete confirmation[proposeeJid];
-}
-}, 60000)
-};
+const key = `${m.chat}:${proposeeJid}`;
+setConfirmation(key, { proposer: proposerJid }, async () => {
+await conn.sendMessage(m.chat, { text: '*《✧》Se acabó el tiempo, no se obtuvo respuesta. La propuesta de matrimonio fue cancelada.*' });
+});
 } else if (isDivorce) {
 if (!isUserMarried(marriages, proposerJid)) throw new Error('No estás casado con nadie.');
 let partner = getPartner(marriages, proposerJid);
@@ -78,32 +90,30 @@ await conn.reply(m.chat, `《✧》 ${error.message}`, m, { mentions: m.mentione
 return false;
 }
 };
-handler.before = async (m, { conn, participants = [] }) => {
-try {
-if (m.isBaileys) return false;
-let senderJid = m.sender;
-if (senderJid.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find(p => p.lid === senderJid);
-if (pInfo?.id) senderJid = pInfo.id;
-}
-if (!(senderJid in confirmation)) return false;
-const responseText = String(m.text || m.message?.conversation || m.message?.extendedTextMessage?.text || m.body || '').trim();
-if (!responseText) return false;
-const { proposer, timeout } = confirmation[senderJid];
+handler.before = async function (m, { conn, participants }) {
+const normalizeToJid = (rawJid) => {
+if (!rawJid || typeof rawJid !== 'string') return rawJid;
+if (!rawJid.endsWith('@lid')) return rawJid;
+const pInfo = participants?.find(p => p?.lid === rawJid);
+return pInfo?.id || rawJid;
+};
+let senderJid = normalizeToJid(m.sender);
+const key = `${m.chat}:${senderJid}`;
+if (!confirmacionesMarry.has(key)) return;
+const responseText = m.text?.trim().toLowerCase() || '';
+if (!responseText) return;
 if (/^[#\.\/!]?(no|rechazar)$/i.test(responseText)) {
-clearTimeout(timeout);
-delete confirmation[senderJid];
-await conn.sendMessage(m.chat, { text: '*《✧》Han rechazado tu propuesta de matrimonio.*' }, { quoted: m });
-return true;
+takeConfirmation(key);
+return conn.sendMessage(m.chat, { text: '*《✧》Han rechazado tu propuesta de matrimonio.*' }, { quoted: m });
 }
 if (/^[#\.\/!]?(si|s[íi]|yes|acepto)$/i.test(responseText)) {
-clearTimeout(timeout);
+const data = takeConfirmation(key);
+if (!data) return;
+const { proposer } = data;
 delete proposals[proposer];
 const marriages = await loadMarriages();
 if (isUserMarried(marriages, proposer) || isUserMarried(marriages, senderJid)) {
-delete confirmation[senderJid];
-await conn.sendMessage(m.chat, { text: '*《✧》La propuesta ya no es válida porque una de las personas ya está casada.*' }, { quoted: m });
-return true;
+return conn.sendMessage(m.chat, { text: '*《✧》La propuesta ya no es válida porque una de las personas ya está casada.*' }, { quoted: m });
 }
 const fecha = Date.now();
 if (typeof global.db.setMarriagePair === 'function') {
@@ -121,13 +131,8 @@ await conn.sendMessage(m.chat, {
 text: `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩\n\n¡Se han Casado! ฅ^•ﻌ•^ฅ*:･ﾟ✧\n\n*•.¸♡ Esposo* ${proposerName}\n*•.¸♡ Esposa* ${senderName}\n\n\`Disfruten de su luna de miel\`\n\n✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩`,
 mentions: [proposer, senderJid]
 }, { quoted: m });
-delete confirmation[senderJid];
 return true;
 }
-} catch (error) {
-console.error('Error en handler.before (marry):', error);
-}
-return false;
 };
 handler.tags = ['fun'];
 handler.help = ['marry *@usuario*', 'divorce'];
