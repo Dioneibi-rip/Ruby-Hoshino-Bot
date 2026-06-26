@@ -1,4 +1,4 @@
-let proposals = {};
+global.proposalsMarry = global.proposalsMarry || {};
 const CONFIRMATION_TTL_MS = 60000;
 
 async function loadMarriages() {
@@ -61,14 +61,14 @@ let proposerName = conn.getName(proposerJid) || `@${proposerJid.split('@')[0]}`;
 let proposeeName = conn.getName(proposeeJid) || `@${proposeeJid.split('@')[0]}`;
 
 const key = `${m.chat}:${proposeeJid}`;
-if (proposals[key]) clearTimeout(proposals[key].timeout);
+if (global.proposalsMarry[key]) clearTimeout(global.proposalsMarry[key].timeout);
 
-proposals[key] = {
+global.proposalsMarry[key] = {
 proposer: proposerJid,
 proposee: proposeeJid,
 timeout: setTimeout(async () => {
-if (proposals[key]) {
-delete proposals[key];
+if (global.proposalsMarry[key]) {
+delete global.proposalsMarry[key];
 await conn.sendMessage(m.chat, { text: '*《✧》Se acabó el tiempo, no se obtuvo respuesta. La propuesta de matrimonio fue cancelada.*' });
 }
 }, CONFIRMATION_TTL_MS)
@@ -98,6 +98,8 @@ return false;
 };
 
 handler.before = async function (m, { conn, participants }) {
+if (m.isBaileys) return;
+
 const groupMetadata = m.isGroup ? await conn.groupMetadata(m.chat).catch(() => null) : null;
 const participantsList = groupMetadata?.participants || participants || [];
 
@@ -111,26 +113,25 @@ return pInfo?.id || rawJid;
 let senderJid = normalizeToJid(m.sender);
 const key = `${m.chat}:${senderJid}`;
 
-if (!proposals[key]) return;
+if (!global.proposalsMarry[key]) return;
 
-const responseText = m.text?.trim().toLowerCase() || '';
+const responseText = (m.text || '').trim().toLowerCase();
 if (!responseText) return;
 
 if (/^[#\.\/!]?(no|rechazar)$/i.test(responseText)) {
-if (proposals[key].timeout) clearTimeout(proposals[key].timeout);
-delete proposals[key];
+if (global.proposalsMarry[key].timeout) clearTimeout(global.proposalsMarry[key].timeout);
+delete global.proposalsMarry[key];
 return conn.sendMessage(m.chat, { text: '*《✧》Han rechazado tu propuesta de matrimonio.*' }, { quoted: m });
 }
 
 if (/^[#\.\/!]?(si|s[íi]|yes|acepto)$/i.test(responseText)) {
-const data = proposals[key];
+const data = global.proposalsMarry[key];
 if (data.timeout) clearTimeout(data.timeout);
-delete proposals[key];
+delete global.proposalsMarry[key];
 
-if (!data) return;
 const { proposer } = data;
-
 const marriages = await loadMarriages();
+
 if (isUserMarried(marriages, proposer) || isUserMarried(marriages, senderJid)) {
 return conn.sendMessage(m.chat, { text: '*《✧》La propuesta ya no es válida porque una de las personas ya está casada.*' }, { quoted: m });
 }
