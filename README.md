@@ -14,7 +14,7 @@
     <a href="https://chat.whatsapp.com/K2CPrOTksiA36SW6k41yuR"><img src="https://img.shields.io/badge/Comunidad-Oficial-E91E63?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Grupo Oficial"></a>
   </p>
 
-  <img src="https://files.catbox.moe/atnv7f.gif" alt="Ruby Hoshino Bot Preview" width="350"/>
+  <img src="https://i.pinimg.com/originals/7a/22/d9/7a22d9c0e3d3a25c65ec3da5522b1796.gif" alt="Ruby Hoshino Bot Preview" width="350"/>
 </div>
 
 ---
