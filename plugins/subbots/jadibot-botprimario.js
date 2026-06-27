@@ -37,7 +37,7 @@ let handler = async (m, { conn, text, participants }) => {
 > 𝘼 𝙥𝙖𝙧𝙩𝙞𝙧 𝙙𝙚 𝙖𝙝𝙤𝙧𝙖, 𝙩𝙤𝙙𝙤𝙨 𝙡𝙤𝙨 𝙘𝙤𝙢𝙖𝙣𝙙𝙤𝙨 𝙨𝙚𝙧𝙖́𝙣 𝙚𝙟𝙚𝙘𝙪𝙩𝙖𝙙𝙤𝙨 𝙥𝙤𝙧 𝙚́𝙡.
 
 『 ⚠️ 』⋮⋮ 𝙉𝙤𝙩𝙖:
-> 𝙎𝙞 𝙦𝙪𝙞𝙚𝙧𝙚𝙨 𝙦𝙪𝙚 𝙩𝙤𝙙𝙤𝙨 𝙡𝙤𝙨 𝙗𝙤𝙩𝙨 𝙫𝙪𝙚𝙡𝙫𝙖𝙣 𝙖 𝙧𝙚𝙨𝙥𝙤𝙣𝙙𝙚𝙧, 𝙪𝙨𝙖 𝙚𝙡 𝙘𝙤𝙢𝙖𝙣𝙙𝙤 *resetbot* (𝙨𝙞𝙣 𝙥𝙧𝙚𝙛𝙞𝙟𝙤).
+> 𝙎𝙞 𝙦𝙪𝙞𝙚𝙧𝙚𝙨 𝙦𝙪𝙚 𝙩𝙤𝙙𝙤𝙨 𝙡𝙤𝙨 𝙗𝙤𝙩𝙨 𝙫𝙪𝙚𝙡𝙫𝙖𝙣 𝙖 𝙧𝙚𝙨𝙥𝙤𝙣𝙙𝙚𝙧, 𝙪𝙨𝙖 𝙚𝙡 𝙘𝙤𝙢𝙖𝙣𝙙𝙤 *.resetbot*.
 `.trim();
 
     await conn.sendMessage(m.chat, { text: response, mentions: [botJid] }, { quoted: m });
