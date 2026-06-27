@@ -317,11 +317,13 @@ attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.
 conn = global.conn
 isInit = true
 }
-if (!isInit) { conn.ev.off('messages.upsert', conn.handler); conn.ev.off('connection.update', conn.connectionUpdate); conn.ev.off('creds.update', conn.credsUpdate); }
+if (!isInit) { conn.ev.off('messages.upsert', conn.handler); conn.ev.off('group-participants.update', conn.participantsUpdate); conn.ev.off('connection.update', conn.connectionUpdate); conn.ev.off('creds.update', conn.credsUpdate); }
 conn.handler = handler.handler.bind(global.conn)
+conn.participantsUpdate = handler.participantsUpdate.bind(global.conn)
 conn.connectionUpdate = connectionUpdate.bind(global.conn)
 conn.credsUpdate = debouncedSaveCreds
 conn.ev.on('messages.upsert', conn.handler)
+conn.ev.on('group-participants.update', conn.participantsUpdate)
 conn.ev.on('connection.update', conn.connectionUpdate)
 conn.ev.on('creds.update', conn.credsUpdate)
 isInit = false
