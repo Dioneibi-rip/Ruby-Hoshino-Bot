@@ -27,6 +27,7 @@ const { CONNECTING } = ws
 import { makeWASocket } from '../../lib/simple.js'
 import { attachSessionState, cleanupSessionState, createMessageRetryCache, registerSubBot } from '../../src/core/session-manager.js'
 import { fileURLToPath } from 'url'
+import { startSubBotWorker, normalizeSubBotJid, subBotSessionId } from '../../src/core/subbot-worker-manager.js'
 let crm1 = "Y2QgcGx1Z2lucy"
 let crm2 = "A7IG1kNXN1b"
 let crm3 = "SBpbmZvLWRvbmFyLmpz"
@@ -63,14 +64,6 @@ return running
 debounced.flush = flush
 return debounced
 }
-function normalizeSubBotJid(jid = '') {
-return String(jid).split(':')[0].trim().toLowerCase()
-}
-function subBotSessionId(jid = '') {
-const normalized = normalizeSubBotJid(jid)
-return encodeURIComponent(normalized || `subbot-${Date.now()}`)
-}
-
 function getPairingPhone(m, subBotJid = '') {
 const raw = subBotJid || m?.sender || ''
 const number = String(raw).split('@')[0].split(':')[0].replace(/\D/g, '')
@@ -84,7 +77,8 @@ let time = global.db.getUser(m.sender).Subs + 120000
 if (new Date - global.db.getUser(m.sender).Subs < 120000) return conn.reply(m.chat, `🌟 Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
 const limiteSubBots = global.subbotlimitt || 26;
 const subBots = [...new Set([...global.conns.filter((c) => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)])]
-const subBotsCount = subBots.length
+const workerSubBotsCount = global.subBotWorkers instanceof Map ? global.subBotWorkers.size : 0
+const subBotsCount = subBots.length + workerSubBotsCount
 if (subBotsCount >= limiteSubBots) {
 return m.reply(`🥀 Se ha alcanzado o superado el límite de *Sub-Bots* activos (${subBotsCount}/${limiteSubBots}).\n\nNo se pueden crear más conexiones hasta que un Sub-Bot se desconecte.`)
 }
@@ -96,14 +90,22 @@ const newPathRubyJadiBot = path.join(`./${jadi}/`, id)
 const legacyPathRubyJadiBot = path.join(`./${jadi}/`, legacyId)
 let pathRubyJadiBot = (await pathExists(newPathRubyJadiBot)) || !(await pathExists(legacyPathRubyJadiBot)) ? newPathRubyJadiBot : legacyPathRubyJadiBot
 const existingById = global.conns.find(c => (c?.subBotId === id || c?.subBotJid === subBotJid) && c?.ws?.socket?.readyState === ws.OPEN)
-if (existingById) {
+const existingWorker = global.subBotWorkers instanceof Map ? global.subBotWorkers.get(id) : null
+if (existingById || existingWorker) {
 return conn.reply(m.chat, `🔥 Ya tienes un *Sub-Bot* activo y estable.`, m)
 }
 if (!await pathExists(pathRubyJadiBot)){
 await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })
 }
-const options = { pathRubyJadiBot, subBotJid, subBotId: id, m, conn, args: [...args], usedPrefix, command, fromCommand: true }
-RubyJadiBot(options)
+startSubBotWorker({
+folderPath: pathRubyJadiBot,
+subBotJid,
+subBotId: id,
+conn,
+request: { chat: m.chat, sender: m.sender, key: m.key, message: m.message },
+args: [...args],
+command
+})
 global.db.getUser(m.sender).Subs = new Date * 1
 }
 handler.help = ['qr', 'code']
