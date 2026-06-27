@@ -47,8 +47,8 @@ global.db = new SQLiteDatabase(opts['db'] || './src/database/database.sqlite')
 global.DATABASE = global.db
 let databaseShutdownStarted = false
 global.authCredsFlushers ||= new Set()
-// Este plugin se importa después de settings.js para que encuentre global.* disponible.
-const { RubyJadiBot } = await import('./plugins/subbots/jadibot-serbot.js')
+// Manager de Sub-Bots aislados en worker_threads.
+const { restoreSubBotWorkers } = await import('./src/core/subbot-worker-manager.js')
 function createDebouncedSaveCreds(saveCreds, delayMs = 4000) {
 let timer
 let pending = false
@@ -338,28 +338,12 @@ console.log(chalk.bold.cyan(`✅ Carpeta de sub-Bots creada`))
 } else {
 console.log(chalk.bold.cyan(`✨ Cargando sub-Bots...`))
 }
-const readRutaJadiBot = readdirSync(global.rutaJadiBot)
-if (readRutaJadiBot.length > 0) {
-const sessionMarkers = new Set(['creds.json', 'auth.db'])
-const subBotPaths = readRutaJadiBot
-.map(gjbts => join(global.rutaJadiBot, gjbts))
-.filter(botPath => {
-try { return statSync(botPath).isDirectory() && readdirSync(botPath).some(file => sessionMarkers.has(file)) }
-catch (e) { return false }
+const restoredSubBots = await restoreSubBotWorkers({
+baseDir: global.rutaJadiBot,
+conn,
+delayMs: Number(global.subBotLoadDelayMs || 1500)
 })
-const batchSize = Math.max(1, Number(global.subBotLoadBatch || 3))
-for (let i = 0; i < subBotPaths.length; i += batchSize) {
-const batch = subBotPaths.slice(i, i + batchSize)
-await Promise.all(batch.map(async (botPath) => {
-try {
-await RubyJadiBot({ pathRubyJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/', command: 'serbot' })
-} catch(e) {
-console.log(chalk.red('Error cargando subbot:'), e)
-}
-}))
-if (i + batchSize < subBotPaths.length) await new Promise(resolve => setTimeout(resolve, 500))
-}
-}
+if (restoredSubBots.length > 0) console.log(chalk.bold.cyan(`✅ ${restoredSubBots.length} Sub-Bots restaurados en Worker Threads`))
 }
 const pluginFolder = global.__dirname(join(__dirname, './plugins/index'))
 const pluginFilter = (filename) => /\.js$/.test(filename)
