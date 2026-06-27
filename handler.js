@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url'
 import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
 import failureHandler from './lib/respuesta.js'
+import welcomePlugin from './plugins/functions/_welcome.js'
 import {
 buildPermissionContext,
 createParticipantIndex,
@@ -273,10 +274,13 @@ if (deletePayload) conn.sendMessage?.(m.chat, { delete: deletePayload }).catch((
 }
 if (sender) {
 const current = global.db?.getUser?.(sender)
+const nextMsgCount = (Number(current?.msg_count) || 0) + 1
 if (current) global.db.updateUser(sender, {
 exp: (Number(current.exp) || 0) + (m.exp || 0),
-coin: (Number(current.coin) || 0) - ((m.coin || 0) * 1)
+coin: (Number(current.coin) || 0) - ((m.coin || 0) * 1),
+msg_count: nextMsgCount
 })
+if (global.db?.sqlite) global.db.sqlite.prepare('UPDATE users SET msg_count = ?, updated_at = unixepoch() WHERE id = ?').run(nextMsgCount, sender)
 }
 if (!m.plugin) return
 const stats = data.stats ||= {}
@@ -417,6 +421,27 @@ if (!((this.opts || global.opts || {}).noprint) && m) await (await import('./lib
 } catch (error) {
 console.log(chalk.red('Error en print.js'), error)
 }
+}
+}
+
+export async function participantsUpdate(update = {}) {
+try {
+const chat = this.decodeJid?.(update.id) || update.id
+if (!chat || !chat.endsWith('@g.us')) return
+const action = String(update.action || '').toLowerCase()
+const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null
+if (!messageStubType) return
+const groupMetadata = await getCachedGroupMetadata(this, chat)
+const m = {
+chat,
+isGroup: true,
+sender: Array.isArray(update.participants) ? update.participants[0] : '',
+messageStubType,
+messageStubParameters: Array.isArray(update.participants) ? update.participants : [],
+}
+await welcomePlugin.before.call(this, m, { conn: this, participants: groupMetadata?.participants || [], groupMetadata: groupMetadata || {} })
+} catch (error) {
+console.error('[welcome] group-participants.update error', error)
 }
 }
 
