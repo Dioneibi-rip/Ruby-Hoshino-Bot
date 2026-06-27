@@ -1,6 +1,9 @@
 import { parentPort, workerData } from 'worker_threads'
 import path, { join } from 'path'
+import { fileURLToPath, pathToFileURL } from 'url'
+import { platform } from 'process'
 import { readdirSync } from 'fs'
+import { createRequire } from 'module'
 import pino from 'pino'
 import { useSQLiteAuthState, createManagerDatabase } from '@nevi-dev/sqlite-auth'
 import { DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore } from '@whiskeysockets/baileys'
@@ -18,8 +21,9 @@ global.db ||= new SQLiteDatabase(global.opts?.db || './src/database/database.sql
 global.DATABASE ||= global.db
 global.plugins ||= {}
 global.commandsMap ||= new Map()
-global.__filename ||= (pathURL) => pathURL
-global.__dirname ||= (pathURL) => path.dirname(pathURL)
+global.__filename ||= function filename(pathURL = import.meta.url, rmPrefix = platform !== 'win32') { return rmPrefix ? /file:\/\/\//.test(pathURL) ? fileURLToPath(pathURL) : pathURL : pathToFileURL(pathURL).toString() }
+global.__dirname ||= function dirname(pathURL) { return path.dirname(global.__filename(pathURL, true)) }
+global.__require ||= function createLocalRequire(dir = import.meta.url) { return createRequire(dir) }
 global.authManagerDb = createManagerDatabase({ dbPath: `./${global.Rubysessions || 'sessions'}/system.db`, tableName: 'bot_registry' })
 
 const loadPlugins = async () => {
@@ -137,9 +141,9 @@ async function connectionUpdate(update) {
       if (!phone) return post({ type: 'text', text: '🥀 No pude detectar el número para generar el código de vinculación.' })
       const rawCode = await sock.requestPairingCode(phone, 'RUBYCHAN')
       const formatted = rawCode.match(/.{1,4}/g)?.join('-') || rawCode
-      post({ type: 'pairing-code', text: `*✨ Código de vinculación Sub-Bot ✨*\n\n*Código:* ${formatted}\n\nEste código expirará pronto.` })
+      post({ type: 'pairing-code', rawCode, formattedCode: formatted, ttlMs: 45000 })
     } else {
-      post({ type: 'qr', qr, caption: '✐ Conexión Sub-Bot por QR\n\nEscanea este QR desde WhatsApp > Dispositivos vinculados.' })
+      post({ type: 'qr', qr, ttlMs: 45000, caption: '*\n\n✐ Cσɳҽxισɳ SυႦ-Bσƚ Mσԃҽ QR\n\n✰ Con otro celular o en la PC escanea este QR para convertirte en un *Sub-Bot* Temporal.\n\n`1` » Haga clic en los tres puntos en la esquina superior derecha.\n`2` » Enlazar dispositivo\n`3` » Escanee este Código QR' })
     }
     return
   }
@@ -160,7 +164,7 @@ async function connectionUpdate(update) {
     pairingSent = false
     const jid = sock.authState?.creds?.me?.jid || sock.user?.jid
     upsertRegistry('online', { jid, connectedAt: Date.now() })
-    post({ type: 'status', status: 'online', jid })
+    post({ type: 'status', status: 'online', jid, name: sock.authState?.creds?.me?.name || sock.user?.name })
     for (const channelId of Object.values(global.ch || {})) sock.newsletterFollow(channelId).catch(() => {})
   }
 }

@@ -90,7 +90,8 @@ const newPathRubyJadiBot = path.join(`./${jadi}/`, id)
 const legacyPathRubyJadiBot = path.join(`./${jadi}/`, legacyId)
 let pathRubyJadiBot = (await pathExists(newPathRubyJadiBot)) || !(await pathExists(legacyPathRubyJadiBot)) ? newPathRubyJadiBot : legacyPathRubyJadiBot
 const existingById = global.conns.find(c => (c?.subBotId === id || c?.subBotJid === subBotJid) && c?.ws?.socket?.readyState === ws.OPEN)
-if (existingById) {
+const existingWorker = global.subBotWorkers instanceof Map ? global.subBotWorkers.get(id) : null
+if (existingById || existingWorker) {
 return conn.reply(m.chat, `🔥 Ya tienes un *Sub-Bot* activo y estable.`, m)
 }
 if (!await pathExists(pathRubyJadiBot)){

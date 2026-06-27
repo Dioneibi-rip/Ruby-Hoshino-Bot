@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'fs'
 import path, { join } from 'path'
 import { fileURLToPath } from 'url'
 import qrcode from 'qrcode'
+const { proto, generateWAMessageFromContent, prepareWAMessageMedia } = (await import('@whiskeysockets/baileys')).default
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const workerFile = join(__dirname, 'subbot-worker.js')
@@ -34,10 +35,52 @@ async function sendManagerMessage(conn, request, payload) {
   const quoted = request?.key ? { key: request.key, message: request.message || {} } : undefined
   if (payload.type === 'qr') {
     const image = await qrcode.toBuffer(payload.qr, { scale: 8 })
-    return conn.sendMessage(request.chat, { image, caption: payload.caption }, { quoted }).catch(() => {})
+    const sent = await conn.sendMessage(request.chat, { image, caption: payload.caption }, { quoted }).catch(() => null)
+    if (sent?.key) setTimeout(() => conn.sendMessage(request.chat, { delete: sent.key }).catch(() => {}), payload.ttlMs || 45000).unref?.()
+    return sent
   }
   if (payload.type === 'pairing-code') {
-    return conn.sendMessage(request.chat, { text: payload.text }, { quoted }).catch(() => {})
+    const rawCode = payload.rawCode || payload.code || ''
+    const formattedCode = payload.formattedCode || rawCode.match(/.{1,4}/g)?.join('-') || rawCode
+    const mediaMessage = await prepareWAMessageMedia({
+      image: { url: payload.imageUrl || 'https://files.catbox.moe/rt1yfo.jpeg' }
+    }, { upload: conn.waUploadToServer })
+    const interactivePayload = generateWAMessageFromContent(request.chat, {
+      viewOnceMessage: {
+        message: {
+          interactiveMessage: proto.Message.InteractiveMessage.fromObject({
+            body: proto.Message.InteractiveMessage.Body.create({
+              text: `*✨ ¡Tu código de vinculación está listo! ✨*
+
+Usa el siguiente código para conectarte como Sub-Bot:
+
+*Código:* ${formattedCode}
+
+> Haz clic en el botón de abajo para copiarlo fácilmente.`
+            }),
+            footer: proto.Message.InteractiveMessage.Footer.create({
+              text: 'Este código expirará en 45 segundos.'
+            }),
+            header: proto.Message.InteractiveMessage.Header.create({
+              hasMediaAttachment: true,
+              imageMessage: mediaMessage.imageMessage
+            }),
+            nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
+              buttons: [{
+                name: 'cta_copy',
+                buttonParamsJson: JSON.stringify({
+                  display_text: 'Copiar Código',
+                  copy_code: rawCode
+                })
+              }]
+            })
+          })
+        }
+      }
+    }, { quoted })
+    await conn.relayMessage(request.chat, interactivePayload.message, { messageId: interactivePayload.key.id }).catch(() => {})
+    setTimeout(() => conn.sendMessage(request.chat, { delete: interactivePayload.key }).catch(() => {}), payload.ttlMs || 45000).unref?.()
+    return interactivePayload
   }
   if (payload.type === 'text') {
     return conn.sendMessage(request.chat, { text: payload.text }, { quoted }).catch(() => {})
@@ -72,7 +115,14 @@ export function startSubBotWorker({ folderPath, subBotId, subBotJid, conn, reque
 
   worker.on('message', async (message = {}) => {
     if (message.type === 'status') {
-      if (message.status === 'online') record.restarts = 0
+      record.status = message.status
+      record.reason = message.reason
+      record.jid = message.jid || record.jid
+      record.name = message.name || record.name
+      if (message.status === 'online') {
+        record.restarts = 0
+        record.connectedAt = Date.now()
+      }
       console.log(`[SubBot:${subBotId}] ${message.status}${message.reason ? ` (${message.reason})` : ''}`)
       if (message.status === 'online') await sendManagerMessage(conn, request, { type: 'text', text: `✅ Sub-Bot conectado correctamente: ${message.jid || subBotId}` })
       return
@@ -131,6 +181,10 @@ export function stopSubBotWorker(subBotId) {
   record.worker.terminate().catch(() => {})
   workers.delete(subBotId)
   return true
+}
+
+export function getSubBotWorkerRecords() {
+  return [...workers.values()]
 }
 
 export { normalizeJid as normalizeSubBotJid, sessionId as subBotSessionId, hasValidSession }

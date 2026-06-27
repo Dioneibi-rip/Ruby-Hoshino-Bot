@@ -1,6 +1,7 @@
 import { promises as fsPromises } from "fs"
 import path, { join } from 'path'
 import ws from 'ws'
+import { getSubBotWorkerRecords, normalizeSubBotJid, subBotSessionId, stopSubBotWorker } from '../../src/core/subbot-worker-manager.js'
 const { proto, generateWAMessageFromContent, prepareWAMessageMedia } = (await import("@whiskeysockets/baileys")).default
 async function pathExists(file){
 try{
@@ -53,8 +54,10 @@ return parts.join(', ') || toFancy('Justo ahora')
 
 if (isDeleteSession) {
 const who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
-const uniqid = `${who.split('@')[0]}`
-const dirPath = `./${jadi}/${uniqid}`
+const normalizedWho = normalizeSubBotJid(who)
+const uniqid = `${normalizedWho.split('@')[0]}`
+const encodedId = subBotSessionId(normalizedWho)
+const dirPath = await pathExists(`./${jadi}/${encodedId}`) ? `./${jadi}/${encodedId}` : `./${jadi}/${uniqid}`
 
 if (!await pathExists(dirPath)) {
 return conn.sendMessage(m.chat, {
@@ -70,6 +73,7 @@ text: `💬 ${toFancy("Este comando solo puede usarse desde el Bot Principal.")}
 
 try {
 await m.react('🗑️')
+stopSubBotWorker(encodedId) || stopSubBotWorker(uniqid)
 await fsPromises.rm(dirPath, { recursive: true, force: true })
 await conn.sendMessage(m.chat, {
 text: `🌈 ${toFancy("¡Todo limpio! Tu sesión ha sido eliminada con éxito.")}`
@@ -89,15 +93,35 @@ conn.ws.close()
 }
 
 else if (isShowBots) {
-const users = [...new Set([...global.conns.filter(c => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)])]
+const legacyUsers = [...new Set([...global.conns.filter(c => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)])]
+const workerUsers = getSubBotWorkerRecords().filter(record => ['online', 'starting', 'reconnecting'].includes(record.status))
+const users = [
+...legacyUsers.map(sock => ({
+source: 'legacy',
+jid: sock.user?.jid,
+name: sock.user?.name,
+connectedAt: sock.uptime,
+status: 'online'
+})),
+...workerUsers.map(record => ({
+source: 'worker',
+jid: record.jid || record.subBotJid || record.subBotId,
+name: record.name,
+connectedAt: record.connectedAt,
+status: record.status
+}))
+]
 
 let listaSubBots = users.map((v, i) => {
-const uptime = v.uptime ? convertirMsAFormato(Date.now() - v.uptime) : toFancy('Desconocido')
-const numero = v.user.jid.split('@')[0]
-const nombre = v.user.name || toFancy('Sin Nombre')
+const uptime = v.connectedAt ? convertirMsAFormato(Date.now() - v.connectedAt) : toFancy('Desconocido')
+const numero = String(v.jid || '').split('@')[0]
+const nombre = v.name || toFancy('Sin Nombre')
+const estado = v.status === 'online' ? '🟢 Online' : v.status === 'reconnecting' ? '🟡 Reconectando' : '🔵 Iniciando'
 return `╭━ • 🤖 *SUB-BOT ${i + 1}* • ━
 │➤ *${toFancy("Usuario")}:* ${nombre}
-│➤ *${toFancy("Número")}:* wa.me/${numero}
+│➤ *${toFancy("Número")}:* ${numero ? `wa.me/${numero}` : toFancy('Pendiente')}
+│➤ *${toFancy("Estado")}:* ${estado}
+│➤ *${toFancy("Runtime")}:* ${v.source === 'worker' ? 'Worker Thread' : 'Legacy'}
 │➤ *${toFancy("Activo")}:* ${uptime}
 ╰━━━━━━━━━━━━━`
 }).join('\n\n')
