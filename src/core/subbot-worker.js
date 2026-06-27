@@ -15,7 +15,6 @@ await import('../../settings.js')
 
 const { folderPath, subBotId, subBotJid, command, args = [], globals = {}, request } = workerData
 Object.assign(global, globals)
-global.conns = []
 global.opts ||= {}
 global.db ||= new SQLiteDatabase(global.opts?.db || './src/database/database.sqlite')
 global.DATABASE ||= global.db
@@ -25,6 +24,8 @@ global.__filename ||= function filename(pathURL = import.meta.url, rmPrefix = pl
 global.__dirname ||= function dirname(pathURL) { return path.dirname(global.__filename(pathURL, true)) }
 global.__require ||= function createLocalRequire(dir = import.meta.url) { return createRequire(dir) }
 global.authManagerDb = createManagerDatabase({ dbPath: `./${global.Rubysessions || 'sessions'}/system.db`, tableName: 'bot_registry' })
+global.authManagerDb?.pragma?.('journal_mode = WAL')
+global.authManagerDb?.pragma?.('busy_timeout = 5000')
 
 const loadPlugins = async () => {
   const base = path.resolve('plugins')

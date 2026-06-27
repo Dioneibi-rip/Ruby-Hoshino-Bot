@@ -1,6 +1,4 @@
 import { promises as fsPromises } from "fs"
-import path, { join } from 'path'
-import ws from 'ws'
 import { getSubBotWorkerRecords, normalizeSubBotJid, subBotSessionId, stopSubBotWorker } from '../../src/core/subbot-worker-manager.js'
 const { proto, generateWAMessageFromContent, prepareWAMessageMedia } = (await import("@whiskeysockets/baileys")).default
 async function pathExists(file){
@@ -93,16 +91,8 @@ conn.ws.close()
 }
 
 else if (isShowBots) {
-const legacyUsers = [...new Set([...global.conns.filter(c => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)])]
-const workerUsers = getSubBotWorkerRecords().filter(record => ['online', 'starting', 'reconnecting'].includes(record.status))
+const workerUsers = getSubBotWorkerRecords({ statuses: ['online', 'starting', 'reconnecting'] })
 const users = [
-...legacyUsers.map(sock => ({
-source: 'legacy',
-jid: sock.user?.jid,
-name: sock.user?.name,
-connectedAt: sock.uptime,
-status: 'online'
-})),
 ...workerUsers.map(record => ({
 source: 'worker',
 jid: record.jid || record.subBotJid || record.subBotId,
@@ -121,7 +111,7 @@ return `╭━ • 🤖 *SUB-BOT ${i + 1}* • ━
 │➤ *${toFancy("Usuario")}:* ${nombre}
 │➤ *${toFancy("Número")}:* ${numero ? `wa.me/${numero}` : toFancy('Pendiente')}
 │➤ *${toFancy("Estado")}:* ${estado}
-│➤ *${toFancy("Runtime")}:* ${v.source === 'worker' ? 'Worker Thread' : 'Legacy'}
+│➤ *${toFancy("Runtime")}:* Worker Thread
 │➤ *${toFancy("Activo")}:* ${uptime}
 ╰━━━━━━━━━━━━━`
 }).join('\n\n')

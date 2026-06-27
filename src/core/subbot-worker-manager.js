@@ -1,5 +1,5 @@
 import { Worker } from 'worker_threads'
-import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from 'fs'
 import path, { join } from 'path'
 import { fileURLToPath } from 'url'
 import qrcode from 'qrcode'
@@ -18,6 +18,11 @@ function normalizeJid(jid = '') {
 function sessionId(jid = '') {
   const normalized = normalizeJid(jid)
   return encodeURIComponent(normalized || `subbot-${Date.now()}`)
+}
+
+export function isSubBotWorkerOnline(subBotId) {
+  const record = workers.get(subBotId)
+  return record?.status === 'online'
 }
 
 function hasValidSession(folderPath) {
@@ -42,8 +47,9 @@ async function sendManagerMessage(conn, request, payload) {
   if (payload.type === 'pairing-code') {
     const rawCode = payload.rawCode || payload.code || ''
     const formattedCode = payload.formattedCode || rawCode.match(/.{1,4}/g)?.join('-') || rawCode
+    const image = readFileSync(path.join(process.cwd(), 'src', 'jadibot-code.jpeg'))
     const mediaMessage = await prepareWAMessageMedia({
-      image: { url: payload.imageUrl || 'https://files.catbox.moe/rt1yfo.jpeg' }
+      image
     }, { upload: conn.waUploadToServer })
     const interactivePayload = generateWAMessageFromContent(request.chat, {
       viewOnceMessage: {
@@ -183,8 +189,21 @@ export function stopSubBotWorker(subBotId) {
   return true
 }
 
-export function getSubBotWorkerRecords() {
-  return [...workers.values()]
+export function getSubBotWorkerRecords({ statuses } = {}) {
+  const records = [...workers.values()]
+  return Array.isArray(statuses) ? records.filter(record => statuses.includes(record.status)) : records
+}
+
+export function purgeStaleSubBotSession(subBotId, folderPath) {
+  const record = workers.get(subBotId)
+  if (record?.status === 'online') return false
+  if (record) {
+    try { record.worker.postMessage({ type: 'shutdown' }) } catch {}
+    try { record.worker.terminate().catch(() => {}) } catch {}
+    workers.delete(subBotId)
+  }
+  try { rmSync(folderPath, { recursive: true, force: true }) } catch {}
+  return true
 }
 
 export { normalizeJid as normalizeSubBotJid, sessionId as subBotSessionId, hasValidSession }

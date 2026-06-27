@@ -1,7 +1,6 @@
 import { jidNormalizedUser } from '@whiskeysockets/baileys'
 import { smsg } from './lib/simple.js'
 import { format } from 'util'
-import * as ws from 'ws'
 import { join } from 'path'
 import { fileURLToPath } from 'url'
 import { unwatchFile, watchFile } from 'fs'
@@ -451,10 +450,4 @@ const file = typeof global.__filename === 'function' ? global.__filename(import.
 watchFile(file, async () => {
 unwatchFile(file)
 console.log(chalk.green('Actualizando "handler.js"'))
-if (global.conns?.length > 0) {
-const users = [...new Set(global.conns.filter((conn) => conn.user && conn.ws?.socket && conn.ws.socket.readyState !== ws.CLOSED))]
-for (const userr of users) {
-try { userr.subreloadHandler(false) } catch {}
-}
-}
 })
