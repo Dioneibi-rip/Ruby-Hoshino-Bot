@@ -25,6 +25,7 @@ import { EventEmitter } from 'events'
 import { attachSessionState, createMessageRetryCache } from './src/core/session-manager.js'
 import { startMonitor } from './src/core/stability-monitor.js'
 import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from './src/core/handler-utils.js'
+import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from './lib/queue.js'
 EventEmitter.defaultMaxListeners = 100
 const { proto } = (await import('@whiskeysockets/baileys')).default
 const { DisconnectReason, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser } = await import('@whiskeysockets/baileys')
@@ -159,6 +160,7 @@ try {
 clearInterval(databaseAutosaveInterval)
 await Promise.all([...global.authCredsFlushers].map(flush => flush()))
 await global.saveDatabase()
+await closeMediaQueue()
 if (typeof global.db?.close === 'function') global.db.close()
 } catch (saveError) {
 console.error(saveError)
@@ -233,6 +235,8 @@ retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 250,
 shouldReconnect: ({ statusCode }) => !DISCONNECT_AUTH_STATUS.has(statusCode) && (RECONNECT_REASONS.has(statusCode) || statusCode !== DisconnectReason.loggedOut)
 }
 global.conn = makeWASocket(connectionOptions);
+setMediaQueueConnection(global.conn)
+startMediaWorker(global.conn)
 attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.Rubysessions })
 let conn = global.conn
 conn.isInit = false;
@@ -313,6 +317,8 @@ const oldChats = global.conn.chats
 try { global.conn.ws.close() } catch (e) { }
 conn.ev.removeAllListeners()
 global.conn = makeWASocket(connectionOptions, { chats: oldChats })
+setMediaQueueConnection(global.conn)
+startMediaWorker(global.conn)
 attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.Rubysessions })
 conn = global.conn
 isInit = true

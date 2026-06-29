@@ -81,7 +81,8 @@
     "url-regex-safe": "^3.0.0",
     "uuid": "^10.0.0",
     "yargs": "^17.3.1",
-    "yt-search": "^2.10.3"
+    "yt-search": "^2.10.3",
+    "bullmq": "^5.58.9"
   },
   "optionalDependencies": {
     "moment-timezone": "^0.5.37",
