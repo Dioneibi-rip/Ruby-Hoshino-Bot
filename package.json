@@ -53,7 +53,6 @@
     "human-readable": "^0.2.1",
     "imagemaker.js": "^2.0.4",
     "ioredis": "^5.4.1",
-    "jimp": "^0.22.12",
     "jsdom": "^20.0.1",
     "link-preview-js": "^3.0.0",
     "lodash": "^4.17.21",
