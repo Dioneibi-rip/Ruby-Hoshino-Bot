@@ -31,7 +31,7 @@
 
 > ¿Quieres ver la magia de Ruby antes de instalar? ¡Únete a la comunidad y pruébalo! 💖
 
-[**Únete al Grupo Oficial**](https://chat.whatsapp.com/K2CPrOTksiA36SW6k41yuR)
+[**Únete al Grupo Oficial**](https://chat.whatsapp.com/D070oCPt4it7M2MohvYoOn)
 
 -----
 
