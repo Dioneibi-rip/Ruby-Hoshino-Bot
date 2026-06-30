@@ -10,7 +10,7 @@
     <a href="https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot/network/members"><img src="https://img.shields.io/github/forks/Dioneibi-rip/Ruby-Hoshino-Bot?style=for-the-badge&logo=github&color=d500f9" alt="GitHub forks"></a>
     <img src="https://img.shields.io/github/license/Dioneibi-rip/Ruby-Hoshino-Bot?style=for-the-badge&color=f50057" alt="License">
     <br>
-    <a href="https://api.whatsapp.com/send/?phone=18294868853&text=Hola,+vengo+de+GitHub+y+necesito+soporte+con+Ruby+Bot&type=phone_number&app_absent=0"><img src="https://img.shields.io/badge/WhatsApp-Soporte-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Support WhatsApp"></a>
+    <a href="https://api.whatsapp.com/send/?phone=18093519169&text=Hola,+vengo+de+GitHub+y+necesito+soporte+con+Ruby+Bot&type=phone_number&app_absent=0"><img src="https://img.shields.io/badge/WhatsApp-Soporte-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Support WhatsApp"></a>
     <a href="https://chat.whatsapp.com/BjlcnMjRlYhEL1uUBEWTNg"><img src="https://img.shields.io/badge/Comunidad-Oficial-E91E63?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Grupo Oficial"></a>
   </p>
 
