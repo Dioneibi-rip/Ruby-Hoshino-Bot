@@ -8,7 +8,6 @@ import cfonts from 'cfonts'
 import path, { join, dirname } from 'path'
 import yargs from 'yargs'
 import { spawn } from 'child_process'
-import lodash from 'lodash'
 import chalk from 'chalk'
 import syntaxerror from 'syntax-error'
 import { tmpdir } from 'os'
@@ -124,14 +123,14 @@ showBanner()
 global.loadDatabase = async function loadDatabase() {
 if (global.db.READ) { return new Promise((resolve) => setInterval(async function() { if (!global.db.READ) { clearInterval(this); resolve(global.db.data == null ? global.loadDatabase() : global.db.data); } }, 1 * 1000)) }
 if (global.db.data !== null) {
-  global.db.chain ||= chain(global.db.data)
+  global.db.chain ||= global.db.data
   return global.db.data
 }
 global.db.READ = true
 await global.db.read().catch(console.error)
 global.db.READ = null
 global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {}, ...(global.db.data || {}) }
-global.db.chain = chain(global.db.data)
+global.db.chain = global.db.data
 return global.db.data
 }
 global.saveDatabase = async function saveDatabase() {
@@ -405,81 +404,4 @@ const err = syntaxerror(readFileSync(dir), filename, { sourceType: 'module', all
 if (err) conn.logger.error(`❌ Error sintaxis: '${filename}'
 ${format(err)}`)
 else {
-try { const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`)); global.plugins[filename] = module.default || module; registerPluginCommands(filename, global.plugins[filename]) } catch (e) { conn.logger.error(`❌ Error sintaxis: '${filename}
-${format(e)}'`); unregisterPluginCommands(filename) } finally { global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => (b.startsWith('enable/') - a.startsWith('enable/')) || a.localeCompare(b))); rebuildCommandsMap(global.plugins) }
-}
-}
-}
-Object.freeze(global.reload)
-watchPluginTree(pluginFolder)
-async function isValidPhoneNumber(number) {
-try {
-number = number.replace(/\s+/g, '')
-if (number.startsWith('+521')) { number = number.replace('+521', '+52'); } else if (number.startsWith('+52') && number[4] === '1') { number = number.replace('+52 1', '+52'); }
-const parsedNumber = phoneUtil.parseAndKeepRawInput(number)
-return phoneUtil.isValidNumber(parsedNumber)
-} catch (error) { return false }
-}
-function clearTmp() {
-const tmpDirectories = [tmpdir(), join(__dirname, './tmp')];
-tmpDirectories.forEach(dir => {
-if (!existsSync(dir)) return;
-readdirSync(dir).forEach(file => {
-const filePath = join(dir, file);
-try {
-const stats = statSync(filePath);
-if (stats.isFile() && (Date.now() - stats.mtimeMs > 3 * 60 * 1000)) {
-unlinkSync(filePath);
-}
-} catch (e) { }
-});
-});
-}
-function purgeSession() {
-try {
-const sessionDir = `./${global.Rubysessions}`;
-if (!existsSync(sessionDir)) return;
-const files = readdirSync(sessionDir);
-files.forEach(file => {
-const filePath = join(sessionDir, file);
-try {
-const stats = statSync(filePath);
-if (file.startsWith('pre-key-') && (Date.now() - stats.mtimeMs > 3600000)) {
-unlinkSync(filePath);
-}
-} catch (e) { }
-});
-} catch (e) { console.log("Error en purga de sesión principal:", e); }
-}
-function purgeSessionSB() {
-try {
-const jadiDir = global.rutaJadiBot;
-if (!existsSync(jadiDir)) return;
-const listaDirectorios = readdirSync(jadiDir);
-listaDirectorios.forEach(directorio => {
-const subBotPath = join(jadiDir, directorio);
-if (statSync(subBotPath).isDirectory()) {
-const files = readdirSync(subBotPath);
-files.forEach(file => {
-const filePath = join(subBotPath, file);
-try {
-const stats = statSync(filePath);
-if (file.startsWith('pre-key-') && (Date.now() - stats.mtimeMs > 3600000)) {
-unlinkSync(filePath);
-}
-} catch (e) { }
-});
-}
-});
-} catch (e) { console.log("Error en purga de Sub-Bots:", e); }
-}
-const tmpCleanerInterval = setInterval(async () => {
-await clearTmp()
-}, 1000 * 60 * 2)
-tmpCleanerInterval.unref()
-const sessionCleanerInterval = setInterval(async () => {
-await purgeSession()
-await purgeSessionSB()
-console.log(chalk.cyanBright(`\n🧹 LIMPIEZA AUTOMÁTICA COMPLETADA: TMP, PRE-KEYS Y SESIONES\n`))
-}, 1000 * 60 * 60)
-sessionCleanerInterval.unref()
+try { const module = (await import(`${global.__
