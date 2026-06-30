@@ -305,7 +305,6 @@ reconnectTimer.unref?.()
 }
 process.once('uncaughtException', error => shutdownDatabaseAndExit(1, error))
 process.on('unhandledRejection', console.error)
-startMonitor()
 let isInit = true;
 let handler = await import('./handler.js')
 global.reloadHandler = async function(restatConn) {
