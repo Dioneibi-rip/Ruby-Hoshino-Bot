@@ -27,8 +27,6 @@ let handler = async (m, { conn }) => {
 > ✦ Buscar videos de TikTok.
 ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#terabox • #tb* + [enlace]
 > ✦ Descargar archivos de Terabox.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#gdrive • #drive* + [enlace]
-> ✦ Descargar archivos desde Google Drive.
 ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ttimg • #ttmp3* + <url>
 > ✦ Descargar fotos/audios de TikTok.
 ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#gitclone* + <url>
