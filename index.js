@@ -32,7 +32,6 @@ import pkg from 'google-libphonenumber'
 const { PhoneNumberUtil } = pkg
 const phoneUtil = PhoneNumberUtil.getInstance()
 const { CONNECTING } = ws
-const { chain } = lodash
 global.__filename = function filename(pathURL = import.meta.url, rmPrefix = platform !== 'win32') { return rmPrefix ? /file:\/\/\//.test(pathURL) ? fileURLToPath(pathURL) : pathURL : pathToFileURL(pathURL).toString(); };
 global.__dirname = function dirname(pathURL) { return path.dirname(global.__filename(pathURL, true)) };
 global.__require = function createLocalRequire(dir = import.meta.url) { return createRequire(dir) }
