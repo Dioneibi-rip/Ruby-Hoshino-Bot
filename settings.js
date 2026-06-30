@@ -68,7 +68,6 @@ global.etiqueta = 'ˑ 𓈒 𐔌 D͙i͙o͙n͙e͙i͙b͙i͙-r͙i͙p͙ ͡꒱ ۫'
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
-global.moneda = 'Zenis'
 global.banner = 'https://files.catbox.moe/b93cts.jpg'
 global.avatar = 'https://qu.ax/RYjEw.jpeg'
 global.catalogo = fs.readFileSync('./src/catalogo.jpg')
