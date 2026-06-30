@@ -10,7 +10,7 @@ await global.db.write?.()
 }
 
 const protectedOwners = [
-'18294868853',
+'18093519169',
 '18096758983',
 '526671548329'
 ];
