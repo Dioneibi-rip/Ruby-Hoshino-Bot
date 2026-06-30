@@ -23,7 +23,6 @@ import store from './lib/store.js'
 import readline, { createInterface } from 'readline'
 import { EventEmitter } from 'events'
 import { attachSessionState, createMessageRetryCache } from './src/core/session-manager.js'
-import { startMonitor } from './src/core/stability-monitor.js'
 import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from './src/core/handler-utils.js'
 import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from './lib/queue.js'
 EventEmitter.defaultMaxListeners = 100
