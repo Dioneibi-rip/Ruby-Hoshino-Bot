@@ -1,27 +1,27 @@
 import {toAudio} from '../../lib/converter.js';
 
 const handler = async (m, {conn, usedPrefix, command}) => {
-  const q = m.quoted ? m.quoted : m;
-  const mime = (q || q.msg).mimetype || q.mediaType || '';
-  
-  if (!/video|audio/.test(mime)) {
-    await conn.reply(m.chat, `${emoji} Por favor, responda al video o nota de voz que desee convertir a Audio/MP3.`, m);
-    return false;
-  }
-  
-  const media = await q.download();
-  if (!media) {
-    await conn.reply(m.chat, `${msm} Ocurrio un error al descargar su video.`, m);
-    return false;
-  }
-  
-  const audio = await toAudio(media, 'mp4');
-  if (!audio.data) {
-    await conn.reply(m.chat, `${msm} Ocurrio un error al convertir su nota de voz a Audio/MP3.`, m);
-    return false;
-  }
-  
-  conn.sendMessage(m.chat, {audio: audio.data, mimetype: 'audio/mpeg'}, {quoted: m});
+const q = m.quoted ? m.quoted : m;
+const mime = (q || q.msg).mimetype || q.mediaType || '';
+
+if (!/video|audio/.test(mime)) {
+await conn.reply(m.chat, `${emoji} Por favor, responda al video o nota de voz que desee convertir a Audio/MP3.`, m);
+return false;
+}
+
+const media = await q.download();
+if (!media) {
+await conn.reply(m.chat, `${msm} Ocurrio un error al descargar su video.`, m);
+return false;
+}
+
+const audio = await toAudio(media, 'mp4');
+if (!audio.data) {
+await conn.reply(m.chat, `${msm} Ocurrio un error al convertir su nota de voz a Audio/MP3.`, m);
+return false;
+}
+
+conn.sendMessage(m.chat, {audio: audio.data, mimetype: 'audio/mpeg'}, {quoted: m});
 };
 
 handler.help = ['tomp3', 'toaudio'];

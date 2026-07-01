@@ -1,4 +1,3 @@
-/* Codigo hecho por @Fabri115 y mejorado por BrunoSobrino */
 
 import fs from 'fs'
 import path from 'path'
@@ -37,7 +36,7 @@ conn.reply(m.chat,`${emoji} *¡Hola! ¿logras verme?*`,m)
 }catch(err){
 console.error('Error al leer la carpeta o los archivos de sesión:',err)
 await conn.reply(m.chat,`${msm} Ocurrió un fallo.`,m)
-  return false;
+return false;
 }
 }
 handler.help=['dsowner']

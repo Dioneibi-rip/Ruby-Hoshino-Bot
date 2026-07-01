@@ -1,5 +1,5 @@
 const handler = async (m, {conn}) => {
-  conn.reply(m.chat, `
+conn.reply(m.chat, `
 *< Lista de Comandos / Textos Asignados >*
 
 ${Object.entries(global.db.getSection('sticker')).map(([key, value], index) => `*${index + 1}.-*\n*Codigo:* ${value.locked ? `*(Bloqueado)* ${key}` : key}\n*Comando/Texto* ${value.text}`).join('\n\n')}

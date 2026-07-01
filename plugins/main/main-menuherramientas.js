@@ -3,33 +3,32 @@ let handler = async (m, { conn }) => {
 const texto = `
 🛠️✨⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐝𝐞 𝐡𝐞𝐫𝐫𝐚𝐦𝐢𝐞𝐧𝐭𝐚𝐬 𝐜𝐨𝐧 𝐦𝐮𝐜𝐡𝐚𝐬 𝐟𝐮𝐧𝐜𝐢𝐨𝐧𝐞𝐬 ⚙️
 
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#calcular • #calcular • #cal*  
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#calcular • #calcular • #cal*
 > ✦ Calcular todo tipo de ecuaciones.
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#horario*  
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#horario*
 > ✦ Ver el horario global de los países.
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#fake • #fakereply*  
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#fake • #fakereply*
 > ✦ Crea un mensaje falso de un usuario.
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#enhance • #remini • #hd*  
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#enhance • #remini • #hd*
 > ✦ Mejora la calidad de una imagen.
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#letra*  
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#letra*
 > ✦ Cambia la fuente de las letras.
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#read • #readviewonce • #ver*  
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#read • #readviewonce • #ver*
 > ✦ Ver imágenes de una sola vista.
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#whatmusic • #shazam*  
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#whatmusic • #shazam*
 > ✦ Descubre el nombre de canciones o vídeos.
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#ss • #ssweb*  
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#ss • #ssweb*
 > ✦ Ver el estado de una página web.
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#length • #tamaño*  
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#length • #tamaño*
 > ✦ Cambia el tamaño de imágenes y vídeos.
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#say • #decir* + [texto]  
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#say • #decir* + [texto]
 > ✦ Repetir un mensaje.
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#todoc • #toducument*  
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#todoc • #toducument*
 > ✦ Crea documentos de (audio, imágenes y vídeos).
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#translate • #traducir • #trad*  
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#translate • #traducir • #trad*
 > ✦ Traduce palabras en otros idiomas.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅,
 `.trim();
-
 
 await conn.sendMessage(
 m.chat,

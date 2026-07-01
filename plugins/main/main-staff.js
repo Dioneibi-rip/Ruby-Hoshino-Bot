@@ -7,8 +7,8 @@ let staff = `ᥫ᭡ *EQUIPO DE AYUDANTES* ❀
 ❖ *Libreria* » ${libreria} ${baileys}
 > ✧ GitHub » https://github.com/Dioneibi-rip
 
-✰ *Colaborador 1* » Nevi 
-✦ *Rol* » Ayudante y desarrollador. 
+✰ *Colaborador 1* » Nevi
+✦ *Rol* » Ayudante y desarrollador.
 > ✧ Github » https://github.com/nevi-dev
 
 ✰ *Colaborador 2* » Legna
@@ -17,7 +17,7 @@ let staff = `ᥫ᭡ *EQUIPO DE AYUDANTES* ❀
 `
 await conn.sendFile(m.chat, img, 'yuki.jpg', staff.trim(), m)
 }
-  
+
 handler.help = ['staff']
 handler.command = ['colaboradores', 'staff']
 handler.register = true

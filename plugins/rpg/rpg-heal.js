@@ -17,7 +17,7 @@ user.lastHeal = new Date();
 
 const mensaje = `
 ╭───────❍
-│🌸 *¡Curación exitosa!*  
+│🌸 *¡Curación exitosa!*
 │❤️ *+${cura}* puntos de vida restaurados
 │💸 *Costo:* ¥${costoCura.toLocaleString()} ${m.moneda}
 ╰──────────❍

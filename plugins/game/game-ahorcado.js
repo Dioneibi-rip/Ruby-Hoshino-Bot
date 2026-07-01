@@ -1,4 +1,4 @@
-const palabras = ["gato", "perro", "pájaro", "elefante", "tigre", "ballena", "mariposa", "tortuga", "conejo", "rana", "pulpo", "ardilla", "jirafa", "cocodrilo", "pingüino", "delfín", "serpiente", "hámster", "mosquito", "abeja", "Porno", "negro", "television", "computadora", "botsito", "reggaeton", "economía", "electrónica", "facebook", "WhatsApp", "Instagram", "tiktok", "milanesa", "presidente", "bot", "películas", 
+const palabras = ["gato", "perro", "pájaro", "elefante", "tigre", "ballena", "mariposa", "tortuga", "conejo", "rana", "pulpo", "ardilla", "jirafa", "cocodrilo", "pingüino", "delfín", "serpiente", "hámster", "mosquito", "abeja", "Porno", "negro", "television", "computadora", "botsito", "reggaeton", "economía", "electrónica", "facebook", "WhatsApp", "Instagram", "tiktok", "milanesa", "presidente", "bot", "películas",
 ]
 
 const intentosMaximos = 6
@@ -10,17 +10,16 @@ return palabras[Math.floor(Math.random() * palabras.length)]
 }
 
 function ocultarPalabra(palabra, letrasAdivinadas) {
-    let palabraOculta = "";
-    for (const letra of palabra) {
-        if (letrasAdivinadas.includes(letra)) {
-            palabraOculta += letra + " "; 
-        } else {
-            palabraOculta += "_ "; 
-        }
-    }
-    return palabraOculta.trim(); 
+let palabraOculta = "";
+for (const letra of palabra) {
+if (letrasAdivinadas.includes(letra)) {
+palabraOculta += letra + " ";
+} else {
+palabraOculta += "_ ";
 }
-
+}
+return palabraOculta.trim();
+}
 
 function mostrarAhorcado(intentos) {
 const dibujo = [
@@ -34,20 +33,20 @@ return dibujo.slice(0, intentosMaximos - intentos).join("\n")
 }
 
 function juegoTerminado(sender, mensaje, palabra, letrasAdivinadas, intentos) {
-    if (intentos === 0) {
-        gam.delete(sender);
-        return `❌ ¡Perdiste! La palabra correcta era: ${palabra}\n\n${mostrarAhorcado(intentos)}`;
-    } else if (!mensaje.includes("_")) {
-        let expGanada = Math.floor(Math.random() * 300); //fáciles
-        if (palabra.length >= 8) {
-            expGanada = Math.floor(Math.random() * 3500); //difíciles
-        }
-        global.db.getUser(sender).exp += expGanada;
-        gam.delete(sender);
-        return `¡Que pro Ganaste 🥳! Adivinaste la palabra "${palabra}".\n\n*Has ganado:* ${expGanada} Exp.`;
-    } else {
-        return `${mostrarAhorcado(intentos)}\n\n${mensaje}`;
-    }
+if (intentos === 0) {
+gam.delete(sender);
+return `❌ ¡Perdiste! La palabra correcta era: ${palabra}\n\n${mostrarAhorcado(intentos)}`;
+} else if (!mensaje.includes("_")) {
+let expGanada = Math.floor(Math.random() * 300); //fáciles
+if (palabra.length >= 8) {
+expGanada = Math.floor(Math.random() * 3500); //difíciles
+}
+global.db.getUser(sender).exp += expGanada;
+gam.delete(sender);
+return `¡Que pro Ganaste 🥳! Adivinaste la palabra "${palabra}".\n\n*Has ganado:* ${expGanada} Exp.`;
+} else {
+return `${mostrarAhorcado(intentos)}\n\n${mensaje}`;
+}
 }
 
 let handler = async (m, { conn }) => {

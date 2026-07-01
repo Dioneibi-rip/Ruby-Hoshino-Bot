@@ -1,31 +1,36 @@
-# Instaladores
-git-installer.exe
-imagemagick-installer.exe
-node-installer.msi
-
-# Node
 node_modules/
-.npm/
 npm-debug.log*
+yarn-debug.log*
 yarn-error.log*
-
-# Sesiones / temporales (bots)
-RubySessions/
-src/database/backups/
-tmp/
-*.tmp
-
-# Archivos de entorno
+pnpm-debug.log*
+.npm/
 .env
-
-# Sistemas
-.DS_Store
-Thumbs.db
-
-# SQLite runtime databases
-*.sqlite
-*.sqlite-shm
-*.sqlite-wal
+.env.*
+!.env.example
+src/database/database.sqlite
+src/database/*.sqlite
+src/database/*.sqlite-shm
+src/database/*.sqlite-wal
 *.db
 *.db-shm
 *.db-wal
+RubySessions/
+Sessions/
+sessions/
+session/
+jadibts/
+subbots/
+serbot/
+tmp/
+temp/
+downloads/
+.cache/
+coverage/
+dist/
+build/
+*.log
+*.tmp
+*.bak
+*.backup
+.DS_Store
+Thumbs.db

@@ -13,22 +13,22 @@ let name = conn.getName(who);
 let premium = user.premium ? '✅' : '❌';
 
 let text = `╭━〔 Inventario de ${name} 〕⬣\n` +
-`┋ 💸 *${m.moneda} en Cartera:* ${user.coin || 0}\n` +  
-`┋ 🏦 *${m.moneda} en Banco:* ${user.bank || 0}\n` + 
-`┋ ♦️ *Esmeraldas:* ${user.emerald || 0}\n` + 
-`┋ 🔩 *Hierro:* ${user.iron || 0}\n` +  
-`┋ 🏅 *Oro:* ${user.gold || 0}\n` + 
-`┋ 🕋 *Carbón:* ${user.coal || 0}\n` +  
-`┋ 🪨 *Piedra:* ${user.stone || 0}\n` +  
-`┋ ✨ *Experiencia:* ${user.exp || 0}\n` + 
-`┋ ❤️ *Salud:* ${user.health || 100}\n` + 
-`┋ 💎 *Diamantes:* ${user.diamond || 0}\n` +   
-`┋ 🍬 *Dulces:* ${user.candies || 0}\n` + 
-`┋ 🎁 *Regalos:* ${user.gifts || 0}\n` + 
-`┋ 🎟️ *Tokens:* ${user.joincount || 0}\n` +  
-`┋ ⚜️ *Premium:* ${premium}\n` + 
-`┋ 💼 *Trabajo:* ${formatJobLine(user)}\n` + 
-`┋ ⏳ *Última Aventura:* ${user.lastAdventure ? moment(user.lastAdventure).fromNow() : 'Nunca'}\n` + 
+`┋ 💸 *${m.moneda} en Cartera:* ${user.coin || 0}\n` +
+`┋ 🏦 *${m.moneda} en Banco:* ${user.bank || 0}\n` +
+`┋ ♦️ *Esmeraldas:* ${user.emerald || 0}\n` +
+`┋ 🔩 *Hierro:* ${user.iron || 0}\n` +
+`┋ 🏅 *Oro:* ${user.gold || 0}\n` +
+`┋ 🕋 *Carbón:* ${user.coal || 0}\n` +
+`┋ 🪨 *Piedra:* ${user.stone || 0}\n` +
+`┋ ✨ *Experiencia:* ${user.exp || 0}\n` +
+`┋ ❤️ *Salud:* ${user.health || 100}\n` +
+`┋ 💎 *Diamantes:* ${user.diamond || 0}\n` +
+`┋ 🍬 *Dulces:* ${user.candies || 0}\n` +
+`┋ 🎁 *Regalos:* ${user.gifts || 0}\n` +
+`┋ 🎟️ *Tokens:* ${user.joincount || 0}\n` +
+`┋ ⚜️ *Premium:* ${premium}\n` +
+`┋ 💼 *Trabajo:* ${formatJobLine(user)}\n` +
+`┋ ⏳ *Última Aventura:* ${user.lastAdventure ? moment(user.lastAdventure).fromNow() : 'Nunca'}\n` +
 `┋ 📅 *Fecha:* ${new Date().toLocaleString('id-ID')}\n` +
 `╰━━━━━━━━━━━━⬣`;
 
@@ -37,7 +37,7 @@ await conn.sendFile(m.chat, img, 'yuki.jpg', text, fkontak);
 
 handler.help = ['inventario', 'inv'];
 handler.tags = ['rpg'];
-handler.command = ['inventario', 'inv']; 
+handler.command = ['inventario', 'inv'];
 handler.group = true;
 handler.register = true;
 

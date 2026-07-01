@@ -1,4 +1,3 @@
-//code traído por Xi_Crew
 import { generateWAMessageFromContent } from '@whiskeysockets/baileys'
 import * as fs from 'fs'
 
@@ -15,10 +14,6 @@ let msg = conn.cMod(m.chat, generateWAMessageFromContent(m.chat, { [m.quoted ? q
 await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id })
 
 } catch (e) {
-
-/**
-[ By @NeKosmic || https://github.com/NeKosmic/ ]
-**/
 
 let users = participants.map(u => conn.decodeJid(u.id))
 let quoted = m.quoted ? m.quoted : m
@@ -41,7 +36,7 @@ var mediax = await quoted.download?.()
 conn.sendMessage(m.chat, {sticker: mediax, mentions: users}, { quoted: null })
 } else {
 await conn.relayMessage(m.chat, {extendedTextMessage:{text: `${masss}\n${htextos}\n`, ...{ contextInfo: { mentionedJid: users}}}}, {})
-  return false;
+return false;
 }}
 
 }

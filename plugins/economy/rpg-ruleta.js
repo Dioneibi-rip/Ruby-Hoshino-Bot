@@ -45,7 +45,6 @@ return false;
 
 user.coin -= bet;
 
-
 await conn.reply(m.chat, `🎲 Apuesta registrada: *¥${bet.toLocaleString()} ${m.moneda}* al color *${color}*.
 ⏳ Resolviendo ruleta en 5 segundos...`, m);
 

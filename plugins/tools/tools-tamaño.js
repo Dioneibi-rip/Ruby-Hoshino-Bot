@@ -33,12 +33,11 @@ await m.react('✅')
 }
 } catch (e) {
 await m.react('✖️')
-  return false;
+return false;
 }}
 handler.tags = ['tools']
 handler.help = ['tamaño *<cantidad>*']
 handler.command = ['filelength', 'length', 'tamaño']
-//handler.limit = 1
-handler.register = true 
+handler.register = true
 
 export default handler

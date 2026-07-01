@@ -31,7 +31,7 @@ conn.reply(m.chat, `${emoji} ¡Hola! ¿logras verme?`, m)
 } catch (err) {
 console.error('Error al leer la carpeta o los archivos de sesión:', err)
 await conn.reply(m.chat, `${emoji} Hola Soy ${botname} Sigue El Canal y apoyanos porfavor.\n\n> ${channel}`, m)
-  return false;
+return false;
 }
 
 }

@@ -8,7 +8,7 @@ if (json.data && json.data.length > 0) return json.data[0].images.jpg.large_imag
 return null
 } catch (e) {
 return null
-  return false;
+return false;
 }
 }
 let handler = async (m, { conn, args }) => {
@@ -68,7 +68,7 @@ const name = await conn.getName(claim.userId)
 status = `Reclamado por ${name}`
 } catch (e) {
 status = `Reclamado por @${String(claim.userId).split('@')[0]}`
-  return false;
+return false;
 }
 mentionSet.add(claim.userId)
 }
@@ -85,7 +85,7 @@ await conn.sendMessage(m.chat, { text: message, mentions }, { quoted: m })
 } catch (error) {
 console.error(error)
 await conn.reply(m.chat, `✘ Error: ${error.message}`, m)
-  return false;
+return false;
 }
 }
 handler.help = ['ainfo <serie>']

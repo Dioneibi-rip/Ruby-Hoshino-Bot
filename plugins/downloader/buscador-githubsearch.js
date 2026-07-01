@@ -10,7 +10,7 @@ const json=await res.json()
 if(!json.items||json.items.length===0)throw 'No results'
 const results=json.items.slice(0,5)
 let str=results.map((repo,index)=>{return `
-┌͡╼᮫͜  ⟆ 🍟  ${toFancy("Resultado")} ${1+index} ㅤ 
+┌͡╼᮫͜  ⟆ 🍟  ${toFancy("Resultado")} ${1+index} ㅤ
 ┆᮫⌣⃕╼̟ᜒ 👑 ${toFancy("Creador")}: ${repo.owner.login}
 ┆⌣⃕╼̟ᜒ 📦 ${toFancy("Nombre")}: ${repo.name}
 ┆⌣⃕╼̟ᜒ 📅 ${toFancy("Creado")}: ${formatDate(repo.created_at)}
