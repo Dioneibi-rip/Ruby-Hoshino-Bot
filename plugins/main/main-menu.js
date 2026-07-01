@@ -709,21 +709,6 @@ let txt = `
 ╚▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬▭╝
 `.trim();
 
-const pluginCommands = Object.values(global.plugins || {})
-.filter(plugin => plugin?.help && plugin?.tags && plugin?.command)
-.flatMap(plugin => commandAliases(plugin.command).map(command => ({ command, tag: Array.isArray(plugin.tags) ? plugin.tags[0] : plugin.tags })))
-.filter(item => item.command && !normalizeMenuSearch(txt).includes(normalizeMenuSearch(`#${item.command}`)))
-.sort((a, b) => String(a.tag).localeCompare(String(b.tag)) || a.command.localeCompare(b.command));
-if (pluginCommands.length) {
-txt += `
-
-╔══⩽✦✰✦⩾══╗
-「 PLUGINS REALES SINCRONIZADOS 」
-╚══⩽✦✰✦⩾══╝
-${pluginCommands.map(({ command, tag }) => `┣ ☃️ #${command} 〔${tag || 'general'}〕`).join('\n')}
-╚═══════════════════════╝`;
-}
-
 await conn.reply(m.chat, '*ꪹ͜𓂃⌛͡𝗘𝗻𝘃𝗶𝗮𝗻𝗱𝗼 𝗠𝗲𝗻𝘂 𝗱𝗲 𝗹𝗮 𝗕𝗼𝘁....𓏲੭*', m, {
 contextInfo: {
 forwardingScore: 2022,
