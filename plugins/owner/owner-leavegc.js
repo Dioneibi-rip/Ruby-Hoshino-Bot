@@ -1,15 +1,15 @@
 let handler = async (m, { conn, text, command }) => {
-let id = text ? text : m.chat  
+let id = text ? text : m.chat
 let chat = global.db.getChat(m.chat)
 chat.welcome = false
-await conn.reply(id, `${emoji} Adios a todos, el Bot se despide! (≧ω≦)ゞ`) 
+await conn.reply(id, `${emoji} Adios a todos, el Bot se despide! (≧ω≦)ゞ`)
 await conn.groupLeave(id)
-try {  
+try {
 chat.welcome = true
 } catch (e) {
-await m.reply(`${fg}`) 
+await m.reply(`${fg}`)
 return console.log(e)
-  return false;
+return false;
 }}
 handler.command = ['salir','leavegc','salirdelgrupo','leave']
 handler.group = true

@@ -1,53 +1,53 @@
 import PhoneNumber from 'awesome-phonenumber'
 
 async function handler(m, { conn }) {
-  m.react('📇')
+m.react('📇')
 
-  const contactos = [
-    {
-      numero: '18093519169',
-      nombre: '⏤͟͞ू⃪ ፝͜⁞𝘿𝙞𝙤𝙣𝙚𝙞𝙗𝙞-ʳⁱᵖ ִֶ ࣪˖ ִֶָ👑་༘',
-      cargo: 'Dueño Principal',
-      nota: 'Creador del Bot',
-      correo: 'selinapasena@gmail.com',
-      region: '🇩🇴 República Dominicana',
-      web: 'https://github.com/Dioneibi-rip',
-      biografia: await conn.fetchStatus('18093519169@s.whatsapp.net').then(res => res.status).catch(_ => 'Sin biografía')
-    },
-    {
-      numero: '18096758983',
-      nombre: '⟆⃝༉⃟⸙ ᯽ N͙e͙v͙i͙-D͙e͙v͙ ⌗⚙️࿐',
-      cargo: 'Desarrollador y ayudante',
-      nota: 'Soporte Técnico',
-      correo: 'sin información',
-      region: '🇩🇴 República Dominicana',
-      web: 'https://github.com/nevi-dev',
-      biografia: await conn.fetchStatus('18096758983@s.whatsapp.net').then(res => res.status).catch(_ => 'Sin biografía')
-    },
-    {
-      numero: '5216671548329',
-      nombre: '⏤͟͞ू⃪ ꒰˘͈ᵕ ˘͈ 𝑳𝒆𝒈𝒏𝒂-𝒄𝒉𝒂𝒏 🪽 ꒱𖦹',
-      cargo: 'Co-Desarrolladora y contribudora',
-      nota: 'soporte y editor',
-      correo: 'sin información',
-      region: '🇲🇽 México',
-      web: 'https://github.com/Legna-chan',
-      biografia: await conn.fetchStatus('5216671548329@s.whatsapp.net').then(res => res.status).catch(_ => 'Sin biografía')
-    }
-  ]
+const contactos = [
+{
+numero: '18093519169',
+nombre: '⏤͟͞ू⃪ ፝͜⁞𝘿𝙞𝙤𝙣𝙚𝙞𝙗𝙞-ʳⁱᵖ ִֶ ࣪˖ ִֶָ👑་༘',
+cargo: 'Dueño Principal',
+nota: 'Creador del Bot',
+correo: 'selinapasena@gmail.com',
+region: '🇩🇴 República Dominicana',
+web: 'https://github.com/Dioneibi-rip',
+biografia: await conn.fetchStatus('18093519169@s.whatsapp.net').then(res => res.status).catch(_ => 'Sin biografía')
+},
+{
+numero: '18096758983',
+nombre: '⟆⃝༉⃟⸙ ᯽ N͙e͙v͙i͙-D͙e͙v͙ ⌗⚙️࿐',
+cargo: 'Desarrollador y ayudante',
+nota: 'Soporte Técnico',
+correo: 'sin información',
+region: '🇩🇴 República Dominicana',
+web: 'https://github.com/nevi-dev',
+biografia: await conn.fetchStatus('18096758983@s.whatsapp.net').then(res => res.status).catch(_ => 'Sin biografía')
+},
+{
+numero: '5216671548329',
+nombre: '⏤͟͞ू⃪ ꒰˘͈ᵕ ˘͈ 𝑳𝒆𝒈𝒏𝒂-𝒄𝒉𝒂𝒏 🪽 ꒱𖦹',
+cargo: 'Co-Desarrolladora y contribudora',
+nota: 'soporte y editor',
+correo: 'sin información',
+region: '🇲🇽 México',
+web: 'https://github.com/Legna-chan',
+biografia: await conn.fetchStatus('5216671548329@s.whatsapp.net').then(res => res.status).catch(_ => 'Sin biografía')
+}
+]
 
-  const contactArray = contactos.map(c => [
-    c.numero,
-    c.nombre,
-    c.cargo,
-    c.nota,
-    c.correo,
-    c.region,
-    c.web,
-    c.biografia
-  ])
+const contactArray = contactos.map(c => [
+c.numero,
+c.nombre,
+c.cargo,
+c.nota,
+c.correo,
+c.region,
+c.web,
+c.biografia
+])
 
-  await sendContactArray(conn, m.chat, contactArray, m)
+await sendContactArray(conn, m.chat, contactArray, m)
 }
 
 handler.help = ['owner', 'creador', 'creator']
@@ -57,11 +57,11 @@ handler.command = ['owner', 'creator', 'creador', 'dueño']
 export default handler
 
 async function sendContactArray(conn, jid, data, quoted, options) {
-  if (!Array.isArray(data[0]) && typeof data[0] === 'string') data = [data]
-  let contacts = []
-  for (let [number, name, title, note, email, region, url, bio] of data) {
-    number = number.replace(/[^0-9]/g, '')
-    let vcard = `
+if (!Array.isArray(data[0]) && typeof data[0] === 'string') data = [data]
+let contacts = []
+for (let [number, name, title, note, email, region, url, bio] of data) {
+number = number.replace(/[^0-9]/g, '')
+let vcard = `
 BEGIN:VCARD
 VERSION:3.0
 N:;${name.replace(/\n/g, '\\n')};;;
@@ -78,16 +78,16 @@ item4.URL:${url}
 item4.X-ABLabel:Sitio Web
 item5.X-ABLabel:${bio}
 END:VCARD`.trim()
-    contacts.push({ vcard, displayName: name })
-  }
+contacts.push({ vcard, displayName: name })
+}
 
-  return await conn.sendMessage(jid, {
-    contacts: {
-      displayName: 'Propietarios del Bot',
-      contacts,
-    }
-  }, {
-    quoted,
-    ...options
-  })
+return await conn.sendMessage(jid, {
+contacts: {
+displayName: 'Propietarios del Bot',
+contacts,
+}
+}, {
+quoted,
+...options
+})
 }

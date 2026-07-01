@@ -3,7 +3,6 @@ let handler = async (m, { conn }) => {
 let senderId = m.sender;
 let user = global.db.getUser(senderId);
 
-
 const eventos = [
 { nombre: 'Batalla contra los Goblins', tipo: 'victoria', coin: randomNumber(20, 40), exp: randomNumber(10, 20), health: 0, mensaje: `🏆 ¡Has derrotado a los Goblins! Al caer, dejaron caer un montón de ${m.moneda}.` },
 { nombre: 'Enfrentamiento con el Orco', tipo: 'derrota', coin: randomNumber(-30, -10), exp: randomNumber(5, 10), health: randomNumber(-15, -5), mensaje: `⚠️ Un Orco te atacó y has perdido salud y monedas en la pelea.` },

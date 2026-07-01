@@ -1,5 +1,5 @@
 let handler  = async (m, { conn }) => {
-  conn.reply(m.chat,`${pickRandom(global.iq)}`, m)
+conn.reply(m.chat,`${pickRandom(global.iq)}`, m)
 }
 handler.help = ['iqtest']
 handler.tags = ['fun']
@@ -8,10 +8,10 @@ handler.group = true
 handler.register = true
 handler.fail = null
 
-export default handler 
+export default handler
 
 function pickRandom(list) {
-  return list[Math.floor(list.length * Math.random())]
+return list[Math.floor(list.length * Math.random())]
 }
 
 global.iq = [

@@ -1,51 +1,50 @@
 import { loadCharacters } from '../../lib/gacha-characters.js';
 import { loadGroupVotes, makeGroupCharacterKey } from '../../lib/groupVotes.js';
 
-
 let handler = async (m, { conn, args }) => {
-  try {
-    const groupId = m.chat;
-    const characters = await loadCharacters();
-    const groupVotes = await loadGroupVotes();
+try {
+const groupId = m.chat;
+const characters = await loadCharacters();
+const groupVotes = await loadGroupVotes();
 
-    const enriched = characters.map(character => {
-      const gKey = makeGroupCharacterKey(groupId, character.id);
-      const gData = groupVotes[gKey] || { valueBonus: 0, votes: 0 };
-      const baseValue = Number(character.value || 0);
-      const value = baseValue + Number(gData.valueBonus || 0);
-      const votes = Number(gData.votes || 0);
-      return { ...character, value, groupVotes: votes };
-    });
+const enriched = characters.map(character => {
+const gKey = makeGroupCharacterKey(groupId, character.id);
+const gData = groupVotes[gKey] || { valueBonus: 0, votes: 0 };
+const baseValue = Number(character.value || 0);
+const value = baseValue + Number(gData.valueBonus || 0);
+const votes = Number(gData.votes || 0);
+return { ...character, value, groupVotes: votes };
+});
 
-    enriched.sort((a, b) => {
-      if (b.value !== a.value) return b.value - a.value;
-      return b.groupVotes - a.groupVotes;
-    });
+enriched.sort((a, b) => {
+if (b.value !== a.value) return b.value - a.value;
+return b.groupVotes - a.groupVotes;
+});
 
-    const page = Math.max(1, parseInt(args[0]) || 1);
-    const itemsPerPage = 10;
-    const totalCharacters = enriched.length;
-    const totalPages = Math.max(1, Math.ceil(totalCharacters / itemsPerPage));
-    const safePage = Math.min(page, totalPages);
-    const startIndex = (safePage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
+const page = Math.max(1, parseInt(args[0]) || 1);
+const itemsPerPage = 10;
+const totalCharacters = enriched.length;
+const totalPages = Math.max(1, Math.ceil(totalCharacters / itemsPerPage));
+const safePage = Math.min(page, totalPages);
+const startIndex = (safePage - 1) * itemsPerPage;
+const endIndex = startIndex + itemsPerPage;
 
-    const charactersToShow = enriched.slice(startIndex, endIndex);
+const charactersToShow = enriched.slice(startIndex, endIndex);
 
-    let message = '❀ *Top waifus por valor en este grupo:*\n';
-    charactersToShow.forEach((character, index) => {
-      message += `✰ ${startIndex + index + 1} » *${character.name}*\n`;
-      message += `   → Valor grupo: *${character.value.toLocaleString('es-ES')}*\n`;
-      message += `   → Votes grupo: *${character.groupVotes}*\n`;
-    });
+let message = '❀ *Top waifus por valor en este grupo:*\n';
+charactersToShow.forEach((character, index) => {
+message += `✰ ${startIndex + index + 1} » *${character.name}*\n`;
+message += `   → Valor grupo: *${character.value.toLocaleString('es-ES')}*\n`;
+message += `   → Votes grupo: *${character.groupVotes}*\n`;
+});
 
-    message += `\n> • Página *${safePage}* de *${totalPages}*.`;
+message += `\n> • Página *${safePage}* de *${totalPages}*.`;
 
-    await conn.reply(m.chat, message, m);
-  } catch (error) {
-    await conn.reply(m.chat, `✘ Error al cargar los personajes: ${error.message}`, m);
-  return false;
-  }
+await conn.reply(m.chat, message, m);
+} catch (error) {
+await conn.reply(m.chat, `✘ Error al cargar los personajes: ${error.message}`, m);
+return false;
+}
 };
 
 handler.help = ['topwaifus [página]'];

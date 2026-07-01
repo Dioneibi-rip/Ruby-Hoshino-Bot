@@ -1,56 +1,56 @@
 import { performance } from 'perf_hooks'
 
 var handler = async (m, { conn, text }) => {
-    let who;
-    let userName;
+let who;
+let userName;
 
-    if (m.isGroup) {
-        if (m.mentionedJid.length > 0) {
-            who = m.mentionedJid[0];
-            userName = await conn.getName(who);
-        } else if (m.quoted) {
-            who = m.quoted.sender;
-            userName = await conn.getName(who);
-        } else {
-            who = m.chat;
-        }
-    } else {
-        who = m.chat;
-    }
+if (m.isGroup) {
+if (m.mentionedJid.length > 0) {
+who = m.mentionedJid[0];
+userName = await conn.getName(who);
+} else if (m.quoted) {
+who = m.quoted.sender;
+userName = await conn.getName(who);
+} else {
+who = m.chat;
+}
+} else {
+who = m.chat;
+}
 
-    if (!who) return conn.reply(m.chat, `⚠️ Por favor, etiqueta a alguien o responde a un mensaje para doxear.`, m);
+if (!who) return conn.reply(m.chat, `⚠️ Por favor, etiqueta a alguien o responde a un mensaje para doxear.`, m);
 
-    if (!userName) {
-        userName = text || 'Desconocido';
-    }
+if (!userName) {
+userName = text || 'Desconocido';
+}
 
-    const getRandomIP = () => `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
-    const getRandomMAC = () => 'XX:XX:XX:XX:XX:XX'.replace(/X/g, () => '0123456789ABCDEF'[Math.floor(Math.random() * 16)]);
-    const getRandomPort = () => Math.floor(Math.random() * 65535);
-    const brands = ['Samsung Galaxy S23 Ultra', 'iPhone 15 Pro Max', 'Xiaomi 13 Pro', 'Google Pixel 8', 'Huawei P60 Pro', 'Motorola Edge 40'];
-    const os = ['Android 14', 'iOS 17.2', 'Windows 11 Mobile', 'HarmonyOS 4.0'];
-    const nets = ['Tigo', 'Claro', 'Movistar', 'Vodafone', 'AT&T', 'Starlink Enterprise'];
+const getRandomIP = () => `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+const getRandomMAC = () => 'XX:XX:XX:XX:XX:XX'.replace(/X/g, () => '0123456789ABCDEF'[Math.floor(Math.random() * 16)]);
+const getRandomPort = () => Math.floor(Math.random() * 65535);
+const brands = ['Samsung Galaxy S23 Ultra', 'iPhone 15 Pro Max', 'Xiaomi 13 Pro', 'Google Pixel 8', 'Huawei P60 Pro', 'Motorola Edge 40'];
+const os = ['Android 14', 'iOS 17.2', 'Windows 11 Mobile', 'HarmonyOS 4.0'];
+const nets = ['Tigo', 'Claro', 'Movistar', 'Vodafone', 'AT&T', 'Starlink Enterprise'];
 
-    let steps = [
-        `🔄 *Conectando al servidor satelital...*`,
-        `🔓 *Bypassing firewall del dispositivo...* [Success]`,
-        `💉 *Inyectando payload SQL en ${userName}...*`,
-        `📂 *Descifrando archivos locales (WhatsApp.db)...*`,
-        `☁️ *Extrayendo fotos de la galería privada...*`,
-        `📍 *Triangulando ubicación GPS precisa...*`
-    ];
+let steps = [
+`🔄 *Conectando al servidor satelital...*`,
+`🔓 *Bypassing firewall del dispositivo...* [Success]`,
+`💉 *Inyectando payload SQL en ${userName}...*`,
+`📂 *Descifrando archivos locales (WhatsApp.db)...*`,
+`☁️ *Extrayendo fotos de la galería privada...*`,
+`📍 *Triangulando ubicación GPS precisa...*`
+];
 
-    const { key } = await conn.sendMessage(m.chat, { text: `💻 *INICIANDO PROTOCOLO DE DOXEO v9.2*...` }, { quoted: m });
+const { key } = await conn.sendMessage(m.chat, { text: `💻 *INICIANDO PROTOCOLO DE DOXEO v9.2*...` }, { quoted: m });
 
-    for (let step of steps) {
-        await delay(800);
-        await conn.sendMessage(m.chat, { text: step, edit: key });
-    }
+for (let step of steps) {
+await delay(800);
+await conn.sendMessage(m.chat, { text: step, edit: key });
+}
 
-    let old = performance.now();
-    let neww = performance.now();
-    
-    let doxeo = `☠️ *REPORTE DE ACCESO FINALIZADO* ☠️
+let old = performance.now();
+let neww = performance.now();
+
+let doxeo = `☠️ *REPORTE DE ACCESO FINALIZADO* ☠️
 
 👤 *Víctima:* ${userName}
 🆔 *ID:* @${who.split('@')[0]}
@@ -85,7 +85,7 @@ var handler = async (m, { conn, text }) => {
 
 ⚠️ _El dispositivo ha sido infectado con éxito. Se recomienda formatear._`;
 
-    await conn.sendMessage(m.chat, { text: doxeo, edit: key, mentions: conn.parseMention(doxeo) });
+await conn.sendMessage(m.chat, { text: doxeo, edit: key, mentions: conn.parseMention(doxeo) });
 }
 
 handler.help = ['doxear'];
@@ -97,7 +97,7 @@ handler.group = true;
 export default handler;
 
 function pickRandom(list) {
-    return list[Math.floor(Math.random() * list.length)];
+return list[Math.floor(Math.random() * list.length)];
 }
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

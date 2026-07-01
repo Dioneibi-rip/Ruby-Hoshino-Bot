@@ -38,7 +38,6 @@ const texto = `
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅
 `.trim();
 
-
 await conn.sendMessage(
 m.chat,
 {

@@ -17,7 +17,6 @@ const cwd = process.cwd();
 let handler = async (m, { conn, args }) => {
 let userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
 
-
 let name = await conn.getName(userId);
 
 let user = global.db.getUser(userId);
@@ -59,7 +58,6 @@ let txt = `
 ║ ☆ 👩‍💻 *𝖢𝖱𝖤𝖠𝖣𝖮𝖱 𝖣𝖤 𝖫𝖠 𝖡𝖮𝖳*: (https://Wa.me/18294868853)
 ╚════════════════════════
 
-
 ╔═══════⩽✦✰✦⩾═══════╗
 「 𝙄𝙉𝙁𝙊 𝘿𝙀𝙇 𝙐𝙎𝙐𝘼𝙍𝙄𝙊 」
 ╚═══════⩽✦✰✦⩾═══════╝
@@ -77,7 +75,6 @@ let txt = `
 ╚══⩽✦✰✦⩾══╝
 
 *L I S T A  -  D E  -  C O M A N D O S*
-
 
 ✞͙͙͙͙͙͙͙͙͙͙⏜❟︵ֹ̩̥̩̥̩̥̩̩̥⏜੭🏮୧ֹ⏜︵ֹ̩̥̩̥̩̥̩̥̩̥̩̥̩̥❟⏜፞✞͙͙͙͙͙͙͙͙͙͙.
 ├┈ ↷   𝙞𝙣𝙛𝙤
@@ -712,13 +709,26 @@ let txt = `
 ╚▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬▭╝
 `.trim();
 
+const pluginCommands = Object.values(global.plugins || {})
+.filter(plugin => plugin?.help && plugin?.tags && plugin?.command)
+.flatMap(plugin => commandAliases(plugin.command).map(command => ({ command, tag: Array.isArray(plugin.tags) ? plugin.tags[0] : plugin.tags })))
+.filter(item => item.command && !normalizeMenuSearch(txt).includes(normalizeMenuSearch(`#${item.command}`)))
+.sort((a, b) => String(a.tag).localeCompare(String(b.tag)) || a.command.localeCompare(b.command));
+if (pluginCommands.length) {
+txt += `
+
+╔══⩽✦✰✦⩾══╗
+「 PLUGINS REALES SINCRONIZADOS 」
+╚══⩽✦✰✦⩾══╝
+${pluginCommands.map(({ command, tag }) => `┣ ☃️ #${command} 〔${tag || 'general'}〕`).join('\n')}
+╚═══════════════════════╝`;
+}
 
 await conn.reply(m.chat, '*ꪹ͜𓂃⌛͡𝗘𝗻𝘃𝗶𝗮𝗻𝗱𝗼 𝗠𝗲𝗻𝘂 𝗱𝗲 𝗹𝗮 𝗕𝗼𝘁....𓏲੭*', m, {
 contextInfo: {
 forwardingScore: 2022,
 isForwarded: true}
 });
-
 
 await m.react('💛');
 

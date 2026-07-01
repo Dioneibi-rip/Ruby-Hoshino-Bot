@@ -1,6 +1,6 @@
 
 let handler = async (m, { conn }) => {
-  const texto = `
+const texto = `
 🎌✨⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐝𝐞 𝐫𝐞𝐚𝐜𝐜𝐢𝐨𝐧𝐞𝐬 𝐝𝐞 𝐚𝐧𝐢𝐦𝐞 💢🎭⊹
 
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭⛸️ *#angry • #enojado* + <mencion>
@@ -72,26 +72,25 @@ let handler = async (m, { conn }) => {
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭⛸️ᩚ *#think* + <mencion>
 > ✦ Pensar en algo
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅
-  `.trim();
+`.trim();
 
-
-    await conn.sendMessage(
-    m.chat,
-    {
-      image: { url: 'https://files.catbox.moe/8iug4q.jpeg' },
-      caption: texto,
-      contextInfo: {
-        mentionedJid: [m.sender],
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363335626706839@newsletter',
-        newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
-          serverMessageId: -1,
-        },
-      },
-    },
-    { quoted: fkontak }
-  );
+await conn.sendMessage(
+m.chat,
+{
+image: { url: 'https://files.catbox.moe/8iug4q.jpeg' },
+caption: texto,
+contextInfo: {
+mentionedJid: [m.sender],
+isForwarded: true,
+forwardedNewsletterMessageInfo: {
+newsletterJid: '120363335626706839@newsletter',
+newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
+serverMessageId: -1,
+},
+},
+},
+{ quoted: fkontak }
+);
 };
 
 handler.command = ['menuanime', 'reaccionesmenu'];

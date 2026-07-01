@@ -1,6 +1,5 @@
 import { ensureJobFields, getJobData } from '../../lib/rpg-jobs.js';
 
-
 let handler = async (m, { conn, usedPrefix }) => {
 let senderId = m.sender;
 let user = global.db.getUser(senderId);
@@ -11,7 +10,6 @@ if (!job) {
 await conn.reply(m.chat, `💼 Primero consigue trabajo con *#trabajo lista*. Tu oficio afecta el rendimiento en #slut.`, m);
 return false;
 }
-
 
 let users = global.db.listUsers();
 let userIds = Object.keys(users).filter(u => u !== senderId && !users[u].banned);
@@ -75,7 +73,6 @@ if (number >= 1000 && number < 1000000) return (number / 1000).toFixed(1) + 'k';
 if (number >= 1000000) return (number / 1000000).toFixed(1) + 'M';
 return number.toString();
 }
-
 
 
 function pickRandom(list) {

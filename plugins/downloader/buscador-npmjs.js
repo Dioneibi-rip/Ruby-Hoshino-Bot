@@ -1,7 +1,3 @@
-/*
-《✧》DERECHOS RESERVADOS POR EL AUTOR《✧》
-- GabrielVz (@glytglobal)
-*/
 
 import fetch from 'node-fetch'
 
@@ -34,7 +30,7 @@ await m.react(done)
 } catch (e) {
 await conn.reply(m.chat, `${msm} Ocurrió un error.`, m)
 await m.react(error)
-  return false;
+return false;
 }}
 
 handler.help = ['npmjs']

@@ -23,7 +23,7 @@ await conn.sendMessage(m.chat, {text: txt, contextInfo: { forwardingScore: 999, 
 } catch (e) {
 await conn.reply(m.chat, `${msm} Ocurrió un error.`, m)
 await m.react(error)
-  return false;
+return false;
 }}
 
 handler.help = ['script']

@@ -5,17 +5,17 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 if (!text) throw m.reply(`${emoji} Por favor, ingresa un enlace de *TikTok*.`);
 conn.sendMessage(m.chat, { react: { text: "🕒", key: m.key } });
 
-  let d2 = await fetch(`https://eliasar-yt-api.vercel.app/api/search/tiktok?query=${text}`)
-  let dp = await d2.json()
-      const doc = {
-      audio: { url: dp.results.audio },
-      mimetype: 'audio/mp4',
-      fileName: `ttbykeni.mp3`,
-      contextInfo: {
-        
-      }
-    };
-    await conn.sendMessage(m.chat, doc, { quoted: m })
+let d2 = await fetch(`https://eliasar-yt-api.vercel.app/api/search/tiktok?query=${text}`)
+let dp = await d2.json()
+const doc = {
+audio: { url: dp.results.audio },
+mimetype: 'audio/mp4',
+fileName: `ttbykeni.mp3`,
+contextInfo: {
+
+}
+};
+await conn.sendMessage(m.chat, doc, { quoted: m })
 await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key }});
 }
 handler.help = ['tiktokmp3 *<url>*']

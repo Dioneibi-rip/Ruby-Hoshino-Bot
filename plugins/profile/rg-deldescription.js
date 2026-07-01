@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';  
+import { createHash } from 'crypto';
 import fetch from 'node-fetch';
 
 const handler = async (m, { conn }) => {
