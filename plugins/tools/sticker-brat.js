@@ -10,7 +10,7 @@ async function fetchSticker(text) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const response = await axios.get(url, {
-        params: { text },
+        params: { q: text },
         responseType: 'arraybuffer',
         timeout: 25000,
         headers: { accept: 'image/png,image/jpeg,image/webp,*/*' },
@@ -18,7 +18,9 @@ async function fetchSticker(text) {
       });
       
       const buffer = Buffer.from(response.data);
-      if (buffer.length > 1000) return buffer;
+      
+      if (buffer.length > 50) return buffer; 
+      
       throw new Error('La API devolvió una imagen vacía.');
     } catch (error) {
       lastError = error;
