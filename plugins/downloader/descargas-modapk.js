@@ -1,25 +1,25 @@
 import { search, download } from 'aptoide-scraper'
 
 let handler = async (m, { conn, usedPrefix, command, text }) => {
-  const toFancy = (str) => {
-    const map = {
-      'a':'ᥲ','b':'ᑲ','c':'ᥴ','d':'ᑯ','e':'ᥱ','f':'𝖿','g':'g','h':'һ','i':'і','j':'j','k':'k','l':'ᥣ','m':'m','n':'ᥒ','o':'᥆','p':'⍴','q':'q','r':'r','s':'s','t':'𝗍','u':'ᥙ','v':'᥎','w':'ɯ','x':'x','y':'ᥡ','z':'z',
-      'A':'A','B':'B','C':'C','D':'D','E':'E','F':'F','G':'G','H':'H','I':'I','J':'J','K':'K','L':'L','M':'M','N':'N','O':'O','P':'P','Q':'Q','R':'R','S':'S','T':'T','U':'U','V':'V','W':'W','X':'X','Y':'Y','Z':'Z'
-    }
-    return str.split('').map(c => map[c] || c).join('')
-  }
+const toFancy = (str) => {
+const map = {
+'a':'ᥲ','b':'ᑲ','c':'ᥴ','d':'ᑯ','e':'ᥱ','f':'𝖿','g':'g','h':'һ','i':'і','j':'j','k':'k','l':'ᥣ','m':'m','n':'ᥒ','o':'᥆','p':'⍴','q':'q','r':'r','s':'s','t':'𝗍','u':'ᥙ','v':'᥎','w':'ɯ','x':'x','y':'ᥡ','z':'z',
+'A':'A','B':'B','C':'C','D':'D','E':'E','F':'F','G':'G','H':'H','I':'I','J':'J','K':'K','L':'L','M':'M','N':'N','O':'O','P':'P','Q':'Q','R':'R','S':'S','T':'T','U':'U','V':'V','W':'W','X':'X','Y':'Y','Z':'Z'
+}
+return str.split('').map(c => map[c] || c).join('')
+}
 
-  if (!text) return conn.reply(m.chat, `🚩 *${toFancy("Ingrese el nombre de la apk")}*`, m, rcanal)
+if (!text) return conn.reply(m.chat, `🚩 *${toFancy("Ingrese el nombre de la apk")}*`, m, rcanal)
 
-  try {
-    await m.react(rwait)
+try {
+await m.react(rwait)
 
-    let searchA = await search(text)
-    if (!searchA.length) throw false
+let searchA = await search(text)
+if (!searchA.length) throw false
 
-    let data5 = await download(searchA[0].id)
+let data5 = await download(searchA[0].id)
 
-    let txt = `
+let txt = `
 ✿ ㅤ ׄㅤ 🪷̸ㅤ ˒˓ㅤ 𓏸̶ ㅤ ׄ   ✿
 \`\`\`A P T O I D E   D L\`\`\`
 
@@ -32,37 +32,37 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
 
 𖥻 · ˖ ࣪ ${toFancy("Descargando Archivo")}... ☆`.trim()
 
-    await conn.sendMessage(m.chat, {
-      image: { url: data5.icon },
-      caption: txt,
-      contextInfo: {
-        
-      }
-    }, { quoted: m })
+await conn.sendMessage(m.chat, {
+image: { url: data5.icon },
+caption: txt,
+contextInfo: {
 
-    if (data5.size.includes('GB') || parseFloat(data5.size.replace(' MB', '')) > 999) {
-      return conn.reply(m.chat, `🛑 *${toFancy("El archivo es demasiado pesado")}*`, m, rcanal)
-    }
+}
+}, { quoted: m })
 
-    let fkontak = {
-      key: { fromMe: false, participant: '0@s.whatsapp.net' },
-      message: { contactMessage: { displayName: 'Aptoide', vcard: '' }}
-    }
+if (data5.size.includes('GB') || parseFloat(data5.size.replace(' MB', '')) > 999) {
+return conn.reply(m.chat, `🛑 *${toFancy("El archivo es demasiado pesado")}*`, m, rcanal)
+}
 
-    await conn.sendMessage(m.chat, {
-      document: { url: data5.dllink },
-      mimetype: 'application/vnd.android.package-archive',
-      fileName: data5.name + '.apk'
-    }, { quoted: fkontak })
+let fkontak = {
+key: { fromMe: false, participant: '0@s.whatsapp.net' },
+message: { contactMessage: { displayName: 'Aptoide', vcard: '' }}
+}
 
-    await m.react(done)
+await conn.sendMessage(m.chat, {
+document: { url: data5.dllink },
+mimetype: 'application/vnd.android.package-archive',
+fileName: data5.name + '.apk'
+}, { quoted: fkontak })
 
-  } catch (e) {
-    console.log(e)
-    await m.react(error)
-    return conn.reply(m.chat, `🛑 *${toFancy("Ocurrió un fallo al buscar")}*`, m, rcanal)
-  return false;
-  }
+await m.react(done)
+
+} catch (e) {
+console.log(e)
+await m.react(error)
+return conn.reply(m.chat, `🛑 *${toFancy("Ocurrió un fallo al buscar")}*`, m, rcanal)
+return false;
+}
 }
 
 handler.tags = ['descargas']

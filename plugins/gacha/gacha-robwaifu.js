@@ -16,7 +16,6 @@ if (victimOwnedCount >= 8) chance += 0.05
 return Math.min(0.62, Math.max(0.25, chance))
 }
 
-
 let handler = async (m, { conn, participants }) => {
 let userId = m.sender
 const groupId = m.chat

@@ -1,10 +1,10 @@
 const handler = async (m, {conn, participants, groupMetadata}) => {
-  const pp = await conn.profilePictureUrl(m.chat, 'image').catch((_) => null) || `${icono}`;
-  const {antiLink, detect, welcome, modoadmin, antiPrivate, nsfw, restrict, antiSpam, reaction, antiToxic} = global.db.getChat(m.chat);
-  const groupAdmins = participants.filter((p) => p.admin);
-  const listAdmin = groupAdmins.map((v, i) => `${i + 1}. @${v.id.split('@')[0]}`).join('\n');
-  const owner = groupMetadata.owner || groupAdmins.find((p) => p.admin === 'superadmin')?.id || m.chat.split`-`[0] + '@s.whatsapp.net';
-  const text = `*✧･ﾟ INFO GRUPO ﾟ･✧*
+const pp = await conn.profilePictureUrl(m.chat, 'image').catch((_) => null) || `${icono}`;
+const {antiLink, detect, welcome, modoadmin, antiPrivate, nsfw, restrict, antiSpam, reaction, antiToxic} = global.db.getChat(m.chat);
+const groupAdmins = participants.filter((p) => p.admin);
+const listAdmin = groupAdmins.map((v, i) => `${i + 1}. @${v.id.split('@')[0]}`).join('\n');
+const owner = groupMetadata.owner || groupAdmins.find((p) => p.admin === 'superadmin')?.id || m.chat.split`-`[0] + '@s.whatsapp.net';
+const text = `*✧･ﾟ INFO GRUPO ﾟ･✧*
 ❀ *ID:*
 → ${groupMetadata.id}
 ⚘ *Nombre:*
@@ -21,17 +21,17 @@ ${listAdmin}
 ˚₊· ͟͟͞͞➳❥ *CONFIGURACIÓN*
 
 ◈ *Welcome:* ${welcome ? '✅' : ''}
-◈ *Detect:* ${detect ? '✅' : '❌'}  
-◈ *:* ${antiLink ? '✅' : '❌'} 
-◈ *Nfsw:* ${nsfw ? '✅' : '❌'} 
-◈ *Antiprivado:* ${antiPrivate ? '✅' : '❌'} 
-◈ *Modoadmin:* ${modoadmin ? '✅' : '❌'} 
+◈ *Detect:* ${detect ? '✅' : '❌'}
+◈ *:* ${antiLink ? '✅' : '❌'}
+◈ *Nfsw:* ${nsfw ? '✅' : '❌'}
+◈ *Antiprivado:* ${antiPrivate ? '✅' : '❌'}
+◈ *Modoadmin:* ${modoadmin ? '✅' : '❌'}
 ◈ *Reacción* ${reaction ? "✅️" : "❌️"}
-◈ *Antispam:* ${antiSpam ? '✅' : '❌'} 
-◈ *Restrict:* ${restrict ? '✅' : '❌'} 
-◈ *:* ${antiToxic ? '✅' : '❌'} 
+◈ *Antispam:* ${antiSpam ? '✅' : '❌'}
+◈ *Restrict:* ${restrict ? '✅' : '❌'}
+◈ *:* ${antiToxic ? '✅' : '❌'}
 `.trim();
-  conn.sendFile(m.chat, pp, 'img.jpg', text, m, false, {mentions: [...groupAdmins.map((v) => v.id), owner]});
+conn.sendFile(m.chat, pp, 'img.jpg', text, m, false, {mentions: [...groupAdmins.map((v) => v.id), owner]});
 };
 handler.help = ['infogrupo'];
 handler.tags = ['grupo'];

@@ -90,7 +90,7 @@ return conn.reply(m.chat, `◢✿ *PROTECCIÓN OWNER APLICADA* ✿◤\n\n✧ Acc
 } catch (error) {
 console.error(error)
 return conn.reply(m.chat, `✘ Error en protección owner: ${error.message}`, m)
-  return false;
+return false;
 }
 }
 

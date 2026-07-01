@@ -22,7 +22,6 @@ await conn.reply(m.chat, `🚔 Sigues en la cárcel we. Te faltan *${remaining}*
 return false;
 }
 
-
 let skill = Math.min(0.07, (user.jobXp || 0) / 300000);
 
 let crimeBonus = 1; let jailNerf = 0; let lossResist = 1;
@@ -90,7 +89,6 @@ if (number >= 1000 && number < 1000000) return (number / 1000).toFixed(1) + 'k';
 if (number >= 1000000) return (number / 1000000).toFixed(1) + 'M';
 return number.toString();
 }
-
 
 
 function pickRandom(list) {

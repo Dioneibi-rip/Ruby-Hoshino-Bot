@@ -3,7 +3,6 @@ let handler = async (m, { conn }) => {
 let senderId = m.sender
 let user = global.db.getUser(senderId)
 
-
 const eventos = [
 { nombre: '🌲 Tesoro bajo el Árbol Sagrado', coin: 45000, exp: 1800, health: 0, mensaje: `¡Descubriste un cofre antiguo lleno de ${m.moneda}!` },
 { nombre: '🐺 Ataque de Lobos Hambrientos', coin: -15000, exp: 700, health: -25, mensaje: `¡Fuiste atacado por una manada y escapaste perdiendo ${m.moneda}!` },

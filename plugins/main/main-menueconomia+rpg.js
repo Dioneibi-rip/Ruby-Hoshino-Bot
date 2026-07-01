@@ -1,8 +1,7 @@
 
 let handler = async (m, { conn }) => {
 
-
-  const texto = `
+const texto = `
 💰🎮⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐝𝐞 𝐞𝐜𝐨𝐧𝐨𝐦𝐢́𝐚 𝐲 𝐑𝐏𝐆 𝐩𝐚𝐫𝐚 𝐠𝐚𝐧𝐚𝐫 𝐝𝐢𝐧𝐞𝐫𝐨 𝐲 𝐨𝐭𝐫𝐨𝐬 𝐫𝐞𝐜𝐮𝐫𝐬𝐨𝐬 🏆💎⊹
 
 ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#w • #work • #trabajar*
@@ -68,26 +67,25 @@ let handler = async (m, { conn }) => {
 ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─ *#christmas • #navidad*
 > ✦ Reclama tu regalo navideño (Solo en Navidad).
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅,
-  `.trim();
+`.trim();
 
-
-  await conn.sendMessage(
-    m.chat,
-    {
-      image: { url: 'https://files.catbox.moe/bi19e7.png' },
-      caption: texto,
-      contextInfo: {
-        mentionedJid: [m.sender],
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363335626706839@newsletter',
-        newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
-          serverMessageId: -1,
-        },
-      },
-    },
-    { quoted: fkontak }
-  );
+await conn.sendMessage(
+m.chat,
+{
+image: { url: 'https://files.catbox.moe/bi19e7.png' },
+caption: texto,
+contextInfo: {
+mentionedJid: [m.sender],
+isForwarded: true,
+forwardedNewsletterMessageInfo: {
+newsletterJid: '120363335626706839@newsletter',
+newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
+serverMessageId: -1,
+},
+},
+},
+{ quoted: fkontak }
+);
 };
 
 handler.command = ['menueconomia', 'rpgmenu', 'menurpg'];

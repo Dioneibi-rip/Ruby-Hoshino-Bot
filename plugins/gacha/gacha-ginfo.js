@@ -47,7 +47,7 @@ try {
 userName = await conn.getName(userId);
 } catch (e) {
 userName = userId;
-  return false;
+return false;
 }
 
 try {
@@ -80,7 +80,7 @@ await conn.reply(m.chat, response, m);
 } catch (e) {
 console.error('Error en handler ginfo:', e);
 await conn.reply(m.chat, '✘ Ocurrió un error al verificar tu estado.', m);
-  return false;
+return false;
 }
 };
 

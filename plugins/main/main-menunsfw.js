@@ -1,6 +1,6 @@
 
 let handler = async (m, { conn }) => {
-  const texto = `
+const texto = `
 🔞✨⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐍𝐒𝐅𝐖 (𝐂𝐨𝐧𝐭𝐞𝐧𝐢𝐝𝐨 𝐩𝐚𝐫𝐚 𝐚𝐝𝐮𝐥𝐭𝐨𝐬) 🍑🔥⊹
 
 ★꙲⃝͟🔞 *#anal* + <mencion>
@@ -46,26 +46,25 @@ let handler = async (m, { conn }) => {
 ★꙲⃝͟🔞 *#yuri • #tijeras* + <mencion>
 > ✦ Hacer tijeras.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅
-  `.trim();
+`.trim();
 
-
-    await conn.sendMessage(
-    m.chat,
-    {
-      image: { url: 'https://files.catbox.moe/bi19e7.png' },
-      caption: texto,
-      contextInfo: {
-        mentionedJid: [m.sender],
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363335626706839@newsletter',
-        newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
-          serverMessageId: -1,
-        },
-      },
-    },
-    { quoted: fkontak }
-  );
+await conn.sendMessage(
+m.chat,
+{
+image: { url: 'https://files.catbox.moe/bi19e7.png' },
+caption: texto,
+contextInfo: {
+mentionedJid: [m.sender],
+isForwarded: true,
+forwardedNewsletterMessageInfo: {
+newsletterJid: '120363335626706839@newsletter',
+newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
+serverMessageId: -1,
+},
+},
+},
+{ quoted: fkontak }
+);
 };
 
 handler.command = ['menunsfw', 'nsfwmenu'];

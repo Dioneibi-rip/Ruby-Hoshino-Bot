@@ -1,6 +1,6 @@
 
 let handler = async (m, { conn }) => {
-  const texto = `
+const texto = `
 
 ✨⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐝𝐞 𝐠𝐚𝐜𝐡𝐚 𝐩𝐚𝐫𝐚 𝐫𝐞𝐜𝐥𝐚𝐦𝐚𝐫 𝐲 𝐜𝐨𝐥𝐞𝐜𝐜𝐢𝐨𝐧𝐚𝐫 𝐩𝐞𝐫𝐬𝐨𝐧𝐚𝐣𝐞𝐬 🎭🌟⊹
 
@@ -9,7 +9,7 @@ let handler = async (m, { conn }) => {
 ̟ׄ🐟▒⃝᪶ᩙ᷼͠꜇ָ—— *#claim • #c • #reclamar*
 > ✦ Reclamar un personaje.
 🐟▒⃝᪶ᩙ᷼͠꜇ָ—— *#delclaimmsg*
-> ✦ Restablecer el mensaje al reclamar un personaje. 
+> ✦ Restablecer el mensaje al reclamar un personaje.
 🐟▒⃝᪶ᩙ᷼͠꜇ָ—— *#setclaim • #setclaimmsg*
 > ✦ Modificar el mensaje al reclamar un personaje
 ̟ׄ🐟▒⃝᪶ᩙ᷼͠꜇ָ—— *#buycharacter • #buychar • #comprarwaifu*
@@ -51,26 +51,25 @@ let handler = async (m, { conn }) => {
 🐟▒⃝᪶ᩙ᷼͠꜇ָ—— *#delwaifu • #deletewaifu • #delchar*
 > ✦ Eliminar un personaje reclamado.
 ੈ₊˚༅༴╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈੈ₊˚
-  `.trim();
+`.trim();
 
-
-    await conn.sendMessage(
-    m.chat,
-    {
-      image: { url: 'https://files.catbox.moe/jau272.jpeg' },
-      caption: texto,
-      contextInfo: {
-        mentionedJid: [m.sender],
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363335626706839@newsletter',
-        newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
-          serverMessageId: -1,
-        },
-      },
-    },
-    { quoted: fkontak }
-  );
+await conn.sendMessage(
+m.chat,
+{
+image: { url: 'https://files.catbox.moe/jau272.jpeg' },
+caption: texto,
+contextInfo: {
+mentionedJid: [m.sender],
+isForwarded: true,
+forwardedNewsletterMessageInfo: {
+newsletterJid: '120363335626706839@newsletter',
+newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ ּ',
+serverMessageId: -1,
+},
+},
+},
+{ quoted: fkontak }
+);
 };
 
 handler.command = ['menugacha'];

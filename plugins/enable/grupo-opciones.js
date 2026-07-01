@@ -1,15 +1,15 @@
 const handler = async (m, { conn }) => {
-  const chat = global.db.getChat(m.chat);
-  const metadata = await conn.groupMetadata(m.chat).catch(_ => null) || {};
-  const groupName = metadata.subject || 'este Grupo';
+const chat = global.db.getChat(m.chat);
+const metadata = await conn.groupMetadata(m.chat).catch(_ => null) || {};
+const groupName = metadata.subject || 'este Grupo';
 
-  const status = (option) => option ? '✅' : '❌';
+const status = (option) => option ? '✅' : '❌';
 
-  const primaryBot = chat.botPrimario ? `@${chat.botPrimario.split('@')[0]}` : 'Sin establecer';
+const primaryBot = chat.botPrimario ? `@${chat.botPrimario.split('@')[0]}` : 'Sin establecer';
 
-  const avatar = "https://files.catbox.moe/1k2k6p.jpg";
+const avatar = "https://files.catbox.moe/1k2k6p.jpg";
 
-  const text = `╭━━━[ *CONFIGURACIÓN* ]━━━⬣
+const text = `╭━━━[ *CONFIGURACIÓN* ]━━━⬣
 ┃
 ┃ ✨ Grupo: *${groupName}*
 ┃ 🤖 Bot Primario: *${primaryBot}*
@@ -37,11 +37,11 @@ const handler = async (m, { conn }) => {
 
 > *Activa o desactiva una opción con, por ejemplo: #antilink*`.trim();
 
-  await conn.sendMessage(m.chat, {
-    text,
-    contextInfo: {
-      mentionedJid: [chat.botPrimario]}
-  }, { quoted: m });
+await conn.sendMessage(m.chat, {
+text,
+contextInfo: {
+mentionedJid: [chat.botPrimario]}
+}, { quoted: m });
 };
 
 handler.help = ['configuraciongrupo'];

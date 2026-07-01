@@ -10,7 +10,7 @@ const fecha = new Date(fechaMs);
 return fecha.toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
 } catch (e) {
 return '-';
-  return false;
+return false;
 }
 }
 
@@ -23,7 +23,7 @@ personajes = await loadCharacters();
 if (!Array.isArray(ventas) || !Array.isArray(personajes)) throw new Error('Error en la estructura de los archivos.');
 } catch (e) {
 return m.reply(`✘ Error al leer los datos.\n*Detalles:* ${e.message}`);
-  return false;
+return false;
 }
 
 const groupId = m.chat;
@@ -59,7 +59,7 @@ try {
 username = await conn.getName(vendedor);
 } catch (e) {
 username = `@${(vendedor || '').split('@')[0] || 'desconocido'}`;
-  return false;
+return false;
 }
 
 texto += `✰ ${inicio + i + 1} » *${name}* (*${valorOriginal}*)\n`;
@@ -76,7 +76,7 @@ texto += `  📅 Publicado: ${formatoFecha(fecha)}\n\n`;
 if (vendedor) mencionados.push(vendedor);
 } catch (err) {
 texto += `✘ Error con una waifu: ${err.message}\n\n`;
-  return false;
+return false;
 }
 }
 
@@ -92,7 +92,7 @@ mentions: mencionados
 }, { quoted: m });
 } catch (err) {
 return m.reply(`✘ Error al enviar la lista:\n${err.message}`);
-  return false;
+return false;
 }
 };
 

@@ -3,7 +3,6 @@ let handler = async (m, { conn }) => {
 let senderId = m.sender;
 let user = global.db.getUser(senderId);
 
-
 const eventos = [
 { nombre: 'Mazmorras de los Caídos', tipo: 'victoria', coin: randomNumber(18000, 36000), exp: randomNumber(900, 1800), health: 0, mensaje: `🏆 Derrotaste al guardián y abriste su cofre.` },
 { nombre: 'Cámara de los Espectros', tipo: 'derrota', coin: randomNumber(-10000, -6000), exp: randomNumber(300, 700), health: randomNumber(-15, -5), mensaje: `⚠️ Un espectro te atrapó en sombras.` },

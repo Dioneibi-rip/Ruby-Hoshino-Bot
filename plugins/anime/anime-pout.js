@@ -82,7 +82,7 @@ throw new Error('convert fail')
 }
 }catch (e) {
 await conn.sendMessage(m.chat,{video:{url:randomGif},caption:caption,gifPlayback:true,mentions:[who,m.sender]},{quoted:m})
-  return false;
+return false;
 }
 }
 

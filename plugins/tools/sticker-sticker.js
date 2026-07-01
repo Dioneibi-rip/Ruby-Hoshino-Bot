@@ -31,7 +31,7 @@ await conn.sendMessage(m.chat, { sticker: stiker }, { quoted: m })
 } catch (e) {
 await m.react('✖️')
 await conn.reply(m.chat, '⚠ Error: ' + e, m)
-  return false;
+return false;
 }
 }
 handler.help = ['sticker']

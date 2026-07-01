@@ -34,7 +34,7 @@ await m.react('✅')
 } catch (err) {
 await m.react('✖️')
 await conn.reply(m.chat, `⚠︎ Ocurrió un error: ${err.message}`, m)
-  return false;
+return false;
 }
 }
 handler.command = ['detectarsyntax', 'detectar']

@@ -11,7 +11,6 @@ return false
 }
 }
 
-
 let handler = async (m, { conn, command, usedPrefix, args, text, isOwner }) => {
 
 const isDeleteSession = /^(deletesesion|deletebot|deletesession|deletesesaion)$/i.test(command)
@@ -76,7 +75,7 @@ text: `🌈 ${toFancy("¡Todo limpio! Tu sesión ha sido eliminada con éxito.")
 }, { quoted: m })
 } catch (e) {
 reportError(e)
-  return false;
+return false;
 }
 }
 else if (isPauseBot) {

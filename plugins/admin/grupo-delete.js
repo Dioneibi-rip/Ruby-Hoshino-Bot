@@ -7,7 +7,7 @@ let bang = m.message.extendedTextMessage.contextInfo.stanzaId
 return conn.sendMessage(m.chat, { delete: { remoteJid: m.chat, fromMe: false, id: bang, participant: delet }})
 } catch (e) {
 return conn.sendMessage(m.chat, { delete: m.quoted.vM.key })
-  return false;
+return false;
 }}
 
 handler.help = ['delete']

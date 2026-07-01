@@ -12,7 +12,7 @@ let chaqueta = [
 '╭━━╮.    ╭╭╭╮\n┃▔╲┣━━╈╈╈╈━━╮\n┃┈┈▏.    .╰╯╯╯╭╮┫\n┃┈--.╭━━━━━━╈╈╯\n╰━━╯-.           . ╰╯',
 
 `              .               .   ╭\n╭━━╮╭╭╭╮.           ╭ ╯\n┃▔╲┣╈╈╈╈━━━╮╭╯╭\n┃┈┈▏.╰╯╯╯╭╮━┫  \n┃┈--.╭━━━━╈╈━╯╰╮╰\n╰━━╯-.        ╰╯...-    ╰ ╮\n   .         . .  .  .. . . .  . .. .  ╰\n\n*[ 🔥 ] @${m.sender.split('@')[0]} SE HA CORRIDO GRACIAS A @${who.split('@')[0]}.*`,
- ]
+]
 
 let { key } = await conn.sendMessage(m.chat, {text: `${emoji} Iniciando Chaqueta...`})
 

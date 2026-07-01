@@ -40,7 +40,6 @@ const successChance = user.premium ? 0.47 : 0.40;
 const maxSteal = Math.max(1200, Math.floor(victimCash * 0.12));
 const minSteal = 600;
 
-
 if (Math.random() < successChance) {
 const amount = Math.min(victimCash, randomInt(minSteal, maxSteal));
 targetUser.coin = Math.max(0, victimCash - amount);

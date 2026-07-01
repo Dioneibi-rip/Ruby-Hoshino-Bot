@@ -35,7 +35,6 @@ handler.cooldown = 28800000;
 export default handler;
 
 
-
 function randomInt(min, max) {
 return Math.floor(Math.random() * (max - min + 1)) + min;
 }

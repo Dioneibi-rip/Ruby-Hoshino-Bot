@@ -19,7 +19,7 @@ m.reply(e+'')
 text=args.join(' ')
 if(!text)throw `${emoji} Por favor, ingresé una frase.`
 res=await tts(text,defaultLang)
-  return false;
+return false;
 }
 if(res)return conn.sendFile(m.chat,res,'tts.opus',null,m,true)
 }
