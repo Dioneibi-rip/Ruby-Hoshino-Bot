@@ -12,7 +12,7 @@ ${namecomu}
 
 *ׄ─ׄ⭒─ׄ─ׅ─ׄ⭒─ׄ─ׅ─ׄ⭒─ׄ─ׅ─ׄ⭒─ׄ─ׅ─ׄ⭒─ׄ*
 
-⚘ Enlace anulado? entre aquí! 
+⚘ Enlace anulado? entre aquí!
 
 - ${namechannel}
 > *❀* ${channel}

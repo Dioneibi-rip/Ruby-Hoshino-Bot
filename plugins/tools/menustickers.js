@@ -1,5 +1,5 @@
 let handler = async (m, { conn }) => {
-  const texto = `
+const texto = `
 🖼️✨⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐩𝐚𝐫𝐚 𝐜𝐫𝐞𝐚𝐜𝐢𝐨𝐧𝐞𝐬 𝐝𝐞 𝐬𝐭𝐢𝐜𝐤𝐞𝐫𝐬, 𝐞𝐭𝐜. 🎨🔖
 
 🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#sticker • #s*
@@ -21,14 +21,14 @@ let handler = async (m, { conn }) => {
 🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#wm*
 > ✦ Cambia el nombre de los stickers.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅,
-  `.trim();
+`.trim();
 
-  await conn.sendMessage(m.chat, {
-    image: { url: 'https://files.catbox.moe/61219t.png' },
-    caption: texto,
-    contextInfo: {
-      mentionedJid: [m.sender]}
-  }, { quoted: m });
+await conn.sendMessage(m.chat, {
+image: { url: 'https://files.catbox.moe/61219t.png' },
+caption: texto,
+contextInfo: {
+mentionedJid: [m.sender]}
+}, { quoted: m });
 };
 
 handler.command = ['menusticker', 'stickersmenu'];

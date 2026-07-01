@@ -19,7 +19,7 @@ validateStatus: status => status >= 200 && status < 300,
 
 const buffer = Buffer.from(response.data);
 
-if (buffer.length > 50) return buffer; 
+if (buffer.length > 50) return buffer;
 
 throw new Error('La API devolvió una imagen vacía.');
 } catch (error) {

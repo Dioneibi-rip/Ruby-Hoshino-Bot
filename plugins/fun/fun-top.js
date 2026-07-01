@@ -19,7 +19,7 @@ let x = `${pickRandom(['🤓','😅','😂','😳','😎', '🥵', '😱', '🤑
 let l = Math.floor(Math.random() * x.length);
 let vn = `https://hansxd.nasihosting.com/sound/sound${k}.mp3`
 let top = `*${x} Top 10 ${text} ${x}*
-    
+
 *1. ${user(a)}*
 *2. ${user(b)}*
 *3. ${user(c)}*

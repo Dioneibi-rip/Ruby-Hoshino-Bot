@@ -100,7 +100,6 @@ let owner = `
 > ✦ Actualiza el Bot a la versión más reciente de GitHub.
 `.trim();
 
-
 await conn.sendMessage(m.chat, {
 text: owner,
 contextInfo: {

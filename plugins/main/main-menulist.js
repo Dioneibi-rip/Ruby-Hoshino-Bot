@@ -23,7 +23,7 @@ before: `𝙃𝙤𝙡𝙖 *%name*-san ${ucapan()}
 
 let handler = async (m, { conn, usedPrefix, __dirname }) => {
 try {
-const prefix = (typeof usedPrefix === 'string' ? usedPrefix : '.'); 
+const prefix = (typeof usedPrefix === 'string' ? usedPrefix : '.');
 
 let { exp, level, role } = global.db.getUser(m.sender);
 let name = await conn.getName(m.sender);
@@ -91,7 +91,7 @@ title: "",
 hasMediaAttachment: true,
 imageMessage: media.imageMessage
 },
-body: { 
+body: {
 text: `${beforeText}\n\n${bodyText}`
 },
 footer: { text: "usa #menumanual si no puedes usar los botones" },
@@ -117,8 +117,8 @@ messageParamsJson: ""
 };
 
 let msgi = generateWAMessageFromContent(
-m.chat, 
-{ viewOnceMessage: { message: { interactiveMessage } } }, 
+m.chat,
+{ viewOnceMessage: { message: { interactiveMessage } } },
 { userJid: conn.user.jid, quoted: fkontak || m }
 );
 
@@ -137,7 +137,6 @@ handler.register = true;
 handler.command = ['menu', 'menú', 'help', 'listmenu'];
 
 export default handler;
-
 
 async function getMenuThumb() {
 if (!menuThumbPromise) {

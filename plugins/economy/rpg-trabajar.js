@@ -1,6 +1,5 @@
 import { ensureJobFields, getJobData } from '../../lib/rpg-jobs.js';
 
-
 let handler = async (m, { conn, usedPrefix }) => {
 let user = global.db.getUser(m.sender);
 ensureJobFields(user);
@@ -72,7 +71,6 @@ if (number >= 1000 && number < 1000000) return (number / 1000).toFixed(1) + 'k';
 if (number >= 1000000) return (number / 1000000).toFixed(1) + 'M';
 return number.toString();
 }
-
 
 function pickRandom(list) {
 return list[Math.floor(list.length * Math.random())];

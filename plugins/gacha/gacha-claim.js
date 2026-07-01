@@ -14,7 +14,6 @@ extractCharacterIdFromText
 import { canUserClaimCharacter } from '../../lib/gacha-restrictions.js';
 import { resetProtectionOnTransfer } from '../../lib/gacha-protection.js';
 
-
 function isUserInGroup(userId, participants = []) {
 if (!userId) return false;
 
@@ -31,7 +30,7 @@ try {
 return global.db?.getSection?.('claim_config') || {};
 } catch (e) {
 return {};
-  return false;
+return false;
 }
 }
 
@@ -128,10 +127,9 @@ const mensajeFinal = `${baseMessage}${timeElapsedStr}`;
 
 await conn.reply(m.chat, mensajeFinal, m);
 
-
 } catch (e) {
 conn.reply(m.chat, `✘ Error al reclamar waifu:\n${e.message}`, m);
-  return false;
+return false;
 }
 };
 

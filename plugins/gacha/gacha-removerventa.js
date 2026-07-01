@@ -1,7 +1,6 @@
 import { loadVentas, saveVentas, removeVenta } from '../../lib/gacha-group.js';
 import { loadCharacters, findCharacterById } from '../../lib/gacha-characters.js';
 
-
 async function loadVentasFile() {
 return await loadVentas();
 }

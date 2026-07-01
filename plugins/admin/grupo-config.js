@@ -1,21 +1,21 @@
 let handler = async (m, { conn, args, command }) => {
-  const key = ['open','close','abrir','cerrar','abierto','cerrado'].includes(command)
-    ? command
-    : (args[0] || '').toLowerCase();
+const key = ['open','close','abrir','cerrar','abierto','cerrado'].includes(command)
+? command
+: (args[0] || '').toLowerCase();
 
-  const map = {
-    open: 'not_announcement',
-    abrir: 'not_announcement',
-    abierto: 'not_announcement',
-    close: 'announcement',
-    cerrar: 'announcement',
-    cerrado: 'announcement',
-  };
+const map = {
+open: 'not_announcement',
+abrir: 'not_announcement',
+abierto: 'not_announcement',
+close: 'announcement',
+cerrar: 'announcement',
+cerrado: 'announcement',
+};
 
-  const isClose = map[key];
-  if (isClose === undefined) return;
+const isClose = map[key];
+if (isClose === undefined) return;
 
-  await conn.groupSettingUpdate(m.chat, isClose);
+await conn.groupSettingUpdate(m.chat, isClose);
 };
 
 handler.help = ['open', 'close', 'abrir', 'cerrar', 'group abrir/cerrar', 'grupo abrir/cerrar'];

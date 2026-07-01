@@ -7,7 +7,7 @@ let totalchats = Object.keys(global.db.getSection('chats')).length
 let uptime = clockString(_uptime);
 let users = [...new Set([...global.conns.filter((conn) => conn.user && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED).map((conn) => conn)])];
 const chats = Object.entries(conn.chats).filter(([id, data]) => id && data.isChats)
-const groupsIn = chats.filter(([id]) => id.endsWith('@g.us')) 
+const groupsIn = chats.filter(([id]) => id.endsWith('@g.us'))
 const totalUsers = users.length;
 let old = performance.now()
 let neww = performance.now()
@@ -17,7 +17,7 @@ const used = process.memoryUsage()
 let banner = 'https://raw.githubusercontent.com/levi275/img/main/estado.jpeg'
 
 let info = ` ֵ𑁀⏜͜⌒᳝︵໋۪۪۪۪۪᳝֔࣪┄꯭๋━┄꫶︦⡳۪۪۪۪۟︵໋۪۪۪۪۪᳝֔࣪⌒᳝ᦷ࣭࣪🍓ּ۪᪲۫ᮬ ࣭࣪ᦡ ۪ׄ⌒᳝︵໋۪۪۪۪۪᳝֔࣪⡳۪۪۪۪۟┄꫶︦━┄꯭๋︵໋۪۪۪۪۪᳝֔࣪⌒᳝⏜
-      ֵ . ━  𝙄 𝘕 𝙁 𝘖 𝙍 𝘔 𝘼 𝘊 𝙄 𝘖 𝙉◻
+ֵ . ━  𝙄 𝘕 𝙁 𝘖 𝙍 𝘔 𝘼 𝘊 𝙄 𝘖 𝙉◻
 ㅤ ⃝⃘︢︣֟፝🥭ᩫํ᪶ :  *◜𝘊𝘙𝘌𝘈𝘋𝘖𝘙◞* ⇢ ${etiqueta}
 ㅤ ⃝⃘︢︣֟፝🍒ᩫํ᪶ :ᩫํ  *◜𝘗𝘙𝘌𝘍𝘐𝘑𝘖 𝘈𝘊𝘛𝘜𝘈𝘓◞* ⇢ [ ${usedPrefix} ]
 ㅤ ⃝⃘︢︣֟፝🍌ᩫํ᪶ :ᩫํ  *◜𝘝𝘌𝘙𝘚𝘐𝘖𝘕◞* ⇢ ${vs}
@@ -41,8 +41,8 @@ handler.register = true
 export default handler
 
 function clockString(ms) {
-    let seconds = Math.floor((ms / 1000) % 60);
-    let minutes = Math.floor((ms / (1000 * 60)) % 60);
-    let hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
-    return `${hours}h ${minutes}m ${seconds}s`;
+let seconds = Math.floor((ms / 1000) % 60);
+let minutes = Math.floor((ms / (1000 * 60)) % 60);
+let hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+return `${hours}h ${minutes}m ${seconds}s`;
 }

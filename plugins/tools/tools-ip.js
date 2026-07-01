@@ -1,21 +1,20 @@
 import axios from 'axios'
 
 let handler = async (m, { conn, text }) => {
-//await m.reply('🧑🏻‍💻 Buscando...')
 let bot = '🍭 Buscando espere un momento....'
 conn.reply(m.chat, bot, m)
-  if (!text) {
-  await conn.reply(m.chat, `${emoji} Por favor, ingresa una *IP*.`, m);
-  return false;
-  }
+if (!text) {
+await conn.reply(m.chat, `${emoji} Por favor, ingresa una *IP*.`, m);
+return false;
+}
 
-  axios.get(`http://ip-api.com/json/${text}?fields=status,message,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,isp,org,as,mobile,hosting,query`).then ((res) => {
-    const data = res.data
+axios.get(`http://ip-api.com/json/${text}?fields=status,message,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,isp,org,as,mobile,hosting,query`).then ((res) => {
+const data = res.data
 
-      if (String(data.status) !== "success") {
-        throw new Error(data.message || "Falló")
-      }
-    let ipsearch = `
+if (String(data.status) !== "success") {
+throw new Error(data.message || "Falló")
+}
+let ipsearch = `
 ☁️ *I N F O - I P* ☁️
 
 IP : ${data.query}

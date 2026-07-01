@@ -73,7 +73,7 @@ const profileText=`
 await conn.sendMessage(m.chat,{image:{url:perfil},caption:profileText,contextInfo:{mentionedJid:mentions}},{quoted:m})
 }catch(e){
 await m.reply(`⚠️ Error al mostrar el perfil:\n\n${e.message}`)
-  return false;
+return false;
 }
 }
 handler.help=['profile','perfil']

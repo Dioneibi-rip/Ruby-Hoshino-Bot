@@ -18,17 +18,17 @@ await m.react('❌');
 return conn.reply(m.chat, `*🍂 Los enlaces de las imágenes están rotos para:* ${text}`, m);
 }
 const messages = images.map((image, index) => [
-`🪴 Imagen ${index + 1}`, 
-dev, 
-image, 
+`🪴 Imagen ${index + 1}`,
+dev,
+image,
 [[]], [[]], [[]], [[]]
 ]);
 await conn.sendCarousel(
-m.chat, 
-`*🌿 Resultado de:* ${text}`, 
-'⪛✰ ɪᴍᴀɢᴇɴ - ʙᴜsǫᴜᴇᴅᴀ ✰⪜', 
-null, 
-messages, 
+m.chat,
+`*🌿 Resultado de:* ${text}`,
+'⪛✰ ɪᴍᴀɢᴇɴ - ʙᴜsǫᴜᴇᴅᴀ ✰⪜',
+null,
+messages,
 m
 );
 await m.react('✅');
@@ -36,7 +36,7 @@ await m.react('✅');
 console.error(error);
 await m.react('✖️');
 conn.reply(m.chat, '*🥀 Ocurrió un error de conexión al buscar las imágenes. Intenta con otra palabra.*', m);
-  return false;
+return false;
 }
 };
 handler.help = ['imagen <texto>'];

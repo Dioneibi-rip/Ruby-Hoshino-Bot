@@ -7,7 +7,7 @@ let link = await conn.groupInviteCode(group.gid)
 m.reply('https://chat.whatsapp.com/' + url)
 } catch (e) {
 m.reply(`${msm} Ocurrió un error.`)
-  return false;
+return false;
 }
 }
 handler.help = ['grupocrear <nombre>']
