@@ -3,7 +3,6 @@ import axios from 'axios';
 
 const BRAT_ENDPOINTS = [
 'https://kepolu-brat.hf.space/brat',
-'https://brat.caliphdev.com/api/brat',
 ];
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
