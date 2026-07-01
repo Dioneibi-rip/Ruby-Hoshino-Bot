@@ -280,7 +280,7 @@ exp: (Number(current.exp) || 0) + (m.exp || 0),
 coin: (Number(current.coin) || 0) - ((m.coin || 0) * 1),
 msg_count: nextMsgCount
 })
-if (global.db?.sqlite) global.db.sqlite.prepare('UPDATE users SET msg_count = ?, updated_at = unixepoch() WHERE id = ?').run(nextMsgCount, sender)
+global.db?.scheduleFlush?.()
 }
 if (!m.plugin) return
 const stats = data.stats ||= {}
@@ -326,7 +326,7 @@ const chat = global.db?.data?.chats?.[m.chat]
 const primaryBot = chat?.primaryBot || chat?.botPrimario
 if (primaryBot) {
 const universalWords = ['resetbot', 'resetprimario', 'botreset']
-const firstWord = m.text.trim().split(' ')[0]?.toLowerCase().replace(/^[./#]/, '') || ''
+const firstWord = m.text?.trim?.().split(' ')[0]?.toLowerCase().replace(/^[./#]/, '') || ''
 const currentBot = normalizeConnectionJid(this)
 if (!universalWords.includes(firstWord) && currentBot !== primaryBot) return
 }
