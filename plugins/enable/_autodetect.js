@@ -1,112 +1,178 @@
-let WAMessageStubType = (await import('@whiskeysockets/baileys')).default
-import chalk from 'chalk'
-import fs from 'fs'
-import path from 'path'
 import fetch from 'node-fetch'
 
-const groupMetadataCache = new Map()
-const lidCache = new Map()
-const handler = m => m
-handler.before = async function (m, { conn, participants, groupMetadata }) {
-if (m.messageStubType == null || !m.isGroup) return
-const chat = global.db?.data?.chats?.[m.chat]
-if (!chat) return
-const primaryBot = chat.primaryBot
-if (primaryBot && conn.user.jid !== primaryBot) throw !1
-const stubParams = Array.isArray(m.messageStubParameters) ? m.messageStubParameters : []
-const users = stubParams[0]
-const targetJid = typeof users === 'string' ? users : ''
-const senderRaw = (typeof m?.sender === 'string' && m.sender) || (typeof m?.key?.participant === 'string' && m.key.participant) || ''
-const usuario = senderRaw ? await resolveLidToRealJid(senderRaw, conn, m?.chat) : ''
-const actorJid = (typeof usuario === 'string' && usuario.includes('@')) ? usuario : ''
-const actorTag = actorJid ? `@${actorJid.split('@')[0]}` : 'alguien'
-const targetTag = targetJid ? `@${targetJid.split('@')[0]}` : 'alguien'
-const groupAdmins = Array.isArray(participants) ? participants.filter(p => p.admin) : []
-const rcanal = { contextInfo: { isForwarded: true, forwardedNewsletterMessageInfo: { newsletterJid: channelRD.id, serverMessageId: '', newsletterName: channelRD.name }, externalAdReply: { title: "𐔌 . ⋮ ᗩ ᐯ I Տ O .ᐟ ֹ ₊ ꒱", body: textbot, mediaUrl: null, description: null, previewType: "PHOTO", thumbnail: await (await fetch(icono)).buffer(), sourceUrl: redes, mediaType: 1, renderLargerThumbnail: false }, mentionedJid: null }}
-const pp = await conn.profilePictureUrl(m.chat, 'image').catch(_ => null) || 'https://files.catbox.moe/xr2m6u.jpg'
-const nombre = `> ❀ ${actorTag} Ha cambiado el nombre del grupo.\n> ✦ Ahora el grupo se llama:\n> *${stubParams[0] ?? ''}*.`
-const foto = `> ❀ Se ha cambiado la imagen del grupo.\n> ✦ Acción hecha por:\n> » ${actorTag}`
-const edit = `> ❀ ${actorTag} Ha permitido que ${stubParams[0] == 'on' ? 'solo admins' : 'todos'} puedan configurar el grupo.`
-const newlink = `> ❀ El enlace del grupo ha sido restablecido.\n> ✦ Acción hecha por:\n> » ${actorTag}`
-const status = `> ❀ El grupo ha sido ${stubParams[0] == 'on' ? '*cerrado*' : '*abierto*'} Por ${actorTag}\n> ✦ Ahora ${stubParams[0] == 'on' ? '*solo admins*' : '*todos*'} pueden enviar mensaje.`
-const admingp = `> ❀ ${targetTag} Ahora es admin del grupo.\n> ✦ Acción hecha por:\n> » ${actorTag}`
-const noadmingp = `> ❀ ${targetTag} Deja de ser admin del grupo.\n> ✦ Acción hecha por:\n> » ${actorTag}`
-if (chat.detect && m.messageStubType == 2) {
-const uniqid = (m.isGroup ? m.chat : m.sender).split('@')[0]
-const sessionPath = conn.isSubBot ? (conn.sessionPath || `./${global.jadi}/${conn.user.jid.split('@')[0]}`) : `./${sessions}/`
-if (fs.existsSync(sessionPath)) {
+const STYLE_MAP = {
+'a': '𝘢', 'b': '𝘣', 'c': '𝘤', 'd': '𝘥', 'e': '𝘦', 'f': '𝘧', 'g': '𝘨', 'h': '𝘩', 'i': '𝘪', 'j': '𝘫', 'k': '𝘬', 'l': '𝘭', 'm': '𝘮', 'n': '𝘯', 'o': '𝘰', 'p': '𝘱', 'q': '𝘲', 'r': '𝘳', 's': '𝘴', 't': '𝘵', 'u': '𝘶', 'v': '𝘷', 'w': '𝘸', 'x': '𝘹', 'y': '𝘺', 'z': '𝘻',
+'A': '𝘼', 'B': '𝘽', 'C': '𝘾', 'D': '𝘿', 'E': '𝙀', 'F': '𝙁', 'G': '𝙂', 'H': '𝙃', 'I': '𝙄', 'J': '𝙅', 'K': '𝙆', 'L': '𝙇', 'M': '𝙈', 'N': '𝙉', 'O': '𝙊', 'P': '𝙋', 'Q': '𝙌', 'R': '𝙍', 'S': '𝙎', 'T': '𝙏', 'U': '𝙐', 'V': '𝙑', 'W': '𝙒', 'X': '𝙓', 'Y': '𝙔', 'Z': '𝙕',
+'0': '𝟎', '1': '𝟏', '2': '𝟐', '3': '𝟑', '4': '𝟒', '5': '𝟓', '6': '𝟔', '7': '𝟕', '8': '𝟖', '9': '𝟗'
+}
+
+const styleText = (text) => text.split('').map((char) => STYLE_MAP[char] || char).join('')
+
+function normalizeMentionJid(value) {
+if (!value) return null
+if (typeof value === 'object') value = value.id || value.jid || value.phoneNumber || value.lid || ''
+let text = String(value).trim()
+if (!text) return null
+if (text.startsWith('{')) {
 try {
-const files = await fs.promises.readdir(sessionPath)
-for (const file of files) {
-if (file.includes(uniqid)) {
-await fs.promises.unlink(path.join(sessionPath, file))
-console.log(`${chalk.yellow.bold('✎ Delete!')} ${chalk.greenBright(`'${file}'`)} en ${sessionPath}\n${chalk.redBright('Que provoca el "undefined" en el chat.')}`)
+const parsed = JSON.parse(text)
+text = parsed.id || parsed.jid || parsed.phoneNumber || parsed.lid || text
+} catch {}
+}
+text = String(text).replace(/^@/, '').trim()
+if (/^\d+$/.test(text)) return `${text}@s.whatsapp.net`
+if (/^\d+@(?:s\.whatsapp\.net|lid)$/.test(text)) return text
+return text.includes('@') ? text : null
+}
+
+function mentionLabel(value) {
+const jid = normalizeMentionJid(value)
+return jid ? `@${jid.split('@')[0].split(':')[0]}` : '@usuario'
+}
+
+let detectThumbPromise = null
+async function getDetectThumb() {
+if (!detectThumbPromise) {
+detectThumbPromise = fetch('https://i.postimg.cc/6562JdR7/Hoshino-Ruby-(2).jpg')
+.then((res) => (res.ok ? res.arrayBuffer() : null))
+.then((buf) => (buf ? Buffer.from(buf) : null))
+.catch(() => null)
+}
+return detectThumbPromise
+}
+
+function buildDetectMessage(m, usuario) {
+const stubType = m.messageStubType
+
+if (stubType === 21) {
+return {
+text: `
+𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐂𝐚𝐦𝐛𝐢𝐨́ 𝐞𝐥 𝐍𝐨𝐦𝐛𝐫𝐞   𖤝
+꒰꒰ 📝 𝐀𝐡𝐨𝐫𝐚 𝐬𝐞 𝐥𝐥𝐚𝐦𝐚 Ი꯭ᰍ
+> ${styleText(m.messageStubParameters?.[0] || '')}`,
+mentions: [m.sender],
 }
 }
-} catch (e) {
-console.error('Error en limpieza de sesión:', e)
+
+if (stubType === 22) {
+return {
+text: `
+𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐂𝐚𝐦𝐛𝐢𝐨́ 𝐥𝐚 𝐈𝐦𝐚𝐠𝐞𝐧   𖤝
+꒰꒰ 🖼️ 𝐅𝐨𝐭𝐨 𝐀𝐜𝐭𝐮𝐚𝐥𝐢𝐳𝐚𝐝𝐚 Ი꯭ᰍ
+> 🫧 ${styleText('El icono del grupo ha cambiado')}`,
+mentions: [m.sender],
 }
 }
-} if (chat.detect && m.messageStubType == 21) {
-rcanal.contextInfo.mentionedJid = [actorJid, ...groupAdmins.map(v => v.id)].filter(Boolean)
-await this.sendMessage(m.chat, { text: nombre, ...rcanal }, { quoted: null })
-} if (chat.detect && m.messageStubType == 22) {
-rcanal.contextInfo.mentionedJid = [actorJid, ...groupAdmins.map(v => v.id)].filter(Boolean)
-await this.sendMessage(m.chat, { image: { url: pp }, caption: foto, ...rcanal }, { quoted: null })
-} if (chat.detect && m.messageStubType == 23) {
-rcanal.contextInfo.mentionedJid = [actorJid, ...groupAdmins.map(v => v.id)].filter(Boolean)
-await this.sendMessage(m.chat, { text: newlink, ...rcanal }, { quoted: null })
-} if (chat.detect && m.messageStubType == 25) {
-rcanal.contextInfo.mentionedJid = [actorJid, ...groupAdmins.map(v => v.id)].filter(Boolean)
-await this.sendMessage(m.chat, { text: edit, ...rcanal }, { quoted: null })
-} if (chat.detect && m.messageStubType == 26) {
-rcanal.contextInfo.mentionedJid = [actorJid, ...groupAdmins.map(v => v.id)].filter(Boolean)
-await this.sendMessage(m.chat, { text: status, ...rcanal }, { quoted: null })
-} if (chat.detect && m.messageStubType == 29) {
-rcanal.contextInfo.mentionedJid = [actorJid, targetJid, ...groupAdmins.map(v => v.id)].filter(Boolean)
-await this.sendMessage(m.chat, { text: admingp, ...rcanal }, { quoted: null })
-return
-} if (chat.detect && m.messageStubType == 30) {
-rcanal.contextInfo.mentionedJid = [actorJid, targetJid, ...groupAdmins.map(v => v.id)].filter(Boolean)
-await this.sendMessage(m.chat, { text: noadmingp, ...rcanal }, { quoted: null })
-} else { 
-if (m.messageStubType == 2) return
-console.log({messageStubType: m.messageStubType,
-messageStubParameters: m.messageStubParameters,
-type: WAMessageStubType[m.messageStubType], 
-})}}
+
+if (stubType === 24) {
+return {
+text: `
+𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐂𝐚𝐦𝐛𝐢𝐨́ 𝐃𝐞𝐬𝐜𝐫𝐢𝐩𝐜𝐢𝐨́𝐧   𖤝
+꒰꒰ 📑 𝐈𝐧𝐟𝐨 𝐀𝐜𝐭𝐮𝐚𝐥𝐢𝐳𝐚𝐝𝐚 Ი꯭ᰍ
+> 📝 ${styleText('La descripción del grupo es nueva')}`,
+mentions: [m.sender],
+}
+}
+
+if (stubType === 23) {
+return {
+text: `
+𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐑𝐞𝐬𝐭𝐚𝐛𝐥𝐞𝐜𝐢𝐨́ 𝐄𝐧𝐥𝐚𝐜𝐞   𖤝
+꒰꒰ 🔗 𝐋𝐢𝐧𝐤 𝐀𝐧𝐮𝐥𝐚𝐝𝐨 Ი꯭ᰍ
+> 🚫 ${styleText('El enlace anterior ya no sirve')}`,
+mentions: [m.sender],
+}
+}
+
+if (stubType === 25) {
+const type = m.messageStubParameters?.[0] === 'on' ? '𝐒𝐨𝐥𝐨 𝐀𝐝𝐦𝐢𝐧𝐬' : '𝐓𝐨𝐝𝐨𝐬'
+return {
+text: `
+𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐀𝐥𝐭𝐞𝐫𝐨́ 𝐀𝐣𝐮𝐬𝐭𝐞𝐬   𖤝
+꒰꒰ ⚙️ 𝐀𝐡𝐨𝐫𝐚 𝐄𝐝𝐢𝐭𝐚𝐧 Ი꯭ᰍ
+> 🔓 ${styleText(type)}`,
+mentions: [m.sender],
+}
+}
+
+if (stubType === 26) {
+const closed = m.messageStubParameters?.[0] === 'on'
+const action = closed ? '𝐂𝐞𝐫𝐫𝐨́ 𝐞𝐥 𝐆𝐫𝐮𝐩𝐨' : '𝐀𝐛𝐫𝐢𝐨́ 𝐞𝐥 𝐆𝐫𝐮𝐩𝐨'
+const msg = closed ? 'Solo Admins escriben' : 'Todos pueden escribir'
+return {
+text: `
+𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ ${action}   𖤝
+꒰꒰ 💬 𝐄𝐬𝐭𝐚𝐝𝐨 𝐝𝐞𝐥 𝐂𝐡𝐚𝐭 Ი꯭ᰍ
+> 📣 ${styleText(msg)}`,
+mentions: [m.sender],
+}
+}
+
+if (stubType === 29) {
+const nuevoAdmin = normalizeMentionJid(m.messageStubParameters?.[0])
+if (!nuevoAdmin) return null
+return {
+text: `
+𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐃𝐢𝐨 𝐀𝐝𝐦𝐢𝐧 𝐚   𖤝
+> 🫡 ${mentionLabel(nuevoAdmin)}
+꒰꒰ 👑 𝐍𝐮𝐞𝐯𝐨 𝐀𝐝𝐦𝐢𝐧 Ი꯭ᰍ`,
+mentions: [m.sender, nuevoAdmin],
+}
+}
+
+if (stubType === 30) {
+const exAdmin = normalizeMentionJid(m.messageStubParameters?.[0])
+if (!exAdmin) return null
+return {
+text: `
+𖥔    　     *@${usuario}* ࣪      ˖ؚ
+ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐐𝐮𝐢𝐭𝐨́ 𝐀𝐝𝐦𝐢𝐧 𝐚   𖤝
+> 😔 ${mentionLabel(exAdmin)}
+꒰꒰ 📉 𝐃𝐞𝐠𝐫𝐚𝐝𝐚𝐝𝐨 Ი꯭ᰍ`,
+mentions: [m.sender, exAdmin],
+}
+}
+
+return null
+}
+
+let handler = m => m
+handler.before = async function (m, { conn }) {
+if (!m.messageStubType || !m.isGroup) return
+
+const chat = global.db.getChat(m.chat)
+if (!chat.detect) return
+
+const senderJid = normalizeMentionJid(m.sender) || m.sender
+const usuario = senderJid.split('@')[0].split(':')[0]
+const payload = buildDetectMessage(m, usuario)
+if (!payload?.text) return
+
+const thumb = await getDetectThumb()
+const quoted = thumb
+? {
+key: { participant: '0@s.whatsapp.net', remoteJid: 'status@broadcast', fromMe: false, id: 'Halo' },
+message: {
+locationMessage: {
+name: styleText('Notificaciones del Grupo'),
+jpegThumbnail: thumb,
+},
+},
+participant: '0@s.whatsapp.net',
+}
+: m
+
+await conn.sendMessage(m.chat, {
+text: payload.text,
+mentions: payload.mentions.map(normalizeMentionJid).filter(Boolean),
+}, { quoted })
+}
 
 export default handler
-
-async function resolveLidToRealJid(lid, conn, groupChatId, maxRetries = 3, retryDelay = 60000) {
-if (lid == null) return ''
-const inputJid = lid.toString()
-if (!inputJid.endsWith("@lid") || !groupChatId?.endsWith("@g.us")) { return inputJid.includes("@") ? inputJid : `${inputJid}@s.whatsapp.net` }
-if (lidCache.has(inputJid)) { return lidCache.get(inputJid) }
-const lidToFind = inputJid.split("@")[0]
-let attempts = 0
-while (attempts < maxRetries) {
-try {
-const metadata = await conn?.groupMetadata(groupChatId)
-if (!metadata?.participants) { throw new Error("No se obtuvieron participantes") }
-for (const participant of metadata.participants) {
-try {
-if (!participant?.jid) continue
-const contactDetails = await conn?.onWhatsApp(participant.jid)
-if (!contactDetails?.[0]?.lid) continue
-const possibleLid = contactDetails[0].lid.split("@")[0]
-if (possibleLid === lidToFind) {
-lidCache.set(inputJid, participant.jid)
-return participant.jid
-}} catch (e) { continue }}
-lidCache.set(inputJid, inputJid)
-return inputJid
-} catch (e) {
-if (++attempts >= maxRetries) {
-lidCache.set(inputJid, inputJid)
-return inputJid
-}
-await new Promise((resolve) => setTimeout(resolve, retryDelay))
-}}
-return inputJid
-}
