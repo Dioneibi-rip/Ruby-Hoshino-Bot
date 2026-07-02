@@ -39,6 +39,53 @@ const __dirname = path.dirname(__filename)
 const pairingCodeRequests = global.pairingCodeRequests || (global.pairingCodeRequests = new Map())
 const PAIRING_CODE_TTL_MS = 45000
 const PAIRING_CODE_COOLDOWN_MS = 60000
+
+async function refreshSubBotGroups(sock) {
+try {
+const groups = await sock.groupFetchAllParticipating()
+for (const [jid, metadata] of Object.entries(groups || {})) setSubBotGroupMetadata(sock, jid, metadata)
+return groups || {}
+} catch (error) {
+console.error(`Error actualizando metadatos de grupos del Sub-Bot ${sock?.subBotId || ''}:`, error)
+return {}
+}
+}
+function setSubBotGroupMetadata(sock, jid, metadata = {}) {
+if (!jid || !metadata) return null
+sock.chats ||= {}
+const current = sock.chats[jid] || { id: jid }
+sock.chats[jid] = { ...current, id: jid, subject: metadata.subject || current.subject || '', isChats: true, metadata }
+return sock.chats[jid]
+}
+async function patchSubBotGroupMetadata(sock) {
+const originalGroupMetadata = sock.groupMetadata?.bind(sock)
+sock.groupMetadata = async jid => {
+const cached = sock.chats?.[jid]?.metadata
+if (cached?.participants?.length) return cached
+const metadata = originalGroupMetadata ? await originalGroupMetadata(jid) : null
+if (metadata) setSubBotGroupMetadata(sock, jid, metadata)
+return metadata
+}
+sock.ev.on('groups.update', updates => {
+for (const update of updates || []) {
+const jid = update.id
+if (!jid) continue
+const current = sock.chats?.[jid]?.metadata || { id: jid, participants: [] }
+setSubBotGroupMetadata(sock, jid, { ...current, ...update })
+}
+})
+sock.ev.on('group-participants.update', async update => {
+const jid = update.id
+if (!jid) return
+try {
+const metadata = originalGroupMetadata ? await originalGroupMetadata(jid) : await sock.groupMetadata(jid)
+if (metadata) setSubBotGroupMetadata(sock, jid, metadata)
+} catch (error) {
+console.error(`Error refrescando participantes del grupo ${jid}:`, error)
+}
+})
+}
+
 function createDebouncedSaveCreds(saveCreds, delayMs = 4000) {
 let timer
 let pending = false
@@ -163,6 +210,7 @@ markOnlineOnConnect: false,
 syncFullHistory: false
 };
 let sock = makeWASocket(connectionOptions)
+await patchSubBotGroupMetadata(sock)
 const subBotId = requestedSubBotId || subBotSessionId(subBotJid || sock?.authState?.creds?.me?.jid || path.basename(pathRubyJadiBot))
 sock.subBotId = subBotId
 sock.subBotJid = subBotJid
@@ -224,6 +272,7 @@ removeSockFromPool(sock)
 try { sock.ws.close() } catch (e) { }
 try { sock.ev.removeAllListeners() } catch (e) {}
 sock = makeWASocket(connectionOptions, { chats: oldChats })
+await patchSubBotGroupMetadata(sock)
 sock.subBotId = subBotId
 sock.subBotJid = subBotJid
 attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.jid || 'primary', path: pathRubyJadiBot })
@@ -237,7 +286,10 @@ sock.ev.off("connection.update", sock.connectionUpdate)
 sock.ev.off('creds.update', sock.credsUpdate)
 }
 sock.handler = handlerModule.handler.bind(sock)
-sock.connectionUpdate = connectionUpdate.bind(sock)
+sock.connectionUpdate = update => connectionUpdate(update).catch(async error => {
+console.error(`Error crítico en connection.update del Sub-Bot ${subBotId}:`, error)
+if (sock?.ws?.socket?.readyState !== ws.OPEN) await scheduleSafeReconnect()
+})
 sock.credsUpdate = debouncedSaveCreds
 sock.ev.on("messages.upsert", sock.handler)
 sock.ev.on("connection.update", sock.connectionUpdate)
@@ -246,8 +298,9 @@ isInit = false
 return true
 }
 async function connectionUpdate(update) {
-const { connection, lastDisconnect, isNewLogin, qr } = update
+const { connection, lastDisconnect, isNewLogin, qr, receivedPendingNotifications } = update
 if (isNewLogin) sock.isInit = false
+if (receivedPendingNotifications) await refreshSubBotGroups(sock)
 if (qr && !mcode) {
 if (qrMessageSent) return
 qrMessageSent = true
@@ -376,6 +429,7 @@ if (!global.conns.includes(sock)) global.conns.push(sock)
 registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() })
 upsertSubBotAuthRegistry(subBotId, sock, 'online', { path: pathRubyJadiBot, jid: subBotJid, connectedAt: Date.now() })
 clearPairingCodeLock()
+await refreshSubBotGroups(sock)
 await joinChannels(sock)
 m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `@${m.sender.split('@')[0]}, genial ya eres parte de nuestro ecosistema de bots.`}, {quoted: m}) : null
 if (!healthInterval) {
@@ -388,6 +442,13 @@ destroySock({ removeSession: false })
 }, 90000)
 }
 }
+}
+async function scheduleSafeReconnect() {
+if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) return destroySock({ removeSession: false })
+reconnectAttempts += 1
+const waitMs = Math.min(30000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1)))
+await sleep(waitMs)
+return creloadHandler(true).catch(error => console.error(`Error en reconexión segura del Sub-Bot ${subBotId}:`, error))
 }
 creloadHandler(false)
 })
