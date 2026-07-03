@@ -31,61 +31,46 @@ const jid = normalizeMentionJid(value)
 return jid ? `@${jid.split('@')[0].split(':')[0]}` : '@usuario'
 }
 
-let detectThumbPromise = null
-async function getDetectThumb() {
-if (!detectThumbPromise) {
-detectThumbPromise = fetch('https://i.postimg.cc/6562JdR7/Hoshino-Ruby-(2).jpg')
-.then((res) => (res.ok ? res.arrayBuffer() : null))
-.then((buf) => (buf ? Buffer.from(buf) : null))
-.catch(() => null)
-}
-return detectThumbPromise
-}
-
 function buildDetectMessage(m, usuario) {
 const stubType = m.messageStubType
 
 if (stubType === 21) {
 return {
 text: `
-𖥔    　     *@${usuario}* ࣪      ˖ؚ
+𖥔          *@${usuario}* ࣪      ˖ؚ
 ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐂𝐚𝐦𝐛𝐢𝐨́ 𝐞𝐥 𝐍𝐨𝐦𝐛𝐫𝐞   𖤝
 ꒰꒰ 📝 𝐀𝐡𝐨𝐫𝐚 𝐬𝐞 𝐥𝐥𝐚𝐦𝐚 Ი꯭ᰍ
-> ${styleText(m.messageStubParameters?.[0] || '')}`,
-mentions: [m.sender],
+> ${styleText(m.messageStubParameters?.[0] || '')}`
 }
 }
 
 if (stubType === 22) {
 return {
 text: `
-𖥔    　     *@${usuario}* ࣪      ˖ؚ
+𖥔          *@${usuario}* ࣪      ˖ؚ
 ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐂𝐚𝐦𝐛𝐢𝐨́ 𝐥𝐚 𝐈𝐦𝐚𝐠𝐞𝐧   𖤝
 ꒰꒰ 🖼️ 𝐅𝐨𝐭𝐨 𝐀𝐜𝐭𝐮𝐚𝐥𝐢𝐳𝐚𝐝𝐚 Ი꯭ᰍ
-> 🫧 ${styleText('El icono del grupo ha cambiado')}`,
-mentions: [m.sender],
+> 🫧 ${styleText('El icono del grupo ha cambiado')}`
 }
 }
 
 if (stubType === 24) {
 return {
 text: `
-𖥔    　     *@${usuario}* ࣪      ˖ؚ
+𖥔          *@${usuario}* ࣪      ˖ؚ
 ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐂𝐚𝐦𝐛𝐢𝐨́ 𝐃𝐞𝐬𝐜𝐫𝐢𝐩𝐜𝐢𝐨́𝐧   𖤝
 ꒰꒰ 📑 𝐈𝐧𝐟𝐨 𝐀𝐜𝐭𝐮𝐚𝐥𝐢𝐳𝐚𝐝𝐚 Ი꯭ᰍ
-> 📝 ${styleText('La descripción del grupo es nueva')}`,
-mentions: [m.sender],
+> 📝 ${styleText('La descripción del grupo es nueva')}`
 }
 }
 
 if (stubType === 23) {
 return {
 text: `
-𖥔    　     *@${usuario}* ࣪      ˖ؚ
+𖥔          *@${usuario}* ࣪      ˖ؚ
 ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐑𝐞𝐬𝐭𝐚𝐛𝐥𝐞𝐜𝐢𝐨́ 𝐄𝐧𝐥𝐚𝐜𝐞   𖤝
 ꒰꒰ 🔗 𝐋𝐢𝐧𝐤 𝐀𝐧𝐮𝐥𝐚𝐝𝐨 Ი꯭ᰍ
-> 🚫 ${styleText('El enlace anterior ya no sirve')}`,
-mentions: [m.sender],
+> 🚫 ${styleText('El enlace anterior ya no sirve')}`
 }
 }
 
@@ -93,11 +78,10 @@ if (stubType === 25) {
 const type = m.messageStubParameters?.[0] === 'on' ? '𝐒𝐨𝐥𝐨 𝐀𝐝𝐦𝐢𝐧𝐬' : '𝐓𝐨𝐝𝐨𝐬'
 return {
 text: `
-𖥔    　     *@${usuario}* ࣪      ˖ؚ
+𖥔          *@${usuario}* ࣪      ˖ؚ
 ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐀𝐥𝐭𝐞𝐫𝐨́ 𝐀𝐣𝐮𝐬𝐭𝐞𝐬   𖤝
 ꒰꒰ ⚙️ 𝐀𝐡𝐨𝐫𝐚 𝐄𝐝𝐢𝐭𝐚𝐧 Ი꯭ᰍ
-> 🔓 ${styleText(type)}`,
-mentions: [m.sender],
+> 🔓 ${styleText(type)}`
 }
 }
 
@@ -107,11 +91,10 @@ const action = closed ? '𝐂𝐞𝐫𝐫𝐨́ 𝐞𝐥 𝐆𝐫𝐮𝐩𝐨' :
 const msg = closed ? 'Solo Admins escriben' : 'Todos pueden escribir'
 return {
 text: `
-𖥔    　     *@${usuario}* ࣪      ˖ؚ
+𖥔          *@${usuario}* ࣪      ˖ؚ
 ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ ${action}   𖤝
 ꒰꒰ 💬 𝐄𝐬𝐭𝐚𝐝𝐨 𝐝𝐞𝐥 𝐂𝐡𝐚𝐭 Ი꯭ᰍ
-> 📣 ${styleText(msg)}`,
-mentions: [m.sender],
+> 📣 ${styleText(msg)}`
 }
 }
 
@@ -120,11 +103,10 @@ const nuevoAdmin = normalizeMentionJid(m.messageStubParameters?.[0])
 if (!nuevoAdmin) return null
 return {
 text: `
-𖥔    　     *@${usuario}* ࣪      ˖ؚ
+𖥔          *@${usuario}* ࣪      ˖ؚ
 ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐃𝐢𝐨 𝐀𝐝𝐦𝐢𝐧 𝐚   𖤝
 > 🫡 ${mentionLabel(nuevoAdmin)}
-꒰꒰ 👑 𝐍𝐮𝐞𝐯𝐨 𝐀𝐝𝐦𝐢𝐧 Ი꯭ᰍ`,
-mentions: [m.sender, nuevoAdmin],
+꒰꒰ 👑 𝐍𝐮𝐞𝐯𝐨 𝐀𝐝𝐦𝐢𝐧 Ი꯭ᰍ`
 }
 }
 
@@ -133,11 +115,10 @@ const exAdmin = normalizeMentionJid(m.messageStubParameters?.[0])
 if (!exAdmin) return null
 return {
 text: `
-𖥔    　     *@${usuario}* ࣪      ˖ؚ
+𖥔          *@${usuario}* ࣪      ˖ؚ
 ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐐𝐮𝐢𝐭𝐨́ 𝐀𝐝𝐦𝐢𝐧 𝐚   𖤝
 > 😔 ${mentionLabel(exAdmin)}
-꒰꒰ 📉 𝐃𝐞𝐠𝐫𝐚𝐝𝐚𝐝𝐨 Ი꯭ᰍ`,
-mentions: [m.sender, exAdmin],
+꒰꒰ 📉 𝐃𝐞𝐠𝐫𝐚𝐝𝐚𝐝𝐨 Ი꯭ᰍ`
 }
 }
 
@@ -154,27 +135,15 @@ if (!chat.detect) return
 
 const senderJid = normalizeMentionJid(m.sender) || m.sender
 const usuario = senderJid.split('@')[0].split(':')[0]
-const payload = buildDetectMessage(m, usuario)
-if (!payload?.text) return
+const payloadData = buildDetectMessage(m, usuario)
+if (!payloadData?.text) return
 
-const thumb = await getDetectThumb()
-const quoted = thumb
-? {
-key: { participant: '0@s.whatsapp.net', remoteJid: 'status@broadcast', fromMe: false, id: 'Halo' },
-message: {
-locationMessage: {
-name: styleText('Notificaciones del Grupo'),
-jpegThumbnail: thumb,
-},
-},
-participant: '0@s.whatsapp.net',
+try {
+const payload = await global.rcanal(payloadData.text, m)
+await conn.relayMessage(m.chat, payload, {})
+} catch (e) {
+console.error(e)
 }
-: m
-
-await conn.sendMessage(m.chat, {
-text: payload.text,
-mentions: payload.mentions.map(normalizeMentionJid).filter(Boolean),
-}, { quoted })
 }
 
 export default handler
