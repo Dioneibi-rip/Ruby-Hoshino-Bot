@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { isChatBannedForBot, normalizeSessionJid } from '../../src/core/session-utils.js';
+import { isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from '../../src/core/session-utils.js';
 
 let cachedCommands = new Set();
 let cachedPluginSize = -1;
@@ -58,7 +58,7 @@ const chat = global.db.getChat(m.chat);
 const botJid = normalizeSessionJid(conn);
 const isBotBannedInThisChat = isChatBannedForBot(chat, botJid);
 
-if (isBotBannedInThisChat) return;
+if (isBotBannedInThisChat || shouldSilenceChatForBot(chat, botJid)) return;
 if (chat?.modoadmin && m.isGroup && !isAdmin && !isOwner && !isROwner) return;
 if (['>', '=>', '$'].includes(usedPrefix)) return;
 

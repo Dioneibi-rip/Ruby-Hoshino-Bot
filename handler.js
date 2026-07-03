@@ -23,7 +23,7 @@ isNumber,
 normalizeLidReferences,
 runMaintenance,
 } from './src/core/handler-utils.js'
-import { getAntiPrivateState, isChatBannedForBot, normalizeSessionJid } from './src/core/session-utils.js'
+import { canManageBotSecurity, getAntiPrivateState, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from './src/core/session-utils.js'
 import { attachSessionState } from './src/core/session-manager.js'
 import messageQueue from './src/core/message-queue.js'
 import { getCooldownKey, getCooldownSeconds, isRedisReady, redis } from './lib/redis.js'
@@ -361,14 +361,10 @@ if (typeof m.text !== 'string') m.text = ''
 await global.updateMessageGlobals?.(m, this)
 
 if (m.isGroup) {
-const chat = global.db?.data?.chats?.[m.chat]
-const primaryBot = chat?.primaryBot || chat?.botPrimario
-if (primaryBot) {
+const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
 const universalWords = ['resetbot', 'resetprimario', 'botreset']
 const firstWord = m.text?.trim?.().split(' ')[0]?.toLowerCase().replace(/^[./#]/, '') || ''
-const currentBot = normalizeConnectionJid(this)
-if (!universalWords.includes(firstWord) && currentBot !== primaryBot) return
-}
+if (!universalWords.includes(firstWord) && shouldSilenceChatForBot(chat, normalizeConnectionJid(this))) return
 }
 
 sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
@@ -390,7 +386,7 @@ if (opts.swonly && m.chat !== 'status@broadcast') return
 
 const permissionContext = buildPermissionContext(this, m, sender, participants)
 const { userGroup, botGroup, isRAdmin, isAdmin, isBotAdmin, isROwner, isOwner, isMods, isPrems } = permissionContext
-if (!m.isGroup && !isROwner && !isOwner) {
+if (!m.isGroup && !canManageBotSecurity(sender, this)) {
 const botSettings = global.db?.data?.settings?.[normalizeConnectionJid(this)] || settings || {}
 const antiPrivateState = getAntiPrivateState(botSettings)
 if (antiPrivateState === 'ignore') return
@@ -485,6 +481,7 @@ const chat = this.decodeJid?.(update?.id) || update?.id
 if (!chat || !chat.endsWith('@g.us')) continue
 if (!isRealtimeGroupEvent(this, update)) continue
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+if (shouldSilenceChatForBot(chatData, normalizeConnectionJid(this))) continue
 if (!chatData?.detect) continue
 const stub = buildGroupUpdateStub({ ...update, id: chat })
 if (!stub) continue
@@ -505,6 +502,7 @@ const action = String(update.action || '').toLowerCase()
 const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null
 if (!messageStubType) return
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+if (shouldSilenceChatForBot(chatData, normalizeConnectionJid(this))) return
 if (!chatData?.welcome) return
 const groupMetadata = await getCachedGroupMetadata(this, chat)
 const m = {

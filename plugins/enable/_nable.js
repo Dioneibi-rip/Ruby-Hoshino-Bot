@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
 import fetch from 'node-fetch';
-import { getAntiPrivateState, normalizeSessionJid } from '../../src/core/session-utils.js';
+import { canManageBotSecurity, getAntiPrivateState, normalizeSessionJid } from '../../src/core/session-utils.js';
 
 const fancyFontMap = {
 'A': '𝘼', 'B': '𝘽', 'C': '𝘾', 'D': '𝘿', 'E': '𝙀', 'F': '𝙁', 'G': '𝙂', 'H': '𝙃', 'I': '𝙄', 'J': '𝙅', 'K': '𝙆', 'L': '𝙇', 'M': '𝙈', 'N': '𝙉', 'O': '𝙊', 'P': '𝙋', 'Q': '𝙌', 'R': '𝙍', 'S': '𝙎', 'T': '𝙏', 'U': '𝙐', 'V': '𝙑', 'W': '𝙒', 'X': '𝙓', 'Y': '𝙔', 'Z': '𝙕',
@@ -108,7 +108,7 @@ case 'antiprivado':
 case 'antipriv':
 case 'antiprivate':
 isAll = true;
-if (!isOwner) {
+if (!canManageBotSecurity(m.sender, botJid)) {
 global.dfail('rowner', m, conn);
 throw false;
 }

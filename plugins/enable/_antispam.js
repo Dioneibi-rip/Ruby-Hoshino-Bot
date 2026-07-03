@@ -1,3 +1,4 @@
+import { shouldSilenceChatForBot, normalizeSessionJid } from '../../src/core/session-utils.js'
 const userSpamData = Object.create(null)
 
 const TIME_WINDOW_MS = 5000
@@ -26,6 +27,7 @@ if (!bot.antiSpam) return
 if (!m.isGroup) return
 
 const chat = global.db.getChat(m.chat)
+if (shouldSilenceChatForBot(chat, normalizeSessionJid(conn))) return
 if (chat.modoadmin) return
 
 if (isOwner || isROwner || isAdmin || !isBotAdmin || isPrems) return
