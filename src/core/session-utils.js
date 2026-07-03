@@ -2,10 +2,11 @@ export function normalizeSessionJid(connOrJid) {
 const raw = typeof connOrJid === 'string'
 ? connOrJid
 : (connOrJid?.user?.jid || connOrJid?.user?.id || connOrJid?.session?.id || '')
-const jid = String(raw || '')
+const jid = String(raw || '').trim().toLowerCase()
 if (!jid) return ''
 const [local, domain] = jid.split('@')
-return domain ? `${local.split(':')[0]}@${domain}` : jid
+if (domain) return `${local.split(':')[0]}@${domain}`
+return /^\d+$/.test(local) ? `${local}@s.whatsapp.net` : local
 }
 
 export function isChatBannedForBot(chat = {}, botJid = '') {
@@ -34,7 +35,8 @@ return 'off'
 }
 
 export function getPrimaryBotJid(chat = {}) {
-return normalizeSessionJid(chat?.primaryBot || chat?.botPrimario || '')
+const value = chat?.primaryBot || chat?.botPrimario || ''
+return normalizeSessionJid(value)
 }
 
 export function isPrimaryBotForChat(chat = {}, connOrJid = '') {

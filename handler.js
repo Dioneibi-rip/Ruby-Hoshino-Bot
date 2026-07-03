@@ -41,6 +41,17 @@ if (chatUpdate?.type !== 'notify') return []
 return Array.isArray(chatUpdate?.messages) ? chatUpdate.messages.filter(Boolean) : []
 }
 
+function getRawMessageChat(message = {}) {
+return message?.key?.remoteJid || message?.chat || message?.remoteJid || ''
+}
+
+function shouldProcessRawGroupMessage(conn, message = {}) {
+const chat = conn?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
+if (!chat?.endsWith?.('@g.us')) return true
+const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+return !shouldSilenceChatForBot(chatData, normalizeConnectionJid(conn))
+}
+
 function getQueueKey(message) {
 return message?.key?.participant || message?.participant || message?.key?.remoteJid || message?.chat || 'unknown'
 }
@@ -342,9 +353,11 @@ attachSessionState(this)
 runMaintenance(this)
 const messages = getIncomingMessages(chatUpdate).filter(isFreshMessage)
 if (!messages.length) return
-this.pushMessage?.(messages).catch(console.error)
 if (global.db && global.db.data == null) await global.loadDatabase?.()
-for (const rawMessage of messages) {
+const liveMessages = messages.filter((message) => shouldProcessRawGroupMessage(this, message))
+if (!liveMessages.length) return
+this.pushMessage?.(liveMessages).catch(console.error)
+for (const rawMessage of liveMessages) {
 const key = getQueueKey(rawMessage)
 messageQueue.enqueue(key, () => processMessage.call(this, chatUpdate, rawMessage))
 }
@@ -362,9 +375,7 @@ await global.updateMessageGlobals?.(m, this)
 
 if (m.isGroup) {
 const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
-const universalWords = ['resetbot', 'resetprimario', 'botreset']
-const firstWord = m.text?.trim?.().split(' ')[0]?.toLowerCase().replace(/^[./#]/, '') || ''
-if (!universalWords.includes(firstWord) && shouldSilenceChatForBot(chat, normalizeConnectionJid(this))) return
+if (shouldSilenceChatForBot(chat, normalizeConnectionJid(this))) return
 }
 
 sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
