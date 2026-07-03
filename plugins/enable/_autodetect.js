@@ -1,50 +1,4 @@
 import { shouldSilenceChatForBot, normalizeSessionJid } from '../../src/core/session-utils.js'
-import fetch from 'node-fetch'
-
-// 🌌 Galería de Imágenes de Ruby Hoshino
-const imagenes = [
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%F0%9F%A4%8D%20(1).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%F0%9F%8C%9FRuby%20Hoshino%F0%9F%8C%9F.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%F0%9D%97%8B%F0%9D%97%8E%F0%9D%6BB%F0%9D%97%92%20%F0%9D%97%81%F0%9D%97%88%F0%9D%97%8C%F0%9D%97%81%F0%9D%97%82%F0%9D%97%87%F0%9D%97%88.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%F0%9D%93%A1%F0%9D%93%BE%F0%9D%93%AB%F0%9D%14%82%20%F0%9D%93%98%F0%9D%93%AC%F0%9D%93%B8%F0%9D%93%B7%F0%9D%93%BC%20%E2%AD%90%F0%9F%92%AB.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%F0%9D%91%B9%F0%9D%92%96%F0%9D%92%83%F0%9D%92%9A%20%F0%9D%91%AF%F0%9D%92%90%F0%9D%92%94%F0%9D%92%89%F0%9D%92%8A%F0%9D%92%8F%F0%9D%92%90.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%E2%9D%A4.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%E2%98%8☆Hoshino%20Ruby%E2%98%86.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%E2%98%85%20!!%20(2).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%E2%98%8★%20!!%20(1).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%CB%9A%20%E0%BC%98%E2%99%A1%20%E2%8B%86%EF%BD%A1%CB%9A%20Hoshino%20Ruby.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/ruby%20hoshino%20(9).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/ruby%20hoshino%20(11).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/_%20(15).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/_%20(14).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/_%20(13).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Ruby%20hoshino%20%F0%9F%A7%A1.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Ruby%20_%20oshi%20no%20ko%20_.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Ruby%20Hoshino%20-%20%F0%9F%8C%9F%5BOshi%20no%20Ko%5D%F0%9F%8C%9F%20icons.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Ruby%20Hoshino%20(10).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Ruby%20Hoshino%20%23oshinokk.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Hoshino%20Ruby%20(3).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%23oshinoko%20%23%EC%B5%9C%EC%95%A0%EC%9D%98%EC%95%84%EC%9D%B4.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%F0%9D%99%8D%F0%9D%99%AA%F0%9D%99%97%F0%9D%99%AE%20%F0%9D%99%83%F0%9D%99%A4%F0%9D%99%A8%F0%9D%99%9D%F0%9D%99%A4%F0%9D%99%9E%F0%9D%99%A3%F0%9D%99%A4.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%F0%9F%8E%80%20%E2%8B%AE%20%F0%9D%91%B9%F0%9D%92%96%F0%9D%92%83%F0%9D%92%9A%20%F0%9D%92%8A%F0%9D%92%84%F0%9D%92%90%F0%9D%92%8F.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%E2%98%8★%20!!%20(3).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%E2%9D%A4%EF%B8%8F%F0%9D%91%AF%F0%9D%92%90%F0%9D%92%94%F0%9D%92%89%F0%9D%92%8A%F0%9D%92%8F%F0%9D%92%90%20%F0%9D%91%B9%F0%9D%92%96%F0%9D%92%83%F0%9D%92%9A%E2%9D%A4%EF%B8%8F.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%E0%AD%A8%E0%A7%8E.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/_%20(19).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/_%20(18).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/_%20(17).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/_%20(16).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Ruby%20Hoshino%20(16).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Ruby%20Hoshino%20(15).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Ruby%20Hoshino%20(14).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Ruby%20Hoshino%20(13).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Ruby%20Hoshino%20(12).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Hoshino%20Ruby%20%E2%99%A1.jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Hoshino%20Ruby%20(4).jpeg",
-"https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/(%F0%9F%8E%80)%20%20%E2%80%A6%20%20%E2%97%9E%20ruby%20%E2%97%9F%20%E2%98%86.jpeg"
-]
-
-const fallbackImage = 'https://raw.githubusercontent.com/Dioneibi-rip/imagenes/main/%E2%98%86Hoshino%20Ruby%E2%98%86.jpeg'
 
 const STYLE_MAP = {
 'a': '𝘢', 'b': '𝘣', 'c': '𝘤', 'd': '𝘥', 'e': '𝘦', 'f': '𝘧', 'g': '𝘨', 'h': '𝘩', 'i': '𝘪', 'j': '𝘫', 'k': '𝘬', 'l': '𝘭', 'm': '𝘮', 'n': '𝘯', 'o': '𝘰', 'p': '𝘱', 'q': '𝘲', 'r': '𝘳', 's': '𝘴', 't': '𝘵', 'u': '𝘶', 'v': '𝘷', 'w': '𝘸', 'x': '𝘹', 'y': '𝘺', 'z': '𝘻',
@@ -108,7 +62,7 @@ text: `${baseHeader}「 🔗 」 *ᴇsᴛᴀᴅᴏ:* \`ʀᴇsᴛᴀʙʟᴇᴄɪ�
 if (stubType === 25) {
 const type = m.messageStubParameters?.[0] === 'on' ? 'sᴏʟᴏ ᴀᴅᴍɪɴs' : 'ᴛᴏᴅᴏs'
 return {
-text: `${baseHeader}「 ⚙️ 」 *ᴇsᴛᴀᴅᴏ:* \`ᴀbᴛᴇʀᴏ́ ᴀ𝛥ᴜsᴛᴇs\` ~ 🔧\n\n> 🔒 *ᴘᴇʀᴍɪsᴏs:* ᴀʜᴏʀᴀ ᴇᴅɪᴛᴀɴ: \`${type}\` 💫`
+text: `${baseHeader}「 ⚙️ 」 *ᴇsᴛᴀᴅᴏ:* \`ᴀʟᴛᴇʀᴏ́ ᴀ𝛥ᴜsᴛᴇs\` ~ 🔧\n\n> 🔒 *ᴘᴇʀᴍɪsᴏs:* ᴀʜᴏʀᴀ ᴇᴅɪᴛᴀɴ: \`${type}\` 💫`
 }
 }
 
@@ -138,57 +92,6 @@ text: `${baseHeader}「 📉 」 *ᴇsᴛᴀᴅᴏ:* \`ᴅᴇɢʀᴀᴅᴀᴅᴏ
 }
 
 return null
-}
-
-// 🪐 Inyector rcanal con Soporte de Miniatura Fijo
-global.rcanal = async (textoDelMensaje, m) => {
-const randomUrl = imagenes[Math.floor(Math.random() * imagenes.length)] || fallbackImage
-let rimg
-
-try {
-const response = await fetch(randomUrl)
-if (response.ok) {
-rimg = Buffer.from(await response.arrayBuffer())
-} else {
-throw new Error()
-}
-} catch (error) {
-try {
-const fallbackRes = await fetch(fallbackImage)
-rimg = Buffer.from(await fallbackRes.arrayBuffer())
-} catch {
-rimg = null
-}
-}
-
-// 🔍 Auto-extracción de menciones para habilitar texto azul dinámico
-const mentions = [...textoDelMensaje.matchAll(/@(\d+)/g)].map(match => `${match[1]}@s.whatsapp.net`)
-
-return {
-extendedTextMessage: {
-text: `${randomUrl}\n\n${textoDelMensaje}`,
-matchedText: randomUrl,
-canonicalUrl: randomUrl,
-title: '⏤͟͞ू⃪  ̸̷͢𝐑𝐮𝐛y͟ 𝐇𝐨𝐬𝐡in͟ᴏ 𝐁𝐨t͟˚₊·—̳͟͞͞♡̥',
-description: '꒰ 🧺 ᑲіᥱᥒ᥎ᥱᥒіძ᥆ ᥲᥣ sᥙ́ρᥱr ᑲ᥆𝗍 ძᥱ ᥕһᥲ𝗍sᥲρρ ꒱',
-previewType: 'shadow',
-jpegThumbnail: rimg,
-contextInfo: {
-quotedMessage: m ? m.message : undefined,
-participant: m ? m.sender : undefined,
-stanzaId: m ? m.id : undefined,
-remoteJid: m ? m.chat : undefined,
-isForwarded: true,
-forwardingScore: 999,
-mentionedJid: mentions.length > 0 ? mentions : undefined,
-forwardedNewsletterMessageInfo: {
-newsletterJid: global.channelRD?.id || '120363335626706839@newsletter',
-newsletterName: global.channelRD?.name || '𖥔ᰔᩚ⋆｡˚ ꒰🍒 ʀᴜʙʏ-ʜᴏsʜɪɴᴏ | ᴄʜᴀɴɴᴇʟ-ʙᴏᴛ 💫꒱࣭',
-serverMessageId: -1
-}
-}
-}
-}
 }
 
 let handler = m => m
