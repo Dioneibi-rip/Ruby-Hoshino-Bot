@@ -285,6 +285,8 @@ sock.ev.off("groups.update", sock.groupsUpdate)
 sock.ev.off("connection.update", sock.connectionUpdate)
 sock.ev.off('creds.update', sock.credsUpdate)
 }
+sock.__groupEventStartedAt = Date.now()
+sock.__groupEventReadyAt = sock.__groupEventStartedAt + 15_000
 sock.handler = handlerModule.handler.bind(sock)
 sock.participantsUpdate = handlerModule.participantsUpdate.bind(sock)
 sock.groupsUpdate = handlerModule.groupsUpdate.bind(sock)

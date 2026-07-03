@@ -33,8 +33,11 @@ global.uptimeStart = Date.now()
 const SYSTEM_MESSAGE_MAX_AGE_MS = 60_000
 const IGNORED_BAILEYS_IDS = [/^NJX-/, /^BAE5.{12}$/, /^B24E.{16}$/]
 const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js', 'enable/grupo-unbanchat.js']
+const REALTIME_EVENT_GRACE_MS = 15_000
+const REALTIME_EVENT_MAX_AGE_MS = 60_000
 
 function getIncomingMessages(chatUpdate) {
+if (chatUpdate?.type !== 'notify') return []
 return Array.isArray(chatUpdate?.messages) ? chatUpdate.messages.filter(Boolean) : []
 }
 
@@ -46,6 +49,26 @@ function isFreshMessage(message) {
 const rawTimestamp = Number(message?.messageTimestamp || 0)
 const messageTime = rawTimestamp > 0 ? rawTimestamp * 1000 : Date.now()
 return Date.now() - messageTime <= SYSTEM_MESSAGE_MAX_AGE_MS
+}
+
+
+function getEventTime(update = {}) {
+const raw = Number(update.timestamp || update.time || update.messageTimestamp || update.creation || update.date || 0)
+if (!raw) return 0
+return raw < 10_000_000_000 ? raw * 1000 : raw
+}
+
+function isRealtimeGroupEvent(conn, update = {}) {
+const now = Date.now()
+const readyAt = Number(conn?.__groupEventReadyAt || 0)
+if (readyAt && now < readyAt) return false
+const startedAt = Number(conn?.__groupEventStartedAt || global.uptimeStart || now)
+if (!readyAt && now - startedAt < REALTIME_EVENT_GRACE_MS) return false
+const eventTime = getEventTime(update)
+if (!eventTime) return true
+if (eventTime < startedAt) return false
+if (now - eventTime > REALTIME_EVENT_MAX_AGE_MS) return false
+return true
 }
 
 function shouldIgnoreBaileysMessage(m) {
@@ -460,6 +483,7 @@ for (const update of list) {
 try {
 const chat = this.decodeJid?.(update?.id) || update?.id
 if (!chat || !chat.endsWith('@g.us')) continue
+if (!isRealtimeGroupEvent(this, update)) continue
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
 if (!chatData?.detect) continue
 const stub = buildGroupUpdateStub({ ...update, id: chat })
@@ -476,6 +500,7 @@ export async function participantsUpdate(update = {}) {
 try {
 const chat = this.decodeJid?.(update.id) || update.id
 if (!chat || !chat.endsWith('@g.us')) return
+if (!isRealtimeGroupEvent(this, update)) return
 const action = String(update.action || '').toLowerCase()
 const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null
 if (!messageStubType) return

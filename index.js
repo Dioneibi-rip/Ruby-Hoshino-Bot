@@ -35,7 +35,6 @@ const { CONNECTING } = ws
 global.__filename = function filename(pathURL = import.meta.url, rmPrefix = platform !== 'win32') { return rmPrefix ? /file:\/\/\//.test(pathURL) ? fileURLToPath(pathURL) : pathURL : pathToFileURL(pathURL).toString(); };
 global.__dirname = function dirname(pathURL) { return path.dirname(global.__filename(pathURL, true)) };
 global.__require = function createLocalRequire(dir = import.meta.url) { return createRequire(dir) }
-// Carga obligatoria de configuraciones globales antes de handler.js y antes de leer plugins/.
 await import('./settings.js')
 global.timestamp = {start: new Date}
 const __dirname = global.__dirname(import.meta.url)
@@ -46,7 +45,6 @@ global.db = new SQLiteDatabase(opts['db'] || './src/database/database.sqlite')
 global.DATABASE = global.db
 let databaseShutdownStarted = false
 global.authCredsFlushers ||= new Set()
-// Este plugin se importa después de settings.js para que encuentre global.* disponible.
 const { RubyJadiBot } = await import('./plugins/subbots/jadibot-serbot.js')
 function createDebouncedSaveCreds(saveCreds, delayMs = 4000) {
 let timer
@@ -321,6 +319,8 @@ conn = global.conn
 isInit = true
 }
 if (!isInit) { conn.ev.off('messages.upsert', conn.handler); conn.ev.off('group-participants.update', conn.participantsUpdate); conn.ev.off('groups.update', conn.groupsUpdate); conn.ev.off('connection.update', conn.connectionUpdate); conn.ev.off('creds.update', conn.credsUpdate); }
+global.conn.__groupEventStartedAt = Date.now()
+global.conn.__groupEventReadyAt = global.conn.__groupEventStartedAt + 15_000
 conn.handler = handler.handler.bind(global.conn)
 conn.participantsUpdate = handler.participantsUpdate.bind(global.conn)
 conn.groupsUpdate = handler.groupsUpdate.bind(global.conn)
