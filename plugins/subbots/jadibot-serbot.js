@@ -118,10 +118,22 @@ const normalized = normalizeSubBotJid(jid)
 return encodeURIComponent(normalized || `subbot-${Date.now()}`)
 }
 
-function getPairingPhone(m, subBotJid = '') {
-const raw = subBotJid || m?.sender || ''
-const number = String(raw).split('@')[0].split(':')[0].replace(/\D/g, '')
-return number || String(m?.sender || '').split('@')[0].split(':')[0].replace(/\D/g, '')
+function cleanPhoneNumber(value = '') {
+return String(value || '').split('@')[0].split(':')[0].replace(/\D/g, '')
+}
+function isValidPairingPhone(phoneNumber = '') {
+return /^\d{8,15}$/.test(phoneNumber)
+}
+function getPairingPhone(m, subBotJid = '', args = []) {
+const candidates = [args.find((arg) => cleanPhoneNumber(arg)), subBotJid, m?.sender]
+for (const candidate of candidates) {
+const number = cleanPhoneNumber(candidate)
+if (number) return number
+}
+return ''
+}
+function getPairingErrorMessage(error) {
+return error?.output?.payload?.message || error?.output?.message || error?.message || String(error || 'Error desconocido')
 }
 if (global.conns instanceof Array) console.log()
 else global.conns = []
@@ -150,8 +162,12 @@ if (!await pathExists(pathRubyJadiBot)){
 await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })
 }
 const options = { pathRubyJadiBot, subBotJid, subBotId: id, m, conn, args: [...args], usedPrefix, command, fromCommand: true }
-RubyJadiBot(options)
+try {
+await RubyJadiBot(options)
 global.db.getUser(m.sender).Subs = new Date * 1
+} catch (error) {
+await conn.reply(m.chat, `🥀 No pude iniciar la vinculación del Sub-Bot. Detalle: ${getPairingErrorMessage(error)}`, m)
+}
 }
 handler.help = ['qr', 'code']
 handler.tags = ['serbot']
@@ -330,12 +346,19 @@ pairingCodeMessageKey = activeRequest.key || null
 return
 }
 pairingCodeSent = true
-const pairingPhone = getPairingPhone(m, subBotJid)
-if (!pairingPhone) {
+const pairingPhone = getPairingPhone(m, subBotJid, args)
+if (!isValidPairingPhone(pairingPhone)) {
 pairingCodeSent = false
-return conn.reply(m.chat, `🥀 No pude detectar tu número para generar el código de vinculación.`, m)
+return conn.reply(m.chat, `🥀 Envía un número válido para generar el código de vinculación. Ejemplo: ${usedPrefix || '#'}code 18095551234`, m)
 }
-const rawCode = await sock.requestPairingCode(pairingPhone, "RUBYCHAN")
+let rawCode
+try {
+rawCode = await sock.requestPairingCode(pairingPhone, "RUBYCHAN")
+} catch (error) {
+pairingCodeSent = false
+clearPairingCodeLock()
+return conn.reply(m.chat, `🥀 Baileys rechazó la solicitud del código para +${pairingPhone}. Detalle: ${getPairingErrorMessage(error)}`, m)
+}
 const formattedCode = rawCode.match(/.{1,4}/g)?.join("-") || rawCode
 const mediaMessage = await prepareWAMessageMedia({
 image: { url: "https://files.catbox.moe/rt1yfo.jpeg" }
@@ -457,6 +480,14 @@ await sleep(waitMs)
 return creloadHandler(true).catch(error => console.error(`Error en reconexión segura del Sub-Bot ${subBotId}:`, error))
 }
 creloadHandler(false)
+if (mcode && m?.chat) {
+setTimeout(() => {
+if (pairingCodeSent || sock.authState?.creds?.registered) return
+connectionUpdate({ qr: 'pairing-code-fallback' }).catch(async (error) => {
+await conn.reply(m.chat, `🥀 No pude generar el código de vinculación. Detalle: ${getPairingErrorMessage(error)}`, m).catch(() => {})
+})
+}, 3000)
+}
 })
 }
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))

@@ -23,7 +23,7 @@ isNumber,
 normalizeLidReferences,
 runMaintenance,
 } from './src/core/handler-utils.js'
-import { getAntiPrivateState, isChatBannedForBot, normalizeSessionJid } from './src/core/session-utils.js'
+import { canManageBotSecurity, getAntiPrivateState, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from './src/core/session-utils.js'
 import { attachSessionState } from './src/core/session-manager.js'
 import messageQueue from './src/core/message-queue.js'
 import { getCooldownKey, getCooldownSeconds, isRedisReady, redis } from './lib/redis.js'
@@ -39,6 +39,17 @@ const REALTIME_EVENT_MAX_AGE_MS = 60_000
 function getIncomingMessages(chatUpdate) {
 if (chatUpdate?.type !== 'notify') return []
 return Array.isArray(chatUpdate?.messages) ? chatUpdate.messages.filter(Boolean) : []
+}
+
+function getRawMessageChat(message = {}) {
+return message?.key?.remoteJid || message?.chat || message?.remoteJid || ''
+}
+
+function shouldProcessRawGroupMessage(conn, message = {}) {
+const chat = conn?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
+if (!chat?.endsWith?.('@g.us')) return true
+const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+return !shouldSilenceChatForBot(chatData, normalizeConnectionJid(conn))
 }
 
 function getQueueKey(message) {
@@ -342,9 +353,11 @@ attachSessionState(this)
 runMaintenance(this)
 const messages = getIncomingMessages(chatUpdate).filter(isFreshMessage)
 if (!messages.length) return
-this.pushMessage?.(messages).catch(console.error)
 if (global.db && global.db.data == null) await global.loadDatabase?.()
-for (const rawMessage of messages) {
+const liveMessages = messages.filter((message) => shouldProcessRawGroupMessage(this, message))
+if (!liveMessages.length) return
+this.pushMessage?.(liveMessages).catch(console.error)
+for (const rawMessage of liveMessages) {
 const key = getQueueKey(rawMessage)
 messageQueue.enqueue(key, () => processMessage.call(this, chatUpdate, rawMessage))
 }
@@ -361,14 +374,8 @@ if (typeof m.text !== 'string') m.text = ''
 await global.updateMessageGlobals?.(m, this)
 
 if (m.isGroup) {
-const chat = global.db?.data?.chats?.[m.chat]
-const primaryBot = chat?.primaryBot || chat?.botPrimario
-if (primaryBot) {
-const universalWords = ['resetbot', 'resetprimario', 'botreset']
-const firstWord = m.text?.trim?.().split(' ')[0]?.toLowerCase().replace(/^[./#]/, '') || ''
-const currentBot = normalizeConnectionJid(this)
-if (!universalWords.includes(firstWord) && currentBot !== primaryBot) return
-}
+const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
+if (shouldSilenceChatForBot(chat, normalizeConnectionJid(this))) return
 }
 
 sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
@@ -390,7 +397,7 @@ if (opts.swonly && m.chat !== 'status@broadcast') return
 
 const permissionContext = buildPermissionContext(this, m, sender, participants)
 const { userGroup, botGroup, isRAdmin, isAdmin, isBotAdmin, isROwner, isOwner, isMods, isPrems } = permissionContext
-if (!m.isGroup && !isROwner && !isOwner) {
+if (!m.isGroup && !canManageBotSecurity(sender, this)) {
 const botSettings = global.db?.data?.settings?.[normalizeConnectionJid(this)] || settings || {}
 const antiPrivateState = getAntiPrivateState(botSettings)
 if (antiPrivateState === 'ignore') return
@@ -485,6 +492,7 @@ const chat = this.decodeJid?.(update?.id) || update?.id
 if (!chat || !chat.endsWith('@g.us')) continue
 if (!isRealtimeGroupEvent(this, update)) continue
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+if (shouldSilenceChatForBot(chatData, normalizeConnectionJid(this))) continue
 if (!chatData?.detect) continue
 const stub = buildGroupUpdateStub({ ...update, id: chat })
 if (!stub) continue
@@ -505,6 +513,7 @@ const action = String(update.action || '').toLowerCase()
 const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null
 if (!messageStubType) return
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+if (shouldSilenceChatForBot(chatData, normalizeConnectionJid(this))) return
 if (!chatData?.welcome) return
 const groupMetadata = await getCachedGroupMetadata(this, chat)
 const m = {
