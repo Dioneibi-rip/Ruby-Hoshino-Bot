@@ -8,6 +8,7 @@ import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
 import failureHandler from './lib/respuesta.js'
 import welcomePlugin from './plugins/functions/_welcome.js'
+import autodetectPlugin from './plugins/enable/_autodetect.js'
 import {
 buildPermissionContext,
 createParticipantIndex,
@@ -141,6 +142,21 @@ await redis.set(key, '1', 'EX', seconds)
 } catch (error) {
 console.error('[redis] cooldown write error', error)
 }
+}
+
+
+function getInvalidCommandMessage(command, usedPrefix) {
+const suggestion = commandsMap?.size ? [...commandsMap.keys()].find((name) => name && command && (name.startsWith(command[0]) || command.startsWith(name[0]))) : null
+const hint = suggestion ? `\n\n✧ Quizás quisiste usar *${usedPrefix}${suggestion}*` : ''
+return `✧ El comando *${usedPrefix}${command || ''}* no existe.${hint}`
+}
+
+async function runInvalidCommandNotice(conn, m, parsed, usedPrefix) {
+if (!parsed?.command || !usedPrefix) return
+if (shouldIgnoreBaileysMessage(m)) return
+if (m.__invalidCommandNotified) return
+m.__invalidCommandNotified = true
+await conn.reply?.(m.chat, getInvalidCommandMessage(parsed.command, usedPrefix), m)
 }
 
 function parseCommand(text, usedPrefix) {
@@ -388,6 +404,7 @@ if (beforeResult && commandEntry?.name === name) return
 if (m.__pluginHalt) return
 }
 if (!commandEntry) {
+if (parsed?.command && prefixMatch?.[0]?.[0]) await runInvalidCommandNotice(this, m, parsed, prefixMatch[0][0])
 if (shouldIgnoreBaileysMessage(m)) return
 return
 }
@@ -424,6 +441,37 @@ console.log(chalk.red('Error en print.js'), error)
 }
 }
 
+function buildGroupUpdateStub(update = {}) {
+const chat = update.id
+if (!chat) return null
+const actor = update.author || update.sender || update.participant || update.owner || ''
+if (typeof update.subject === 'string') return { chat, isGroup: true, sender: actor, messageStubType: 21, messageStubParameters: [update.subject] }
+if (typeof update.desc === 'string' || typeof update.description === 'string') return { chat, isGroup: true, sender: actor, messageStubType: 24, messageStubParameters: [update.desc || update.description || ''] }
+if (Object.prototype.hasOwnProperty.call(update, 'announce')) return { chat, isGroup: true, sender: actor, messageStubType: 26, messageStubParameters: [update.announce ? 'on' : 'off'] }
+if (Object.prototype.hasOwnProperty.call(update, 'restrict')) return { chat, isGroup: true, sender: actor, messageStubType: 25, messageStubParameters: [update.restrict ? 'on' : 'off'] }
+if (Object.prototype.hasOwnProperty.call(update, 'inviteCode') || Object.prototype.hasOwnProperty.call(update, 'ephemeralDuration')) return { chat, isGroup: true, sender: actor, messageStubType: 23, messageStubParameters: [] }
+if (update.picture || update.imgUrl || update.icon) return { chat, isGroup: true, sender: actor, messageStubType: 22, messageStubParameters: [] }
+return null
+}
+
+export async function groupsUpdate(updates = []) {
+const list = Array.isArray(updates) ? updates : [updates]
+for (const update of list) {
+try {
+const chat = this.decodeJid?.(update?.id) || update?.id
+if (!chat || !chat.endsWith('@g.us')) continue
+const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+if (!chatData?.detect) continue
+const stub = buildGroupUpdateStub({ ...update, id: chat })
+if (!stub) continue
+const groupMetadata = await getCachedGroupMetadata(this, chat)
+await autodetectPlugin.before.call(this, stub, { conn: this, participants: groupMetadata?.participants || [], groupMetadata: groupMetadata || {} })
+} catch (error) {
+console.error('[detect] groups.update error', error)
+}
+}
+}
+
 export async function participantsUpdate(update = {}) {
 try {
 const chat = this.decodeJid?.(update.id) || update.id
@@ -431,6 +479,8 @@ if (!chat || !chat.endsWith('@g.us')) return
 const action = String(update.action || '').toLowerCase()
 const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null
 if (!messageStubType) return
+const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+if (!chatData?.welcome) return
 const groupMetadata = await getCachedGroupMetadata(this, chat)
 const m = {
 chat,
