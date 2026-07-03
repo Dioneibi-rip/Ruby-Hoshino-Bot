@@ -273,8 +273,8 @@ global.rcanal = async (textoDelMensaje, m) => {
       text: `${matchedUrl}\n\n${textoDelMensaje}`,
       matchedText: matchedUrl,
       canonicalUrl: matchedUrl,
-      title: global.botname || '⏤͟͞ू⃪  ̸̷͢𝐑𝐮𝐛y͟ 𝐇𝐨𝐬𝐡in͟ᴏ 𝐁𝐨t͟˚₊·—̳͟͞͞♡̥',
-      description: global.dev || '꒰ 🧺 ᑲіᥱᥒ᥎ᥱᥒіძ᥆ ᥲᥣ sᥙ́ρᥱr ᑲ᥆𝗍 ძᥱ ᥕһᥲ𝗍sᥲρρ ꒱',
+      title: '⏤͟͞ू⃪  ̸̷͢𝐑𝐮𝐛y͟ 𝐇𝐨𝐬𝐡in͟ᴏ 𝐁𝐨t͟˚₊·—̳͟͞͞♡̥',
+      description: '꒰ 🧺 ᑲіᥱᥒ᥎ᥱᥒіძ᥆ ᥲᥣ sᥙ́ρᥱr ᑲ᥆𝗍 ძᥱ ᥕһᥲ𝗍sᥲρρ ꒱',
       previewType: 'shadow',
       jpegThumbnail: rimg,
       contextInfo: {
