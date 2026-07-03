@@ -8,6 +8,7 @@ import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
 import failureHandler from './lib/respuesta.js'
 import welcomePlugin from './plugins/functions/_welcome.js'
+import autodetectPlugin from './plugins/enable/_autodetect.js'
 import {
 buildPermissionContext,
 createParticipantIndex,
@@ -32,8 +33,11 @@ global.uptimeStart = Date.now()
 const SYSTEM_MESSAGE_MAX_AGE_MS = 60_000
 const IGNORED_BAILEYS_IDS = [/^NJX-/, /^BAE5.{12}$/, /^B24E.{16}$/]
 const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js', 'enable/grupo-unbanchat.js']
+const REALTIME_EVENT_GRACE_MS = 15_000
+const REALTIME_EVENT_MAX_AGE_MS = 60_000
 
 function getIncomingMessages(chatUpdate) {
+if (chatUpdate?.type !== 'notify') return []
 return Array.isArray(chatUpdate?.messages) ? chatUpdate.messages.filter(Boolean) : []
 }
 
@@ -45,6 +49,26 @@ function isFreshMessage(message) {
 const rawTimestamp = Number(message?.messageTimestamp || 0)
 const messageTime = rawTimestamp > 0 ? rawTimestamp * 1000 : Date.now()
 return Date.now() - messageTime <= SYSTEM_MESSAGE_MAX_AGE_MS
+}
+
+
+function getEventTime(update = {}) {
+const raw = Number(update.timestamp || update.time || update.messageTimestamp || update.creation || update.date || 0)
+if (!raw) return 0
+return raw < 10_000_000_000 ? raw * 1000 : raw
+}
+
+function isRealtimeGroupEvent(conn, update = {}) {
+const now = Date.now()
+const readyAt = Number(conn?.__groupEventReadyAt || 0)
+if (readyAt && now < readyAt) return false
+const startedAt = Number(conn?.__groupEventStartedAt || global.uptimeStart || now)
+if (!readyAt && now - startedAt < REALTIME_EVENT_GRACE_MS) return false
+const eventTime = getEventTime(update)
+if (!eventTime) return true
+if (eventTime < startedAt) return false
+if (now - eventTime > REALTIME_EVENT_MAX_AGE_MS) return false
+return true
 }
 
 function shouldIgnoreBaileysMessage(m) {
@@ -141,6 +165,21 @@ await redis.set(key, '1', 'EX', seconds)
 } catch (error) {
 console.error('[redis] cooldown write error', error)
 }
+}
+
+
+function getInvalidCommandMessage(command, usedPrefix) {
+const suggestion = commandsMap?.size ? [...commandsMap.keys()].find((name) => name && command && (name.startsWith(command[0]) || command.startsWith(name[0]))) : null
+const hint = suggestion ? `\n\n✧ Quizás quisiste usar *${usedPrefix}${suggestion}*` : ''
+return `✧ El comando *${usedPrefix}${command || ''}* no existe.${hint}`
+}
+
+async function runInvalidCommandNotice(conn, m, parsed, usedPrefix) {
+if (!parsed?.command || !usedPrefix) return
+if (shouldIgnoreBaileysMessage(m)) return
+if (m.__invalidCommandNotified) return
+m.__invalidCommandNotified = true
+await conn.reply?.(m.chat, getInvalidCommandMessage(parsed.command, usedPrefix), m)
 }
 
 function parseCommand(text, usedPrefix) {
@@ -388,6 +427,7 @@ if (beforeResult && commandEntry?.name === name) return
 if (m.__pluginHalt) return
 }
 if (!commandEntry) {
+if (parsed?.command && prefixMatch?.[0]?.[0]) await runInvalidCommandNotice(this, m, parsed, prefixMatch[0][0])
 if (shouldIgnoreBaileysMessage(m)) return
 return
 }
@@ -424,13 +464,48 @@ console.log(chalk.red('Error en print.js'), error)
 }
 }
 
+function buildGroupUpdateStub(update = {}) {
+const chat = update.id
+if (!chat) return null
+const actor = update.author || update.sender || update.participant || update.owner || ''
+if (typeof update.subject === 'string') return { chat, isGroup: true, sender: actor, messageStubType: 21, messageStubParameters: [update.subject] }
+if (typeof update.desc === 'string' || typeof update.description === 'string') return { chat, isGroup: true, sender: actor, messageStubType: 24, messageStubParameters: [update.desc || update.description || ''] }
+if (Object.prototype.hasOwnProperty.call(update, 'announce')) return { chat, isGroup: true, sender: actor, messageStubType: 26, messageStubParameters: [update.announce ? 'on' : 'off'] }
+if (Object.prototype.hasOwnProperty.call(update, 'restrict')) return { chat, isGroup: true, sender: actor, messageStubType: 25, messageStubParameters: [update.restrict ? 'on' : 'off'] }
+if (Object.prototype.hasOwnProperty.call(update, 'inviteCode') || Object.prototype.hasOwnProperty.call(update, 'ephemeralDuration')) return { chat, isGroup: true, sender: actor, messageStubType: 23, messageStubParameters: [] }
+if (update.picture || update.imgUrl || update.icon) return { chat, isGroup: true, sender: actor, messageStubType: 22, messageStubParameters: [] }
+return null
+}
+
+export async function groupsUpdate(updates = []) {
+const list = Array.isArray(updates) ? updates : [updates]
+for (const update of list) {
+try {
+const chat = this.decodeJid?.(update?.id) || update?.id
+if (!chat || !chat.endsWith('@g.us')) continue
+if (!isRealtimeGroupEvent(this, update)) continue
+const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+if (!chatData?.detect) continue
+const stub = buildGroupUpdateStub({ ...update, id: chat })
+if (!stub) continue
+const groupMetadata = await getCachedGroupMetadata(this, chat)
+await autodetectPlugin.before.call(this, stub, { conn: this, participants: groupMetadata?.participants || [], groupMetadata: groupMetadata || {} })
+} catch (error) {
+console.error('[detect] groups.update error', error)
+}
+}
+}
+
 export async function participantsUpdate(update = {}) {
 try {
 const chat = this.decodeJid?.(update.id) || update.id
 if (!chat || !chat.endsWith('@g.us')) return
+if (!isRealtimeGroupEvent(this, update)) return
 const action = String(update.action || '').toLowerCase()
 const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null
 if (!messageStubType) return
+const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+if (!chatData?.welcome) return
 const groupMetadata = await getCachedGroupMetadata(this, chat)
 const m = {
 chat,

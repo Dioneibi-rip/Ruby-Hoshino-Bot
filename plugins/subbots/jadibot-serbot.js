@@ -256,13 +256,11 @@ if (removeSession) {
 try { await fs.promises.rm(pathRubyJadiBot, { recursive: true, force: true }) } catch (e) {}
 }
 }
-const { handler: handlerModule } = await import(`../../handler.js?t=${Date.now()}`)
+let handlerModule = await import(`../../handler.js?t=${Date.now()}`)
 let creloadHandler = async function (restatConn) {
 try {
 const freshHandler = await import(`../../handler.js?t=${Date.now()}`).catch(console.error)
-if (freshHandler?.handler) {
-handlerModule.handler = freshHandler.handler
-}
+if (freshHandler?.handler) handlerModule = freshHandler
 } catch (e) {
 console.error('Error recargando handler:', e)
 }
@@ -282,16 +280,24 @@ upsertSubBotAuthRegistry(subBotId, sock, 'reconnecting', { path: pathRubyJadiBot
 }
 if (!isInit) {
 sock.ev.off("messages.upsert", sock.handler)
+sock.ev.off("group-participants.update", sock.participantsUpdate)
+sock.ev.off("groups.update", sock.groupsUpdate)
 sock.ev.off("connection.update", sock.connectionUpdate)
 sock.ev.off('creds.update', sock.credsUpdate)
 }
+sock.__groupEventStartedAt = Date.now()
+sock.__groupEventReadyAt = sock.__groupEventStartedAt + 15_000
 sock.handler = handlerModule.handler.bind(sock)
+sock.participantsUpdate = handlerModule.participantsUpdate.bind(sock)
+sock.groupsUpdate = handlerModule.groupsUpdate.bind(sock)
 sock.connectionUpdate = update => connectionUpdate(update).catch(async error => {
 console.error(`Error crítico en connection.update del Sub-Bot ${subBotId}:`, error)
 if (sock?.ws?.socket?.readyState !== ws.OPEN) await scheduleSafeReconnect()
 })
 sock.credsUpdate = debouncedSaveCreds
 sock.ev.on("messages.upsert", sock.handler)
+sock.ev.on("group-participants.update", sock.participantsUpdate)
+sock.ev.on("groups.update", sock.groupsUpdate)
 sock.ev.on("connection.update", sock.connectionUpdate)
 sock.ev.on("creds.update", sock.credsUpdate)
 isInit = false

@@ -16,7 +16,7 @@ if (isAdmin || isOwner || m.fromMe || isROwner) return;
 
 let chat = global.db.getChat(m.chat);
 
-if (!chat.antiLink) return;
+if (!chat.antiLink && !chat.antilink) return;
 
 const isGroupLink = linkRegex.exec(m.text) || linkRegex1.exec(m.text);
 
@@ -48,6 +48,7 @@ await conn.groupParticipantsUpdate(m.chat, [user], 'remove');
 } else {
 return m.reply(`😓 *Ups...* El antilink está activo, pero necesito ser *Admin* para poder sacar a la gente que manda links`);
 }
+m.__pluginHalt = true;
 return !0;
 }
 return !0;
