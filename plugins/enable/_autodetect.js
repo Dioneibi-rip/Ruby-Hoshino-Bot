@@ -1,3 +1,4 @@
+import { shouldSilenceChatForBot, normalizeSessionJid } from '../../src/core/session-utils.js'
 import fetch from 'node-fetch'
 
 const STYLE_MAP = {
@@ -148,6 +149,7 @@ handler.before = async function (m, { conn }) {
 if (!m.messageStubType || !m.isGroup) return
 
 const chat = global.db.getChat(m.chat)
+if (shouldSilenceChatForBot(chat, normalizeSessionJid(conn))) return
 if (!chat.detect) return
 
 const senderJid = normalizeMentionJid(m.sender) || m.sender
