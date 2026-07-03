@@ -31,70 +31,140 @@ const jid = normalizeMentionJid(value)
 return jid ? `@${jid.split('@')[0].split(':')[0]}` : '@usuario'
 }
 
+const fallbackImage = 'https://i.postimg.cc/6562JdR7/Hoshino-Ruby-(2).jpg'
+const imagenes = [
+'https://files.catbox.moe/xr2m6u.jpg',
+fallbackImage
+]
+const matchedUrl = 'https://whatsapp.com/channel/0029VajmXke1iUxe23A3Ew35'
+
+const rcanal = async (textoDelMensaje, m) => {
+const randomUrl = imagenes[Math.floor(Math.random() * imagenes.length)] || fallbackImage
+let rimg
+
+try {
+const response = await fetch(randomUrl)
+if (response.ok) {
+rimg = Buffer.from(await response.arrayBuffer())
+} else {
+throw new Error()
+}
+} catch (error) {
+try {
+const fallbackRes = await fetch(fallbackImage)
+rimg = Buffer.from(await fallbackRes.arrayBuffer())
+} catch {
+rimg = null
+}
+}
+
+return {
+extendedTextMessage: {
+text: `⋆. 𐙚˚࿔ 𝐑𝐮𝐛𝐲 𝐇𝐨𝐬𝐡𝐢𝐧𝐨 𝜗𝜚˚⋆\n\n${textoDelMensaje}`,
+matchedText: matchedUrl,
+canonicalUrl: matchedUrl,
+title: '⏤͟͞ू⃪  ̸̷͢𝐑𝐮𝐛y͟ 𝐇𝐨𝐬𝐡in͟ᴏ 𝐁𝐨t͟˚₊·—̳͟͞͞♡̥',
+description: '꒰ 🧺 ᑲіᥱᥒ᥎ᥱᥒіძ᥆ ᥲᥣ sᥙ́ρᥱr ᑲ᥆𝗍 ძᥱ ᥕһᥲ𝗍sᥲρρ ꒱',
+previewType: 'shadow',
+jpegThumbnail: rimg,
+contextInfo: {
+quotedMessage: m ? m.message : undefined,
+participant: m ? m.sender : undefined,
+stanzaId: m ? m.id : undefined,
+remoteJid: m ? m.chat : undefined,
+isForwarded: true,
+forwardingScore: 999,
+forwardedNewsletterMessageInfo: {
+newsletterJid: global.channelRD?.id || '120363335626706839@newsletter',
+newsletterName: global.channelRD?.name || '𖥔ᰔᩚ⋆｡˚ ꒰🍒 ʀᴜʙʏ-ʜᴏsʜɪɴᴏ | ᴄʜᴀɴɴᴇʟ-ʙᴏᴛ 💫꒱࣭',
+serverMessageId: -1
+}
+}
+}
+}
+}
+
 function buildDetectMessage(m, usuario) {
 const stubType = m.messageStubType
 
 if (stubType === 21) {
 return {
-text: `
-𖥔          *@${usuario}* ࣪      ˖ؚ
-ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐂𝐚𝐦𝐛𝐢𝐨́ 𝐞𝐥 𝐍𝐨𝐦𝐛𝐫𝐞   𖤝
-꒰꒰ 📝 𝐀𝐡𝐨𝐫𝐚 𝐬𝐞 𝐥𝐥𝐚𝐦𝐚 Ი꯭ᰍ
-> ${styleText(m.messageStubParameters?.[0] || '')}`
+text: `𐔌 . ⋮ 𝐀 𝐕 𝐈 𝐒 𝐎 𝐃𝐄𝐋 𝐆𝐑𝐔𝐏𝐎 .ᐟ ֹ ₊ ꒱
+⏔⏔⏔ ꒰ ᧔ෆ᧓ ꒱ ⏔⏔⏔
+
+> ❀ ᯓ★ *@${usuario}* 𝐡𝐚 𝐜𝐚𝐦𝐛𝐢𝐚𝐝𝐨 𝐞𝐥 𝐧𝐨𝐦𝐛𝐫𝐞 𝐝𝐞𝐥 𝐠𝐫𝐮𝐩𝐨.
+> ✦ 𝐀𝐡𝐨𝐫𝐚 𝐬𝐞 𝐥𝐥𝐚𝐦𝐚:
+> ╰┈➤ *${styleText(m.messageStubParameters?.[0] || '')}*
+
+⋆˚✿˖° ┈┈┈┈┈┈┈┈┈ ⋆˚✿˖°`
 }
 }
 
 if (stubType === 22) {
 return {
-text: `
-𖥔          *@${usuario}* ࣪      ˖ؚ
-ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐂𝐚𝐦𝐛𝐢𝐨́ 𝐥𝐚 𝐈𝐦𝐚𝐠𝐞𝐧   𖤝
-꒰꒰ 🖼️ 𝐅𝐨𝐭𝐨 𝐀𝐜𝐭𝐮𝐚𝐥𝐢𝐳𝐚𝐝𝐚 Ი꯭ᰍ
-> 🫧 ${styleText('El icono del grupo ha cambiado')}`
+text: `𐔌 . ⋮ 𝐀 𝐕 𝐈 𝐒 𝐎 𝐃𝐄𝐋 𝐆𝐑𝐔𝐏𝐎 .ᐟ ֹ ₊ ꒱
+⏔⏔⏔ ꒰ ᧔ෆ᧓ ꒱ ⏔⏔⏔
+
+> ❀ 🖼️ 𝐒𝐞 𝐡𝐚 𝐚𝐜𝐭𝐮𝐚𝐥𝐢𝐳𝐚𝐝𝐨 𝐥𝐚 𝐢𝐦𝐚𝐠𝐞𝐧 𝐝𝐞𝐥 𝐠𝐫𝐮𝐩𝐨.
+> ✦ 𝐀𝐜𝐜𝐢𝐨́𝐧 𝐫𝐞𝐚𝐥𝐢𝐳𝐚𝐝𝐚 𝐩𝐨𝐫:
+> ╰┈➤ *@${usuario}* 𖹭.ᐟ
+
+⋆˚✿˖° ┈┈┈┈┈┈┈┈┈ ⋆˚✿˖°`
 }
 }
 
 if (stubType === 24) {
 return {
-text: `
-𖥔          *@${usuario}* ࣪      ˖ؚ
-ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐂𝐚𝐦𝐛𝐢𝐨́ 𝐃𝐞𝐬𝐜𝐫𝐢𝐩𝐜𝐢𝐨́𝐧   𖤝
-꒰꒰ 📑 𝐈𝐧𝐟𝐨 𝐀𝐜𝐭𝐮𝐚𝐥𝐢𝐳𝐚𝐝𝐚 Ი꯭ᰍ
-> 📝 ${styleText('La descripción del grupo es nueva')}`
+text: `𐔌 . ⋮ 𝐀 𝐕 𝐈 𝐒 𝐎 𝐃𝐄𝐋 𝐆𝐑𝐔𝐏𝐎 .ᐟ ֹ ₊ ꒱
+⏔⏔⏔ ꒰ ᧔ෆ᧓ ꒱ ⏔⏔⏔
+
+> ❀ 📑 *@${usuario}* 𝐡𝐚 𝐜𝐚𝐦𝐛𝐢𝐚𝐝𝐨 𝐥𝐚 𝐝𝐞𝐬𝐜𝐫𝐢𝐩𝐜𝐢𝐨́𝐧.
+> ✦ 𝐑𝐞𝐯𝐢𝐬𝐚 𝐥𝐚 𝐧𝐮𝐞𝐯𝐚 𝐢𝐧𝐟𝐨𝐫𝐦𝐚𝐜𝐢𝐨́𝐧 𝐝𝐞𝐥 𝐠𝐫𝐮𝐩𝐨 🫧.
+
+⋆˚✿˖° ┈┈┈┈┈┈┈┈┈ ⋆˚✿˖°`
 }
 }
 
 if (stubType === 23) {
 return {
-text: `
-𖥔          *@${usuario}* ࣪      ˖ؚ
-ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐑𝐞𝐬𝐭𝐚𝐛𝐥𝐞𝐜𝐢𝐨́ 𝐄𝐧𝐥𝐚𝐜𝐞   𖤝
-꒰꒰ 🔗 𝐋𝐢𝐧𝐤 𝐀𝐧𝐮𝐥𝐚𝐝𝐨 Ი꯭ᰍ
-> 🚫 ${styleText('El enlace anterior ya no sirve')}`
+text: `𐔌 . ⋮ 𝐀 𝐕 𝐈 𝐒 𝐎 𝐃𝐄𝐋 𝐆𝐑𝐔𝐏𝐎 .ᐟ ֹ ₊ ꒱
+⏔⏔⏔ ꒰ ᧔ෆ᧓ ꒱ ⏔⏔⏔
+
+> ❀ 🔗 𝐄𝐥 𝐞𝐧𝐥𝐚𝐜𝐞 𝐝𝐞𝐥 𝐠𝐫𝐮𝐩𝐨 𝐡𝐚 𝐬𝐢𝐝𝐨 𝐫𝐞𝐬𝐭𝐚𝐛𝐥𝐞𝐜𝐢𝐝𝐨.
+> ✦ 𝐀𝐜𝐜𝐢𝐨́𝐧 𝐫𝐞𝐚𝐥𝐢𝐳𝐚𝐝𝐚 𝐩𝐨𝐫: *@${usuario}*
+> ╰┈➤ 🚫 𝐄𝐥 𝐞𝐧𝐥𝐚𝐜𝐞 𝐚𝐧𝐭𝐞𝐫𝐢𝐨𝐫 𝐲𝐚 𝐧𝐨 𝐬𝐢𝐫𝐯𝐞.
+
+⋆˚✿˖° ┈┈┈┈┈┈┈┈┈ ⋆˚✿˖°`
 }
 }
 
 if (stubType === 25) {
 const type = m.messageStubParameters?.[0] === 'on' ? '𝐒𝐨𝐥𝐨 𝐀𝐝𝐦𝐢𝐧𝐬' : '𝐓𝐨𝐝𝐨𝐬'
 return {
-text: `
-𖥔          *@${usuario}* ࣪      ˖ؚ
-ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐀𝐥𝐭𝐞𝐫𝐨́ 𝐀𝐣𝐮𝐬𝐭𝐞𝐬   𖤝
-꒰꒰ ⚙️ 𝐀𝐡𝐨𝐫𝐚 𝐄𝐝𝐢𝐭𝐚𝐧 Ი꯭ᰍ
-> 🔓 ${styleText(type)}`
+text: `𐔌 . ⋮ 𝐀 𝐕 𝐈 𝐒 𝐎 𝐃𝐄𝐋 𝐆𝐑𝐔𝐏𝐎 .ᐟ ֹ ₊ ꒱
+⏔⏔⏔ ꒰ ᧔ෆ᧓ ꒱ ⏔⏔⏔
+
+> ❀ ⚙️ *@${usuario}* 𝐡𝐚 𝐦𝐨𝐝𝐢𝐟𝐢𝐜𝐚𝐝𝐨 𝐥𝐨𝐬 𝐚𝐣𝐮𝐬𝐭𝐞𝐬.
+> ✦ 𝐀𝐡𝐨𝐫𝐚 𝐥𝐚 𝐜𝐨𝐧𝐟𝐢𝐠𝐮𝐫𝐚𝐜𝐢𝐨́𝐧 𝐥𝐚 𝐩𝐮𝐞𝐝𝐞𝐧 𝐞𝐝𝐢𝐭𝐚𝐫:
+> ╰┈➤ 🔓 *${styleText(type)}* 🪼
+
+⋆˚✿˖° ┈┈┈┈┈┈┈┈┈ ⋆˚✿˖°`
 }
 }
 
 if (stubType === 26) {
 const closed = m.messageStubParameters?.[0] === 'on'
 const action = closed ? '𝐂𝐞𝐫𝐫𝐨́ 𝐞𝐥 𝐆𝐫𝐮𝐩𝐨' : '𝐀𝐛𝐫𝐢𝐨́ 𝐞𝐥 𝐆𝐫𝐮𝐩𝐨'
-const msg = closed ? 'Solo Admins escriben' : 'Todos pueden escribir'
+const msg = closed ? 'Solo Admins pueden escribir' : 'Todos pueden escribir'
 return {
-text: `
-𖥔          *@${usuario}* ࣪      ˖ؚ
-ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ ${action}   𖤝
-꒰꒰ 💬 𝐄𝐬𝐭𝐚𝐝𝐨 𝐝𝐞𝐥 𝐂𝐡𝐚𝐭 Ი꯭ᰍ
-> 📣 ${styleText(msg)}`
+text: `𐔌 . ⋮ 𝐀 𝐕 𝐈 𝐒 𝐎 𝐃𝐄𝐋 𝐆𝐑𝐔𝐏𝐎 .ᐟ ֹ ₊ ꒱
+⏔⏔⏔ ꒰ ᧔ෆ᧓ ꒱ ⏔⏔⏔
+
+> ❀ 💬 𝐄𝐥 𝐠𝐫𝐮𝐩𝐨 𝐡𝐚 𝐬𝐢𝐝𝐨 *${action}* 𝐩𝐨𝐫 *@${usuario}*
+> ✦ 𝐄𝐬𝐭𝐚𝐝𝐨 𝐚𝐜𝐭𝐮𝐚𝐥 𝐝𝐞𝐥 𝐜𝐡𝐚𝐭:
+> ╰┈➤ 📣 *${styleText(msg)}* 𐙚⋆°.
+
+⋆˚✿˖° ┈┈┈┈┈┈┈┈┈ ⋆˚✿˖°`
 }
 }
 
@@ -102,11 +172,14 @@ if (stubType === 29) {
 const nuevoAdmin = normalizeMentionJid(m.messageStubParameters?.[0])
 if (!nuevoAdmin) return null
 return {
-text: `
-𖥔          *@${usuario}* ࣪      ˖ؚ
-ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐃𝐢𝐨 𝐀𝐝𝐦𝐢𝐧 𝐚   𖤝
-> 🫡 ${mentionLabel(nuevoAdmin)}
-꒰꒰ 👑 𝐍𝐮𝐞𝐯𝐨 𝐀𝐝𝐦𝐢𝐧 Ი꯭ᰍ`
+text: `𐔌 . ⋮ 𝐀 𝐕 𝐈 𝐒 𝐎 𝐃𝐄𝐋 𝐆𝐑𝐔𝐏𝐎 .ᐟ ֹ ₊ ꒱
+⏔⏔⏔ ꒰ ᧔ෆ᧓ ꒱ ⏔⏔⏔
+
+> ❀ 👑 𝐓𝐞𝐧𝐞𝐦𝐨𝐬 𝐮𝐧 𝐧𝐮𝐞𝐯𝐨 𝐚𝐝𝐦𝐢𝐧𝐢𝐬𝐭𝐫𝐚𝐝𝐨𝐫.
+> ✦ 𝐀𝐜𝐜𝐢𝐨́𝐧 𝐫𝐞𝐚𝐥𝐢𝐳𝐚𝐝𝐚 𝐩𝐨𝐫 *@${usuario}*
+> ╰┈➤ 🫡 ${mentionLabel(nuevoAdmin)} 𝐲𝐚 𝐞𝐬 𝐚𝐝𝐦𝐢𝐧.
+
+⋆˚✿˖° ┈┈┈┈┈┈┈┈┈ ⋆˚✿˖°`
 }
 }
 
@@ -114,11 +187,14 @@ if (stubType === 30) {
 const exAdmin = normalizeMentionJid(m.messageStubParameters?.[0])
 if (!exAdmin) return null
 return {
-text: `
-𖥔          *@${usuario}* ࣪      ˖ؚ
-ㅤだ ㅤׄㅤ *#* ㅤִㅤ✿ㅤׄ﹕ 𝐐𝐮𝐢𝐭𝐨́ 𝐀𝐝𝐦𝐢𝐧 𝐚   𖤝
-> 😔 ${mentionLabel(exAdmin)}
-꒰꒰ 📉 𝐃𝐞𝐠𝐫𝐚𝐝𝐚𝐝𝐨 Ი꯭ᰍ`
+text: `𐔌 . ⋮ 𝐀 𝐕 𝐈 𝐒 𝐎 𝐃𝐄𝐋 𝐆𝐑𝐔𝐏𝐎 .ᐟ ֹ ₊ ꒱
+⏔⏔⏔ ꒰ ᧔ෆ᧓ ꒱ ⏔⏔⏔
+
+> ❀ 📉 𝐒𝐞 𝐡𝐚𝐧 𝐫𝐞𝐯𝐨𝐜𝐚𝐝𝐨 𝐩𝐞𝐫𝐦𝐢𝐬𝐨𝐬 𝐝𝐞 𝐚𝐝𝐦𝐢𝐧𝐢𝐬𝐭𝐫𝐚𝐝𝐨𝐫.
+> ✦ 𝐀𝐜𝐜𝐢𝐨́𝐧 𝐫𝐞𝐚𝐥𝐢𝐳𝐚𝐝𝐚 𝐩𝐨𝐫 *@${usuario}*
+> ╰┈➤ 😔 ${mentionLabel(exAdmin)} 𝐝𝐞𝐣𝐚 𝐝𝐞 𝐬𝐞𝐫 𝐚𝐝𝐦𝐢𝐧.
+
+⋆˚✿˖° ┈┈┈┈┈┈┈┈┈ ⋆˚✿˖°`
 }
 }
 
@@ -139,7 +215,7 @@ const payloadData = buildDetectMessage(m, usuario)
 if (!payloadData?.text) return
 
 try {
-const payload = await global.rcanal(payloadData.text, m)
+const payload = await rcanal(payloadData.text, m)
 await conn.relayMessage(m.chat, payload, {})
 } catch (e) {
 console.error(e)
