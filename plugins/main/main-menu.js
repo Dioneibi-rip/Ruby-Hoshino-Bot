@@ -339,7 +339,7 @@ let txt = `
 ┣ ☬⃝ᩎ⋟᷊᷂᷊᷊᷊᷊᷊᷊᷊᷊᷊᷊᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷊᷊᷂᷂᷂᷂ ☃️ *#𝙚𝙢𝙤𝙟𝙞𝙢𝙞𝙭*
 > ✦ 𝙁𝙪𝙣𝙘𝙞𝙤𝙣𝙖 2 𝙚𝙢𝙤𝙟𝙞𝙨 𝙥𝙖𝙧𝙖 𝙘𝙧𝙚𝙖𝙧 𝙪𝙣 𝙨𝙩𝙞𝙘𝙠𝙚𝙧.
 ┣ ☬⃝ᩎ⋟᷊᷂᷊᷊᷊᷊᷊᷊᷊᷊᷊᷊᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷊᷊᷂᷂᷂᷂ ☃️ *#𝙨𝙩𝙞𝙘𝙠𝙚𝙧𝙡𝙮*
-> ✦ 𝙀𝙣𝙫𝙞́𝙖 5 𝙨𝙩𝙞𝙘𝙠𝙚𝙧𝙨.
+> ✦ 𝙀𝙣𝙫𝙞́𝙖 𝙪𝙣 𝙥𝙖𝙦𝙪𝙚𝙩𝙚 𝙙𝙚 𝙨𝙩𝙞𝙘𝙠𝙚𝙧𝙨.
 ┣ ☬⃝ᩎ⋟᷊᷂᷊᷊᷊᷊᷊᷊᷊᷊᷊᷊᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷂᷊᷊᷂᷂᷂᷂ ☃️ *#𝙬𝙢*
 > ✦ 𝘾𝙖𝙢𝙗𝙞𝙖 𝙚𝙡 𝙣𝙤𝙢𝙗𝙧𝙚 𝙙𝙚 𝙡𝙤𝙨 𝙨𝙩𝙞𝙘𝙠𝙚𝙧𝙨.
 ╚▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬▭╝
@@ -708,21 +708,6 @@ let txt = `
 > ✦ 𝙃𝙖𝙘𝙚𝙧 𝙩𝙞𝙟𝙚𝙧𝙖𝙨.
 ╚▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬▭╝
 `.trim();
-
-const pluginCommands = Object.values(global.plugins || {})
-.filter(plugin => plugin?.help && plugin?.tags && plugin?.command)
-.flatMap(plugin => commandAliases(plugin.command).map(command => ({ command, tag: Array.isArray(plugin.tags) ? plugin.tags[0] : plugin.tags })))
-.filter(item => item.command && !normalizeMenuSearch(txt).includes(normalizeMenuSearch(`#${item.command}`)))
-.sort((a, b) => String(a.tag).localeCompare(String(b.tag)) || a.command.localeCompare(b.command));
-if (pluginCommands.length) {
-txt += `
-
-╔══⩽✦✰✦⩾══╗
-「 PLUGINS REALES SINCRONIZADOS 」
-╚══⩽✦✰✦⩾══╝
-${pluginCommands.map(({ command, tag }) => `┣ ☃️ #${command} 〔${tag || 'general'}〕`).join('\n')}
-╚═══════════════════════╝`;
-}
 
 await conn.reply(m.chat, '*ꪹ͜𓂃⌛͡𝗘𝗻𝘃𝗶𝗮𝗻𝗱𝗼 𝗠𝗲𝗻𝘂 𝗱𝗲 𝗹𝗮 𝗕𝗼𝘁....𓏲੭*', m, {
 contextInfo: {

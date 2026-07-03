@@ -1,7 +1,6 @@
 import gtts from 'node-gtts'
 import fs from 'fs'
 import { join } from 'path'
-
 const defaultLang='es'
 const handler=async(m,{conn,args})=>{
 let lang=args[0]
@@ -17,9 +16,9 @@ res=await tts(text,lang)
 }catch(e){
 m.reply(e+'')
 text=args.join(' ')
-if(!text)throw `${emoji} Por favor, ingresé una frase.`
+if(!text)throw `Por favor, ingresé una frase.`
 res=await tts(text,defaultLang)
-return false;
+return false
 }
 if(res)return conn.sendFile(m.chat,res,'tts.opus',null,m,true)
 }
@@ -28,16 +27,15 @@ handler.tags=['transformador']
 handler.group=true
 handler.register=true
 handler.command=['tts']
-
 export default handler
-
 function saveSpeech(ttsEngine,filePath,text){
 return new Promise((resolve,reject)=>ttsEngine.save(filePath,text,error=>error?reject(error):resolve()))
 }
-
 async function tts(text,lang='es'){
 const ttsEngine=gtts(lang)
-const filePath=join(global.__dirname(import.meta.url),'../tmp',Date.now()+'.wav')
+const tmpDir=join(process.cwd(),'tmp')
+if(!fs.existsSync(tmpDir))fs.mkdirSync(tmpDir,{recursive:true})
+const filePath=join(tmpDir,Date.now()+'.wav')
 await saveSpeech(ttsEngine,filePath,text)
 const buffer=await fs.promises.readFile(filePath)
 await fs.promises.unlink(filePath).catch(()=>null)

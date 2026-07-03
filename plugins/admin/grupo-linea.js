@@ -18,18 +18,14 @@ return undefined
 let handler = async (m, { conn, args }) => {
 try {
 const id = args?.[0]?.match(/\d+-\d+@g\.us/)?.[0] || m.chat
-const messages = conn.chats[id]?.messages || {}
-const participantesUnicos = [
-...new Set(
-Object.values(messages)
-.map((item) => item?.key?.participant)
+const metadata = await conn.groupMetadata(id).catch(() => null)
+const participantesUnicos = (metadata?.participants || [])
+.map((item) => item?.id)
 .filter(Boolean)
-)
-]
 
 const listaEnLinea = participantesUnicos.length
 ? participantesUnicos.map((jid) => `@${jid.split('@')[0]}`).join('\n')
-: '*✧ No hay usuarios en línea en este momento :c.*'
+: '*✧ No hay participantes disponibles en este momento :c.*'
 
 const mensaje = `*♡ Lista de usuarios en línea:*\n\n${listaEnLinea}\n\n> Ruby Hoshino Bot`
 const thumbnail = await fetchThumbnailBuffer(RUBY_ONLINE_THUMBNAIL_URL)

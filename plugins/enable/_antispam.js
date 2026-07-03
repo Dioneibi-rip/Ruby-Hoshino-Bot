@@ -1,3 +1,4 @@
+import { shouldSilenceChatForBot, normalizeSessionJid } from '../../src/core/session-utils.js'
 const userSpamData = Object.create(null)
 
 const TIME_WINDOW_MS = 5000
@@ -26,6 +27,7 @@ if (!bot.antiSpam) return
 if (!m.isGroup) return
 
 const chat = global.db.getChat(m.chat)
+if (shouldSilenceChatForBot(chat, normalizeSessionJid(conn))) return
 if (chat.modoadmin) return
 
 if (isOwner || isROwner || isAdmin || !isBotAdmin || isPrems) return
@@ -57,7 +59,9 @@ user.messageSpam = motive
 
 if (userData.antiBan === 3) {
 await conn.groupParticipantsUpdate(m.chat, [sender], 'remove')
+m.__pluginHalt = true
 }
+
 }
 
 if (timeDifference <= TIME_WINDOW_MS) {
@@ -74,6 +78,7 @@ const warningMessage = `✦ *Mucho Spam*\n\n✐ 𝙐𝙨𝙪𝙖𝙧𝙞𝙤: ${
 await conn.reply(m.chat, warningMessage, m, { mentions: [sender] })
 
 user.banned = true
+m.__pluginHalt = true
 userData.antiBan += 1
 userData.messageCount = 1
 
