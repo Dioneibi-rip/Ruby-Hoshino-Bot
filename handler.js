@@ -32,7 +32,8 @@ global.uptimeStart = Date.now()
 
 const SYSTEM_MESSAGE_MAX_AGE_MS = 60_000
 const IGNORED_BAILEYS_IDS = [/^NJX-/, /^BAE5.{12}$/, /^B24E.{16}$/]
-const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js', 'enable/grupo-unbanchat.js']
+const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js', 'enable/grupo-unbanchat.js', 'grupo-resetbot.js', 'enable/grupo-resetbot.js']
+const CELESTIAL_COMMANDS = new Set(['resetbot', 'unbanchat', 'desbanearchat'])
 const REALTIME_EVENT_GRACE_MS = 15_000
 const REALTIME_EVENT_MAX_AGE_MS = 60_000
 
@@ -45,9 +46,37 @@ function getRawMessageChat(message = {}) {
 return message?.key?.remoteJid || message?.chat || message?.remoteJid || ''
 }
 
+function getRawMessageText(message = {}) {
+const content = message?.message || message
+return content?.conversation
+|| content?.extendedTextMessage?.text
+|| content?.imageMessage?.caption
+|| content?.videoMessage?.caption
+|| content?.documentMessage?.caption
+|| content?.buttonsResponseMessage?.selectedButtonId
+|| content?.listResponseMessage?.singleSelectReply?.selectedRowId
+|| content?.templateButtonReplyMessage?.selectedId
+|| ''
+}
+
+function getRawCommandName(text = '') {
+const trimmed = String(text || '').trim()
+const match = trimmed.match(/^[#!./\\](\S+)/)
+return match?.[1]?.toLowerCase() || ''
+}
+
+function isCelestialCommandText(text = '') {
+return CELESTIAL_COMMANDS.has(getRawCommandName(text))
+}
+
+function isCelestialCommandMessage(message = {}) {
+return isCelestialCommandText(getRawMessageText(message))
+}
+
 function shouldProcessRawGroupMessage(conn, message = {}) {
 const chat = conn?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
 if (!chat?.endsWith?.('@g.us')) return true
+if (isCelestialCommandMessage(message)) return true
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
 return !shouldSilenceChatForBot(chatData, normalizeConnectionJid(conn))
 }
@@ -229,7 +258,8 @@ const fail = plugin.fail || global.dfail
 const chat = global.db?.data?.chats?.[m.chat]
 const user = global.db?.data?.users?.[sender]
 
-if (m.isGroup && !UNBAN_COMMAND_FILES.includes(name) && isChatBannedForBot(chat, normalizeConnectionJid(conn)) && !isROwner) return true
+const isBotSecurityManager = canManageBotSecurity(sender, conn)
+if (m.isGroup && !UNBAN_COMMAND_FILES.includes(name) && isChatBannedForBot(chat, normalizeConnectionJid(conn)) && !isROwner && !isBotSecurityManager) return true
 if (m.text && user?.banned && !isROwner) {
 if (!user.lastBanMsg || Date.now() - user.lastBanMsg > 30_000) {
 m.reply(`《✦》Estas baneado/a, no puedes usar comandos en este bot!\n\n${user.bannedReason ? `✰ *Motivo:* ${user.bannedReason}` : '✰ *Motivo:* Sin Especificar'}\n\n> ✧ Si este Bot es cuenta ...`)
@@ -373,7 +403,7 @@ const opts = this.opts || global.opts || {}
 if (typeof m.text !== 'string') m.text = ''
 await global.updateMessageGlobals?.(m, this)
 
-if (m.isGroup) {
+if (m.isGroup && !isCelestialCommandText(m.text)) {
 const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
 if (shouldSilenceChatForBot(chat, normalizeConnectionJid(this))) return
 }
@@ -451,7 +481,8 @@ if (shouldIgnoreBaileysMessage(m)) return
 m.plugin = name
 const chatData = global.db?.data?.chats?.[m.chat] || {}
 const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJid(this))
-if (isBotBannedInThisChat && !UNBAN_COMMAND_FILES.includes(name)) return
+const isBotSecurityManager = canManageBotSecurity(sender, this)
+if (isBotBannedInThisChat && !UNBAN_COMMAND_FILES.includes(name) && !isBotSecurityManager) return
 const __filename = join(pluginDir, name)
 const extra = { match, usedPrefix, ...commandParsed, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
 await executePlugin(this, plugin, name, m, extra, permissionContext, sender)
