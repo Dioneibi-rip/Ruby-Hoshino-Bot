@@ -1,74 +1,114 @@
-import axios from 'axios'
-import { fileTypeFromBuffer } from 'file-type'
-import { enqueueMediaJob, getMediaQueueConnection } from '../../lib/queue.js'
-import { delay } from '@whiskeysockets/baileys'
+import fetch from "node-fetch"
+import baileys from "@whiskeysockets/baileys"
 
-async function pinterestScraper(query, limit = 10) {
-const url = 'https://id.pinterest.com/resource/BaseSearchResource/get/?source_url=%2Fsearch%2Fpins%2F%3Fq%3D' + encodeURIComponent(query) + '%26rs%3Dtyped&data=%7B%22options%22%3A%7B%22query%22%3A%22' + encodeURIComponent(query) + '%22%2C%22scope%22%3A%22pins%22%2C%22rs%22%3A%22typed%22%7D%2C%22context%22%3A%7B%7D%7D'
-const headers = { accept: 'application/json, text/javascript, */*; q=0.01', referer: 'https://id.pinterest.com/', 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36', 'x-requested-with': 'XMLHttpRequest' }
-try {
-const response = await axios.get(url, { headers, timeout: 20000 })
-const results = response.data?.resource_response?.data?.results
-if (!Array.isArray(results)) return []
-return results.map(item => item?.images?.orig?.url || item?.images?.['736x']?.url || item?.images?.['400x300']?.url || null).filter(Boolean).sort(() => 0.5 - Math.random()).slice(0, limit)
-} catch (err) {
-console.error('Error en el scraper de Pinterest:', err)
-return []
-}
+// Helper: delay personalizado (compatible con cualquier versión de Baileys)
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
+async function sendAlbumMessage(conn, jid, medias, options = {}) {
+  if (typeof jid !== "string") throw new TypeError(`jid debe ser string, se recibió: ${jid}`)
+  if (medias.length < 2) throw new RangeError("Se necesitan al menos 2 imágenes para un álbum")
+  const caption = options.text || options.caption || ""
+  const delayMs = !isNaN(options.delay) ? options.delay : 500
+  const quoted = options.quoted || null
+  delete options.text
+  delete options.caption
+  delete options.delay
+  delete options.quoted
+
+  const album = baileys.generateWAMessageFromContent(
+    jid,
+    { messageContextInfo: {}, albumMessage: { expectedImageCount: medias.length } },
+    quoted ? { quoted } : {}
+  )
+  await conn.relayMessage(album.key.remoteJid, album.message, { messageId: album.key.id })
+
+  for (let i = 0; i < medias.length; i++) {
+    const { type, data } = medias[i]
+    const img = await baileys.generateWAMessage(
+      album.key.remoteJid,
+      { [type]: data, ...(i === 0 ? { caption } : {}) },
+      { upload: conn.waUploadToServer }
+    )
+    img.message.messageContextInfo = {
+      messageAssociation: { associationType: 1, parentMessageKey: album.key }
+    }
+    await conn.relayMessage(img.key.remoteJid, img.message, { messageId: img.key.id })
+    await delay(delayMs)
+  }
+  return album
 }
 
-async function downloadValidMedia(url) {
-const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 25000, maxContentLength: 15 * 1024 * 1024, headers: { referer: 'https://www.pinterest.com/', 'user-agent': 'Mozilla/5.0' } })
-const buffer = Buffer.from(response.data || [])
-if (buffer.length < 1024) throw new Error('La imagen descargada está vacía o corrupta')
-const type = await fileTypeFromBuffer(buffer)
-if (!type || !/^image\/(jpeg|png|webp|gif)$/.test(type.mime)) throw new Error('El archivo descargado no es una imagen válida')
-return buffer
+const handler = async (m, { conn, args, command, usedPrefix }) => {
+  // Definir valores por defecto para emojis/globales si no existen
+  const rwait = global.rwait || "⏳"
+  const done = global.done || "✅"
+  const error = global.error || "❌"
+  const dev = global.dev || ""   // evita ReferenceError
+
+  if (!args[0]) {
+    return conn.reply(m.chat, `☠️ Por favor, escribe qué quieres buscar en Pinterest.\nEjemplo: ${usedPrefix}${command} Luffy`, m)
+  }
+
+  const query = args.join(' ')
+  const limit = 10
+
+  try {
+    await m.react(rwait)
+
+    // Nueva API de Pinterest
+    const response = await fetch(
+      `https://api.alyacore.xyz/search/pinterest?query=${encodeURIComponent(query)}&limit=${limit}&key=LUFFY-GEAR6`
+    )
+    const json = await response.json()
+
+    // Validación de la nueva estructura
+    if (!json.status || !Array.isArray(json.data)) {
+      throw new Error("La API no devolvió un formato válido")
+    }
+
+    if (json.data.length < 2) {
+      await m.react(error)
+      return conn.reply(m.chat, `☠️ No se encontraron suficientes imágenes para: *${query}*`, m)
+    }
+
+    const sendCount = Math.min(json.data.length, limit) // lo que realmente se enviará
+
+    const infoMessage =
+      `⚓ *Pinterest Search*\n` +
+      `✩̣̣̣̣̣ͯ┄•͙✧⃝•͙┄✩ͯ•͙͙✧⃝•͙͙✩ͯ\n` +
+      `❍ *Búsqueda* › *${query}*\n` +
+      `❍ *Resultados* › ${json.data.length} imágenes\n` +
+      `❍ *Enviando* › ${sendCount} en álbum\n` +
+      `──⇌••⇋──\n` +
+      (dev ? dev + '\n' : '')
+
+    await conn.reply(m.chat, infoMessage, m)
+
+    // Mapeo de imágenes: usa la URL en alta calidad (item.hd)
+    const images = json.data.slice(0, limit).map(item => ({
+      type: "image",
+      data: { url: item.hd }
+    }))
+
+    await sendAlbumMessage(conn, m.chat, images, {
+      caption: `⚓ Pinterest • ${query}`,
+      quoted: m
+    })
+
+    await m.react(done)
+
+  } catch (e) {
+    console.error(e)
+    await m.react(error)
+    return conn.reply(m.chat, `☠️ Ocurrió un error al buscar en Pinterest.`, m)
+  }
 }
 
-let handler = async (m, { conn, text, usedPrefix }) => {
-if (!text) return conn.reply(m.chat, '꒰ 🪷 ꒱ ⋆ ࣪. ¡A-Aʀᴇ! Nᴇᴄᴇsɪᴛᴏ ǫᴜᴇ ᴍᴇ ᴅɪɢᴀs ǫᴜᴇ́ ʙᴜsᴄᴀʀ... ₍ᐢ•ﻌ•ᐢ₎*･ﾟ｡\n\n> ✧ *Eᴊᴇᴍᴘʟᴏ:* `' + usedPrefix + 'pin Ruby Hoshino icons`', m)
-try {
-await m.react('🕒')
-await enqueueMediaJob('pinterest', { chat: m.chat, text: text.trim(), usedPrefix, message: { key: m.key, message: m.message, sender: m.sender, chat: m.chat } }, { conn })
-} catch (e) {
-await m.react('✖️')
-conn.reply(m.chat, '꒰ ⚠️ ꒱ ⋆ ࣪. ¡E-Eʀʀᴏʀ ᴇɴ ᴇʟ sɪsᴛᴇᴍᴀ! (｡>﹏<｡)\n> 🔧 Úsᴀ `*' + usedPrefix + 'report*` ᴘᴀʀᴀ ᴀᴠɪsᴀʀ ᴀ ᴍɪ ᴄʀᴇᴀᴅᴏʀ.\n\n`' + e.message + '`', m)
-}
-}
-handler.help = ['pinterest <texto>']
-handler.tags = ['descargas']
-handler.command = ['pinterest', 'pin']
+handler.help = ['pin', 'pinterest']
+handler.tags = ['búsqueda']
+handler.command = ['pin', 'pinterest', 'pins']
 handler.group = true
-export default handler
+handler.register = true
+handler.coin = 2
 
-global.queueHandlers ||= new Map()
-global.queueHandlers.set('pinterest', async (data) => {
-const conn = getMediaQueueConnection()
-const m = data.message
-try {
-const imageUrls = await pinterestScraper(data.text, 10)
-if (!imageUrls.length) {
-await conn.sendMessage(data.chat, { react: { text: '✖️', key: m.key } })
-return conn.reply(data.chat, '꒰ 🥀 ꒱ ⋆ ࣪. Gᴏᴍᴇɴ... ɴᴏ ᴇɴᴄᴏɴᴛʀᴇ́ ɴᴀᴅᴀ ᴘᴀʀᴀ `' + data.text + '` 🥺💔', m)
-}
-const caption = '✧ ─ ⋆⋅ ୨ 📌 ୧ ⋅⋆ ─ ✧\n\n🎀 ⋆ ࣪. *Bᴜ́sǫᴜᴇᴅᴀ:* `' + data.text + '`\n✨ ⋆ ࣪. *Rᴇsᴜʟᴛᴀᴅᴏs:* `' + imageUrls.length + ' ɪᴍᴀ́ɢᴇɴᴇs ᴇɴᴄᴏɴᴛʀᴀᴅᴀs`\n\n*⏤͟͞ू⃪  ̸̷͢𝐑𝐮𝐛y͟ 𝐇𝐨𝐬𝐡𝐢n͟ᴏ 𝐁𝐨t͟˚₊·—̳͟͞͞♡̥*'
-let sent = 0
-for (let i = 0; i < imageUrls.length; i++) {
-try {
-const buffer = await downloadValidMedia(imageUrls[i])
-await conn.sendMessage(data.chat, { image: buffer, caption: sent === 0 ? caption : undefined }, { quoted: sent === 0 ? m : undefined })
-sent += 1
-await delay(700)
-} catch (error) {
-console.error('Imagen de Pinterest descartada:', error)
-}
-}
-if (!sent) throw new Error('Todas las imágenes descargadas estaban corruptas o no disponibles')
-await conn.sendMessage(data.chat, { react: { text: '🎀', key: m.key } })
-} catch (e) {
-console.error('Error en queueHandler de pinterest:', e)
-await conn.sendMessage(data.chat, { react: { text: '✖️', key: m.key } })
-conn.reply(data.chat, '꒰ ⚠️ ꒱ ⋆ ࣪. ¡E-Eʀʀᴏʀ ᴇɴ ᴇʟ sɪsᴛᴇᴍᴀ! (｡>﹏<｡)\n> 🔧 Úsᴀ `*' + data.usedPrefix + 'report*` ᴘᴀʀᴀ ᴀᴠɪsᴀʀ ᴀ ᴍɪ ᴄʀᴇᴀᴅᴏʀ.\n\n`' + e.message + '`', m)
-}
-})
+export default handler
