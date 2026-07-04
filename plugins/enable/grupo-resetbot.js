@@ -16,7 +16,7 @@ if (settings && typeof settings === 'object') settings.isBanned = false
 }
 }
 global.db.updateChat(m.chat, chat)
-await conn.reply(m.chat, '✅ Estado de bots restablecido: sin bot primario y con todos los sub-bot habilitados en este grupo.', m)
+await conn.reply(m.chat, '✅ Estado de bots restablecido: sin bot primario y con todos los sub-bots habilitados en este grupo.', m)
 }
 handler.help = ['resetbot']
 handler.tags = ['owner']

@@ -42,12 +42,20 @@ if (chatUpdate?.type !== 'notify') return []
 return Array.isArray(chatUpdate?.messages) ? chatUpdate.messages.filter(Boolean) : []
 }
 
+function unwrapMessageContent(content = {}) {
+return content?.ephemeralMessage?.message
+|| content?.viewOnceMessage?.message
+|| content?.viewOnceMessageV2?.message
+|| content?.documentWithCaptionMessage?.message
+|| content
+}
+
 function getRawMessageChat(message = {}) {
 return message?.key?.remoteJid || message?.chat || message?.remoteJid || ''
 }
 
 function getRawMessageText(message = {}) {
-const content = message?.message || message
+const content = unwrapMessageContent(message?.message || message)
 return content?.conversation
 || content?.extendedTextMessage?.text
 || content?.imageMessage?.caption

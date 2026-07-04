@@ -17,6 +17,12 @@ if (!chat.botSettings[jid] || typeof chat.botSettings[jid] !== 'object') chat.bo
 return chat.botSettings[jid]
 }
 
+export function getChatBannedBots(chat = {}) {
+return Object.entries(chat?.botSettings || {})
+.filter(([, value]) => value?.isBanned === true)
+.map(([jid]) => jid)
+}
+
 export function isChatBannedForBot(chat = {}, botJid = '') {
 const jid = normalizeSessionJid(botJid)
 if (!chat || !jid) return false
@@ -35,7 +41,7 @@ const botSettings = getChatBotSettings(chat, jid)
 botSettings.isBanned = Boolean(banned)
 if (!chat.isBanned || typeof chat.isBanned !== 'object') chat.isBanned = {}
 delete chat.isBanned[jid]
-chat.bannedBots = Object.entries(chat.botSettings || {}).filter(([, value]) => value?.isBanned === true).map(([key]) => key)
+chat.bannedBots = getChatBannedBots(chat)
 return true
 }
 
