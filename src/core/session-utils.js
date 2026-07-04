@@ -9,9 +9,26 @@ if (domain) return `${local.split(':')[0]}@${domain}`
 return /^\d+$/.test(local) ? `${local}@s.whatsapp.net` : local
 }
 
+export function getChatBotSettings(chat = {}, botJid = '') {
+const jid = normalizeSessionJid(botJid)
+if (!chat || !jid) return null
+if (!chat.botSettings || typeof chat.botSettings !== 'object') chat.botSettings = {}
+if (!chat.botSettings[jid] || typeof chat.botSettings[jid] !== 'object') chat.botSettings[jid] = {}
+return chat.botSettings[jid]
+}
+
+export function getChatBannedBots(chat = {}) {
+return Object.entries(chat?.botSettings || {})
+.filter(([, value]) => value?.isBanned === true)
+.map(([jid]) => jid)
+}
+
 export function isChatBannedForBot(chat = {}, botJid = '') {
 const jid = normalizeSessionJid(botJid)
 if (!chat || !jid) return false
+const botSettings = chat.botSettings?.[jid]
+if (botSettings?.isBanned === true) return true
+if (botSettings?.isBanned === false) return false
 if (chat.isBanned && typeof chat.isBanned === 'object') return chat.isBanned[jid] === true || chat.isBanned['*'] === true
 if (Array.isArray(chat.bannedBots) && chat.bannedBots.includes(jid)) return true
 return chat.isBanned === true
@@ -20,10 +37,11 @@ return chat.isBanned === true
 export function setChatBannedForBot(chat = {}, botJid = '', banned = true) {
 const jid = normalizeSessionJid(botJid)
 if (!jid) return false
+const botSettings = getChatBotSettings(chat, jid)
+botSettings.isBanned = Boolean(banned)
 if (!chat.isBanned || typeof chat.isBanned !== 'object') chat.isBanned = {}
-if (banned) chat.isBanned[jid] = true
-else delete chat.isBanned[jid]
-chat.bannedBots = Object.entries(chat.isBanned).filter(([, value]) => value === true).map(([key]) => key)
+delete chat.isBanned[jid]
+chat.bannedBots = getChatBannedBots(chat)
 return true
 }
 
