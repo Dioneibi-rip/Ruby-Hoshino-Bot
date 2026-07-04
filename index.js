@@ -15,7 +15,6 @@ import { tmpdir } from 'os'
 import { format } from 'util'
 import boxen from 'boxen'
 import pino from 'pino'
-import NodeCache from 'node-cache'
 import { Boom } from '@hapi/boom'
 import { makeWASocket, protoType, serialize } from './lib/simple.js'
 import { useSQLiteAuthState, createManagerDatabase } from '@nevi-dev/sqlite-auth'
@@ -23,12 +22,12 @@ import SQLiteDatabase from './lib/database.js'
 import store from './lib/store.js'
 import readline, { createInterface } from 'readline'
 import { EventEmitter } from 'events'
-import { attachSessionState } from './src/core/session-manager.js'
+import { attachSessionState, createMessageRetryCache } from './src/core/session-manager.js'
 import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from './src/core/handler-utils.js'
 import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from './lib/queue.js'
 EventEmitter.defaultMaxListeners = 100
 const { proto } = (await import('@whiskeysockets/baileys')).default
-const { DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser } = await import('@whiskeysockets/baileys')
+const { DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, Browsers } = await import('@whiskeysockets/baileys')
 import pkg from 'google-libphonenumber'
 const { PhoneNumberUtil } = pkg
 const phoneUtil = PhoneNumberUtil.getInstance()
@@ -173,8 +172,8 @@ const { state, saveCreds } = useSQLiteAuthState(`./${global.Rubysessions}`, { db
 const debouncedSaveCreds = createDebouncedSaveCreds(() => saveCreds.call(global.conn, true))
 global.authCredsFlushers.add(debouncedSaveCreds.flush)
 global.authManagerDb = createManagerDatabase({ dbPath: `./${global.Rubysessions}/system.db`, tableName: 'bot_registry' })
-const msgRetryCounterMap = new Map()
-const msgRetryCounterCache = new NodeCache({ stdTTL: 300, checkperiod: 120, useClones: false })
+const msgRetryCounterMap = (MessageRetryMap) => { };
+const msgRetryCounterCache = createMessageRetryCache()
 const { version } = await fetchLatestBaileysVersion();
 let phoneNumber = global.botNumber
 const methodCodeQR = process.argv.includes("qr")
@@ -226,9 +225,9 @@ msgRetryCounterMap,
 defaultQueryTimeoutMs: socketCfg.defaultQueryTimeoutMs ?? 60000,
 version,
 syncFullHistory: false,
-connectTimeoutMs: socketCfg.connectTimeoutMs ?? 20000,
+connectTimeoutMs: socketCfg.connectTimeoutMs ?? 30000,
 keepAliveIntervalMs: socketCfg.keepAliveIntervalMs ?? 30000,
-retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 250,
+retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 500,
 shouldReconnect: ({ statusCode }) => !DISCONNECT_AUTH_STATUS.has(statusCode) && (RECONNECT_REASONS.has(statusCode) || statusCode !== DisconnectReason.loggedOut)
 }
 global.conn = makeWASocket(connectionOptions);
@@ -422,51 +421,66 @@ const parsedNumber = phoneUtil.parseAndKeepRawInput(number)
 return phoneUtil.isValidNumber(parsedNumber)
 } catch (error) { return false }
 }
-function removeFileIfOlder(filePath, maxAgeMs, filter = () => true) {
-try {
-const stats = statSync(filePath)
-if (stats.isFile() && filter(filePath) && Date.now() - stats.mtimeMs > maxAgeMs) unlinkSync(filePath)
-} catch (e) { }
-}
 function clearTmp() {
-const tmpDirectories = [tmpdir(), join(__dirname, './tmp')]
-const maxTmpAgeMs = 4 * 60 * 1000
-for (const dir of tmpDirectories) {
-if (!existsSync(dir)) continue
-for (const file of readdirSync(dir)) {
-removeFileIfOlder(join(dir, file), maxTmpAgeMs)
-}
-}
-}
-function purgePreKeysFromDirectory(sessionDir) {
-if (!sessionDir || !existsSync(sessionDir)) return
-for (const file of readdirSync(sessionDir)) {
-const filePath = join(sessionDir, file)
-removeFileIfOlder(filePath, 10 * 60 * 1000, () => file.startsWith('pre-key-'))
-}
-}
-function purgeEllenSession() {
+const tmpDirectories = [tmpdir(), join(__dirname, './tmp')];
+tmpDirectories.forEach(dir => {
+if (!existsSync(dir)) return;
+readdirSync(dir).forEach(file => {
+const filePath = join(dir, file);
 try {
-purgePreKeysFromDirectory(join(__dirname, global.Rubysessions || './RubySession'))
-} catch (e) { console.log('Error en purga de sesión principal:', e) }
+const stats = statSync(filePath);
+if (stats.isFile() && (Date.now() - stats.mtimeMs > 3 * 60 * 1000)) {
+unlinkSync(filePath);
+}
+} catch (e) { }
+});
+});
+}
+function purgeSession() {
+try {
+const sessionDir = `./${global.Rubysessions}`;
+if (!existsSync(sessionDir)) return;
+const files = readdirSync(sessionDir);
+files.forEach(file => {
+const filePath = join(sessionDir, file);
+try {
+const stats = statSync(filePath);
+if (file.startsWith('pre-key-') && (Date.now() - stats.mtimeMs > 3600000)) {
+unlinkSync(filePath);
+}
+} catch (e) { }
+});
+} catch (e) { console.log("Error en purga de sesión principal:", e); }
 }
 function purgeSessionSB() {
 try {
-const jadiDir = global.rutaJadiBot
-if (!jadiDir || !existsSync(jadiDir)) return
-for (const directorio of readdirSync(jadiDir)) {
-const subBotPath = join(jadiDir, directorio)
+const jadiDir = global.rutaJadiBot;
+if (!existsSync(jadiDir)) return;
+const listaDirectorios = readdirSync(jadiDir);
+listaDirectorios.forEach(directorio => {
+const subBotPath = join(jadiDir, directorio);
+if (statSync(subBotPath).isDirectory()) {
+const files = readdirSync(subBotPath);
+files.forEach(file => {
+const filePath = join(subBotPath, file);
 try {
-if (statSync(subBotPath).isDirectory()) purgePreKeysFromDirectory(subBotPath)
+const stats = statSync(filePath);
+if (file.startsWith('pre-key-') && (Date.now() - stats.mtimeMs > 3600000)) {
+unlinkSync(filePath);
+}
 } catch (e) { }
+});
 }
-} catch (e) { console.log('Error en purga de Sub-Bots:', e) }
+});
+} catch (e) { console.log("Error en purga de Sub-Bots:", e); }
 }
-const tmpCleanerInterval = setInterval(clearTmp, 4 * 60 * 1000)
-tmpCleanerInterval.unref?.()
-const sessionCleanerInterval = setInterval(() => {
-purgeEllenSession()
-purgeSessionSB()
+const tmpCleanerInterval = setInterval(async () => {
+await clearTmp()
+}, 1000 * 60 * 2)
+tmpCleanerInterval.unref()
+const sessionCleanerInterval = setInterval(async () => {
+await purgeSession()
+await purgeSessionSB()
 console.log(chalk.cyanBright(`\n🧹 LIMPIEZA AUTOMÁTICA COMPLETADA: TMP, PRE-KEYS Y SESIONES\n`))
-}, 10 * 60 * 1000)
-sessionCleanerInterval.unref?.()
+}, 1000 * 60 * 60)
+sessionCleanerInterval.unref()
