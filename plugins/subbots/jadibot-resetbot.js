@@ -47,12 +47,23 @@ let handler = async (m, { conn }) => {
   return resetPrimaryBot(m, conn);
 };
 
+// Este es el hook que captura ANTES de cualquier filtro
 handler.before = async function (m, { isAdmin, isOwner, isROwner, conn }) {
   if (!m.isGroup) return false;
   const command = m.text?.trim?.().toLowerCase().replace(/^[./#!]/, '').split(/\s+/)[0] || '';
+  
+  // Si es un comando de resetbot, permitirlo SIEMPRE (incluso si hay bot primario)
   if (!RESET_COMMANDS.includes(command)) return false;
-  if (!isAdmin && !isOwner && !isROwner) return false;
+  
+  // Solo admins, owners, o root owner pueden usar esto
+  if (!isAdmin && !isOwner && !isROwner) {
+    return m.reply('⚠️ Solo administradores pueden usar este comando.');
+  }
+  
+  // Ejecutar el reset
   await resetPrimaryBot(m, conn || this, { silent: false });
+  
+  // Retornar true para evitar que otros handlers procesen esto
   return true;
 };
 
