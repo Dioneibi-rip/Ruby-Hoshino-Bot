@@ -84,7 +84,7 @@ const error = global.error || "❌"
 const dev = global.dev || ""
 
 if (!args[0]) {
-return conn.reply(m.chat, `🌸 (｡•́︿•̀｡) *ᴅᴇʙᴇs ᴇsᴄʀɪʙɪʀ ǫᴜᴇ́ ǫᴜɪᴇʀᴇs ǫᴜᴇ ʙᴜsǫᴜᴇ ᴇɴ ᴘɪɴᴛᴇʀᴇsᴛ... ᴀsɪ́:* \n> 💌 \`${usedPrefix}${command} Luffy\` \n\n*¿Qᴜᴇ́ ᴛᴇ ᴘᴀʀᴇᴄᴇ? ¡Uɴᴜ!* ฅ(•ㅅ•❀)ฅ`, m)
+return conn.reply(m.chat, `🌸 (｡•́︿•̀｡) *ᴅᴇʙᴇs ᴇsᴄʀɪʙɪʀ ǫᴜᴇ́ ǫᴜɪᴇʀᴇs ǫᴜᴇ ʙᴜsǫᴜᴇ ᴇɴ ᴘɪɴᴛᴇʀᴇsᴛ... ᴀsɪ́:* \n> 💌 \`${usedPrefix}${command} Ruby hoshino`, m)
 }
 
 const query = args.join(' ')
@@ -97,7 +97,7 @@ const images = await pinterestScraper(query, limit)
 
 if (images.length < 2) {
 await m.react(error)
-return conn.reply(m.chat, `🌟 *¡M-Mmm...!* (*꒦ິ꒳꒦ີ) *ɴᴏ ᴇɴᴄᴏɴᴛʀᴇ́ ɪᴍᴀ́ɢᴇɴᴇs ᴘᴀʀᴀ* \`${query}\` *... ᴘᴏʀ ғᴀᴠᴏʀ ɪɴᴛᴇɴᴛᴀ ᴄᴏɴ ᴏᴛʀᴏ ᴛᴇ́ʀᴍɪɴᴏ. ᴘᴇʀᴅᴏ́ɴ.* 💙`, m)
+return conn.reply(m.chat, `(*꒦ິ꒳꒦ີ) *ɴᴏ ᴇɴᴄᴏɴᴛʀᴇ́ ɪᴍᴀ́ɢᴇɴᴇs ᴘᴀʀᴀ* \`${query}\` *... ᴘᴏʀ ғᴀᴠᴏʀ ɪɴᴛᴇɴᴛᴀ ᴄᴏɴ ᴏᴛʀᴏ ᴛᴇ́ʀᴍɪɴᴏ. ᴘᴇʀᴅᴏ́ɴ.* 💙`, m)
 }
 
 const sendCount = Math.min(images.length, limit)
