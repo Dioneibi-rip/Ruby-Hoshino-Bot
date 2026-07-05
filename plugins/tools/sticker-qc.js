@@ -43,11 +43,9 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     }
 
     try {
-        // ✨ Nueva API
         const json = await axios.post('https://quote.yuri.ly/generate', obj, {
             headers: { 'Content-Type': 'application/json' }
         })
-        // Ajusta la ruta de la imagen si la respuesta cambia (por ahora asumimos la misma estructura)
         const buffer = Buffer.from(json.data.result.image, 'base64')
 
         let userId = m.sender
@@ -59,7 +57,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         if (stiker) return conn.sendFile(m.chat, stiker, 'sticker.webp', '', m)
     } catch (error) {
         console.error(error)
-        return conn.reply(m.chat, `❌ Error al generar el sticker. La API puede estar caída o haber cambiado. Intenta más tarde.`, m)
+        return conn.reply(m.chat, `❌ Error al generar el sticker. La API puede estar caída o haber cambiado.`, m)
     }
 }
 
