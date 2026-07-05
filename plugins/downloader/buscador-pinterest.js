@@ -84,7 +84,7 @@ const error = global.error || "❌"
 const dev = global.dev || ""
 
 if (!args[0]) {
-return conn.reply(m.chat, `(｡•́︿•̀｡) *ᴅᴇʙᴇs ᴇsᴄʀɪʙɪʀ ǫᴜᴇ́ ǫᴜɪᴇʀᴇs ǫᴜᴇ ʙᴜsǫᴜᴇ ᴇɴ ᴘɪɴᴛᴇʀᴇsᴛ... ᴀsɪ́:* \n> 💌 \`${usedPrefix}${command} Luffy\` \n\n*¿Qᴜᴇ́ ᴛᴇ ᴘᴀʀᴇᴄᴇ? ¡Uɴᴜ!* ฅ(•ㅅ•❀)ฅ`, m)
+return conn.reply(m.chat, `🌸 (｡•́︿•̀｡) *ᴅᴇʙᴇs ᴇsᴄʀɪʙɪʀ ǫᴜᴇ́ ǫᴜɪᴇʀᴇs ǫᴜᴇ ʙᴜsǫᴜᴇ ᴇɴ ᴘɪɴᴛᴇʀᴇsᴛ... ᴀsɪ́:* \n> 💌 \`${usedPrefix}${command} Luffy\` \n\n*¿Qᴜᴇ́ ᴛᴇ ᴘᴀʀᴇᴄᴇ? ¡Uɴᴜ!* ฅ(•ㅅ•❀)ฅ`, m)
 }
 
 const query = args.join(' ')
@@ -106,11 +106,11 @@ const infoMessage =
 `╭─⬣「 ✨ 𝗣𝗜𝗡𝗧𝗘𝗥𝗘𝗦𝗧 𝗦𝗘𝗔𝗥𝗖𝗛 ✨ 」\n` +
 `├ׁ̟̇𖥔  ۫  ༘  ࿔  ˖  ⚘  𑁍  ࣪  ˖  𓆩  ✿  𓆪  ˖\n` +
 `├ ❀ 𝗕𝘂𝘀𝗾𝘂𝗲𝗱𝗮: *${query}*\n` +
-`├ ❀ 𝗥𝗲𝘀𝘂𝗹𝘁𝗮𝗱𝗼𝘀: ${images.length}\n` +
+`├ ❀ 𝗥𝗲𝘀𝘂𝗹𝘁𝗮𝗱𝗼𝘀: ${images.length} 𝗶𝗺𝗮́𝗴𝗲𝗻𝗲𝘀\n` +
 `├ ❀ 𝗘𝗻𝘃𝗶𝗮𝗻𝗱𝗼: ${sendCount} 𝗲𝗻 𝗮𝗹𝗯𝘂𝗺\n` +
 `├ ❀ 𝗘𝘀𝘁𝗮𝗱𝗼: ✨ ¡Listo! ✨\n` +
 `╰━─━─━─≪✿≫─━─━─━╯\n` +
-(⸝⸝⸝ᵒ̴̶̷ᴗᵒ̴̶̷ꕤ)` : '')
+(dev ? `${dev}\n` : '')
 
 await conn.reply(m.chat, infoMessage.trim(), m)
 
