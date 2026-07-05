@@ -42,21 +42,25 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         }]
     }
 
-    // 🔁 Nueva API
-    const json = await axios.post('https://quote.yuri.ly/generate', obj, {
-        headers: { 'Content-Type': 'application/json' }
-    })
-    
-    // Ajusta según la respuesta real: podría ser json.data.result.image o json.image
-    const buffer = Buffer.from(json.data.result.image, 'base64')
+    try {
+        // ✨ Nueva API
+        const json = await axios.post('https://quote.yuri.ly/generate', obj, {
+            headers: { 'Content-Type': 'application/json' }
+        })
+        // Ajusta la ruta de la imagen si la respuesta cambia (por ahora asumimos la misma estructura)
+        const buffer = Buffer.from(json.data.result.image, 'base64')
 
-    let userId = m.sender
-    let packstickers = global.db.data.users[userId] || {}
-    let texto1 = packstickers.text1 || global.packsticker
-    let texto2 = packstickers.text2 || global.packsticker2
+        let userId = m.sender
+        let packstickers = global.db.data.users[userId] || {}
+        let texto1 = packstickers.text1 || global.packsticker
+        let texto2 = packstickers.text2 || global.packsticker2
 
-    let stiker = await sticker(buffer, false, texto1, texto2)
-    if (stiker) return conn.sendFile(m.chat, stiker, 'sticker.webp', '', m)
+        let stiker = await sticker(buffer, false, texto1, texto2)
+        if (stiker) return conn.sendFile(m.chat, stiker, 'sticker.webp', '', m)
+    } catch (error) {
+        console.error(error)
+        return conn.reply(m.chat, `❌ Error al generar el sticker. La API puede estar caída o haber cambiado. Intenta más tarde.`, m)
+    }
 }
 
 handler.help = ['qc']
