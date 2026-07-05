@@ -51,7 +51,7 @@ const texto = `
 await conn.sendMessage(
 m.chat,
 {
-image: { url: 'https://files.catbox.moe/bi19e7.png' },
+image: { url: 'https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/_%F0%9D%90%82%F0%9D%90%AE%F0%9D%90%AD%F0%9D%90%9E_%F0%9D%90%A1%F0%9D%90%A8%F0%9D%90%AD%20%F0%9D%90%91%F0%9D%90%AE%F0%9D%90%9B%F0%9D%90%B2%20%F0%9D%90%A2%F0%9D%90%9C%F0%9D%90%A8%F0%9D%90%A7%20_%F0%9D%9F%91.jpeg' },
 caption: texto,
 contextInfo: {
 mentionedJid: [m.sender],
