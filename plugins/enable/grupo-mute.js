@@ -1,3 +1,4 @@
+import { resolveTarget } from '../../src/core/identity-utils.js'
 const parseDuration = (args = []) => {
 const timeArg = args.find(arg => /^\d+[smh]$/i.test(arg))
 if (!timeArg) return { duration: null, label: '' }
@@ -15,16 +16,14 @@ label: `\n⏱️ *Tiempo:* ${value} ${names[unit]}`
 }
 
 const handler = async (m, { conn, command, args, groupMetadata, isOwner }) => {
-let who
-if (m.mentionedJid?.[0]) who = m.mentionedJid[0]
-else if (m.quoted) who = m.quoted.sender
-else return m.reply('Debes mencionar o responder al mensaje del usuario. 🧐')
+const participantsByLid = new Map((Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []).filter(p => p?.lid).map(p => [p.lid, p]))
+let who = await resolveTarget(m, conn, { participantsByLid })
+if (!who) return
 
 const botJid = conn.decodeJid?.(conn.user?.jid || conn.user?.id) || conn.user?.jid
 if (who === botJid) return m.reply('No puedo mutearme a mí mismo. 🤖')
 
 let user = global.db.getUser(who)
-if (!user) user = global.db.getUser(who)
 if (!user.mutedChats || typeof user.mutedChats !== 'object') user.mutedChats = {}
 
 const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
