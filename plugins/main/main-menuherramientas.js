@@ -3,40 +3,31 @@ let handler = async (m, { conn }) => {
 const texto = `
 🛠️⊹ 𝐌𝐄𝐍𝐔 𝐃𝐄 𝐇𝐄𝐑𝐑𝐀𝐌𝐈𝐄𝐍𝐓𝐀𝐒 ⊹⚙️
 
-꒰🎠꒱ *#sticker • #s*
-> ✦ Convierte imagen/video a sticker.
-꒰🎠꒱ *#qc*
-> ✦ Crea un sticker estilo Quotly con texto.
-꒰🎠꒱ *#brat*
-> ✦ Genera sticker de texto estilo brat.
-꒰🎠꒱ *#take • #wm*
-> ✦ Cambia el pack/autor de un sticker.
-꒰🎠꒱ *#toimg • #jpg*
-> ✦ Convierte sticker a imagen.
-꒰🎠꒱ *#tomp3 • #toaudio*
-> ✦ Convierte video a audio.
-꒰🎠꒱ *#tourl • #upload*
-> ✦ Sube un archivo y devuelve enlace.
-꒰🎠꒱ *#catbox • #ibb*
-> ✦ Sube archivos a hosts alternos.
-꒰🎠꒱ *#hd • #remini • #enhance*
-> ✦ Mejora imágenes.
-꒰🎠꒱ *#pfp • #getpic*
-> ✦ Obtiene la foto de perfil del usuario mencionado.
-꒰🎠꒱ *#read • #ver*
-> ✦ Revela mensajes de una sola vista.
-꒰🎠꒱ *#shazam • #whatmusic*
-> ✦ Identifica canciones.
-꒰🎠꒱ *#ssweb • #ss*
-> ✦ Captura una página web.
-꒰🎠꒱ *#qrcode*
-> ✦ Genera un código QR.
-꒰🎠꒱ *#tts • #tts2*
-> ✦ Convierte texto en voz.
-꒰🎠꒱ *#wiki • #wikipedia*
-> ✦ Consulta Wikipedia.
-
-╰──────✧ Ruby Tools ✧──────╯
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#calcular • #calcular • #cal*
+> ✦ Calcular todo tipo de ecuaciones.
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#horario*
+> ✦ Ver el horario global de los países.
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#fake • #fakereply*
+> ✦ Crea un mensaje falso de un usuario.
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#enhance • #remini • #hd*
+> ✦ Mejora la calidad de una imagen.
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#letra*
+> ✦ Cambia la fuente de las letras.
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#read • #readviewonce • #ver*
+> ✦ Ver imágenes de una sola vista.
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#whatmusic • #shazam*
+> ✦ Descubre el nombre de canciones o vídeos.
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#ss • #ssweb*
+> ✦ Ver el estado de una página web.
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#length • #tamaño*
+> ✦ Cambia el tamaño de imágenes y vídeos.
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#say • #decir* + [texto]
+> ✦ Repetir un mensaje.
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#todoc • #toducument*
+> ✦ Crea documentos de (audio, imágenes y vídeos).
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#wiki • #wikipedia*
+> ✦ Consulta información en Wikipedia.
+╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅,
 `.trim();
 
 await conn.sendMessage(

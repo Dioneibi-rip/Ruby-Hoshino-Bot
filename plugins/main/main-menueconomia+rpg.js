@@ -8,7 +8,7 @@ const texto = `
 > ✦ Trabaja para ganar ${m.moneda}.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🧰̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#trabajo • #job • #empleo*
 > ✦ Elige o gestiona tu empleo (afecta work/crime/slut).
-ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#slut • #protituirse*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#slut • #prostituirse*
 > ✦ Trabaja como prostituta y gana ${m.moneda}.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#cf • #suerte*
 > ✦ Apuesta tus ${m.moneda} a cara o cruz.
@@ -22,7 +22,7 @@ const texto = `
 > ✦ Apuesta tus ${m.moneda} en la ruleta y prueba tu suerte.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#cartera • #wallet*
 > ✦ Ver tus ${m.moneda} en la cartera.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#banco • #bank*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#bal • #balance • #bank*
 > ✦ Ver tus ${m.moneda} en el banco.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─ *#deposit • #depositar • #d*
 > ✦ Deposita tus ${m.moneda} al banco.

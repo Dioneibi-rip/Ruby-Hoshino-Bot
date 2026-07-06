@@ -3,32 +3,39 @@ let handler = async (m, { conn }) => {
 const texto = `
 🆔⊹ 𝐌𝐄𝐍𝐔 𝐏𝐄𝐑𝐅𝐈𝐋 ⊹📇
 
-꒰🌀꒱ *#perfil • #profile*
-> ✦ Muestra tu perfil o el de un usuario.
-꒰🌀꒱ *#level • #lvl • #nivel*
-> ✦ Consulta nivel y experiencia.
-꒰🌀꒱ *#lb • #lboard*
-> ✦ Ranking de usuarios.
-꒰🌀꒱ *#setname • #setnombre*
-> ✦ Cambia tu nombre guardado.
-꒰🌀꒱ *#setage • #edad*
-> ✦ Guarda tu edad.
-꒰🌀꒱ *#setgenre • #setgenero* / *#delgenre*
-> ✦ Configura o elimina género.
-꒰🌀꒱ *#setbirth • #setcumpleaños* / *#delbirth*
-> ✦ Configura o elimina cumpleaños.
-꒰🌀꒱ *#setdescription • #setdesc* / *#deldesc*
-> ✦ Configura o elimina descripción.
-꒰🌀꒱ *#marry • #divorce*
-> ✦ Matrimonio y divorcio.
-꒰🌀꒱ *#confesar • #confesiones*
-> ✦ Confesiones anónimas.
-꒰🌀꒱ *#premium • #comprarpremium*
-> ✦ Compra premium.
-꒰🌀꒱ *#unreg • #quitaregistro*
-> ✦ Borra tu registro.
-
-╰──────✧ Ruby Profile ✧──────╯
+░ ⃝🌀ᩧ᳕ᬵ *#setname*
+> ✦ Establece un nombre personalizado para tu perfil.
+░ ⃝🌀ᩧ᳕ᬵ *#setage • #edad*
+> ✦ Agrega o actualiza tu edad en el bot.
+░ ⃝🌀ᩧ᳕ᬵ *#unreg • #quitaregistro*
+> ✦ Resetea tu cuenta y elimina tus datos guardados.
+░ ⃝🌀ᩧ᳕ᬵ *#profile • #perfil*
+> ✦ Muestra tu perfil de usuario.
+░ ⃝🌀ᩧ᳕ᬵ *#marry* [mension / etiquetar]
+> ✦ Propón matrimonio a otro usuario.
+░ ⃝🌀ᩧ᳕ᬵ *#divorce*
+> ✦ Divorciarte de tu pareja.
+░ ⃝🌀ᩧ᳕ᬵ *#setgenre • #setgenero*
+> ✦ Establece tu género en el perfil del bot.
+░ ⃝🌀ᩧ᳕ᬵ *#delgenre • #delgenero*
+> ✦ Elimina tu género del perfil del bot.
+░ ⃝🌀ᩧ᳕ᬵ *#setbirth • #setcumpleaños*
+> ✦ Establece tu fecha de nacimiento en el perfil del bot.
+░ ⃝🌀ᩧ᳕ᬵ *#delbirth*
+> ✦ Elimina tu fecha de nacimiento del perfil del bot.
+░ ⃝🌀ᩧ᳕ᬵ *#setdescription • #setdesc*
+> ✦ Establece una descripción en tu perfil del bot.
+░ ⃝🌀ᩧ᳕ᬵ *#deldescription • #deldesc*
+> ✦ Elimina la descripción de tu perfil del bot.
+░ ⃝🌀ᩧ᳕ᬵ *#lb • #lboard* + <Paginá>
+> ✦ Top de usuarios con más (experiencia y nivel).
+░ ⃝🌀ᩧ᳕ᬵ *#level • #lvl* + <@Mencion>
+> ✦ Ver tu nivel y experiencia actual.
+░ ⃝🌀ᩧ᳕ᬵ *#comprarpremium • #premium*
+> ✦ Compra un pase premium para usar el bot sin límites.
+░ ⃝🌀ᩧ᳕ᬵ *#confesiones • #confesar*
+> ✦ Confiesa tus sentimientos a alguien de manera anonima.
+╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅
 `.trim();
 
 await conn.sendMessage(
