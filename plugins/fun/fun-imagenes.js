@@ -1,6 +1,6 @@
 
 const handler = async (m, { conn, command, text }) => {
-let who = m.quoted ? m.quoted.sender : m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
+let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.fromMe ? conn.user.jid : m.sender
 
 if (command == 'chupa' || command == 'chupalo') {
 const captionchupa = `*[ 🤣 ] CHUPALO @${who.split('@')[0]}*`

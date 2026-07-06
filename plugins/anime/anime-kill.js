@@ -13,8 +13,8 @@ who = m.quoted.sender;
 who = m.sender;
 }
 
-let name = conn.getName(who);
-let name2 = conn.getName(m.sender);
+let name = await conn.getName(who);
+let name2 = await conn.getName(m.sender);
 m.react('🗡️');
 
 let str;

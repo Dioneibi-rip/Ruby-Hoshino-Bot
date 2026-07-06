@@ -1,4 +1,4 @@
-import { sticker } from '../lib/sticker.js'
+import { sticker } from '../../lib/sticker.js'
 import axios from 'axios'
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -13,12 +13,12 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     if (!text) return conn.reply(m.chat, `❀ Por favor, ingresa un texto para crear el sticker.`, m)
 
-    const mentionedUser = m.quoted ? m.quoted.sender : m.sender
-    const pp = await conn.profilePictureUrl(mentionedUser).catch(_ => 'https://telegra.ph/file/24fa902ead26340f3df2c.png')
+    const mentionedUser = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
+    const pp = await conn.profilePictureUrl(mentionedUser, 'image').catch(_ => 'https://telegra.ph/file/24fa902ead26340f3df2c.png')
     const nombre = await conn.getName(mentionedUser)
 
     const mentionRegex = new RegExp(`@${mentionedUser.split('@')[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*`, 'g')
-    const mishi = text.replace(mentionRegex, '')
+    const mishi = text.replace(mentionRegex, '').trim()
 
     if (mishi.length > 30) return conn.reply(m.chat, `✧ El texto no puede tener más de 30 caracteres.`, m)
 
