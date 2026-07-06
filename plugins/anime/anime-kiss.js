@@ -63,27 +63,11 @@ const kissGifs=[
 'https://media.tenor.com/6o7pJb2d2fUAAAAC/anime-kiss.gif'
 ]
 
-// Aquí está la magia reparada: buscamos en sender, participant, o fallback al usuario.
-let who;
-if (m.mentionedJid && m.mentionedJid[0]) {
-    who = m.mentionedJid[0];
-} else if (m.quoted) {
-    who = m.quoted.sender || m.quoted.participant || m.participant;
-}
+let who = (Array.isArray(m.mentions) && m.mentions.length > 0) ? m.mentions[0] : (m.quoted ? m.quoted.sender : m.sender)
+let nameSender=await conn.getName(m.sender)
+let nameTarget=await conn.getName(who)
 
-// Si por alguna razón 'who' sigue vacío, usamos a la persona que envió el comando.
-if (!who) who = m.sender;
-
-// Limpiamos los JIDs para evitar el problema de los números de sesión
-let senderJid = m.sender.split(':')[0] + '@s.whatsapp.net'
-let targetJid = who.split(':')[0] + '@s.whatsapp.net'
-
-let nameSender = await conn.getName(m.sender)
-let nameTarget = await conn.getName(who)
-
-let caption = senderJid === targetJid 
-    ? `\`${nameSender}\` *se besó a sí mismo ( ˘ ³˘)♥*` 
-    : `\`${nameSender}\` *besó a* \`${nameTarget}\` 💋.`
+let caption=who===m.sender?`\`${nameSender}\` *se besó a sí mismo ( ˘ ³˘)♥*`:`\`${nameSender}\` *besó a* \`${nameTarget}\` 💋.`
 
 const randomGif=kissGifs[Math.floor(Math.random()*kissGifs.length)]
 
