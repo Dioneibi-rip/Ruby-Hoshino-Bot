@@ -43,17 +43,30 @@ const gifVideos=(await fs.promises.readdir(gifVideosDir))
 const randomGif = gifVideos[Math.floor(Math.random() * gifVideos.length)];
 
 let txt = `
-୨୧‿̥̣‿̣̥̣̇ 𝑹𝒖𝒃𝒚 𝑯𝒐𝒔𝒉𝒊𝒏𝒐 𝑩𝒐𝒕 ‿̥̣‿̣̥̣̇୨୧
-ᰔ🩵 Hola ${name}, aquí tienes el menú completo actualizado manualmente.
+୨୧‿̥̣‿̣̥̣̇‿̥̣୨୧‿̥̣‿̣̥̣̇‿̥̣୨୧‿̥̣‿̣̥̣̇‿̥̣୨୧୧‿̥̣‿̣̥̣̇‿̥̣୨୧
+ᰔ🩵𝙃𝙤𝙡𝙖! ${name} 𝙈𝙞 𝙣𝙤𝙢𝙗𝙧𝙚 𝙚𝙨 *Ruby Hoshino* ¡𝙀𝙨𝙥𝙚𝙧𝙤 𝙦𝙪𝙚 𝙚𝙨𝙩𝙚𝙨 𝙗𝙞𝙚𝙣! ໒꒰ྀི⁄ ⁄>⁄ ⁄ <⁄ ⁄꒱ྀི১
 
 ╔═══════⩽✦✰✦⩾═══════╗
-「 𝙄𝙉𝙁𝙊 𝘿𝙀 𝙇𝘼 𝘽𝙊𝙏 」
+       「 𝙄𝙉𝙁𝙊 𝘿𝙀 𝙇𝘼 𝘽𝙊𝙏 」
 ╚═══════⩽✦✰✦⩾═══════╝
-║ ☆ 🌐 Comandos cargados: ${totalCommands}
-║ ☆ ⏱️ Activa: ${uptime}
-║ ☆ 👤 Usuarios: ${totalreg}
-║ ☆ 🚀 Tu XP: ${exp} | Nivel: ${level}
-║ ☆ 💲 ${m.moneda}: ${coins}
+║ ☆ 🌟 *𝖡𝖮𝖳 𝖢𝖮𝖭 𝖳𝖤𝖬𝖠𝖳𝖨𝖢𝖠 𝖣𝖤 𝖶𝖠𝖨𝖥𝖴*
+║ ☆ 🚩 *𝖬𝖮𝖣𝖮*: *𝖯𝖴𝖡𝖫𝖨𝖢𝖮*
+║ ☆ 📚 *B𝖠𝖨𝖫𝖤𝖸𝖲*: *𝖬𝖴𝖫𝖳𝖨 𝖣𝖤𝖵𝖨𝖢𝖤*
+║ ☆ 🌐 *𝖢𝖮𝖬𝖠𝖭𝖣𝖮𝖲 𝖤𝖭 𝖳𝖮𝖳𝖠𝖫*: ${totalCommands}
+║ ☆ ⏱️ *𝖳𝖨𝖤𝖬𝖯𝖮 𝖠𝖢𝖳𝖨𝖵𝖠*: ${uptime}
+║ ☆ 👤 *𝖴𝖲𝖴𝖠𝖱𝖨𝖮𝖲 𝖱𝖤𝖦𝖨𝖲𝖳𝖱𝖠𝖣𝖮𝖲*: ${totalreg}
+║ ☆ 👩‍💻 *𝖢𝖱𝖤𝖠𝖣𝖮𝖱 𝖣𝖤 𝖫𝖠 𝖡𝖮𝖳*: (https://Wa.me/18294868853)
+╚════════════════════════
+
+
+╔═══════⩽✦✰✦⩾═══════╗
+     「 𝙄𝙉𝙁𝙊 𝘿𝙀𝙇 𝙐𝙎𝙐𝘼𝙍𝙄𝙊 」
+╚═══════⩽✦✰✦⩾═══════╝
+║ ☆ 🌐 *𝖢𝖫𝖨𝖤𝖭𝖳𝖤*: ${name}
+║ ☆ 🚀 *𝖤𝖷𝖯𝖤𝖱𝖨𝖤𝖭𝖢𝖨𝖠*: ${exp}
+║ ☆ 💲 *${m.moneda}*: ${coins}
+║ ☆ 📊 *𝖭𝖨𝖵𝖤𝖫*: ${level}
+║ ☆ 🏅 *𝖱𝖠𝖭𝖦𝖮*: ${role}
 ╚═══════════════════════╝
 
 > Crea un *sub-bot* de Ruby utilizando *#qr* o *#code*
