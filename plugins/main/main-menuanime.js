@@ -29,7 +29,7 @@ const texto = `
 > ✦ Salta de felicidad
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭⛸️ *#hug* + <mencion>
 > ✦ Dar un abrazo
-𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭⛸️ *#impregnate • #preg* + <mencion>
+𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭⛸️ *#preg • #embarazar • #preñar* + <mencion>
 > ✦ Embarazar a alguien
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭⛸️ *#kill* + <mencion>
 > ✦ Toma tu arma y mata a alguien

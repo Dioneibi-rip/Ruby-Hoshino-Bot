@@ -25,8 +25,8 @@ const texto = `
 > ✦ Repetir un mensaje.
 ⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#todoc • #toducument*
 > ✦ Crea documentos de (audio, imágenes y vídeos).
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#translate • #traducir • #trad*
-> ✦ Traduce palabras en otros idiomas.
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#wiki • #wikipedia*
+> ✦ Consulta información en Wikipedia.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅,
 `.trim();
 

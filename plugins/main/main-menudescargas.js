@@ -27,7 +27,7 @@ const texto = `
 > ✦ Buscar videos de TikTok.
 ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#terabox • #tb* + [enlace]
 > ✦ Descargar archivos de Terabox.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ttimg • #ttmp3* + <url>
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ttimg • #tiktokimg • #ttmp3* + <url>
 > ✦ Descargar fotos/audios de TikTok.
 ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#gitclone* + <url>
 > ✦ Descargar repositorios desde GitHub.
@@ -41,7 +41,7 @@ const texto = `
 > ✦ Descargar video aleatorio de TikTok.
 ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#npmdl • #npmdownloader*
 > ✦ Descargar paquetes desde NPMJs.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#animelinks • #animedl*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#anime • #animedl*
 > ✦ Descargar enlaces disponibles de anime.
 ╰──── ੈ₊˚༅༴╰────︶.︶ ⸙ ͛ ͎ ͛ ︶.︶ ੈ₊˚༅
 `.trim();

@@ -19,8 +19,8 @@ const texto = `
 > ✦ Buscador de capítulos de #animesearch.
 | ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#infoanime*
 > ✦ Buscador de información de anime/manga.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#hentaisearch • #searchhentai*
-> ✦ Buscador de capítulos hentai.
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#hentaimanga • #3hentai*
+> ✦ Busca mangas hentai y permite descargarlos en PDF.
 | ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#xnxxsearch • #xnxxs*
 > ✦ Buscador de videos de XNXX.
 | ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#xvsearch • #xvideossearch*

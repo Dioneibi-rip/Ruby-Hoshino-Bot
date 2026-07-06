@@ -19,9 +19,9 @@ const texto = `
 > ✦ Establece tu género en el perfil del bot.
 ░ ⃝🌀ᩧ᳕ᬵ *#delgenre • #delgenero*
 > ✦ Elimina tu género del perfil del bot.
-░ ⃝🌀ᩧ᳕ᬵ *#setbirth • #setnacimiento*
+░ ⃝🌀ᩧ᳕ᬵ *#setbirth • #setcumpleaños*
 > ✦ Establece tu fecha de nacimiento en el perfil del bot.
-░ ⃝🌀ᩧ᳕ᬵ *#delbirth • #delnacimiento*
+░ ⃝🌀ᩧ᳕ᬵ *#delbirth*
 > ✦ Elimina tu fecha de nacimiento del perfil del bot.
 ░ ⃝🌀ᩧ᳕ᬵ *#setdescription • #setdesc*
 > ✦ Establece una descripción en tu perfil del bot.
