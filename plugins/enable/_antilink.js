@@ -1,57 +1,58 @@
 import { shouldSilenceChatForBot, normalizeSessionJid } from '../../src/core/session-utils.js'
-const fancyFontMap = {
-'A': '𝘼', 'B': '𝘽', 'C': '𝘾', 'D': '𝘿', 'E': '𝙀', 'F': '𝙁', 'G': '𝙂', 'H': '𝙃', 'I': '𝙄', 'J': '𝙅', 'K': '𝙆', 'L': '𝙇', 'M': '𝙈', 'N': '𝙉', 'O': '𝙊', 'P': '𝙋', 'Q': '𝙌', 'R': '𝙍', 'S': '𝙎', 'T': '𝙏', 'U': '𝙐', 'V': '𝙑', 'W': '𝙒', 'X': '𝙓', 'Y': '𝙔', 'Z': '𝙕',
-'a': '𝙖', 'b': '𝙗', 'c': '𝙘', 'd': '𝙙', 'e': '𝙚', 'f': '𝙛', 'g': '𝙜', 'h': '𝙝', 'i': '𝙞', 'j': '𝙟', 'k': '𝙠', 'l': '𝙡', 'm': '𝙢', 'n': '𝙣', 'o': '𝙤', 'p': '𝙥', 'q': '𝙦', 'r': '𝙧', 's': '𝙨', 't': '𝙩', 'u': '𝙪', 'v': '𝙫', 'w': '𝙬', 'x': '𝙭', 'y': '𝙮', 'z': '𝙯'
-};
 
-function toFancy(text) {
-return text.split('').map(char => fancyFontMap[char] || char).join('');
-}
-
-let linkRegex = /chat.whatsapp.com\/([0-9A-Za-z]{20,24})/i;
-let linkRegex1 = /whatsapp.com\/channel\/([0-9A-Za-z]{20,24})/i;
+let linkRegex = /chat.whatsapp.com\/([0-9A-Za-z]{20,24})/i
+let linkRegex1 = /whatsapp.com\/channel\/([0-9A-Za-z]{20,24})/i
 
 export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isROwner, participants }) {
-if (!m.isGroup) return;
-if (isAdmin || isOwner || m.fromMe || isROwner) return;
+  if (!m.isGroup) return
+  if (isAdmin || isOwner || m.fromMe || isROwner) return
 
-let chat = global.db.getChat(m.chat);
-if (shouldSilenceChatForBot(chat, normalizeSessionJid(conn))) return;
+  // Obtener chat de forma asíncrona
+  let chat = await global.db.getChat(m.chat)
+  if (shouldSilenceChatForBot(chat, normalizeSessionJid(conn))) return
 
-if (!chat.antiLink && !chat.antilink) return;
+  // Verificar si el antilink está activo (usa antiLink o antilink según tu DB)
+  if (!chat.antiLink && !chat.antilink) return
 
-const isGroupLink = linkRegex.exec(m.text) || linkRegex1.exec(m.text);
+  const isGroupLink = linkRegex.exec(m.text) || linkRegex1.exec(m.text)
+  if (!isGroupLink) return
 
-if (isGroupLink) {
-if (isBotAdmin) {
-const linkThisGroup = `https://chat.whatsapp.com/${await this.groupInviteCode(m.chat)}`;
-if (m.text.includes(linkThisGroup)) return;
-}
+  // Si el enlace es del propio grupo, no hacer nada
+  if (isBotAdmin) {
+    const linkThisGroup = `https://chat.whatsapp.com/${await this.groupInviteCode(m.chat)}`
+    if (m.text.includes(linkThisGroup)) return
+  }
 
-let user = m.sender;
+  let user = m.sender
+  let mention = `@${user.split('@')[0]}`
 
-let aviso = `🚫 *¡${toFancy('YAMEROOO')}!* (＞﹏＜)\n\n`;
-aviso += `👀 @${user.split('@')[0]}, *${toFancy('acabas de enviar un enlace prohibido')}.*\n\n`;
-aviso += `😤 *${toFancy('Las reglas son claras')}:* nada links de otros grupos aquí, eso no es genial.\n\n`;
-aviso += `👋 *${toFancy('Lo siento, pero Sayonara')}...* (oT-T)尸`;
+  // Mensaje plano estilo original
+  let aviso = `*「 ENLACE DETECTADO 」*\n\n`
+  aviso += `《✧》${mention} Rompiste las reglas del Grupo serás eliminado...`
 
-if (isBotAdmin) {
-await conn.sendMessage(m.chat, { delete: { remoteJid: m.chat, fromMe: false, id: m.key.id, participant: m.key.participant } });
+  if (isBotAdmin) {
+    // Eliminar el mensaje con el enlace
+    await conn.sendMessage(m.chat, {
+      delete: {
+        remoteJid: m.chat,
+        fromMe: false,
+        id: m.key.id,
+        participant: m.key.participant
+      }
+    })
 
-await conn.sendMessage(m.chat, {
-text: aviso,
-contextInfo: {
-mentionedJid: [user],
-forwardingScore: 999,
-isForwarded: true}
-}, { quoted: null });
+    // Enviar aviso y eliminar al usuario
+    await conn.sendMessage(m.chat, {
+      text: aviso,
+      mentions: [user]
+    }, { quoted: m })
 
-await conn.groupParticipantsUpdate(m.chat, [user], 'remove');
-} else {
-return m.reply(`😓 *Ups...* El antilink está activo, pero necesito ser *Admin* para poder sacar a la gente que manda links`);
-}
-m.__pluginHalt = true;
-return !0;
-}
-return !0;
+    await conn.groupParticipantsUpdate(m.chat, [user], 'remove')
+  } else {
+    // El bot no es admin
+    return m.reply(`😓 *Ups...* El antilink está activo, pero necesito ser *Admin* para poder sacar a la gente que manda links.`)
+  }
+
+  m.__pluginHalt = true
+  return !0
 }
