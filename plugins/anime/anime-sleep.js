@@ -55,8 +55,8 @@ const sleepGifs=[
 ]
 
 let who=m.mentionedJid&&m.mentionedJid[0]?m.mentionedJid[0]:m.quoted?m.quoted.sender:m.sender
-let nameSender=conn.getName(m.sender)
-let nameTarget=conn.getName(who)
+let nameSender=await conn.getName(m.sender)
+let nameTarget=await conn.getName(who)
 
 let caption=who===m.sender?`\`${nameSender}\` *está tomando una siesta.*`:`\`${nameSender}\` *está durmiendo con* \`${nameTarget}\`.`
 

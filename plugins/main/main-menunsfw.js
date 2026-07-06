@@ -1,51 +1,34 @@
 
 let handler = async (m, { conn }) => {
 const texto = `
-🔞✨⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐍𝐒𝐅𝐖 (𝐂𝐨𝐧𝐭𝐞𝐧𝐢𝐝𝐨 𝐩𝐚𝐫𝐚 𝐚𝐝𝐮𝐥𝐭𝐨𝐬) 🍑🔥⊹
+🔞⊹ 𝐌𝐄𝐍𝐔 𝐍𝐒𝐅𝐖 ⊹🔥
 
-★꙲⃝͟🔞 *#anal* + <mencion>
-> ✦ Hacer un anal
-★꙲⃝͟🔞 *#waifu*
-> ✦ Buscá una waifu aleatorio.
-★꙲⃝͟🔞 *#bath* + <mencion>
-> ✦ Bañarse
-★꙲⃝͟🔞 *#blowjob • #mamada • #bj* + <mencion>
-> ✦ Dar una mamada
-★꙲⃝͟🔞 *#boobjob* + <mencion>
-> ✦ Hacer una rusa
-★꙲⃝͟🔞 *#cum* + <mencion>
-> ✦ Venirse en alguien.
-★꙲⃝͟🔞 *#fap* + <mencion>
-> ✦ Hacerse una paja
-★꙲⃝͟🔞 *#ppcouple • #ppcp*
-> ✦ Genera imágenes para amistades o parejas.
-★꙲⃝͟🔞 *#footjob* + <mencion>
-> ✦ Hacer una paja con los pies
-★꙲⃝͟🔞 *#fuck • #coger • #fuck2* + <mencion>
-> ✦ Follarte a alguien
-★꙲⃝͟🔞 *#cafe • #coffe*
-> ✦ Tomate un cafecito con alguien
-★꙲⃝͟🔞 *#violar • #perra* + <mencion>
-> ✦ Viola a alguien
-★꙲⃝͟🔞 *#grabboobs* + <mencion>
-> ✦ Agarrar tetas
-★꙲⃝͟🔞 *#grop* + <mencion>
-> ✦ Manosear a alguien
-★꙲⃝͟🔞 *#lickpussy* + <mencion>
-> ✦ Lamer un coño
-★꙲⃝͟🔞 *#rule34 • #r34* + [Tags]
-> ✦ Buscar imágenes en Rule34
-★꙲⃝͟🔞 *#sixnine • #69* + <mencion>
-> ✦ Haz un 69 con alguien
-★꙲⃝͟🔞 *#spank • #nalgada* + <mencion>
-> ✦ Dar una nalgada
-★꙲⃝͟🔞 *#suckboobs* + <mencion>
-> ✦ Chupar tetas
-★꙲⃝͟🔞 *#undress • #encuerar* + <mencion>
-> ✦ Desnudar a alguien
-★꙲⃝͟🔞 *#yuri • #tijeras* + <mencion>
-> ✦ Hacer tijeras.
-╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅
+꒰🔞꒱ *#r34 • #rule34* + [tags]
+> ✦ Busca imágenes en Rule34.
+꒰🔞꒱ *#hentaimanga • #3hentai • #hentai*
+> ✦ Busca/descarga manga hentai.
+꒰🔞꒱ *#xnxxsearch • #xnxxs* / *#xnxxdl*
+> ✦ Busca o descarga videos de XNXX.
+꒰🔞꒱ *#xvsearch • #xvideossearch* / *#xvideosdl*
+> ✦ Busca o descarga videos de Xvideos.
+꒰🔞꒱ *#pornhubsearch • #phsearch*
+> ✦ Busca videos en Pornhub.
+꒰🔞꒱ *#anal • #culiar* + <mención>
+> ✦ Reacción NSFW con usuario.
+꒰🔞꒱ *#blowjob • #bj • #mamada* + <mención>
+> ✦ Reacción NSFW con usuario.
+꒰🔞꒱ *#fuck • #coger • #fuck2* + <mención>
+> ✦ Reacción NSFW con usuario.
+꒰🔞꒱ *#spank • #nalgada* + <mención>
+> ✦ Reacción NSFW con usuario.
+꒰🔞꒱ *#yuri • #tijeras* + <mención>
+> ✦ Reacción NSFW con usuario.
+꒰🔞꒱ *#boobjob • #grabboobs • #suckboobs*
+> ✦ Reacciones NSFW con mención.
+꒰🔞꒱ *#footjob • #69 • #cum • #fap*
+> ✦ Reacciones NSFW con mención.
+
+╰──────✧ Solo grupos autorizados ✧──────╯
 `.trim();
 
 await conn.sendMessage(

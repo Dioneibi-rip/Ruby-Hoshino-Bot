@@ -17,8 +17,8 @@ if (!global.db.getChat(m.chat).nsfw && m.isGroup) {
 return m.reply(`${emoji} El contenido *NSFW* está desactivado en este grupo.\n> Un administrador puede activarlo con el comando » *#nsfw on*`);
 }
 
-let name = conn.getName(who);
-let name2 = conn.getName(m.sender);
+let name = await conn.getName(who);
+let name2 = await conn.getName(m.sender);
 m.react('🤰');
 
 let str;

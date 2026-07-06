@@ -1,49 +1,42 @@
 
 let handler = async (m, { conn }) => {
 const texto = `
-📥⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐝𝐞 𝐝𝐞𝐬𝐜𝐚𝐫𝐠𝐚𝐬 𝐩𝐚𝐫𝐚 𝐯𝐚𝐫𝐢𝐨𝐬 𝐚𝐫𝐜𝐡𝐢𝐯𝐨𝐬  📂⊹
+📥⊹ 𝐌𝐄𝐍𝐔 𝐃𝐄 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐒 ⊹📂
 
-ㅤۚ𑁯ׂᰍ  ☕ ᳴   ׅ  ׄʚ   ̶ *#tiktok • #tt*
+꒰☕꒱ *#play • #play2*
+> ✦ Descarga música/video de YouTube por búsqueda.
+꒰☕꒱ *#ytmp3 • #ytmp4*
+> ✦ Descarga audio/video de YouTube por enlace.
+꒰☕꒱ *#tiktok • #tt*
 > ✦ Descarga videos de TikTok.
-ㅤۚ𑁯ׂᰍ  ☕ ᳴   ׅ  ׄʚ   ̶ *#mediafire • #mf*
-> ✦ Descargar un archivo de MediaFire.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#tiktok • #tt*
-> ✦ Descarga videos de TikTok.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#mediafire • #mf*
-> ✦ Descargar archivos de MediaFire.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#mega • #mg* + [enlace]
-> ✦ Descargar archivos de MEGA.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#play • #play2*
-> ✦ Descargar música/video de YouTube.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ytmp3 • #ytmp4*
-> ✦ Descarga directa por url de YouTube.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#fb • #facebook*
-> ✦ Descargar videos de Facebook.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#twitter • #x* + [link]
-> ✦ Descargar videos de Twitter/X.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ig • #instagram*
-> ✦ Descargar contenido de Instagram.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#tts • #tiktoks* + [búsqueda]
-> ✦ Buscar videos de TikTok.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#terabox • #tb* + [enlace]
-> ✦ Descargar archivos de Terabox.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ttimg • #ttmp3* + <url>
-> ✦ Descargar fotos/audios de TikTok.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#gitclone* + <url>
-> ✦ Descargar repositorios desde GitHub.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#xvideosdl*
-> ✦ Descargar videos de Xvideos.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#xnxxdl*
-> ✦ Descargar videos de XNXX.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#apk • #modapk*
-> ✦ Descargar APKs (Aptoide).
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#tiktokrandom • #ttrandom*
-> ✦ Descargar video aleatorio de TikTok.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#npmdl • #npmdownloader*
-> ✦ Descargar paquetes desde NPMJs.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#animelinks • #animedl*
-> ✦ Descargar enlaces disponibles de anime.
-╰──── ੈ₊˚༅༴╰────︶.︶ ⸙ ͛ ͎ ͛ ︶.︶ ੈ₊˚༅
+꒰☕꒱ *#ttimg • #tiktokimg*
+> ✦ Descarga fotos de TikTok.
+꒰☕꒱ *#ttmp3 • #tiktokmp3*
+> ✦ Extrae audio de TikTok.
+꒰☕꒱ *#instagram • #ig*
+> ✦ Descarga contenido de Instagram.
+꒰☕꒱ *#facebook • #fb*
+> ✦ Descarga videos de Facebook.
+꒰☕꒱ *#twitter • #x*
+> ✦ Descarga videos de Twitter/X.
+꒰☕꒱ *#mediafire • #mf*
+> ✦ Descarga archivos de MediaFire.
+꒰☕꒱ *#mega • #mg*
+> ✦ Descarga archivos de MEGA.
+꒰☕꒱ *#terabox • #tb*
+> ✦ Descarga archivos de Terabox.
+꒰☕꒱ *#gitclone*
+> ✦ Descarga repositorios de GitHub.
+꒰☕꒱ *#apk • #modapk*
+> ✦ Busca/descarga APKs.
+꒰☕꒱ *#spotify • #splay*
+> ✦ Descarga música de Spotify.
+꒰☕꒱ *#hentaimanga • #3hentai • #hentai*
+> ✦ Busca y descarga manga hentai en PDF.
+꒰🔞꒱ *#xnxxdl • #xvideosdl*
+> ✦ Descarga videos adultos por enlace.
+
+╰──────✧ Ruby Downloads ✧──────╯
 `.trim();
 
 await conn.sendMessage(
