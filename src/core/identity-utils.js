@@ -14,6 +14,16 @@ if (mapped) normalized = jidNormalizedUser(mapped) || mapped
 return normalized
 }
 
+
+export async function resolveInteractionTarget(m, conn = null, options = {}) {
+const { participantsByLid = null } = options
+const rawTarget = Array.isArray(m?.mentionedJid) && m.mentionedJid[0]
+? m.mentionedJid[0]
+: m?.quoted?.sender || m?.quoted?.participant || m?.quoted?.key?.participant || m?.sender || ''
+const jid = await normalizeIdentityJid(conn, rawTarget, participantsByLid)
+return jid || rawTarget
+}
+
 export async function resolveTarget(m, conn = null, options = {}) {
 const { participantsByLid = null, errorMessage = 'Debes mencionar o responder al mensaje del usuario. 🧐' } = options
 const rawTarget = Array.isArray(m?.mentionedJid) && m.mentionedJid[0]
@@ -28,3 +38,4 @@ return jid || rawTarget
 }
 
 global.resolveTarget = resolveTarget
+global.resolveInteractionTarget = resolveInteractionTarget

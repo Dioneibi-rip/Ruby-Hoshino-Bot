@@ -1,3 +1,4 @@
+import { resolveInteractionTarget } from '../../src/core/identity-utils.js'
 import axios from 'axios'
 import fs from 'fs'
 import path from 'path'
@@ -63,7 +64,7 @@ const kissGifs=[
 'https://media.tenor.com/6o7pJb2d2fUAAAAC/anime-kiss.gif'
 ]
 
-let who = (Array.isArray(m.mentions) && m.mentions.length > 0) ? m.mentions[0] : (m.quoted ? m.quoted.sender : m.sender)
+let who = await resolveInteractionTarget(m, conn)
 let nameSender=await conn.getName(m.sender)
 let nameTarget=await conn.getName(who)
 

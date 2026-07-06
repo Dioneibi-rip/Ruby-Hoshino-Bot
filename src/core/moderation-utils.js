@@ -58,6 +58,5 @@ return true
 
 export async function runAutoModeration(conn, m, sender, permissionContext = {}) {
 if (await enforceMutedUser(conn, m, sender, permissionContext)) return true
-if (await enforceAntiLink(conn, m, sender, permissionContext)) return true
 return false
 }

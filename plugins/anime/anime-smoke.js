@@ -1,3 +1,4 @@
+import { resolveInteractionTarget } from '../../src/core/identity-utils.js'
 import axios from 'axios'
 import fs from 'fs'
 import path from 'path'
@@ -45,7 +46,7 @@ const smokeGifs=[
 'https://i.pinimg.com/originals/b0/25/ac/b025ac44f93f30d6dd2a8aa78707ac4d.gif'
 ]
 
-let who=m.mentionedJid&&m.mentionedJid[0]?m.mentionedJid[0]:m.quoted?m.quoted.sender:m.sender
+let who = await resolveInteractionTarget(m, conn)
 let nameSender=await conn.getName(m.sender)
 let nameTarget=await conn.getName(who)
 
