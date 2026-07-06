@@ -5,16 +5,22 @@ let linkRegex1 = /whatsapp.com\/channel\/([0-9A-Za-z]{20,24})/i
 
 export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isROwner, participants }) {
   if (!m.isGroup) return
-  if (isAdmin || isOwner || m.fromMe || isROwner) return
 
-  // Obtener chat de forma asíncrona
+  // 🔧 Para pruebas: comenté owner y rowner (NO dejes así en producción)
+  if (isAdmin || m.fromMe /* || isOwner || isROwner */) return
+
   let chat = await global.db.getChat(m.chat)
   if (shouldSilenceChatForBot(chat, normalizeSessionJid(conn))) return
 
-  // Verificar si el antilink está activo (usa antiLink o antilink según tu DB)
-  if (!chat.antiLink && !chat.antilink) return
+  // Verifica si antilink está activado
+  if (!chat.antiLink && !chat.antilink) {
+    console.log('⚠️ Antilink desactivado en este grupo')
+    return
+  }
 
   const isGroupLink = linkRegex.exec(m.text) || linkRegex1.exec(m.text)
+  console.log('Enlace detectado?', !!isGroupLink, m.text)
+
   if (!isGroupLink) return
 
   // Si el enlace es del propio grupo, no hacer nada
@@ -26,12 +32,10 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isROwner, 
   let user = m.sender
   let mention = `@${user.split('@')[0]}`
 
-  // Mensaje plano estilo original
   let aviso = `*「 ENLACE DETECTADO 」*\n\n`
   aviso += `《✧》${mention} Rompiste las reglas del Grupo serás eliminado...`
 
   if (isBotAdmin) {
-    // Eliminar el mensaje con el enlace
     await conn.sendMessage(m.chat, {
       delete: {
         remoteJid: m.chat,
@@ -41,7 +45,6 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isROwner, 
       }
     })
 
-    // Enviar aviso y eliminar al usuario
     await conn.sendMessage(m.chat, {
       text: aviso,
       mentions: [user]
@@ -49,7 +52,6 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isROwner, 
 
     await conn.groupParticipantsUpdate(m.chat, [user], 'remove')
   } else {
-    // El bot no es admin
     return m.reply(`😓 *Ups...* El antilink está activo, pero necesito ser *Admin* para poder sacar a la gente que manda links.`)
   }
 
