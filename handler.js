@@ -99,7 +99,6 @@ const messageTime = rawTimestamp > 0 ? rawTimestamp * 1000 : Date.now()
 return Date.now() - messageTime <= SYSTEM_MESSAGE_MAX_AGE_MS
 }
 
-
 function getEventTime(update = {}) {
 const raw = Number(update.timestamp || update.time || update.messageTimestamp || update.creation || update.date || 0)
 if (!raw) return 0
@@ -124,7 +123,6 @@ if (!m?.fromMe && !m?.isBaileys) return false
 const id = m?.id || m?.key?.id || ''
 return IGNORED_BAILEYS_IDS.some((pattern) => pattern.test(id))
 }
-
 
 function normalizeConnectionJid(conn) {
 return normalizeSessionJid(conn)
@@ -162,8 +160,13 @@ if (m.quoted.key?.participant) m.quoted.key.participant = quotedSender
 }
 if (Array.isArray(m?.mentionedJid)) {
 const mentionedJid = []
-for (const jid of m.mentionedJid) mentionedJid.push(await normalizeJidForDatabase(conn, jid, participantsByLid))
+for (const jid of m.mentionedJid) {
+mentionedJid.push(await normalizeJidForDatabase(conn, jid, participantsByLid))
+}
 try { m.mentionedJid = mentionedJid } catch {}
+m.mentions = mentionedJid
+} else {
+m.mentions = []
 }
 return normalizedSender
 }
@@ -214,7 +217,6 @@ await redis.set(key, '1', 'EX', seconds)
 console.error('[redis] cooldown write error', error)
 }
 }
-
 
 function getInvalidCommandMessage(command, usedPrefix) {
 const suggestion = commandsMap?.size ? [...commandsMap.keys()].find((name) => name && command && (name.startsWith(command[0]) || command.startsWith(name[0]))) : null
@@ -581,3 +583,5 @@ try { userr.subreloadHandler(false) } catch {}
 }
 }
 })
+
+export default { handler }
