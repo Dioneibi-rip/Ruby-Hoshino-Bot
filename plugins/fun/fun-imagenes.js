@@ -1,6 +1,7 @@
+import { resolveInteractionTarget } from '../../src/core/identity-utils.js'
 
 const handler = async (m, { conn, command, text }) => {
-let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.fromMe ? conn.user.jid : m.sender
+let who = await resolveInteractionTarget(m, conn)
 
 if (command == 'chupa' || command == 'chupalo') {
 const captionchupa = `*[ 🤣 ] CHUPALO @${who.split('@')[0]}*`
@@ -11,7 +12,7 @@ const captionap = `*[ 🎉 ] FELICIDADES, @${who.split('@')[0]}, ERES UN PENDEJO
 conn.sendMessage(m.chat, {image: { url: 'https://telegra.ph/file/0e40f5c0cf98dffc55045.jpg' }, caption: captionap, mentions: conn.parseMention(captionap)}, {quoted: m});
 }
 if (command == 'marron' || command == 'negro') {
-const who = m.mentionedJid?.[0] || m.quoted?.sender;
+const who = await resolveInteractionTarget(m, conn);
 
 if (!who) return conn.reply(m.chat, 'Etiqueta a alguien para usar este comando.', m);
 

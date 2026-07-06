@@ -1,4 +1,3 @@
-import { jidNormalizedUser } from '@whiskeysockets/baileys'
 import { smsg } from './lib/simple.js'
 import { format } from 'util'
 import * as ws from 'ws'
@@ -27,6 +26,8 @@ import { canManageBotSecurity, getAntiPrivateState, isChatBannedForBot, normaliz
 import { attachSessionState } from './src/core/session-manager.js'
 import messageQueue from './src/core/message-queue.js'
 import { getCooldownKey, getCooldownSeconds, isRedisReady, redis } from './lib/redis.js'
+import { normalizeIdentityJid } from './src/core/identity-utils.js'
+import { getMessageDeletePayload, isUserMutedInChat, runAutoModeration } from './src/core/moderation-utils.js'
 
 global.uptimeStart = Date.now()
 
@@ -129,17 +130,7 @@ return normalizeSessionJid(conn)
 }
 
 async function normalizeJidForDatabase(conn, jid, participantsByLid = null) {
-if (!jid || typeof jid !== 'string') return jid
-let normalized = jidNormalizedUser(jid) || jid
-if (normalized.endsWith('@lid') || normalized.endsWith('@hosted.lid')) {
-const participant = participantsByLid?.get?.(normalized) || participantsByLid?.get?.(jid)
-if (participant?.jid) normalized = jidNormalizedUser(participant.jid) || participant.jid
-else {
-const mapped = await conn?.signalRepository?.lidMapping?.getPNForLID?.(normalized).catch(() => null)
-if (mapped) normalized = jidNormalizedUser(mapped) || mapped
-}
-}
-return normalized
+return normalizeIdentityJid(conn, jid, participantsByLid) || jid
 }
 
 async function normalizeMessageIdentifiers(conn, m, sender, participantsByLid = null) {
@@ -337,23 +328,6 @@ if (m.coin) conn.reply(m.chat, `❮✦❯ Utilizaste ${+m.coin} ${m.moneda}`, m)
 return pluginResult !== false
 }
 
-function isUserMutedInChat(user, chatId) {
-if (!user || !chatId) return false
-if (user.mutedChats?.[chatId] === true) return true
-return user.muto === true && (!user.mutoChat || user.mutoChat === chatId)
-}
-
-function getMessageDeletePayload(m, sender) {
-const key = m?.__deleteKey || m?.key || {}
-const id = key.id || m?.id
-const remoteJid = key.remoteJid || m?.chat
-if (!id || !remoteJid) return null
-const payload = { remoteJid, fromMe: Boolean(key.fromMe), id }
-const participant = key.participant || m?.participant || sender
-if (m?.isGroup && participant) payload.participant = participant
-return payload
-}
-
 async function updateStatsAndEconomy(conn, m, sender) {
 const data = global.db?.data
 if (!data || !m) return
@@ -437,6 +411,9 @@ if (opts.swonly && m.chat !== 'status@broadcast') return
 
 const permissionContext = buildPermissionContext(this, m, sender, participants)
 const { userGroup, botGroup, isRAdmin, isAdmin, isBotAdmin, isROwner, isOwner, isMods, isPrems } = permissionContext
+m.isAdmin = isAdmin
+m.isBotAdmin = isBotAdmin
+if (await runAutoModeration(this, m, sender, permissionContext)) return
 if (!m.isGroup && !canManageBotSecurity(sender, this)) {
 const botSettings = global.db?.data?.settings?.[normalizeConnectionJid(this)] || settings || {}
 const antiPrivateState = getAntiPrivateState(botSettings)

@@ -1,14 +1,15 @@
 import fetch from 'node-fetch';
+import { normalizeIdentityJid } from '../../src/core/identity-utils.js'
 
 var handler = async (m, { conn, args, participants }) => {
 let user1, user2;
 
 if (m.mentionedJid.length === 2) {
-user1 = m.mentionedJid[0];
-user2 = m.mentionedJid[1];
+user1 = await normalizeIdentityJid(conn, m.mentionedJid[0]);
+user2 = await normalizeIdentityJid(conn, m.mentionedJid[1]);
 } else if (m.mentionedJid.length === 1) {
-user1 = m.sender;
-user2 = m.mentionedJid[0];
+user1 = await normalizeIdentityJid(conn, m.sender);
+user2 = await normalizeIdentityJid(conn, m.mentionedJid[0]);
 } else {
 return conn.reply(m.chat, `❤️ Menciona a una o dos personas para shippearlas.\n\nEjemplo:\n.ship @usuario1 @usuario2`, m);
 }

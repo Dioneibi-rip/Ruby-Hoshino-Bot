@@ -1,22 +1,9 @@
+import { resolveInteractionTarget } from '../../src/core/identity-utils.js'
 import { performance } from 'perf_hooks'
 
 var handler = async (m, { conn, text }) => {
-let who;
-let userName;
-
-if (m.isGroup) {
-if (m.mentionedJid.length > 0) {
-who = m.mentionedJid[0];
-userName = await conn.getName(who);
-} else if (m.quoted) {
-who = m.quoted.sender;
-userName = await conn.getName(who);
-} else {
-who = m.chat;
-}
-} else {
-who = m.chat;
-}
+let who = await resolveInteractionTarget(m, conn);
+let userName = who ? await conn.getName(who) : null;
 
 if (!who) return conn.reply(m.chat, `⚠️ Por favor, etiqueta a alguien o responde a un mensaje para doxear.`, m);
 

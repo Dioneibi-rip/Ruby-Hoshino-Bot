@@ -1,17 +1,10 @@
+import { resolveInteractionTarget } from '../../src/core/identity-utils.js'
 
 import fs from 'fs';
 import path from 'path';
 
 let handler = async (m, { conn, usedPrefix }) => {
-let who;
-
-if (m.mentionedJid.length > 0) {
-who = m.mentionedJid[0];
-} else if (m.quoted) {
-who = m.quoted.sender;
-} else {
-who = m.sender;
-}
+let who = await resolveInteractionTarget(m, conn);
 
 let name = await conn.getName(who);
 let name2 = await conn.getName(m.sender);

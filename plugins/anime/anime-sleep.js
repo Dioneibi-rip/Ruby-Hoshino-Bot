@@ -1,3 +1,4 @@
+import { resolveInteractionTarget } from '../../src/core/identity-utils.js'
 import axios from 'axios'
 import fs from 'fs'
 import path from 'path'
@@ -54,7 +55,7 @@ const sleepGifs=[
 'https://telegra.ph/file/6b8e6cc26de052d4018ba.mp4'
 ]
 
-let who=m.mentionedJid&&m.mentionedJid[0]?m.mentionedJid[0]:m.quoted?m.quoted.sender:m.sender
+let who = await resolveInteractionTarget(m, conn)
 let nameSender=await conn.getName(m.sender)
 let nameTarget=await conn.getName(who)
 
