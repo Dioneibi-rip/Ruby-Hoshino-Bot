@@ -1,7 +1,7 @@
 
 let handler = async (m, { conn }) => {
 const texto = `
-🎌✨⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐝𝐞 𝐫𝐞𝐚𝐜𝐜𝐢𝐨𝐧𝐞𝐬 𝐝𝐞 𝐚𝐧𝐢𝐦𝐞 💢🎭⊹
+🎌⊹ 𝐌𝐄𝐍𝐔 𝐀𝐍𝐈𝐌𝐄 / 𝐑𝐄𝐀𝐂𝐂𝐈𝐎𝐍𝐄𝐒 ⊹💢
 
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭⛸️ *#angry • #enojado* + <mencion>
 > ✦ Estar enojado

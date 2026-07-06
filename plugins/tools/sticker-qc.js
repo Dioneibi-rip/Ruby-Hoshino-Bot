@@ -60,7 +60,6 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         return conn.reply(m.chat, `❌ Error al generar el sticker. La API puede estar caída o haber cambiado.`, m)
     }
 }
-
 handler.help = ['qc']
 handler.tags = ['sticker']
 handler.group = true

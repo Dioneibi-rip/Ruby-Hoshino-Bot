@@ -1,9 +1,13 @@
 
 let handler = async (m, { conn }) => {
 const texto = `
-📥⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐝𝐞 𝐝𝐞𝐬𝐜𝐚𝐫𝐠𝐚𝐬 𝐩𝐚𝐫𝐚 𝐯𝐚𝐫𝐢𝐨𝐬 𝐚𝐫𝐜𝐡𝐢𝐯𝐨𝐬  📂⊹
+📥⊹ 𝐌𝐄𝐍𝐔 𝐃𝐄 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐒 ⊹📂
 
-ㅤۚ𑁯ׂᰍ  ☕ ᳴   ׅ  ׄʚ   ̶ *#tiktok • #tt*
+꒰☕꒱ *#play • #play2*
+> ✦ Descarga música/video de YouTube por búsqueda.
+꒰☕꒱ *#ytmp3 • #ytmp4*
+> ✦ Descarga audio/video de YouTube por enlace.
+꒰☕꒱ *#tiktok • #tt*
 > ✦ Descarga videos de TikTok.
 ㅤۚ𑁯ׂᰍ  ☕ ᳴   ׅ  ׄʚ   ̶ *#mediafire • #mf*
 > ✦ Descargar un archivo de MediaFire.
