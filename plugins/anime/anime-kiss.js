@@ -63,11 +63,22 @@ const kissGifs=[
 'https://media.tenor.com/6o7pJb2d2fUAAAAC/anime-kiss.gif'
 ]
 
-let who=m.mentionedJid&&m.mentionedJid[0]?m.mentionedJid[0]:m.quoted?m.quoted.sender:m.sender
+let who;
+if(m.quoted&&m.quoted.sender){
+who=m.quoted.sender
+}else if(m.mentionedJid&&m.mentionedJid.length>0){
+who=m.mentionedJid[0]
+}else{
+who=m.sender
+}
+
+let senderJid=m.sender.split(':')[0]+'@s.whatsapp.net'
+let targetJid=who.split(':')[0]+'@s.whatsapp.net'
+
 let nameSender=await conn.getName(m.sender)
 let nameTarget=await conn.getName(who)
 
-let caption=who===m.sender?`\`${nameSender}\` *se besó a sí mismo ( ˘ ³˘)♥*`:`\`${nameSender}\` *besó a* \`${nameTarget}\` 💋.`
+let caption=senderJid===targetJid?`\`${nameSender}\` *se besó a sí mismo ( ˘ ³˘)♥*`:`\`${nameSender}\` *besó a* \`${nameTarget}\` 💋.`
 
 const randomGif=kissGifs[Math.floor(Math.random()*kissGifs.length)]
 
