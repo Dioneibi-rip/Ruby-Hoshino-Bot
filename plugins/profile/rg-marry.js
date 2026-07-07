@@ -1,6 +1,6 @@
 import { resolveInteractionTarget } from '../../src/core/identity-utils.js'
 
-let confirmation = {} // { [proposeeJid]: { proposer: proposerJid, timeout: timeoutId } }
+let confirmation = {}
 
 async function loadMarriages() {
   return global.db?.getSection?.('marriages') || {}
@@ -15,7 +15,7 @@ function getPartner(marriages, user) {
 }
 
 const handler = async (m, { conn, command, participants, usedPrefix }) => {
-  // Función local para normalizar el JID del remitente (soporte LID)
+  // Convierte LID → JID real usando la lista de participantes
   const normalizeToJid = (rawJid) => {
     if (!rawJid || typeof rawJid !== 'string') return rawJid
     if (!rawJid.endsWith('@lid')) return rawJid
@@ -29,30 +29,24 @@ const handler = async (m, { conn, command, participants, usedPrefix }) => {
 
   try {
     let proposerJid = normalizeToJid(m.sender)
-    global.db.getUser(proposerJid) // asegura que el usuario existe en la base de datos
+    global.db.getUser(proposerJid)
 
     if (isPropose) {
-      // ── Obtener el destinatario usando la utilidad de interacción ──
-      const proposeeJid = await resolveInteractionTarget(m, conn)
+      // ── Obtener el destinatario y luego NORMALIZARLO ──
+      const rawTarget = await resolveInteractionTarget(m, conn)
+      const proposeeJid = normalizeToJid(rawTarget)
 
-      // Si no hay destinatario (mensaje no respondido, sin mención, etc.)
+      // Sin destinatario o es el mismo
       if (!proposeeJid || proposeeJid === proposerJid) {
         if (isUserMarried(marriages, proposerJid)) {
           let partner = getPartner(marriages, proposerJid)
           let partnerName = conn.getName(partner) || `@${partner.split('@')[0]}`
-          return await conn.reply(
-            m.chat,
-            `《✧》 Ya estás casado con *${partnerName}*\n> Puedes divorciarte con el comando: *${usedPrefix}divorce*`,
-            m,
-          )
+          return await conn.reply(m.chat, `《✧》 Ya estás casado con *${partnerName}*\n> Puedes divorciarte con el comando: *${usedPrefix}divorce*`, m)
         } else {
-          throw new Error(
-            `Debes mencionar a alguien para proponer o aceptar matrimonio.\n> Ejemplo » *${usedPrefix + command} @Usuario*`
-          )
+          throw new Error(`Debes mencionar a alguien para proponer o aceptar matrimonio.\n> Ejemplo » *${usedPrefix + command} @Usuario*`)
         }
       }
 
-      // Validaciones de estado civil
       if (isUserMarried(marriages, proposerJid)) {
         let partner = getPartner(marriages, proposerJid)
         throw new Error(`Ya estás casado con @${partner.split('@')[0]}.`)
@@ -64,13 +58,13 @@ const handler = async (m, { conn, command, participants, usedPrefix }) => {
         throw new Error('¡No puedes proponerte matrimonio a ti mismo!')
       }
 
-      // Si ya había una propuesta pendiente para la misma persona, la cancelamos
+      // Cancelar propuesta previa si existe
       if (confirmation[proposeeJid]) {
         clearTimeout(confirmation[proposeeJid].timeout)
         delete confirmation[proposeeJid]
       }
 
-      // ── Crear la propuesta con espera de respuesta ──
+      // Guardar propuesta usando el JID NORMALIZADO
       let proposerName = conn.getName(proposerJid) || `@${proposerJid.split('@')[0]}`
       let proposeeName = conn.getName(proposeeJid) || `@${proposeeJid.split('@')[0]}`
 
@@ -79,21 +73,19 @@ const handler = async (m, { conn, command, participants, usedPrefix }) => {
         timeout: setTimeout(() => {
           conn.sendMessage(m.chat, {
             text: `*《✧》Se acabó el tiempo. La propuesta de matrimonio de @${proposerJid.split('@')[0]} fue cancelada.*`,
-            mentions: [proposerJid],
+            mentions: [proposerJid]
           })
           delete confirmation[proposeeJid]
-        }, 120_000), // 2 minutos
+        }, 120_000)
       }
 
-      // Mensaje de propuesta
       await conn.sendMessage(m.chat, {
-        text:
-          `♡ ${proposeeName}, el usuario ${proposerName} te ha propuesto matrimonio. ¿Aceptas? •(=^●ω●^=)•\n\n` +
+        text: `♡ ${proposeeName}, el usuario ${proposerName} te ha propuesto matrimonio. ¿Aceptas? •(=^●ω●^=)•\n\n` +
           `⚘ *Responde a este mensaje con:*\n` +
           `> ✐ "Si" para aceptar\n` +
           `> ✐ "No" para rechazar\n\n` +
           `⏳ Tienes 2 minutos para responder.`,
-        mentions: [proposerJid, proposeeJid],
+        mentions: [proposerJid, proposeeJid]
       }, { quoted: m })
 
     } else if (isDivorce) {
@@ -111,12 +103,7 @@ const handler = async (m, { conn, command, participants, usedPrefix }) => {
       }
       await global.db.write?.()
 
-      await conn.reply(
-        m.chat,
-        `✐ ${conn.getName(proposerJid)} y ${conn.getName(partner)} se han divorciado.`,
-        m,
-        { mentions: [proposerJid, partner] },
-      )
+      await conn.reply(m.chat, `✐ ${conn.getName(proposerJid)} y ${conn.getName(partner)} se han divorciado.`, m, { mentions: [proposerJid, partner] })
     }
   } catch (error) {
     await conn.reply(m.chat, `《✧》 ${error.message}`, m, { mentions: m.mentionedJid || [] })
@@ -124,7 +111,7 @@ const handler = async (m, { conn, command, participants, usedPrefix }) => {
   }
 }
 
-// ── Intercepta las respuestas "Si"/"No" a las propuestas ──
+// ── Intercepta "Si"/"No" ──
 handler.before = async (m, { conn }) => {
   if (m.isBaileys) return
   if (!(m.sender in confirmation)) return
@@ -139,7 +126,7 @@ handler.before = async (m, { conn }) => {
     delete confirmation[proposeeJid]
     return conn.sendMessage(m.chat, {
       text: `*《✧》@${proposeeJid.split('@')[0]} ha rechazado tu propuesta de matrimonio.*`,
-      mentions: [proposer, proposeeJid],
+      mentions: [proposer, proposeeJid]
     }, { quoted: m })
   }
 
@@ -163,17 +150,15 @@ handler.before = async (m, { conn }) => {
     let proposeeName = conn.getName(proposeeJid) || `@${proposeeJid.split('@')[0]}`
 
     await conn.sendMessage(m.chat, {
-      text:
-        `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩\n\n` +
+      text: `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩\n\n` +
         `¡Se han Casado! ฅ^•ﻌ•^ฅ*:･ﾟ✧\n\n` +
         `*•.¸♡ Esposo(a):* ${proposeeName}\n` +
         `*•.¸♡ Esposo(a):* ${proposerName}\n\n` +
         `\`Disfruten de su luna de miel\`\n\n` +
         `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩`,
-      mentions: [proposer, proposeeJid],
+      mentions: [proposer, proposeeJid]
     }, { quoted: m })
   }
-  // Cualquier otro mensaje no afecta la propuesta
 }
 
 handler.tags = ['fun']
