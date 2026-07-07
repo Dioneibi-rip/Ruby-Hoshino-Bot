@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import baileys from '@whiskeysockets/baileys';
+import { enqueueMediaJob, getMediaQueueConnection } from '../../lib/queue.js';
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 async function sendAlbumMessage(conn, jid, medias, options = {}) {
 if (typeof jid !== "string") throw new TypeError(`jid debe ser string, se recibió: ${jid}`);
@@ -32,6 +33,16 @@ await delay(delayMs);
 }
 return album;
 }
+function registerRule34QueueHandler() {
+global.queueHandlers ||= new Map();
+if (global.queueHandlers.has("rule34:album")) return;
+global.queueHandlers.set("rule34:album", async ({ jid, medias, options = {} }) => {
+const activeConn = getMediaQueueConnection();
+if (!activeConn) throw new Error("No hay conexión activa para la cola multimedia");
+await sendAlbumMessage(activeConn, jid, medias, options);
+});
+}
+
 const handler = async (m, { conn, args, command, usedPrefix }) => {
 const rwait = global.rwait || "⏳";
 const done = global.done || "✅";
@@ -80,10 +91,15 @@ const aestheticCaption = `ㅤㅤㅤ
 𝗥𝖾𝗌𝗎𝗅𝗍⍺𝖽𝗈𝗌ㅤ࣪ㅤ 𝗉⍺𝗋⍺   \`${query}\`
 ࣮𝖽𝗂𝗌𝖿𝗋𝗎𝗍⍺"     𝗅⍺𝗌ㅤ࣫     𝗂𝗆⍺́𝗀𝖾𝗇𝖾𝗌 ㅤ
 ⎯⎯⵿⎯̸⵿⎯⵿⎯⵿ؗ⎯⵿⎯⵿⎯⵿⎯⵿ؗ⎯⵿⎯⵿⎯̸⵿⎯⎯`;
-await sendAlbumMessage(conn, m.chat, albumImages, {
+registerRule34QueueHandler();
+await enqueueMediaJob("rule34:album", {
+jid: m.chat,
+medias: albumImages,
+options: {
 caption: aestheticCaption,
 quoted: m
-});
+}
+}, { conn });
 await m.react(done);
 } catch (e) {
 console.error(e);

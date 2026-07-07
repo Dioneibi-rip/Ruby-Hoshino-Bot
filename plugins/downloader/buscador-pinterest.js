@@ -1,5 +1,6 @@
 import fetch from "node-fetch"
 import baileys from "@whiskeysockets/baileys"
+import { enqueueMediaJob, getMediaQueueConnection } from "../../lib/queue.js"
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -35,6 +36,16 @@ await conn.relayMessage(img.key.remoteJid, img.message, { messageId: img.key.id 
 await delay(delayMs)
 }
 return album
+}
+
+function registerPinterestQueueHandler() {
+global.queueHandlers ||= new Map()
+if (global.queueHandlers.has("pinterest:album")) return
+global.queueHandlers.set("pinterest:album", async ({ jid, medias, options = {} }) => {
+const activeConn = getMediaQueueConnection()
+if (!activeConn) throw new Error("No hay conexión activa para la cola multimedia")
+await sendAlbumMessage(activeConn, jid, medias, options)
+})
 }
 
 async function pinterestScraper(query, limit = 10) {
@@ -119,10 +130,15 @@ type: "image",
 data: { url: img.image_large_url || img.image_medium_url }
 }))
 
-await sendAlbumMessage(conn, m.chat, albumImages, {
+registerPinterestQueueHandler()
+await enqueueMediaJob("pinterest:album", {
+jid: m.chat,
+medias: albumImages,
+options: {
 caption: `🌸 𝙋𝙄𝙉𝙏𝙀𝙍𝙀𝙎𝙏 𝙎𝙀𝘼𝙍𝘾𝙃`,
 quoted: m
-})
+}
+}, { conn })
 
 await m.react(done)
 

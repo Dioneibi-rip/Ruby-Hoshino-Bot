@@ -40,13 +40,15 @@ const pairingCodeRequests = global.pairingCodeRequests || (global.pairingCodeReq
 const PAIRING_CODE_TTL_MS = 45000
 const PAIRING_CODE_COOLDOWN_MS = 60000
 
-async function refreshSubBotGroups(sock) {
+async function refreshSubBotGroups(sock, { retry = true } = {}) {
 try {
 const groups = await sock.groupFetchAllParticipating()
 for (const [jid, metadata] of Object.entries(groups || {})) setSubBotGroupMetadata(sock, jid, metadata)
 return groups || {}
 } catch (error) {
-console.error(`Error actualizando metadatos de grupos del Sub-Bot ${sock?.subBotId || ''}:`, error)
+if (retry) {
+setTimeout(() => refreshSubBotGroups(sock, { retry: false }).catch(() => {}), 10000).unref?.()
+}
 return {}
 }
 }
