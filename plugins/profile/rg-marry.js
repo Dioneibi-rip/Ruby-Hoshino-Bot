@@ -1,4 +1,4 @@
-Iet proposals = {};
+let proposals = {};
 
 async function loadMarriages() {
 return global.db?.getSection?.('marriages') || {};
