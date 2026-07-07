@@ -215,7 +215,7 @@ const connectionOptions = {
 logger: pino({ level: 'silent' }),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile,
-browser: ['Ubuntu', 'Edge', '110.0.1587.56'],
+browser: ['Firefox', 'macOS', '152.0'],
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })), },
 markOnlineOnConnect: true,
 generateHighQualityLinkPreview: true,
