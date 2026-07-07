@@ -14,7 +14,7 @@ function getPartner(marriages, user) {
   return global.db.getUser(user)?.marry || marriages[user]?.partner || ''
 }
 
-// Envía un mensaje de depuración al mismo chat
+// ── Debug al chat ──
 const debugLog = async (conn, m, msg) => {
   try {
     await conn.sendMessage(m.chat, { text: `🔧 [DEBUG] ${msg}` }, { quoted: m })
@@ -39,16 +39,11 @@ const handler = async (m, { conn, command, participants, usedPrefix }) => {
     let proposerJid = normalizeToJid(m.sender)
     global.db.getUser(proposerJid)
 
-    await debugLog(conn, m, `Command: ${command}, proposer: ${proposerJid}`)
-
     if (isPropose) {
       const rawTarget = await resolveInteractionTarget(m, conn)
-      await debugLog(conn, m, `rawTarget from resolveInteractionTarget: ${rawTarget}`)
       const proposeeJid = normalizeToJid(rawTarget)
-      await debugLog(conn, m, `normalized proposeeJid: ${proposeeJid}, proposerJid: ${proposerJid}`)
 
       if (!proposeeJid || proposeeJid === proposerJid) {
-        await debugLog(conn, m, `No proposee or same person`)
         if (isUserMarried(marriages, proposerJid)) {
           let partner = getPartner(marriages, proposerJid)
           let partnerName = conn.getName(partner) || `@${partner.split('@')[0]}`
@@ -69,11 +64,10 @@ const handler = async (m, { conn, command, participants, usedPrefix }) => {
         throw new Error('¡No puedes proponerte matrimonio a ti mismo!')
       }
 
-      // Cancelar propuesta previa
+      // Cancelar propuesta previa si existe
       if (confirmation[proposeeJid]) {
         clearTimeout(confirmation[proposeeJid].timeout)
         delete confirmation[proposeeJid]
-        await debugLog(conn, m, `Propuesta previa cancelada para ${proposeeJid}`)
       }
 
       let proposerName = conn.getName(proposerJid) || `@${proposerJid.split('@')[0]}`
@@ -87,12 +81,8 @@ const handler = async (m, { conn, command, participants, usedPrefix }) => {
             mentions: [proposerJid]
           })
           delete confirmation[proposeeJid]
-          debugLog(conn, m, `Timeout propuesta de ${proposerJid} a ${proposeeJid}`).catch(console.error)
         }, 120_000)
       }
-
-      await debugLog(conn, m, `Propuesta almacenada: ${proposeeJid} -> ${proposerJid}`)
-      await debugLog(conn, m, `Confirmación actual: ${JSON.stringify(Object.keys(confirmation).map(k => ({ [k]: confirmation[k].proposer })))}`)
 
       await conn.sendMessage(m.chat, {
         text: `♡ ${proposeeName}, el usuario ${proposerName} te ha propuesto matrimonio. ¿Aceptas? •(=^●ω●^=)•\n\n` +
@@ -121,39 +111,31 @@ const handler = async (m, { conn, command, participants, usedPrefix }) => {
       await conn.reply(m.chat, `✐ ${conn.getName(proposerJid)} y ${conn.getName(partner)} se han divorciado.`, m, { mentions: [proposerJid, partner] })
     }
   } catch (error) {
-    await debugLog(conn, m, `ERROR: ${error.message}`)
     await conn.reply(m.chat, `《✧》 ${error.message}`, m, { mentions: m.mentionedJid || [] })
     return false
   }
 }
 
-// Intercepta respuestas "Si"/"No"
-handler.before = async (m, { conn }) => {
-  await debugLog(conn, m, `before: m.sender = ${m.sender}, text = "${m.text}"`)
-  await debugLog(conn, m, `before: confirmation keys = ${JSON.stringify(Object.keys(confirmation))}`)
+// ── Export nombrado "before" ──
+export async function before(m, { conn }) {
+  // Este log te dirá si el sistema llama a esta función
+  console.log('⚡ before ejecutado', m.sender, m.text)
+  await debugLog(conn, m, `before llamado: sender=${m.sender}, text=${m.text}`).catch(() => {})
 
-  if (m.isBaileys) {
-    await debugLog(conn, m, `before: es Baileys, ignorado`)
-    return
-  }
+  if (m.isBaileys) return
   if (!(m.sender in confirmation)) {
-    await debugLog(conn, m, `before: m.sender no está en confirmation`)
+    await debugLog(conn, m, `before: sender no está en confirmation (keys: ${JSON.stringify(Object.keys(confirmation))})`).catch(() => {})
     return
   }
-  if (!m.text) {
-    await debugLog(conn, m, `before: no hay texto`)
-    return
-  }
+  if (!m.text) return
 
   const { proposer, timeout } = confirmation[m.sender]
   const proposeeJid = m.sender
 
-  await debugLog(conn, m, `before: propuesta encontrada: ${proposeeJid} <- ${proposer}`)
-
   if (/^(no)$/i.test(m.text.trim())) {
     clearTimeout(timeout)
     delete confirmation[proposeeJid]
-    await debugLog(conn, m, `before: rechazado`)
+    await debugLog(conn, m, `before: propuesta rechazada`).catch(() => {})
     return conn.sendMessage(m.chat, {
       text: `*《✧》@${proposeeJid.split('@')[0]} ha rechazado tu propuesta de matrimonio.*`,
       mentions: [proposer, proposeeJid]
@@ -178,7 +160,7 @@ handler.before = async (m, { conn }) => {
     let proposerName = conn.getName(proposer) || `@${proposer.split('@')[0]}`
     let proposeeName = conn.getName(proposeeJid) || `@${proposeeJid.split('@')[0]}`
 
-    await debugLog(conn, m, `before: aceptado, casados`)
+    await debugLog(conn, m, `before: casados exitosamente`).catch(() => {})
     await conn.sendMessage(m.chat, {
       text: `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩\n\n` +
         `¡Se han Casado! ฅ^•ﻌ•^ฅ*:･ﾟ✧\n\n` +
@@ -188,8 +170,6 @@ handler.before = async (m, { conn }) => {
         `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩`,
       mentions: [proposer, proposeeJid]
     }, { quoted: m })
-  } else {
-    await debugLog(conn, m, `before: texto no coincide con Si/No: "${m.text}"`)
   }
 }
 
