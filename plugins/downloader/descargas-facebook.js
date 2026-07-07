@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import cheerio from 'cheerio'
 
 var handler = async (m, { conn, args, command, text }) => {
   const isCommand7 = /^(facebook|fb|facebookdl|fbdl)$/i.test(command)
@@ -8,93 +9,60 @@ var handler = async (m, { conn, args, command, text }) => {
     console.log(e)
   }
 
-  // Extraer URL del video directamente del HTML de Facebook
-  async function extractFromFB(url) {
-    const res = await fetch(url, {
+  // Descarga usando fdown.net
+  async function fdownDownload(url) {
+    const formData = `URLz=${encodeURIComponent(url)}`
+    const res = await fetch('https://fdown.net/es/download.php', {
+      method: 'POST',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5'
+        'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
       },
-      timeout: 25000
+      body: formData,
+      timeout: 30000
     })
-    if (!res.ok) throw new Error('No se pudo cargar la página de Facebook')
+    if (!res.ok) throw new Error('fdown.net no respondió')
     const html = await res.text()
+    const $ = cheerio.load(html)
 
-    // Buscar en el JSON embebido (__INITIAL_STATE__)
-    let videoUrl = null
-    let title = 'Facebook Video'
-    let thumb = ''
-
-    // Método 1: Buscar en objetos JSON (más común actualmente)
-    const jsonMatch = html.match(/<script type="application\/json"[^>]*>([^<]+)<\/script>/g) || []
-    for (const script of jsonMatch) {
-      try {
-        const content = script.replace(/<script[^>]*>/, '').replace(/<\/script>/, '')
-        const json = JSON.parse(content)
-        // Recorrer el objeto en busca de "playable_url" o "browser_native_hd_url"
-        const findUrl = (obj) => {
-          if (!obj || typeof obj !== 'object') return null
-          if (obj.playable_url) return obj.playable_url
-          if (obj.browser_native_hd_url) return obj.browser_native_hd_url
-          if (obj.video?.playable_url) return obj.video.playable_url
-          for (const key of Object.keys(obj)) {
-            const found = findUrl(obj[key])
-            if (found) return found
-          }
-          return null
-        }
-        const urlFound = findUrl(json)
-        if (urlFound) {
-          videoUrl = urlFound
-          // También intentar obtener título y miniatura
-          const findTitle = (obj) => {
-            if (obj?.video?.title) return obj.video.title
-            if (obj?.title) return obj.title
-            for (const key of Object.keys(obj)) {
-              const t = findTitle(obj[key])
-              if (t) return t
-            }
-            return null
-          }
-          const foundTitle = findTitle(json)
-          if (foundTitle) title = foundTitle
-          const findThumb = (obj) => {
-            if (obj?.video?.thumbnail_uri) return obj.video.thumbnail_uri
-            if (obj?.preferred_thumbnail?.image?.uri) return obj.preferred_thumbnail.image.uri
-            for (const key of Object.keys(obj)) {
-              const t = findThumb(obj[key])
-              if (t) return t
-            }
-            return null
-          }
-          const foundThumb = findThumb(json)
-          if (foundThumb) thumb = foundThumb
-          break
-        }
-      } catch (e) { }
+    // Verificar si hubo error
+    if ($('.alert-danger').length) {
+      throw new Error($('.alert-danger').text().trim() || 'Error desconocido de fdown')
     }
 
-    // Método 2: Regex clásico sobre el HTML (respaldo)
-    if (!videoUrl) {
-      const hdMatch = html.match(/"browser_native_hd_url"\s*:\s*"([^"]+)"/) ||
-                     html.match(/hd_src\s*:\s*"([^"]+)"/)
-      const sdMatch = html.match(/"playable_url"\s*:\s*"([^"]+)"/) ||
-                     html.match(/sd_src\s*:\s*"([^"]+)"/)
-      const thumbMatch = html.match(/"thumbnail_uri"\s*:\s*"([^"]+)"/) ||
-                        html.match(/"preferred_thumbnail"\s*:\s*{"image"\s*:\s*{"uri"\s*:\s*"([^"]+)"/)
-      videoUrl = hdMatch?.[1] || sdMatch?.[1] || null
-      if (thumbMatch) thumb = thumbMatch[1]
-      const titleMatch = html.match(/<title>(.*?)<\/title>/)
-      if (titleMatch) title = titleMatch[1].replace(/ - Facebook$/, '').trim()
+    // Extraer título
+    const title = $('.card-title').first().text().trim() || 'Facebook Video'
+    // Extraer thumbnail
+    const thumb = $('.card img').first().attr('src') || ''
+
+    // Buscar enlaces de descarga (tabla)
+    const downloadRows = $('table tbody tr')
+    let hdUrl = null
+    let sdUrl = null
+
+    downloadRows.each((i, row) => {
+      const text = $(row).text().toLowerCase()
+      const link = $(row).find('a').attr('href')
+      if (!link) return
+      if (text.includes('hd') || text.includes('alta') || text.includes('high')) {
+        hdUrl = link
+      } else if (text.includes('sd') || text.includes('normal') || text.includes('baja')) {
+        sdUrl = link
+      }
+    })
+
+    // Si no se detectó por texto, tomar el primer enlace de la tabla
+    if (!hdUrl && !sdUrl) {
+      const firstLink = $('table a').first().attr('href')
+      if (firstLink) sdUrl = firstLink
     }
 
-    if (!videoUrl) throw new Error('No se pudo encontrar el enlace del video (¿el video es público?)')
-    
-    // Limpiar escapes (\/)
-    videoUrl = videoUrl.replace(/\\\//g, '/')
-    if (thumb) thumb = thumb.replace(/\\\//g, '/')
-    return { videoUrl, title, thumbnail: thumb }
+    const videoUrl = hdUrl || sdUrl
+    if (!videoUrl) throw new Error('No se encontraron enlaces de descarga')
+
+    return { videoUrl, title, thumb }
   }
 
   if (isCommand7) {
@@ -108,7 +76,7 @@ var handler = async (m, { conn, args, command, text }) => {
     m.react('⏳')
 
     try {
-      const { videoUrl, title } = await extractFromFB(args[0])
+      const { videoUrl, title } = await fdownDownload(args[0])
 
       let caption = `꒰꒰͡  *𝗩𝗶𝗱𝗲𝗼 𝗱𝗲 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸 ⁖❤️꙰* !! ര\n
 ┉ ᩿💭 ᩠〪ᷭׄ : *𝙏𝙄𝙏𝙐𝙇𝙊:* ${title || 'No disponible'}
