@@ -1,96 +1,74 @@
+import { fbdl } from 'ruhend-scraper'
 import fetch from 'node-fetch'
 import cheerio from 'cheerio'
 
-var handler = async (m, { conn, args, command, text }) => {
-  const isCommand7 = /^(facebook|fb|facebookdl|fbdl)$/i.test(command)
+var handler = async (m, { conn, args, command, usedPrefix, text }) => {
 
-  async function reportError(e) {
-    await conn.reply(m.chat, `⁖🧡꙰ 𝙾𝙲𝚄𝚁𝚁𝙸𝙾 𝚄𝙽 𝙴𝚁𝚁𝙾𝚁: ${e.message || e}`, m, null)
-    console.log(e)
-  }
+const isCommand7 = /^(facebook|fb|facebookdl|fbdl)$/i.test(command)
 
-  // Descarga usando fdown.net
-  async function fdownDownload(url) {
-    const formData = `URLz=${encodeURIComponent(url)}`
-    const res = await fetch('https://fdown.net/es/download.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
-      },
-      body: formData,
-      timeout: 30000
-    })
-    if (!res.ok) throw new Error('fdown.net no respondió')
-    const html = await res.text()
-    const $ = cheerio.load(html)
+async function reportError(e) {
+await conn.reply(m.chat, `⁖🧡꙰ 𝙾𝙲𝚄𝚁𝚁𝙸𝙾 𝚄𝙽 𝙴𝚁𝙍𝙾𝚁`, m, rcanal)
+console.log(e)
+}
 
-    // Verificar si hubo error
-    if ($('.alert-danger').length) {
-      throw new Error($('.alert-danger').text().trim() || 'Error desconocido de fdown')
-    }
+async function scrapeMetadata(pageUrl) {
+try {
+const resp = await fetch(pageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+const html = await resp.text()
+const $ = cheerio.load(html)
+const getMeta = (name, attr = 'content') =>
+$(`meta[property="${name}"]`).attr(attr) ||
+$(`meta[name="${name}"]`).attr(attr) ||
+null
+return {
+title: getMeta('og:title') || getMeta('twitter:title'),
+description: getMeta('og:description') || getMeta('twitter:description'),
+siteName: "Facebook"
+}
+} catch (e) {
+return { title: null, description: null, siteName: "Facebook" }
+}
+}
 
-    // Extraer título
-    const title = $('.card-title').first().text().trim() || 'Facebook Video'
-    // Extraer thumbnail
-    const thumb = $('.card img').first().attr('src') || ''
+if (isCommand7) {
 
-    // Buscar enlaces de descarga (tabla)
-    const downloadRows = $('table tbody tr')
-    let hdUrl = null
-    let sdUrl = null
+if (!text) return conn.reply(m.chat, `🚩 *Ingrese un enlace de facebook*`, m, rcanal)
 
-    downloadRows.each((i, row) => {
-      const text = $(row).text().toLowerCase()
-      const link = $(row).find('a').attr('href')
-      if (!link) return
-      if (text.includes('hd') || text.includes('alta') || text.includes('high')) {
-        hdUrl = link
-      } else if (text.includes('sd') || text.includes('normal') || text.includes('baja')) {
-        sdUrl = link
-      }
-    })
+if (!args[0].match(/www.facebook.com|fb.watch|web.facebook.com|business.facebook.com|video.fb.com/g))
+return conn.reply(m.chat, '🚩 *ᥒ᥆ ᥱs ᥙᥒ ᥱᥒᥣᥲᥴᥱ ᥎ᥲ́ᥣіძ᥆*', m, rcanal)
 
-    // Si no se detectó por texto, tomar el primer enlace de la tabla
-    if (!hdUrl && !sdUrl) {
-      const firstLink = $('table a').first().attr('href')
-      if (firstLink) sdUrl = firstLink
-    }
+conn.reply(m.chat, '🚀 𝗗𝗲𝘀𝗰𝗮𝗿𝗴𝗮𝗻𝗱𝗼 𝗘𝗹 𝗩𝗶𝗱𝗲𝗼 𝗗𝗲 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸, 𝗘𝘀𝗽𝗲𝗿𝗲 𝗨𝗻 𝗠𝗼𝗺𝗲𝗻𝘁𝗼....', m, {
+contextInfo: {
+forwardingScore: 2022,
+isForwarded: true}
+})
 
-    const videoUrl = hdUrl || sdUrl
-    if (!videoUrl) throw new Error('No se encontraron enlaces de descarga')
+m.react(rwait)
 
-    return { videoUrl, title, thumb }
-  }
+try {
 
-  if (isCommand7) {
-    if (!text) return conn.reply(m.chat, `🚩 *Ingrese un enlace de Facebook*`, m, null)
-    if (!args[0].match(/www\.facebook\.com|fb\.watch|web\.facebook\.com|business\.facebook\.com|video\.fb\.com/g))
-      return conn.reply(m.chat, '🚩 *No es un enlace válido de Facebook*', m, null)
+const fb = await fbdl(args[0])
+if (!fb?.data?.length) throw new Error('No se obtuvo video.')
+const video = fb.data[0]
+const videoUrl = video.url
 
-    conn.reply(m.chat, '🚀 𝗗𝗲𝘀𝗰𝗮𝗿𝗴𝗮𝗻𝗱𝗼 𝗘𝗹 𝗩𝗶𝗱𝗲𝗼 𝗗𝗲 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸, 𝗘𝘀𝗽𝗲𝗿𝗲 𝗨𝗻 𝗠𝗼𝗺𝗲𝗻𝘁𝗼....', m, {
-      contextInfo: { forwardingScore: 2022, isForwarded: true }
-    })
-    m.react('⏳')
+const meta = await scrapeMetadata(args[0])
 
-    try {
-      const { videoUrl, title } = await fdownDownload(args[0])
-
-      let caption = `꒰꒰͡  *𝗩𝗶𝗱𝗲𝗼 𝗱𝗲 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸 ⁖❤️꙰* !! ര\n
-┉ ᩿💭 ᩠〪ᷭׄ : *𝙏𝙄𝙏𝙐𝙇𝙊:* ${title || 'No disponible'}
-┉ ᩿💭 ᩠〪ᷭׄ : *𝙀𝙉𝙇𝘼𝙘𝙀 𝙊𝙍𝙄𝙂𝙄𝙉𝘼𝙇:* ${args[0]}
+let caption = `꒰꒰͡  *𝗩𝗶𝗱𝗲𝗼 𝗱𝗲 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸 ⁖❤️꙰* !! ര\n
+┉ ᩿💭 ᩠〪ᷭׄ : *𝙏𝙄𝙏𝙐𝙇𝙊:* ${meta.title || 'No disponible'}
+┉ ᩿💭 ᩠〪ᷭׄ : *𝘿𝙀𝙎𝘾𝙍𝙄𝙋𝘾𝙄𝙊́𝙉:* ${meta.description || 'No disponible'}
+┉ ᩿💭 ᩠〪ᷭׄ : *𝙎𝙄𝙏𝙄𝙊:* Facebook
+┉ ᩿💭 ᩠〪ᷭׄ : *𝙀𝙉𝙇𝘼𝘾𝙀 𝙊𝙍𝙄𝙂𝙄𝙉𝘼𝙇:* ${args[0]}
 ────────────────
-> ${global.wm || ''}
+> ${global.wm}
 `
 
-      await conn.sendFile(m.chat, videoUrl, 'facebook.mp4', caption, m)
+await conn.sendFile(m.chat, videoUrl, 'facebook.mp4', caption, m)
 
-    } catch (e) {
-      reportError(e)
-    }
-  }
+} catch (e) {
+reportError(e)
+}
+}
 }
 
 handler.help = ['fb']
