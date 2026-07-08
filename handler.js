@@ -272,13 +272,13 @@ if (user?.antispam && !user.banned) user.antispam = 0
 
 const adminMode = chat?.modoadmin
 if (adminMode && m.isGroup && !isAdmin && !isOwner && !isROwner) return true
-if (plugin.botAdmin && !isBotAdmin) { fail('botAdmin', m, conn); return false }
-if (plugin.rowner && plugin.owner && !(isROwner || isOwner)) { fail('owner', m, conn); return false }
-if (plugin.rowner && !isROwner) { fail('rowner', m, conn); return false }
-if (plugin.owner && !isOwner) { fail('owner', m, conn); return false }
-if (plugin.mods && !isMods) { fail('mods', m, conn); return false }
-if (plugin.premium && !isPrems) { fail('premium', m, conn); return false }
-if (plugin.admin && !isAdmin) { fail('admin', m, conn); return false }
+if (!isOwner && !isROwner && plugin.botAdmin && !isBotAdmin) { fail('botAdmin', m, conn); return false }
+if (!isOwner && !isROwner && plugin.rowner && plugin.owner && !(isROwner || isOwner)) { fail('owner', m, conn); return false }
+if (!isOwner && !isROwner && plugin.rowner && !isROwner) { fail('rowner', m, conn); return false }
+if (!isOwner && !isROwner && plugin.owner && !isOwner) { fail('owner', m, conn); return false }
+if (!isOwner && !isROwner && plugin.mods && !isMods) { fail('mods', m, conn); return false }
+if (!isOwner && !isROwner && plugin.premium && !isPrems) { fail('premium', m, conn); return false }
+if (!isOwner && !isROwner && plugin.admin && !isAdmin) { fail('admin', m, conn); return false }
 if (plugin.private && m.isGroup) { fail('private', m, conn); return false }
 if (plugin.group && !m.isGroup) { fail('group', m, conn); return false }
 if (pluginNeedsJob(plugin, name, extra.command) && !userHasJob(user)) {
@@ -291,16 +291,16 @@ const xp = 'exp' in plugin ? parseInt(plugin.exp) : 17
 if (xp > 200) m.reply('chirrido -_-')
 else m.exp += xp
 
-if (!isPrems && plugin.coin && (global.db?.data?.users?.[sender]?.coin || 0) < plugin.coin * 1) {
+if (!isOwner && !isROwner && !isPrems && plugin.coin && (global.db?.data?.users?.[sender]?.coin || 0) < plugin.coin * 1) {
 conn.reply(m.chat, `❮✦❯ Se agotaron tus ${m.moneda}`, m)
 return false
 }
-if (plugin.level > (user?.level || 0)) {
+if (!isOwner && !isROwner && plugin.level > (user?.level || 0)) {
 conn.reply(m.chat, `❮✦❯ Se requiere el nivel: *${plugin.level}*\n\n• Tu nivel actual es: *${user?.level || 0}*\n\n• Usa este comando para subir de nivel:\n*${extra.usedPrefix}levelup*`, m)
 return false
 }
 
-if (!await validateRedisCooldown(conn, plugin, name, m, extra.command, sender)) return false
+if (!isOwner && !isROwner && !await validateRedisCooldown(conn, plugin, name, m, extra.command, sender)) return false
 
 let pluginResult
 try {
@@ -439,6 +439,8 @@ await runPluginHooks(this, plugin, name, m, baseContext)
 if (m.__pluginHalt) return
 }
 for (const hook of global.beforeHooks || beforeHooks || []) {
+const chatDataForAdminMode = m.isGroup ? (global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]) : null
+if (parsed?.command && prefixMatch?.[0]?.[0] && chatDataForAdminMode?.modoadmin && !isAdmin && !isOwner && !isROwner) return
 const { name, plugin } = hook || {}
 if (!plugin || plugin.disabled) continue
 if (!opts.restrict && plugin.tags?.includes?.('admin')) continue
@@ -469,7 +471,7 @@ m.plugin = name
 const chatData = global.db?.data?.chats?.[m.chat] || {}
 const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJid(this))
 const isBotSecurityManager = canManageBotSecurity(sender, this)
-if (isBotBannedInThisChat && !UNBAN_COMMAND_FILES.includes(name) && !isBotSecurityManager) return
+if (!isOwner && !isROwner && isBotBannedInThisChat && !UNBAN_COMMAND_FILES.includes(name) && !isBotSecurityManager) return
 const __filename = join(pluginDir, name)
 const extra = { match, usedPrefix, ...commandParsed, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
 await executePlugin(this, plugin, name, m, extra, permissionContext, sender)

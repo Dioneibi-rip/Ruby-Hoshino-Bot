@@ -1,4 +1,5 @@
 import { fbdl } from 'ruhend-scraper'
+import { enqueueMediaJob, getMediaQueueConnection } from '../../lib/queue.js'
 import fetch from 'node-fetch'
 import cheerio from 'cheerio'
 
@@ -44,30 +45,11 @@ isForwarded: true}
 })
 
 m.react(rwait)
-
-try {
-
-const fb = await fbdl(args[0])
-if (!fb?.data?.length) throw new Error('No se obtuvo video.')
-const video = fb.data[0]
-const videoUrl = video.url
-
-const meta = await scrapeMetadata(args[0])
-
-let caption = `꒰꒰͡  *𝗩𝗶𝗱𝗲𝗼 𝗱𝗲 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸 ⁖❤️꙰* !! ര\n
-┉ ᩿💭 ᩠〪ᷭׄ : *𝙏𝙄𝙏𝙐𝙇𝙊:* ${meta.title || 'No disponible'}
-┉ ᩿💭 ᩠〪ᷭׄ : *𝘿𝙀𝙎𝘾𝙍𝙄𝙋𝘾𝙄𝙊́𝙉:* ${meta.description || 'No disponible'}
-┉ ᩿💭 ᩠〪ᷭׄ : *𝙎𝙄𝙏𝙄𝙊:* Facebook
-┉ ᩿💭 ᩠〪ᷭׄ : *𝙀𝙉𝙇𝘼𝘾𝙀 𝙊𝙍𝙄𝙂𝙄𝙉𝘼𝙇:* ${args[0]}
-────────────────
-> ${global.wm}
-`
-
-await conn.sendFile(m.chat, videoUrl, 'facebook.mp4', caption, m)
-
-} catch (e) {
-reportError(e)
-}
+await enqueueMediaJob('facebook', {
+chat: m.chat,
+url: args[0],
+message: { key: m.key, message: m.message, sender: m.sender, chat: m.chat }
+}, { conn })
 }
 }
 
@@ -75,5 +57,39 @@ handler.help = ['fb']
 handler.tags = ['descargas']
 handler.command = ['fb', 'facebook']
 handler.register = true
+
+
+global.queueHandlers ||= new Map()
+global.queueHandlers.set('facebook', async (data) => {
+const conn = getMediaQueueConnection()
+const m = data.message
+async function scrapeMetadata(pageUrl) {
+try {
+const resp = await fetch(pageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+const html = await resp.text()
+const $ = cheerio.load(html)
+const getMeta = (name, attr = 'content') => $(`meta[property="${name}"]`).attr(attr) || $(`meta[name="${name}"]`).attr(attr) || null
+return { title: getMeta('og:title') || getMeta('twitter:title'), description: getMeta('og:description') || getMeta('twitter:description'), siteName: 'Facebook' }
+} catch { return { title: null, description: null, siteName: 'Facebook' } }
+}
+try {
+const fb = await fbdl(data.url)
+if (!fb?.data?.length) throw new Error('No se obtuvo video.')
+const videoUrl = fb.data[0].url
+const meta = await scrapeMetadata(data.url)
+let caption = `꒰꒰͡  *𝗩𝗶𝗱𝗲𝗼 𝗱𝗲 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸 ⁖❤️꙰* !! ര
+
+┉ ᩿💭 ᩠〪ᷭׄ : *𝙏𝙄𝙏𝙐𝙇𝙊:* ${meta.title || 'No disponible'}
+┉ ᩿💭 ᩠〪ᷭׄ : *𝘿𝙀𝙎𝘾𝙍𝙄𝙋𝘾𝙄𝙊́𝙉:* ${meta.description || 'No disponible'}
+┉ ᩿💭 ᩠〪ᷭׄ : *𝙎𝙄𝙏𝙄𝙊:* Facebook
+┉ ᩿💭 ᩠〪ᷭׄ : *𝙀𝙉𝙇𝘼𝘾𝙀 𝙊𝙍𝙄𝙂𝙄𝙉𝘼𝙇:* ${data.url}
+────────────────
+> ${global.wm}`
+await conn.sendFile(data.chat, videoUrl, 'facebook.mp4', caption, m)
+} catch (e) {
+await conn.reply(data.chat, `⁖🧡꙰ 𝙾𝙲𝚄𝚁𝚁𝙸𝙾 𝚄𝙽 𝙴𝚁𝚁𝙾𝚁`, m, rcanal)
+console.log(e)
+}
+})
 
 export default handler
