@@ -38,6 +38,19 @@ const CELESTIAL_COMMANDS = new Set(['resetbot', 'unbanchat', 'desbanearchat'])
 const REALTIME_EVENT_GRACE_MS = 15_000
 const REALTIME_EVENT_MAX_AGE_MS = 60_000
 
+
+export function segundosAHMS(totalSeconds = 0) {
+const safeSeconds = Math.max(0, Math.ceil(Number(totalSeconds) || 0))
+const hours = Math.floor(safeSeconds / 3600)
+const minutes = Math.floor((safeSeconds % 3600) / 60)
+const seconds = safeSeconds % 60
+if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`
+if (minutes > 0) return `${minutes}m ${seconds}s`
+return `${seconds}s`
+}
+
+global.segundosAHMS = segundosAHMS
+
 function getIncomingMessages(chatUpdate) {
 if (chatUpdate?.type !== 'notify') return []
 return Array.isArray(chatUpdate?.messages) ? chatUpdate.messages.filter(Boolean) : []
@@ -202,35 +215,42 @@ return parts.join(' y ')
 }
 
 function getCooldownMessage(plugin, remainingSeconds) {
-const customMessage = plugin?.cooldownMessage || plugin?.cooldownText
-if (typeof customMessage === 'function') return customMessage(remainingSeconds, formatCooldownTime(remainingSeconds))
+const customMessage = plugin?.cooldownMessage || plugin?.cooldownText || plugin?.cooldownReply
+if (typeof customMessage === 'function') return customMessage(remainingSeconds, formatCooldownTime(remainingSeconds), segundosAHMS(remainingSeconds))
 if (typeof customMessage === 'string') {
 return customMessage
 .replace(/%time%/g, formatCooldownTime(remainingSeconds))
+.replace(/%hms%/g, segundosAHMS(remainingSeconds))
 .replace(/%seconds%/g, String(remainingSeconds))
 }
-return `❮✦❯ Debes esperar ${formatCooldownTime(remainingSeconds)} antes de volver a usar este comando.`
+return null
 }
+
 
 async function claimRedisCooldown(conn, plugin, name, m, command, sender, bypass = false) {
 if (bypass || !pluginUsesRedisCooldown(plugin)) return { claimed: false, allowed: true, key: null }
 if (!isRedisReady()) return { claimed: false, allowed: true, key: null }
 const seconds = getCooldownSeconds(plugin)
 const key = getCooldownKey(command || name, sender)
-const expiresAt = Date.now() + seconds * 1000
 try {
-const result = await redis.set(key, String(expiresAt), 'EX', seconds, 'NX')
-if (result === 'OK') return { claimed: true, allowed: true, key }
 const ttl = await redis.ttl(key)
-const storedExpiresAt = Number(await redis.get(key) || 0)
-const remainingSeconds = ttl > 0 ? ttl : Math.max(1, Math.ceil((storedExpiresAt - Date.now()) / 1000))
-await conn.reply(m.chat, getCooldownMessage(plugin, remainingSeconds), m)
+if (ttl > 0) {
+const message = getCooldownMessage(plugin, ttl)
+if (message) await conn.reply(m.chat, message, m)
+return { claimed: false, allowed: false, key }
+}
+const result = await redis.set(key, '1', 'EX', seconds, 'NX')
+if (result === 'OK') return { claimed: true, allowed: true, key }
+const remainingSeconds = Math.max(1, await redis.ttl(key))
+const message = getCooldownMessage(plugin, remainingSeconds)
+if (message) await conn.reply(m.chat, message, m)
 return { claimed: false, allowed: false, key }
 } catch (error) {
 console.error('[redis] cooldown claim error', error)
 return { claimed: false, allowed: true, key }
 }
 }
+
 
 async function releaseRedisCooldown(cooldownState) {
 if (!cooldownState?.claimed || !cooldownState?.key || !isRedisReady()) return

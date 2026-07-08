@@ -81,6 +81,7 @@ handler.command = ['crimen', 'crime'];
 handler.group = true;
 handler.register = true;
 handler.cooldown = 480000;
+handler.cooldownMessage = (seconds, _time, hms) => `🚔 Sigues en la cárcel we. Te faltan *${hms}* para ver la luz del sol.`;
 
 export default handler;
 
