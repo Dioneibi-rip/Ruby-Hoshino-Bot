@@ -30,4 +30,6 @@ handler.command=['daily','diario']
 handler.group=true
 handler.register=true
 handler.cooldown=86400000
+handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+
 export default handler

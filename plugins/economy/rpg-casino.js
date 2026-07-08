@@ -36,6 +36,8 @@ handler.group = true
 handler.cooldown = 15000;
 handler.register = true
 handler.fail = null
+handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+
 export default handler
 
 function pickRandom(list) {
