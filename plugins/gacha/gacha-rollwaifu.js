@@ -133,4 +133,6 @@ handler.command = ['rw', 'rollwaifu']
 handler.group = true
 handler.cooldown = 900000
 
+handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+
 export default handler

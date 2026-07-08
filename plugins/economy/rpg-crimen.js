@@ -1,7 +1,5 @@
 import { ensureJobFields, getJobData } from '../../lib/rpg-jobs.js';
 
-let jail = {};
-
 let handler = async (m, { conn, usedPrefix }) => {
 let senderId = m.sender;
 let user = global.db.getUser(senderId);
@@ -10,15 +8,6 @@ ensureJobFields(user);
 let job = getJobData(user);
 if (!job) {
 await conn.reply(m.chat, `💼 No tienes trabajo. Busca uno con *${usedPrefix}trabajo lista* para desbloquear #crime.`, m);
-return false;
-}
-
-let jailCooldown = 16 * 60;
-let now = Date.now();
-
-if (jail[senderId] && now < jail[senderId]) {
-let remaining = segundosAHMS(Math.ceil((jail[senderId] - now) / 1000));
-await conn.reply(m.chat, `🚔 Sigues en la cárcel we. Te faltan *${remaining}* para ver la luz del sol.`, m);
 return false;
 }
 
@@ -41,8 +30,6 @@ let jobName = job.name.toUpperCase();
 let jobEmoji = job.emoji;
 
 if (roll < jailChance) {
-jail[senderId] = now + (jailCooldown * 1000);
-
 let phraseList = useGeneric ? frasesCrimenGenericas.jail : (frasesCrimenPorTrabajo[job.key]?.jail || frasesCrimenGenericas.jail);
 let phrase = pickRandom(phraseList);
 

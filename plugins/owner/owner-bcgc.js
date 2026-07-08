@@ -1,6 +1,8 @@
+import { getCachedParticipatingGroups } from '../../lib/baileys-group-cache.js';
+
 const handler = async (m, {conn, isROwner, text}) => {
 const delay = (time) => new Promise((res) => setTimeout(res, time));
-const getGroups = await conn.groupFetchAllParticipating();
+const getGroups = await getCachedParticipatingGroups(conn);
 const groups = Object.entries(getGroups).slice(0).map((entry) => entry[1]);
 const anu = groups.map((v) => v.id);
 const pesan = m.quoted && m.quoted.text ? m.quoted.text : text;

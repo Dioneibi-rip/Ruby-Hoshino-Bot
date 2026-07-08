@@ -66,6 +66,8 @@ handler.group = true;
 handler.register = true;
 handler.cooldown = 300000;
 
+handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+
 export default handler;
 
 function toNum(number) {

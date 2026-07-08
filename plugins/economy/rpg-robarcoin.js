@@ -76,6 +76,8 @@ handler.group = true;
 handler.register = true;
 handler.cooldown = 7200000;
 
+handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+
 export default handler;
 
 function randomInt(min, max) {

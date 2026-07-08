@@ -138,4 +138,6 @@ handler.tags = ['waifus'];
 handler.command = ['claim', 'reclamar', 'c'];
 handler.group = true;
 handler.cooldown = 1800000;
+handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+
 export default handler;
