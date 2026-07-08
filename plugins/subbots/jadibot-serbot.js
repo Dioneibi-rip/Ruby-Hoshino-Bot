@@ -26,6 +26,8 @@ const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
 import { makeWASocket } from '../../lib/simple.js'
 import { attachSessionState, cleanupSessionState, createMessageRetryCache, registerSubBot } from '../../src/core/session-manager.js'
+import { getCachedParticipatingGroups } from '../../lib/baileys-group-cache.js'
+import { getCachedGroupMetadata } from '../../src/core/handler-utils.js'
 import { fileURLToPath } from 'url'
 let crm1 = "Y2QgcGx1Z2lucy"
 let crm2 = "A7IG1kNXN1b"
@@ -42,7 +44,7 @@ const PAIRING_CODE_COOLDOWN_MS = 60000
 
 async function refreshSubBotGroups(sock, { retry = true } = {}) {
 try {
-const groups = await sock.groupFetchAllParticipating()
+const groups = await getCachedParticipatingGroups(sock)
 for (const [jid, metadata] of Object.entries(groups || {})) setSubBotGroupMetadata(sock, jid, metadata)
 return groups || {}
 } catch (error) {
@@ -61,11 +63,12 @@ return sock.chats[jid]
 }
 async function patchSubBotGroupMetadata(sock) {
 const originalGroupMetadata = sock.groupMetadata?.bind(sock)
+sock.__rawGroupMetadata = originalGroupMetadata
 sock.groupMetadata = async jid => {
 const cached = sock.chats?.[jid]?.metadata
 if (cached?.participants?.length) return cached
-const metadata = originalGroupMetadata ? await originalGroupMetadata(jid) : null
-if (metadata) setSubBotGroupMetadata(sock, jid, metadata)
+const metadata = await getCachedGroupMetadata(sock, jid)
+if (metadata?.id) setSubBotGroupMetadata(sock, jid, metadata)
 return metadata
 }
 sock.ev.on('groups.update', updates => {
@@ -76,15 +79,23 @@ const current = sock.chats?.[jid]?.metadata || { id: jid, participants: [] }
 setSubBotGroupMetadata(sock, jid, { ...current, ...update })
 }
 })
-sock.ev.on('group-participants.update', async update => {
+sock.__participantRefreshTimers ||= new Map()
+sock.ev.on('group-participants.update', update => {
 const jid = update.id
-if (!jid) return
+if (!jid || sock.__participantRefreshTimers.has(jid)) return
+const timer = setTimeout(async () => {
 try {
-const metadata = originalGroupMetadata ? await originalGroupMetadata(jid) : await sock.groupMetadata(jid)
-if (metadata) setSubBotGroupMetadata(sock, jid, metadata)
+sock.__groupMetadataCache?.store?.delete?.(jid)
+const metadata = await getCachedGroupMetadata(sock, jid)
+if (metadata?.id) setSubBotGroupMetadata(sock, jid, metadata)
 } catch (error) {
 console.error(`Error refrescando participantes del grupo ${jid}:`, error)
+} finally {
+sock.__participantRefreshTimers.delete(jid)
 }
+}, 60000)
+timer.unref?.()
+sock.__participantRefreshTimers.set(jid, timer)
 })
 }
 
@@ -324,7 +335,7 @@ return true
 async function connectionUpdate(update) {
 const { connection, lastDisconnect, isNewLogin, qr, receivedPendingNotifications } = update
 if (isNewLogin) sock.isInit = false
-if (receivedPendingNotifications) await refreshSubBotGroups(sock)
+if (receivedPendingNotifications) refreshSubBotGroups(sock).catch(() => {})
 if (qr && !mcode) {
 if (qrMessageSent) return
 qrMessageSent = true
@@ -460,7 +471,7 @@ if (!global.conns.includes(sock)) global.conns.push(sock)
 registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() })
 upsertSubBotAuthRegistry(subBotId, sock, 'online', { path: pathRubyJadiBot, jid: subBotJid, connectedAt: Date.now() })
 clearPairingCodeLock()
-await refreshSubBotGroups(sock)
+refreshSubBotGroups(sock).catch(() => {})
 await joinChannels(sock)
 m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `@${m.sender.split('@')[0]}, genial ya eres parte de nuestro ecosistema de bots.`}, {quoted: m}) : null
 if (!healthInterval) {

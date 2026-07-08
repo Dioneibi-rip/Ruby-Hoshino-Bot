@@ -4,8 +4,9 @@ import { TTLCache, getPrefixMatcherCache } from '../../lib/optimizer.js'
 import { chatDefault, ensureDatabaseShape, ensureRecord, settingsDefault, userDefault } from './defaults.js'
 import { normalizeSessionJid } from './session-utils.js'
 
-export const GROUP_METADATA_TTL = 60 * 1000
+export const GROUP_METADATA_TTL = 10 * 60 * 1000
 export const GROUP_METADATA_MAX = 2000
+export const GROUP_METADATA_MIN_INTERVAL = 45 * 1000
 
 export const isNumber = (x) => typeof x === 'number' && Number.isFinite(x)
 
@@ -23,15 +24,26 @@ export async function getCachedGroupMetadata(conn, chatId) {
 if (!conn || !chatId) return {}
 conn.__groupMetadataCache ||= new TTLCache(GROUP_METADATA_TTL, GROUP_METADATA_MAX)
 conn.__groupMetadataInflight ||= new Map()
-const cached = conn.__groupMetadataCache.get(chatId)
-if (cached) return cached
+const cached = conn.__groupMetadataCache.get(chatId) || global.db?.getGroup?.(chatId)
+if (cached?.id && Date.now() - Number(cached.__cachedAt || cached.updatedAt || 0) < GROUP_METADATA_TTL) return cached
+conn.__groupMetadataLastFetch ||= new Map()
+const lastFetch = Number(conn.__groupMetadataLastFetch.get(chatId) || 0)
+if (cached?.id && Date.now() - lastFetch < GROUP_METADATA_MIN_INTERVAL) return cached
 if (conn.__groupMetadataInflight.has(chatId)) return conn.__groupMetadataInflight.get(chatId)
-const request = Promise.resolve(conn.groupMetadata?.(chatId)).then((metadata) => {
-metadata ||= {}
+conn.__groupMetadataLastFetch.set(chatId, Date.now())
+const fetchGroupMetadata = conn.__rawGroupMetadata || conn.groupMetadata?.bind(conn)
+const request = Promise.resolve(fetchGroupMetadata?.(chatId)).then((metadata) => {
+metadata ||= cached || {}
 if (Array.isArray(metadata?.participants)) metadata.participants = metadata.participants.map(normalizeParticipant)
+metadata.__cachedAt = Date.now()
 conn.__groupMetadataCache.set(chatId, metadata)
+global.db?.upsertGroupMetadata?.(chatId, metadata)
 return metadata
-}).catch(() => cached || {}).finally(() => conn.__groupMetadataInflight.delete(chatId))
+}).catch((error) => {
+const code = error?.output?.statusCode || error?.data?.statusCode || error?.statusCode
+if ([408, 428, 429].includes(Number(code))) conn.__groupMetadataLastFetch.set(chatId, Date.now() + GROUP_METADATA_MIN_INTERVAL)
+return cached || {}
+}).finally(() => conn.__groupMetadataInflight.delete(chatId))
 conn.__groupMetadataInflight.set(chatId, request)
 return request
 }
