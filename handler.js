@@ -178,16 +178,38 @@ function pluginUsesRedisCooldown(plugin) {
 return Boolean(getCooldownSeconds(plugin))
 }
 
-async function validateRedisCooldown(conn, plugin, name, m, command, sender) {
-if (!pluginUsesRedisCooldown(plugin)) return true
+function formatCooldownTime(seconds) {
+const safeSeconds = Math.max(1, Number(seconds) || 1)
+const hours = Math.floor(safeSeconds / 3600)
+const minutes = Math.floor((safeSeconds % 3600) / 60)
+const remainingSeconds = safeSeconds % 60
+const parts = []
+if (hours) parts.push(`*${hours}* hora${hours === 1 ? '' : 's'}`)
+if (minutes) parts.push(`*${minutes}* minuto${minutes === 1 ? '' : 's'}`)
+if (remainingSeconds || !parts.length) parts.push(`*${remainingSeconds}* segundo${remainingSeconds === 1 ? '' : 's'}`)
+return parts.join(' y ')
+}
+
+function getCooldownMessage(plugin, remainingSeconds) {
+const customMessage = plugin?.cooldownMessage || plugin?.cooldownText
+if (typeof customMessage === 'function') return customMessage(remainingSeconds, formatCooldownTime(remainingSeconds))
+if (typeof customMessage === 'string') {
+return customMessage
+.replace(/%time%/g, formatCooldownTime(remainingSeconds))
+.replace(/%seconds%/g, String(remainingSeconds))
+}
+return `❮✦❯ Debes esperar ${formatCooldownTime(remainingSeconds)} antes de volver a usar este comando.`
+}
+
+async function validateRedisCooldown(conn, plugin, name, m, command, sender, bypass = false) {
+if (bypass || !pluginUsesRedisCooldown(plugin)) return true
 if (!isRedisReady()) return true
 const key = getCooldownKey(command || name, sender)
 try {
-const ttl = await redis.ttl(key)
-if (ttl > 0) {
-const minutes = Math.floor(ttl / 60)
-const remainingSeconds = ttl % 60
-conn.reply(m.chat, `✧ Ese comando está en cooldown. Vuelve en *${minutes} minutos y ${remainingSeconds} segundos*.`, m)
+const expiresAt = Number(await redis.get(key) || 0)
+const remainingSeconds = expiresAt ? Math.ceil((expiresAt - Date.now()) / 1000) : 0
+if (remainingSeconds > 0) {
+await conn.reply(m.chat, getCooldownMessage(plugin, remainingSeconds), m)
 return false
 }
 return true
@@ -197,13 +219,13 @@ return true
 }
 }
 
-async function applyRedisCooldown(plugin, name, command, sender) {
-if (!pluginUsesRedisCooldown(plugin)) return
+async function applyRedisCooldown(plugin, name, command, sender, bypass = false) {
+if (bypass || !pluginUsesRedisCooldown(plugin)) return
 if (!isRedisReady()) return
 const seconds = getCooldownSeconds(plugin)
 const key = getCooldownKey(command || name, sender)
 try {
-await redis.set(key, '1', 'EX', seconds)
+await redis.setex(key, seconds, String(Date.now() + seconds * 1000))
 } catch (error) {
 console.error('[redis] cooldown write error', error)
 }
@@ -255,13 +277,16 @@ return text
 
 async function executePlugin(conn, plugin, name, m, extra, permissionContext, sender) {
 const { isROwner, isOwner, isMods, isPrems, isAdmin, isBotAdmin } = permissionContext
+const botJid = conn?.decodeJid?.(conn?.user?.jid) || conn?.user?.jid
+const isBotSelf = Boolean(botJid && sender === botJid)
+const isPrivilegedUser = isBotSelf || isOwner || isROwner
 const fail = plugin.fail || global.dfail
 const chat = global.db?.data?.chats?.[m.chat]
 const user = global.db?.data?.users?.[sender]
 
 const isBotSecurityManager = canManageBotSecurity(sender, conn)
-if (m.isGroup && !UNBAN_COMMAND_FILES.includes(name) && isChatBannedForBot(chat, normalizeConnectionJid(conn)) && !isROwner && !isBotSecurityManager) return true
-if (m.text && user?.banned && !isROwner) {
+if (m.isGroup && !UNBAN_COMMAND_FILES.includes(name) && isChatBannedForBot(chat, normalizeConnectionJid(conn)) && !isPrivilegedUser && !isBotSecurityManager) return true
+if (m.text && user?.banned && !isPrivilegedUser) {
 if (!user.lastBanMsg || Date.now() - user.lastBanMsg > 30_000) {
 m.reply(`《✦》Estas baneado/a, no puedes usar comandos en este bot!\n\n${user.bannedReason ? `✰ *Motivo:* ${user.bannedReason}` : '✰ *Motivo:* Sin Especificar'}\n\n> ✧ Si este Bot es cuenta ...`)
 global.db?.updateUser?.(sender, { lastBanMsg: Date.now() })
@@ -271,17 +296,16 @@ return true
 if (user?.antispam && !user.banned) user.antispam = 0
 
 const adminMode = chat?.modoadmin
-if (adminMode && m.isGroup && !isAdmin && !isOwner && !isROwner) return true
-if (!isOwner && !isROwner && plugin.botAdmin && !isBotAdmin) { fail('botAdmin', m, conn); return false }
-if (!isOwner && !isROwner && plugin.rowner && plugin.owner && !(isROwner || isOwner)) { fail('owner', m, conn); return false }
-if (!isOwner && !isROwner && plugin.rowner && !isROwner) { fail('rowner', m, conn); return false }
-if (!isOwner && !isROwner && plugin.owner && !isOwner) { fail('owner', m, conn); return false }
-if (!isOwner && !isROwner && plugin.mods && !isMods) { fail('mods', m, conn); return false }
-if (!isOwner && !isROwner && plugin.premium && !isPrems) { fail('premium', m, conn); return false }
-if (!isOwner && !isROwner && plugin.admin && !isAdmin) { fail('admin', m, conn); return false }
-if (plugin.private && m.isGroup) { fail('private', m, conn); return false }
-if (plugin.group && !m.isGroup) { fail('group', m, conn); return false }
-if (pluginNeedsJob(plugin, name, extra.command) && !userHasJob(user)) {
+if (adminMode && m.isGroup && !isAdmin && !isPrivilegedUser) return true
+if (!isPrivilegedUser && plugin.botAdmin && !isBotAdmin) { fail('botAdmin', m, conn); return false }
+if (!isPrivilegedUser && plugin.rowner && !isROwner) { fail('rowner', m, conn); return false }
+if (!isPrivilegedUser && plugin.owner && !isOwner) { fail('owner', m, conn); return false }
+if (!isPrivilegedUser && plugin.mods && !isMods) { fail('mods', m, conn); return false }
+if (!isPrivilegedUser && plugin.premium && !isPrems) { fail('premium', m, conn); return false }
+if (!isPrivilegedUser && plugin.admin && !isAdmin) { fail('admin', m, conn); return false }
+if (!isBotSelf && plugin.private && m.isGroup) { fail('private', m, conn); return false }
+if (!isBotSelf && plugin.group && !m.isGroup) { fail('group', m, conn); return false }
+if (!isPrivilegedUser && pluginNeedsJob(plugin, name, extra.command) && !userHasJob(user)) {
 conn.reply(m.chat, `💼 Primero debes elegir una chamba. Usa *${extra.usedPrefix}trabajo lista* y luego *${extra.usedPrefix}trabajo elegir <trabajo>* para desbloquear la economía RPG.`, m)
 return false
 }
@@ -291,24 +315,24 @@ const xp = 'exp' in plugin ? parseInt(plugin.exp) : 17
 if (xp > 200) m.reply('chirrido -_-')
 else m.exp += xp
 
-if (!isOwner && !isROwner && !isPrems && plugin.coin && (global.db?.data?.users?.[sender]?.coin || 0) < plugin.coin * 1) {
+if (!isPrivilegedUser && !isPrems && plugin.coin && (global.db?.data?.users?.[sender]?.coin || 0) < plugin.coin * 1) {
 conn.reply(m.chat, `❮✦❯ Se agotaron tus ${m.moneda}`, m)
 return false
 }
-if (!isOwner && !isROwner && plugin.level > (user?.level || 0)) {
+if (!isPrivilegedUser && plugin.level > (user?.level || 0)) {
 conn.reply(m.chat, `❮✦❯ Se requiere el nivel: *${plugin.level}*\n\n• Tu nivel actual es: *${user?.level || 0}*\n\n• Usa este comando para subir de nivel:\n*${extra.usedPrefix}levelup*`, m)
 return false
 }
 
-if (!isOwner && !isROwner && !await validateRedisCooldown(conn, plugin, name, m, extra.command, sender)) return false
+if (!await validateRedisCooldown(conn, plugin, name, m, extra.command, sender, isPrivilegedUser)) return false
 
 let pluginResult
 try {
 pluginResult = await plugin.call(conn, m, extra)
 const pluginSucceeded = pluginResult !== false && !m.error
 m.pluginFailed = !pluginSucceeded
-if (pluginSucceeded) await applyRedisCooldown(plugin, name, extra.command, sender)
-if (pluginSucceeded && !isPrems) m.coin = m.coin || plugin.coin || false
+if (pluginSucceeded) await applyRedisCooldown(plugin, name, extra.command, sender, isPrivilegedUser)
+if (pluginSucceeded && !isPrems && !isPrivilegedUser) m.coin = m.coin || plugin.coin || false
 } catch (error) {
 m.error = error
 console.error(error)
@@ -471,7 +495,7 @@ m.plugin = name
 const chatData = global.db?.data?.chats?.[m.chat] || {}
 const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJid(this))
 const isBotSecurityManager = canManageBotSecurity(sender, this)
-if (!isOwner && !isROwner && isBotBannedInThisChat && !UNBAN_COMMAND_FILES.includes(name) && !isBotSecurityManager) return
+if (!isOwner && !isROwner && sender !== (this.decodeJid?.(this.user?.jid) || this.user?.jid) && isBotBannedInThisChat && !UNBAN_COMMAND_FILES.includes(name) && !isBotSecurityManager) return
 const __filename = join(pluginDir, name)
 const extra = { match, usedPrefix, ...commandParsed, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
 await executePlugin(this, plugin, name, m, extra, permissionContext, sender)
