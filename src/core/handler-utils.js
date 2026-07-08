@@ -50,8 +50,24 @@ return request
 
 export function createParticipantIndex(participants = []) {
 const byLid = new Map()
-for (const p of participants) if (p?.lid) byLid.set(p.lid, p)
+for (const p of participants) {
+if (p?.lid) byLid.set(p.lid, p)
+if (p?.lid && p.lid.endsWith('@lid')) byLid.set(p.lid.replace('@lid', '@hosted.lid'), p)
+}
 return byLid
+}
+
+export function sanitizeOwnerNumber(value = '') {
+return String(value || '').split('@')[0].replace(/[^0-9]/g, '')
+}
+
+export function isAuthorizedOwner(sender = '') {
+const senderNum = sanitizeOwnerNumber(sender)
+if (!senderNum) return false
+return (global.owner || []).some((owner) => {
+const number = Array.isArray(owner) ? owner[0] : owner
+return sanitizeOwnerNumber(number) === senderNum
+})
 }
 
 export function normalizeLidReferences(m, sender, participantsByLid) {
@@ -113,11 +129,11 @@ const botGroup = (m?.isGroup ? participants.find((u) => decode(u?.jid) === conn?
 const isRAdmin = normalizeAdmin(userGroup) === 'superadmin'
 const isAdmin = isRAdmin || normalizeAdmin(userGroup) === 'admin'
 const isBotAdmin = ['admin', 'superadmin'].includes(normalizeAdmin(botGroup))
-const senderNum = String(sender || '').split('@')[0]
-const isROwner = (global.owner || []).map(([number]) => number).includes(senderNum)
+const senderNum = sanitizeOwnerNumber(sender)
+const isROwner = isAuthorizedOwner(sender)
 const isOwner = isROwner
-const isMods = isOwner || (global.mods || []).map((v) => v.replace(/[^0-9]/g, '')).includes(senderNum)
-const isPrems = isROwner || (global.prems || []).map((v) => v.replace(/[^0-9]/g, '')).includes(senderNum) || global.db?.data?.users?.[sender]?.premium === true
+const isMods = (global.mods || []).map((v) => v.replace(/[^0-9]/g, '')).includes(senderNum)
+const isPrems = (global.prems || []).map((v) => v.replace(/[^0-9]/g, '')).includes(senderNum) || global.db?.data?.users?.[sender]?.premium === true
 return { userGroup, botGroup, isRAdmin, isAdmin, isBotAdmin, isROwner, isOwner, isMods, isPrems }
 }
 

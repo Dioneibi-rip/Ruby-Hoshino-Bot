@@ -28,7 +28,8 @@ handler.command=['mensual','monthly']
 handler.group=true
 handler.register=true
 handler.cooldown=2419200000
-handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+handler.cooldownMessage = (seconds, time, hms) => `${emoji3} ✿ Ya reclamaste tu *recompensa mensual* ✿
+⏳ Vuelve en *${hms}*`;
 
 export default handler
 function pickRandom(list){

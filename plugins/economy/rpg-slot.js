@@ -70,6 +70,6 @@ handler.group = true;
 handler.register = true
 handler.command = ['slot'];
 handler.cooldown = 10000;
-handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+handler.cooldownMessage = (seconds, time, hms) => `${emoji2} Debes esperar ${hms} para usar #slot nuevamente.`;
 
 export default handler;

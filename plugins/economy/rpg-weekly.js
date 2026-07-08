@@ -15,6 +15,7 @@ handler.command=['semanal','weekly']
 handler.group=true
 handler.register=true
 handler.cooldown=604800000
-handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+handler.cooldownMessage = (seconds, time, hms) => `🎁 Ya reclamaste tu semanal.
+Vuelve en *${hms}*`;
 
 export default handler

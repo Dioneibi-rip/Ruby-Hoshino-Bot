@@ -61,7 +61,7 @@ handler.group = true;
 handler.register = true;
 handler.cooldown = 1500000;
 
-handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+handler.cooldownMessage = (seconds, time, hms) => `${emoji3} Debés esperar. ${hms} antes de aventurarte de nuevo.`;
 
 export default handler;
 

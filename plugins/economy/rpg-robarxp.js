@@ -43,6 +43,6 @@ handler.group = true;
 handler.register = true;
 handler.cooldown = 7200000;
 
-handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+handler.cooldownMessage = (seconds, time, hms) => `${emoji3} Debes esperar ${hms} para usar *#robxp* de nuevo.`;
 
 export default handler;
