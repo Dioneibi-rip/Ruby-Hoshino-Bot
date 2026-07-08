@@ -178,6 +178,17 @@ function pluginUsesRedisCooldown(plugin) {
 return Boolean(getCooldownSeconds(plugin))
 }
 
+function isSameJid(a, b) {
+const left = String(a || '').split('@')[0]
+const right = String(b || '').split('@')[0]
+return Boolean(left && right && left === right)
+}
+
+function isBotSender(conn, m, sender) {
+const botJid = conn?.decodeJid?.(conn?.user?.jid) || conn?.user?.jid
+return Boolean(m?.fromMe || isSameJid(sender, botJid))
+}
+
 function formatCooldownTime(seconds) {
 const safeSeconds = Math.max(1, Number(seconds) || 1)
 const hours = Math.floor(safeSeconds / 3600)
@@ -201,33 +212,32 @@ return customMessage
 return `❮✦❯ Debes esperar ${formatCooldownTime(remainingSeconds)} antes de volver a usar este comando.`
 }
 
-async function validateRedisCooldown(conn, plugin, name, m, command, sender, bypass = false) {
-if (bypass || !pluginUsesRedisCooldown(plugin)) return true
-if (!isRedisReady()) return true
+async function claimRedisCooldown(conn, plugin, name, m, command, sender, bypass = false) {
+if (bypass || !pluginUsesRedisCooldown(plugin)) return { claimed: false, allowed: true, key: null }
+if (!isRedisReady()) return { claimed: false, allowed: true, key: null }
+const seconds = getCooldownSeconds(plugin)
 const key = getCooldownKey(command || name, sender)
+const expiresAt = Date.now() + seconds * 1000
 try {
-const expiresAt = Number(await redis.get(key) || 0)
-const remainingSeconds = expiresAt ? Math.ceil((expiresAt - Date.now()) / 1000) : 0
-if (remainingSeconds > 0) {
+const result = await redis.set(key, String(expiresAt), 'EX', seconds, 'NX')
+if (result === 'OK') return { claimed: true, allowed: true, key }
+const ttl = await redis.ttl(key)
+const storedExpiresAt = Number(await redis.get(key) || 0)
+const remainingSeconds = ttl > 0 ? ttl : Math.max(1, Math.ceil((storedExpiresAt - Date.now()) / 1000))
 await conn.reply(m.chat, getCooldownMessage(plugin, remainingSeconds), m)
-return false
-}
-return true
+return { claimed: false, allowed: false, key }
 } catch (error) {
-console.error('[redis] cooldown read error', error)
-return true
+console.error('[redis] cooldown claim error', error)
+return { claimed: false, allowed: true, key }
 }
 }
 
-async function applyRedisCooldown(plugin, name, command, sender, bypass = false) {
-if (bypass || !pluginUsesRedisCooldown(plugin)) return
-if (!isRedisReady()) return
-const seconds = getCooldownSeconds(plugin)
-const key = getCooldownKey(command || name, sender)
+async function releaseRedisCooldown(cooldownState) {
+if (!cooldownState?.claimed || !cooldownState?.key || !isRedisReady()) return
 try {
-await redis.setex(key, seconds, String(Date.now() + seconds * 1000))
+await redis.del(cooldownState.key)
 } catch (error) {
-console.error('[redis] cooldown write error', error)
+console.error('[redis] cooldown release error', error)
 }
 }
 
@@ -239,6 +249,7 @@ return `✧ El comando *${usedPrefix}${command || ''}* no existe.${hint}`
 
 async function runInvalidCommandNotice(conn, m, parsed, usedPrefix) {
 if (!parsed?.command || !usedPrefix) return
+if (isBotSender(conn, m, m?.sender)) return
 if (shouldIgnoreBaileysMessage(m)) return
 if (m.__invalidCommandNotified) return
 m.__invalidCommandNotified = true
@@ -277,8 +288,7 @@ return text
 
 async function executePlugin(conn, plugin, name, m, extra, permissionContext, sender) {
 const { isROwner, isOwner, isMods, isPrems, isAdmin, isBotAdmin } = permissionContext
-const botJid = conn?.decodeJid?.(conn?.user?.jid) || conn?.user?.jid
-const isBotSelf = Boolean(botJid && sender === botJid)
+const isBotSelf = isBotSender(conn, m, sender)
 const isPrivilegedUser = isBotSelf || isOwner || isROwner
 const fail = plugin.fail || global.dfail
 const chat = global.db?.data?.chats?.[m.chat]
@@ -324,17 +334,19 @@ conn.reply(m.chat, `❮✦❯ Se requiere el nivel: *${plugin.level}*\n\n• Tu 
 return false
 }
 
-if (!await validateRedisCooldown(conn, plugin, name, m, extra.command, sender, isPrivilegedUser)) return false
+const cooldownState = await claimRedisCooldown(conn, plugin, name, m, extra.command, sender, isPrivilegedUser)
+if (!cooldownState.allowed) return false
 
 let pluginResult
 try {
 pluginResult = await plugin.call(conn, m, extra)
 const pluginSucceeded = pluginResult !== false && !m.error
 m.pluginFailed = !pluginSucceeded
-if (pluginSucceeded) await applyRedisCooldown(plugin, name, extra.command, sender, isPrivilegedUser)
+if (!pluginSucceeded) await releaseRedisCooldown(cooldownState)
 if (pluginSucceeded && !isPrems && !isPrivilegedUser) m.coin = m.coin || plugin.coin || false
 } catch (error) {
 m.error = error
+await releaseRedisCooldown(cooldownState)
 console.error(error)
 if (error) m.reply(sanitizeError(error))
 m.pluginFailed = true
@@ -437,8 +449,8 @@ const permissionContext = buildPermissionContext(this, m, sender, participants)
 const { userGroup, botGroup, isRAdmin, isAdmin, isBotAdmin, isROwner, isOwner, isMods, isPrems } = permissionContext
 m.isAdmin = isAdmin
 m.isBotAdmin = isBotAdmin
-if (await runAutoModeration(this, m, sender, permissionContext)) return
-if (!m.isGroup && !canManageBotSecurity(sender, this)) {
+if (!isBotSender(this, m, sender) && await runAutoModeration(this, m, sender, permissionContext)) return
+if (!isBotSender(this, m, sender) && !m.isGroup && !canManageBotSecurity(sender, this)) {
 const botSettings = global.db?.data?.settings?.[normalizeConnectionJid(this)] || settings || {}
 const antiPrivateState = getAntiPrivateState(botSettings)
 if (antiPrivateState === 'ignore') return
@@ -490,12 +502,12 @@ const commandParsed = parseCommand(m.text, usedPrefix)
 const mappedEntry = commandsMap.get(commandParsed.command)
 if (mappedEntry?.plugin !== plugin) return
 global.comando = commandParsed.command
-if (shouldIgnoreBaileysMessage(m)) return
+if (shouldIgnoreBaileysMessage(m) && !isBotSender(this, m, sender)) return
 m.plugin = name
 const chatData = global.db?.data?.chats?.[m.chat] || {}
 const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJid(this))
 const isBotSecurityManager = canManageBotSecurity(sender, this)
-if (!isOwner && !isROwner && sender !== (this.decodeJid?.(this.user?.jid) || this.user?.jid) && isBotBannedInThisChat && !UNBAN_COMMAND_FILES.includes(name) && !isBotSecurityManager) return
+if (!isOwner && !isROwner && !isBotSender(this, m, sender) && isBotBannedInThisChat && !UNBAN_COMMAND_FILES.includes(name) && !isBotSecurityManager) return
 const __filename = join(pluginDir, name)
 const extra = { match, usedPrefix, ...commandParsed, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
 await executePlugin(this, plugin, name, m, extra, permissionContext, sender)
