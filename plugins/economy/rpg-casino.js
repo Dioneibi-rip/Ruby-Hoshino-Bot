@@ -36,7 +36,7 @@ handler.group = true
 handler.cooldown = 15000;
 handler.register = true
 handler.fail = null
-handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+handler.cooldownMessage = (seconds, time, hms) => `${emoji3} Ya has iniciado una apuesta recientemente, espera *⏱️ ${hms}* para apostar nuevamente`;
 
 export default handler
 

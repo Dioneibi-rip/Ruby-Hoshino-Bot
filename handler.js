@@ -310,14 +310,15 @@ return text
 async function executePlugin(conn, plugin, name, m, extra, permissionContext, sender) {
 const { isROwner, isOwner, isMods, isPrems, isAdmin, isBotAdmin } = permissionContext
 const isBotSelf = isBotSender(conn, m, sender)
-const isPrivilegedUser = isBotSelf || isOwner || isROwner
+const canBypassGroupRestrictions = isBotSelf || isOwner || isROwner
+const isEconomyPremium = Boolean(global.db?.data?.users?.[sender]?.premium === true || (global.prems || []).map((v) => String(v).replace(/[^0-9]/g, '')).includes(String(sender || '').split('@')[0].replace(/[^0-9]/g, '')))
 const fail = plugin.fail || global.dfail
 const chat = global.db?.data?.chats?.[m.chat]
 const user = global.db?.data?.users?.[sender]
 
 const isBotSecurityManager = canManageBotSecurity(sender, conn)
-if (m.isGroup && !UNBAN_COMMAND_FILES.includes(name) && isChatBannedForBot(chat, normalizeConnectionJid(conn)) && !isPrivilegedUser && !isBotSecurityManager) return true
-if (m.text && user?.banned && !isPrivilegedUser) {
+if (m.isGroup && !UNBAN_COMMAND_FILES.includes(name) && isChatBannedForBot(chat, normalizeConnectionJid(conn)) && !isBotSelf && !isBotSecurityManager) return true
+if (m.text && user?.banned && !isBotSelf) {
 if (!user.lastBanMsg || Date.now() - user.lastBanMsg > 30_000) {
 m.reply(`《✦》Estas baneado/a, no puedes usar comandos en este bot!\n\n${user.bannedReason ? `✰ *Motivo:* ${user.bannedReason}` : '✰ *Motivo:* Sin Especificar'}\n\n> ✧ Si este Bot es cuenta ...`)
 global.db?.updateUser?.(sender, { lastBanMsg: Date.now() })
@@ -327,16 +328,16 @@ return true
 if (user?.antispam && !user.banned) user.antispam = 0
 
 const adminMode = chat?.modoadmin
-if (adminMode && m.isGroup && !isAdmin && !isPrivilegedUser) return true
-if (!isPrivilegedUser && plugin.botAdmin && !isBotAdmin) { fail('botAdmin', m, conn); return false }
-if (!isPrivilegedUser && plugin.rowner && !isROwner) { fail('rowner', m, conn); return false }
-if (!isPrivilegedUser && plugin.owner && !isOwner) { fail('owner', m, conn); return false }
-if (!isPrivilegedUser && plugin.mods && !isMods) { fail('mods', m, conn); return false }
-if (!isPrivilegedUser && plugin.premium && !isPrems) { fail('premium', m, conn); return false }
-if (!isPrivilegedUser && plugin.admin && !isAdmin) { fail('admin', m, conn); return false }
+if (adminMode && m.isGroup && !isAdmin && !canBypassGroupRestrictions) return true
+if (!canBypassGroupRestrictions && plugin.botAdmin && !isBotAdmin) { fail('botAdmin', m, conn); return false }
+if (plugin.rowner && !isROwner && !isBotSelf) { fail('rowner', m, conn); return false }
+if (plugin.owner && !isOwner && !isBotSelf) { fail('owner', m, conn); return false }
+if (plugin.mods && !isMods && !isBotSelf) { fail('mods', m, conn); return false }
+if (!canBypassGroupRestrictions && plugin.premium && !isPrems) { fail('premium', m, conn); return false }
+if (!canBypassGroupRestrictions && plugin.admin && !isAdmin) { fail('admin', m, conn); return false }
 if (!isBotSelf && plugin.private && m.isGroup) { fail('private', m, conn); return false }
 if (!isBotSelf && plugin.group && !m.isGroup) { fail('group', m, conn); return false }
-if (!isPrivilegedUser && pluginNeedsJob(plugin, name, extra.command) && !userHasJob(user)) {
+if (!isBotSelf && pluginNeedsJob(plugin, name, extra.command) && !userHasJob(user)) {
 conn.reply(m.chat, `💼 Primero debes elegir una chamba. Usa *${extra.usedPrefix}trabajo lista* y luego *${extra.usedPrefix}trabajo elegir <trabajo>* para desbloquear la economía RPG.`, m)
 return false
 }
@@ -346,16 +347,16 @@ const xp = 'exp' in plugin ? parseInt(plugin.exp) : 17
 if (xp > 200) m.reply('chirrido -_-')
 else m.exp += xp
 
-if (!isPrivilegedUser && !isPrems && plugin.coin && (global.db?.data?.users?.[sender]?.coin || 0) < plugin.coin * 1) {
+if (!isBotSelf && !isEconomyPremium && plugin.coin && (global.db?.data?.users?.[sender]?.coin || 0) < plugin.coin * 1) {
 conn.reply(m.chat, `❮✦❯ Se agotaron tus ${m.moneda}`, m)
 return false
 }
-if (!isPrivilegedUser && plugin.level > (user?.level || 0)) {
+if (!isBotSelf && plugin.level > (user?.level || 0)) {
 conn.reply(m.chat, `❮✦❯ Se requiere el nivel: *${plugin.level}*\n\n• Tu nivel actual es: *${user?.level || 0}*\n\n• Usa este comando para subir de nivel:\n*${extra.usedPrefix}levelup*`, m)
 return false
 }
 
-const cooldownState = await claimRedisCooldown(conn, plugin, name, m, extra.command, sender, isPrivilegedUser)
+const cooldownState = await claimRedisCooldown(conn, plugin, name, m, extra.command, sender, isBotSelf)
 if (!cooldownState.allowed) return false
 
 let pluginResult
@@ -364,7 +365,7 @@ pluginResult = await plugin.call(conn, m, extra)
 const pluginSucceeded = pluginResult !== false && !m.error
 m.pluginFailed = !pluginSucceeded
 if (!pluginSucceeded) await releaseRedisCooldown(cooldownState)
-if (pluginSucceeded && !isPrems && !isPrivilegedUser) m.coin = m.coin || plugin.coin || false
+if (pluginSucceeded && !isEconomyPremium && !isBotSelf) m.coin = m.coin || plugin.coin || false
 } catch (error) {
 m.error = error
 await releaseRedisCooldown(cooldownState)

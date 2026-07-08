@@ -56,7 +56,7 @@ handler.register = true;
 handler.group = true
 handler.cooldown = 600000;
 
-handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+handler.cooldownMessage = (seconds, time, hms) => `⏱️ Ya has cazado recientemente. Espera ⏳ *${hms}* antes de intentar de nuevo.`;
 
 export default handler;
 

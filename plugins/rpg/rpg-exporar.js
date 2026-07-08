@@ -42,6 +42,6 @@ handler.register = true
 handler.group = true
 handler.cooldown = 600000
 
-handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+handler.cooldownMessage = (seconds, time, hms) => `⏱️ Ya exploraste recientemente. Espera *${hms}* para volver al bosque.`;
 
 export default handler

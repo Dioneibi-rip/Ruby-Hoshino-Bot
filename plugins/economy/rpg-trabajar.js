@@ -64,7 +64,7 @@ handler.group = true;
 handler.register = true;
 handler.cooldown = 180000;
 
-handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+handler.cooldownMessage = (seconds, time, hms) => `✧ Ya chambeaste hace rato we, descansa la espalda. Vuelve en *${hms}*.`;
 
 export default handler;
 
