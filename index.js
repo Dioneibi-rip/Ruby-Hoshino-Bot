@@ -205,7 +205,7 @@ await new Promise(resolve => setTimeout(resolve, 1500));
 }
 } while (opcion !== '1' && opcion !== '2' || state.creds?.registered)
 }
-const RECONNECT_REASONS = new Set([DisconnectReason.connectionLost, DisconnectReason.connectionClosed, DisconnectReason.restartRequired, DisconnectReason.connectionReplaced])
+const RECONNECT_REASONS = new Set([DisconnectReason.connectionLost, DisconnectReason.connectionClosed, DisconnectReason.restartRequired, DisconnectReason.connectionReplaced, 408, 428, 429])
 const DISCONNECT_AUTH_STATUS = new Set([401, 403, DisconnectReason.loggedOut])
 const RECONNECT_BASE_DELAY_MS = 5000
 const RECONNECT_MAX_DELAY_MS = 60000
@@ -260,6 +260,19 @@ console.log(boxen(chalk.bold.white(' Codigo : ') + chalk.bold.bgMagenta(` ${code
 }
 }
 let reconnectTimer
+function cleanupTransientSessionState(sessionPath = `./${global.Rubysessions}`) {
+try {
+if (!existsSync(sessionPath)) return
+for (const file of readdirSync(sessionPath)) {
+const filePath = join(sessionPath, file)
+if (/^(pre-key-|sender-key-|app-state-sync-key-|session-)/.test(file) || file.endsWith('-journal') || file.endsWith('-wal') || file.endsWith('-shm')) {
+try { rmSync(filePath, { recursive: true, force: true }) } catch {}
+}
+}
+} catch (error) {
+console.error('Error limpiando estado transitorio de sesión:', error)
+}
+}
 async function connectionUpdate(update) {
 const { connection, lastDisconnect, isNewLogin, qr, reconnectDelayMs } = update
 global.stopped = connection
@@ -291,7 +304,10 @@ show(chalk.red, `❓ Error desconocido: ${statusCode}`, '💀')
 return
 }
 if (reconnectTimer) return
-const reconnectDelay = Math.min(Math.max(reconnectDelayMs || 0, RECONNECT_BASE_DELAY_MS * Math.max(1, reconnectAttempt + 1)), RECONNECT_MAX_DELAY_MS)
+if ([408, 428, 429].includes(Number(statusCode))) cleanupTransientSessionState()
+const exponentialDelay = RECONNECT_BASE_DELAY_MS * (2 ** reconnectAttempt)
+const jitter = Math.floor(Math.random() * 1000)
+const reconnectDelay = Math.min(Math.max(reconnectDelayMs || 0, exponentialDelay + jitter), RECONNECT_MAX_DELAY_MS)
 reconnectAttempt += 1
 show(chalk.yellow, `🔌 RECONECTANDO EN ${Math.ceil(reconnectDelay / 1000)}S...`, '🔁')
 reconnectTimer = setTimeout(async () => {
