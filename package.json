@@ -31,7 +31,6 @@
     "url": "https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot/issues"
   },
   "dependencies": {
-    "@nevi-dev/sqlite-auth": "^1.0.0",
     "@whiskeysockets/baileys": "github:Dioneibi-rip/Ruby-Baileys",
     "acrcloud": "^1.4.0",
     "aptoide-scraper": "github:DIEGO-OFC/dv-aptoide-scraper",
