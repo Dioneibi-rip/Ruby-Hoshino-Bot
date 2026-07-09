@@ -1,15 +1,14 @@
-import speed from 'performance-now'
-import { spawn, exec, execSync } from 'child_process'
+import moment from 'moment-timezone'
+
+function getWhatsAppLatency(m) {
+const timestamp = Number(m?.messageTimestamp || 0)
+if (!timestamp) return 0
+return Math.max(0, moment().diff(moment(timestamp * 1000), 'milliseconds'))
+}
 
 let handler = async (m, { conn }) => {
-let timestamp = speed();
-let latensi = speed() - timestamp;
-exec(`neofetch --stdout`, (error, stdout, stderr) => {
-let child = stdout.toString("utf-8");
-let ssd = child.replace(/Memory:/, "Ram:");
-
-conn.reply(m.chat, `🍭 *¡Pong!*\n> Tiempo ⴵ ${latensi.toFixed(4)}ms`, m);
-});
+const latensi = getWhatsAppLatency(m)
+conn.reply(m.chat, `🍭 *¡Pong!*\n> Tiempo ⴵ ${latensi}ms`, m)
 }
 handler.help = ['ping']
 handler.tags = ['info']

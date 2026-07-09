@@ -1,4 +1,5 @@
 import { canManageBotSecurity } from '../../src/core/session-utils.js'
+import { cleanupSessionState } from '../../src/core/session-manager.js'
 
 let handler = async (m, { conn, isAdmin, isOwner, isROwner }) => {
 if (m.isGroup && !(isAdmin || isOwner || isROwner || canManageBotSecurity(m.sender, conn))) {
@@ -16,6 +17,10 @@ if (settings && typeof settings === 'object') settings.isBanned = false
 }
 }
 global.db.updateChat(m.chat, chat)
+cleanupSessionState(conn)
+if (conn === global.conn && typeof global.reloadHandler === 'function') {
+setTimeout(() => global.reloadHandler(true).catch(console.error), 500).unref?.()
+}
 await conn.reply(m.chat, '✅ Estado de bots restablecido: sin bot primario y con todos los sub-bots habilitados en este grupo.', m)
 }
 handler.help = ['resetbot']
