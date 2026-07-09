@@ -44,7 +44,7 @@ const { x, y, z } = getRandomEmojis();
 let end;
 if (x[0] === y[0] && y[0] === z[0]) {
 end = `${emoji} Ganaste! 🎁 +${apuesta + apuesta} XP.`;
-users.exp += apuesta;
+users.exp += apuesta * 2;
 } else if (x[0] === y[0] || x[0] === z[0] || y[0] === z[0]) {
 end = `${emoji2} Casi lo logras!, sigue intentandolo = *Toma +10 XP*`;
 users.exp += 10;

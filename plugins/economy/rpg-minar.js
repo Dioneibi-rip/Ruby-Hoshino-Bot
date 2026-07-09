@@ -51,8 +51,8 @@ const eventosBuenos = [
 ];
 
 const eventosMalos = [
-{ texto: '💥 Pequeño derrumbe en la mina.', cambios: () => ({ exp: r(150, 320), coin: -r(1500, 3200), emerald: -r(0, 2), iron: -r(2, 8), gold: -r(1, 4), coal: -r(3, 10), stone: -r(20, 60) }) },
-{ texto: '🥵 Te perdiste buscando la salida.', cambios: () => ({ exp: r(120, 260), coin: -r(1200, 2800), emerald: 0, iron: r(0, 4), gold: 0, coal: r(2, 8), stone: r(15, 50) }) },
+{ texto: '💥 Pequeño derrumbe en la mina.', cambios: () => ({ exp: r(75, 160), coin: -r(1500, 3200), emerald: -r(0, 2), iron: -r(2, 8), gold: -r(1, 4), coal: -r(3, 10), stone: -r(20, 60) }) },
+{ texto: '🥵 Te perdiste buscando la salida.', cambios: () => ({ exp: r(60, 130), coin: -r(1200, 2800), emerald: 0, iron: r(0, 4), gold: 0, coal: r(2, 8), stone: r(15, 50) }) },
 ];
 
 function r(min, max) {
@@ -60,7 +60,7 @@ return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function n(min, max, bonus) {
-return Math.floor(r(min, max) * bonus * 0.33);
+return Math.floor(r(min, max) * bonus * 0.165);
 }
 
 function formato(num) {

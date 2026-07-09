@@ -38,7 +38,7 @@ return conn.reply(m.chat, textoJail, m);
 }
 
 if (roll < jailChance + successChance) {
-let baseAmount = Math.floor(Math.random() * 4500 + 3000);
+let baseAmount = Math.floor((Math.random() * 4500 + 3000) * 0.5);
 let amount = Math.floor(baseAmount * job.crimeRewardMultiplier * (user.premium ? 1.18 : 1) * crimeBonus * 0.33);
 user.coin = (user.coin || 0) + amount;
 global.db.updateUser(senderId, { coin: user.coin });
@@ -51,7 +51,7 @@ return conn.reply(m.chat, texto, m);
 }
 
 let rawLossAmount = Math.floor((Math.random() * 2400 + 1600) * (user.premium ? 1.05 : 1.35) * lossResist);
-let loss = Math.min(Math.floor((user.coin || 0) * 0.75), rawLossAmount);
+let loss = Math.min(Math.floor((user.coin || 0) * 0.30), rawLossAmount);
 user.coin = Math.max(0, (user.coin || 0) - loss);
 global.db.updateUser(senderId, { coin: user.coin });
 

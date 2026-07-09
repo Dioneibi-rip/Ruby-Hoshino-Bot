@@ -4,10 +4,9 @@ let buatall = 1
 
 let handler = async (m, { conn, args, usedPrefix, command, DevMode }) => {
 let user = global.db.getUser(m.sender)
-let randomaku = `${Math.floor(Math.random() * 121)}`.trim()
-let randomkamu = `${Math.floor(Math.random() * 46)}`.trim()
-let Aku = (randomaku * 1)
-let Kamu = (randomkamu * 1)
+let win = Math.random() < 0.48
+let Aku = win ? 48 : 52
+let Kamu = win ? 96 : 13
 let count = args[0]
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
 let username = conn.getName(who)
@@ -19,11 +18,11 @@ return false;
 }
 if (user.coin >= count * 1) {
 user.coin -= count * 1
-if (Aku > Kamu) {
+if (!win) {
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *PERDISTE* ${formatNumber(count)} 💸 ${m.moneda}.`.trim(), m)
-} else if (Aku < Kamu) {
-user.coin += Math.floor(count * 1.33)
-conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *GANASTE* ${formatNumber(Math.floor(count * 1.33))} 💸 ${m.moneda}.`.trim(), m)
+} else if (win) {
+user.coin += count * 2
+conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *GANASTE* ${formatNumber(count * 2)} 💸 ${m.moneda}.`.trim(), m)
 } else {
 user.coin += count * 1
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username} obtienes ${formatNumber(count * 1)} 💸 ${m.moneda}.`.trim(), m)}

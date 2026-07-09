@@ -12,7 +12,6 @@ const diamondReward = randomInt(4, 10);
 user.coin = (user.coin || 0) + coinReward;
 user.exp = (user.exp || 0) + expReward;
 user.diamond = (user.diamond || 0) + diamondReward;
-user.diamonds = (user.diamonds || 0) + diamondReward;
 
 return conn.reply(
 m.chat,

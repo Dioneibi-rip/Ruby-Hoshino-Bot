@@ -25,5 +25,7 @@ handler.tags = ['rpg']
 handler.command = ['withdraw', 'retirar', 'with']
 handler.group = true
 handler.register = true
+handler.cooldown = 5000
+handler.cooldownMessage = (seconds, time, hms) => `${emoji2} Debes esperar ${hms} para usar #retirar nuevamente.`
 
 export default handler
