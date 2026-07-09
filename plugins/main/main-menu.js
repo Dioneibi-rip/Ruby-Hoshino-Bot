@@ -2,6 +2,7 @@ import moment from 'moment-timezone';
 import fs from 'fs';
 import { xpRange } from '../../lib/levelling.js';
 import path from 'path';
+import { ensureUserRole } from '../functions/_roles.js';
 
 async function pathExists(file){
 try{
@@ -22,7 +23,7 @@ let name = await conn.getName(userId);
 let user = global.db.getUser(userId);
 let exp = user.exp || 0;
 let level = user.level || 0;
-let role = user.role || 'Sin Rango';
+let role = ensureUserRole(user);
 let coins = user.coin || 0;
 
 let _uptime = process.uptime() * 1000;

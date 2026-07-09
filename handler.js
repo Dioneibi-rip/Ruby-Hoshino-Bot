@@ -18,12 +18,13 @@ commandsMap,
 getPluginDirectory,
 getPrefixMatch,
 hydrateDatabaseForMessage,
+isAuthorizedOwner,
 isNumber,
 normalizeLidReferences,
 runMaintenance,
 } from './src/core/handler-utils.js'
 import { canManageBotSecurity, getAntiPrivateState, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from './src/core/session-utils.js'
-import { attachSessionState } from './src/core/session-manager.js'
+import { attachSessionState, cleanupSessionState } from './src/core/session-manager.js'
 import messageQueue from './src/core/message-queue.js'
 import { getCooldownKey, getCooldownSeconds, isRedisReady, redis } from './lib/redis.js'
 import { normalizeIdentityJid } from './src/core/identity-utils.js'
@@ -106,6 +107,32 @@ function isCelestialCommandMessage(message = {}) {
 const text = getRawMessageText(message) || getStickerCommandText(getRawStickerHash(message))
 return isCelestialCommandText(text)
 }
+
+async function forceResetBotState(conn, m, sender, participantsByLid = null) {
+let normalizedSender = sender
+if (m?.isGroup && participantsByLid) normalizedSender = normalizeLidReferences(m, normalizedSender, participantsByLid)
+normalizedSender = await normalizeMessageIdentifiers(conn, m, normalizedSender, participantsByLid)
+if (!isAuthorizedOwner(normalizedSender)) return true
+const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
+if (!chat) return true
+chat.primaryBot = null
+chat.botPrimario = null
+chat.isBanned = {}
+chat.bannedBots = []
+if (chat.botSettings && typeof chat.botSettings === 'object') {
+for (const settings of Object.values(chat.botSettings)) {
+if (settings && typeof settings === 'object') settings.isBanned = false
+}
+}
+global.db?.updateChat?.(m.chat, chat)
+cleanupSessionState(conn)
+if (conn === global.conn && typeof global.reloadHandler === 'function') {
+setTimeout(() => global.reloadHandler(true).catch(console.error), 500).unref?.()
+}
+await conn.reply?.(m.chat, '✅ Estado de bots restablecido: sin bot primario y con todos los sub-bots habilitados en este grupo.', m)
+return true
+}
+
 function getStickerHashFromMessage(m = {}) {
 const sha = m?.msg?.fileSha256 || m?.message?.stickerMessage?.fileSha256 || m?.message?.imageMessage?.fileSha256
 if (!sha) return ''
@@ -492,6 +519,17 @@ if (typeof m.text !== 'string') m.text = ''
 hydrateStickerCommandText(m)
 await global.updateMessageGlobals?.(m, this)
 hydrateStickerCommandText(m)
+
+const rawCommand = getRawCommandName(m.text)
+if (rawCommand === 'resetbot') {
+sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
+if (!sender) return
+const groupMetadata = m.isGroup ? await getCachedGroupMetadata(this, m.chat) : {}
+const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
+const participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
+await forceResetBotState(this, m, sender, participantsByLid)
+return
+}
 
 if (m.isGroup && !isCelestialCommandText(m.text)) {
 const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
