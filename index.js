@@ -2,7 +2,8 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0'
 import { createRequire } from 'module'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { platform } from 'process'
-import { watchFile, unwatchFile, readdirSync, statSync, unlinkSync, existsSync, mkdirSync, readFileSync, rmSync, watch } from 'fs'
+import { watchFile, unwatchFile, readdirSync, statSync, unlinkSync, existsSync, mkdirSync, rmSync, watch } from 'fs'
+import { readdir, readFile, access } from 'fs/promises'
 import * as ws from 'ws'
 import cfonts from 'cfonts'
 import path, { join, dirname } from 'path'
@@ -386,28 +387,45 @@ const pluginFolder = global.__dirname(join(__dirname, './plugins/index'))
 const pluginFilter = (filename) => /\.js$/.test(filename)
 global.plugins = {}
 global.commandsMap = global.commandsMap || new Map()
-function getPluginFiles(folder, base = folder) {
-return readdirSync(folder, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)).sort((a, b) => (b.name === 'enable') - (a.name === 'enable')).flatMap((entry) => {
+async function getPluginFiles(folder, base = folder) {
+const entries = await readdir(folder, { withFileTypes: true })
+entries.sort((a, b) => a.name.localeCompare(b.name)).sort((a, b) => (b.name === 'enable') - (a.name === 'enable'))
+const batches = await Promise.all(entries.map(async (entry) => {
 const fullPath = join(folder, entry.name)
 const relativePath = fullPath.slice(base.length + 1).replace(/\\/g, '/')
 if (entry.isDirectory()) return getPluginFiles(fullPath, base)
 return pluginFilter(entry.name) ? [relativePath] : []
-})
+}))
+return batches.flat()
 }
-function watchPluginTree(folder, base = folder) {
+async function watchPluginTree(folder, base = folder) {
 watch(folder, (_ev, filename) => {
 if (filename) {
 const relativePath = join(folder.slice(base.length), filename.toString()).replace(/^\/+/, '').replace(/\\/g, '/')
 global.reload(_ev, relativePath)
 } else filesInit().then(() => Object.keys(global.plugins)).catch(console.error)
 })
-for (const entry of readdirSync(folder, { withFileTypes: true })) {
-if (entry.isDirectory()) watchPluginTree(join(folder, entry.name), base)
-}
+const entries = await readdir(folder, { withFileTypes: true })
+await Promise.all(entries.filter(entry => entry.isDirectory()).map(entry => watchPluginTree(join(folder, entry.name), base)))
 }
 async function filesInit() {
-for (const filename of getPluginFiles(pluginFolder).filter(pluginFilter)) {
-try { const file = global.__filename(join(pluginFolder, filename)); const module = await import(file); global.plugins[filename] = module.default || module; registerPluginCommands(filename, global.plugins[filename]) } catch (e) { conn.logger.error(e); delete global.plugins[filename]; unregisterPluginCommands(filename) }
+const files = (await getPluginFiles(pluginFolder)).filter(pluginFilter)
+const batchSize = Number(global.opts?.['plugin-batch-size']) || 24
+for (let i = 0; i < files.length; i += batchSize) {
+const batch = files.slice(i, i + batchSize)
+await Promise.all(batch.map(async (filename) => {
+try {
+const file = global.__filename(join(pluginFolder, filename))
+const module = await import(file)
+global.plugins[filename] = module.default || module
+registerPluginCommands(filename, global.plugins[filename])
+} catch (e) {
+conn.logger.error(e)
+delete global.plugins[filename]
+unregisterPluginCommands(filename)
+}
+}))
+if (i + batchSize < files.length) await new Promise(resolve => setImmediate(resolve))
 }
 }
 filesInit().then((_) => rebuildCommandsMap(global.plugins)).catch(console.error);
@@ -415,10 +433,12 @@ global.reload = async (_ev, filename) => {
 if (pluginFilter(filename)) {
 const dir = global.__filename(join(pluginFolder, filename), true);
 if (filename in global.plugins) {
-if (existsSync(dir)) conn.logger.info(`✨ Plugin actualizado: '${filename}'`)
-else { conn.logger.warn(`🗑️ Plugin eliminado: '${filename}'`); delete global.plugins[filename]; unregisterPluginCommands(filename); return }
+try { await access(dir); conn.logger.info(`✨ Plugin actualizado: '${filename}'`) }
+catch { conn.logger.warn(`🗑️ Plugin eliminado: '${filename}'`); delete global.plugins[filename]; unregisterPluginCommands(filename); return }
 } else conn.logger.info(`✨ Nuevo plugin: '${filename}'`);
-const err = syntaxerror(readFileSync(dir), filename, { sourceType: 'module', allowAwaitOutsideFunction: true, });
+const source = await readFile(dir).catch(error => { conn.logger.error(error); return null })
+if (!source) return
+const err = syntaxerror(source, filename, { sourceType: 'module', allowAwaitOutsideFunction: true, });
 if (err) conn.logger.error(`❌ Error sintaxis: '${filename}'
 ${format(err)}`)
 else {
@@ -428,7 +448,7 @@ ${format(e)}'`); unregisterPluginCommands(filename) } finally { global.plugins =
 }
 }
 Object.freeze(global.reload)
-watchPluginTree(pluginFolder)
+watchPluginTree(pluginFolder).catch(console.error)
 async function isValidPhoneNumber(number) {
 try {
 number = number.replace(/\s+/g, '')
