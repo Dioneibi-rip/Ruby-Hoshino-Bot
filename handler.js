@@ -571,13 +571,14 @@ const usedPrefix = match[0][0]
 const commandParsed = parseCommand(m.text, usedPrefix)
 const mappedEntry = commandsMap.get(commandParsed.command)
 if (mappedEntry?.plugin !== plugin) return
+const isCelestialCommand = CELESTIAL_COMMANDS.has(commandParsed.command) || UNBAN_COMMAND_FILES.includes(name)
 global.comando = commandParsed.command
-if (shouldIgnoreBaileysMessage(m) && !isBotSender(this, m, sender)) return
+if (shouldIgnoreBaileysMessage(m) && !isBotSender(this, m, sender) && !isCelestialCommand) return
 m.plugin = name
 const chatData = global.db?.data?.chats?.[m.chat] || {}
 const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJid(this))
 const isBotSecurityManager = canManageBotSecurity(sender, this)
-if (!isOwner && !isROwner && !isBotSender(this, m, sender) && isBotBannedInThisChat && !CELESTIAL_COMMANDS.has(commandParsed.command) && !UNBAN_COMMAND_FILES.includes(name) && !isBotSecurityManager) return
+if (!isOwner && !isROwner && !isBotSender(this, m, sender) && isBotBannedInThisChat && !isCelestialCommand && !isBotSecurityManager) return
 const __filename = join(pluginDir, name)
 const extra = { match, usedPrefix, ...commandParsed, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
 await executePlugin(this, plugin, name, m, extra, permissionContext, sender)
