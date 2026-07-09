@@ -1,6 +1,7 @@
 import { canLevelUp, xpRange } from '../../lib/levelling.js';
 import db from '../../lib/database.js';
 import fetch from 'node-fetch';
+import { ensureUserRole } from '../functions/_roles.js';
 
 let handler = async (m, { conn }) => {
 let mentionedUser = m.mentionedJid[0];
@@ -15,9 +16,11 @@ return false;
 }
 
 let { min, xp } = xpRange(user.level, global.multiplier);
+let role = ensureUserRole(user);
 
 let before = user.level * 1;
 while (canLevelUp(user.level, user.exp, global.multiplier)) user.level++;
+role = ensureUserRole(user);
 
 if (before !== user.level) {
 
@@ -48,7 +51,7 @@ let rank = sortedLevel.findIndex(u => u.jid === who) + 1;
 let txt = `*「✿」Usuario* ◢ ${name} ◤\n\n`;
 txt += `✦ Nivel » *${user.level}*\n`;
 txt += `✰ Experiencia » *${user.exp}*\n`;
-txt += `❖ Rango » ${user.role}\n`;
+txt += `❖ Rango » ${role}\n`;
 txt += `➨ Progreso » *${user.exp - min} => ${xp}* _(${Math.floor(((user.exp - min) / xp) * 100)}%)_\n`;
 txt += `# Puesto » *${rank}* de *${sortedLevel.length}*\n`;
 txt += `❒ Comandos totales » *${user.commands || 0}*`;

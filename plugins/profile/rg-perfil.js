@@ -1,4 +1,5 @@
 import{formatJobLine,ensureJobFields}from'../../lib/rpg-jobs.js'
+import{ensureUserRole}from'../functions/_roles.js'
 async function loadMarriages(){
 return global.db?.getSection?.('marriages') || {}
 }
@@ -37,7 +38,7 @@ if(/@s\.whatsapp\.net$/.test(parejaId))mentions.push(parejaId)
 const description=user.description||'˖ ࣪⊹ 𝖭𝗂𝗇𝗀𝗎𝗇⍺ 𝖽𝖾𝗌𝖼𝗋𝗂𝗉𝖼𝗂𝗈́𝗇'
 const exp=user.exp||0
 const nivel=user.level||0
-const role=user.role||'✧ 𝖲𝗂𝗇 𝗋⍺𝗇𝗀𝗈'
+const role=ensureUserRole(user)
 const coins=user.coin||0
 const bankCoins=user.bank||0
 const jobLine=formatJobLine(user)
