@@ -151,6 +151,29 @@ return error?.output?.payload?.message || error?.output?.message || error?.messa
 if (global.conns instanceof Array) console.log()
 else global.conns = []
 if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
+const subBotConnectionStates = global.subBotConnectionStates || (global.subBotConnectionStates = new Map())
+const SUBBOT_CONNECTING_TTL_MS = 120000
+const FATAL_RECONNECT_REASONS = new Set([DisconnectReason.loggedOut, 401, 403, 405])
+
+function getSubBotConnectionState(id) {
+const state = subBotConnectionStates.get(id)
+if (!state) return null
+if (state.status === 'connecting' && Date.now() - state.ts > SUBBOT_CONNECTING_TTL_MS) {
+subBotConnectionStates.delete(id)
+return null
+}
+return state
+}
+
+function setSubBotConnectionState(id, status, metadata = {}) {
+const state = { ...(subBotConnectionStates.get(id) || {}), ...metadata, status, ts: Date.now() }
+subBotConnectionStates.set(id, state)
+return state
+}
+
+function clearSubBotConnectionState(id) {
+subBotConnectionStates.delete(id)
+}
 let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
 let time = global.db.getUser(m.sender).Subs + 120000
 if (new Date - global.db.getUser(m.sender).Subs < 120000) return conn.reply(m.chat, `🌟 Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
@@ -167,10 +190,13 @@ const legacyId = `${subBotJid.split`@`[0]}`
 const newPathRubyJadiBot = path.join(`./${jadi}/`, id)
 const legacyPathRubyJadiBot = path.join(`./${jadi}/`, legacyId)
 let pathRubyJadiBot = (await pathExists(newPathRubyJadiBot)) || !(await pathExists(legacyPathRubyJadiBot)) ? newPathRubyJadiBot : legacyPathRubyJadiBot
-const existingById = global.conns.find(c => (c?.subBotId === id || c?.subBotJid === subBotJid) && c?.ws?.socket?.readyState === ws.OPEN)
-if (existingById) {
-return conn.reply(m.chat, `🔥 Ya tienes un *Sub-Bot* activo y estable.`, m)
+const existingById = global.conns.find(c => (c?.subBotId === id || c?.subBotJid === subBotJid) && [ws.OPEN, ws.CONNECTING].includes(c?.ws?.socket?.readyState))
+const activeState = getSubBotConnectionState(id)
+if (existingById || ['connecting', 'online', 'reconnecting'].includes(activeState?.status)) {
+const stateText = activeState?.status === 'online' || existingById?.ws?.socket?.readyState === ws.OPEN ? 'activo y estable' : 'en proceso de conexión'
+return conn.reply(m.chat, `🔥 Ya tienes un *Sub-Bot* ${stateText}. No solicitaré otro código de emparejamiento.`, m)
 }
+setSubBotConnectionState(id, 'connecting', { jid: subBotJid, path: pathRubyJadiBot })
 if (!await pathExists(pathRubyJadiBot)){
 await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })
 }
@@ -179,6 +205,7 @@ try {
 await RubyJadiBot(options)
 global.db.getUser(m.sender).Subs = new Date * 1
 } catch (error) {
+clearSubBotConnectionState(id)
 await conn.reply(m.chat, `🥀 No pude iniciar la vinculación del Sub-Bot. Detalle: ${getPairingErrorMessage(error)}`, m)
 }
 }
@@ -201,6 +228,9 @@ if (args[1]) args[1] = args[1].replace(/^--code$|^code$/, "").trim()
 if (args[0] == "") args[0] = undefined
 }
 const pathCreds = path.join(pathRubyJadiBot, "creds.json")
+const currentState = getSubBotConnectionState(requestedSubBotId)
+if (['connecting', 'online', 'reconnecting'].includes(currentState?.status) && !options.fromCommand) return false
+setSubBotConnectionState(requestedSubBotId, currentState?.status || 'connecting', { jid: subBotJid, path: pathRubyJadiBot })
 if (!await pathExists(pathRubyJadiBot)){
 await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })}
 try {
@@ -280,6 +310,7 @@ removeSockFromPool(sock)
 cleanupSessionState(sock)
 global.authCredsFlushers?.delete(debouncedSaveCreds.flush)
 if (global.subBotRegistry instanceof Map) global.subBotRegistry.delete(subBotId)
+clearSubBotConnectionState(subBotId)
 upsertSubBotAuthRegistry(subBotId, sock, removeSession ? 'removed' : 'offline', { path: pathRubyJadiBot, jid: subBotJid })
 if (removeSession) {
 try { await fs.promises.rm(pathRubyJadiBot, { recursive: true, force: true }) } catch (e) {}
@@ -305,6 +336,7 @@ sock.subBotJid = subBotJid
 attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.jid || 'primary', path: pathRubyJadiBot })
 isInit = true
 registerSubBot(global.subBotRegistry, subBotId, { sock, reconnecting: true, ts: Date.now() })
+setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot })
 upsertSubBotAuthRegistry(subBotId, sock, 'reconnecting', { path: pathRubyJadiBot, jid: subBotJid })
 }
 if (!isInit) {
@@ -427,12 +459,15 @@ if (!loaded) destroySock({ removeSession: false })
 const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode
 const scheduleReconnect = async (closeReason, reconnectFn) => {
 if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-console.log(chalk.bold.yellow(`⚠️ Sub-Bot +${subBotId} alcanzó el límite de reconexiones (${MAX_RECONNECT_ATTEMPTS}).`))
-return destroySock({ removeSession: false })
-}
+console.log(chalk.bold.yellow(`⚠️ Sub-Bot +${subBotId} alcanzó ${MAX_RECONNECT_ATTEMPTS} reconexiones; se conserva la sesión y se reintenta con pausa larga.`))
+setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot, lastReason: closeReason })
+reconnectAttempts = Math.max(1, MAX_RECONNECT_ATTEMPTS - 1)
+await sleep(120000 + Math.floor(Math.random() * 30000))
+} else {
 reconnectAttempts += 1
-const waitMs = Math.min(30000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1)))
+const waitMs = Math.min(60000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1))) + Math.floor(Math.random() * 1000)
 await sleep(waitMs)
+}
 try {
 await reconnectFn()
 } catch (e) {
@@ -441,9 +476,7 @@ return scheduleReconnect(closeReason, reconnectFn)
 }
 }
 if (connection === 'close') {
-const transient = [428, 408, 500, 515]
-const fatal = [401, 403, 405]
-if (fatal.includes(reason)) {
+if (FATAL_RECONNECT_REASONS.has(reason)) {
 console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La sesión (+${path.basename(pathRubyJadiBot)}) se ha cerrado permanentemente.\n╰⟡┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄╯`))
 destroySock({ removeSession: true })
 return
@@ -469,16 +502,18 @@ sock.isInit = true
 reconnectAttempts = 0
 if (!global.conns.includes(sock)) global.conns.push(sock)
 registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() })
+setSubBotConnectionState(subBotId, 'online', { jid: subBotJid, path: pathRubyJadiBot, connectedAt: Date.now() })
 upsertSubBotAuthRegistry(subBotId, sock, 'online', { path: pathRubyJadiBot, jid: subBotJid, connectedAt: Date.now() })
 clearPairingCodeLock()
 refreshSubBotGroups(sock).catch(() => {})
-await joinChannels(sock)
-m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `@${m.sender.split('@')[0]}, genial ya eres parte de nuestro ecosistema de bots.`}, {quoted: m}) : null
+m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `@${m.sender.split('@')[0]}, genial ya eres parte de nuestro ecosistema de bots.`}, {quoted: m}).catch(() => {}) : null
+joinChannels(sock).catch(() => {})
 if (!healthInterval) {
 healthInterval = setInterval(async () => {
 if (!sock.user || sock?.ws?.socket?.readyState === ws.CLOSED) {
 if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-destroySock({ removeSession: false })
+setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot })
+scheduleSafeReconnect().catch(() => {})
 }
 }
 }, 90000)
@@ -486,10 +521,15 @@ destroySock({ removeSession: false })
 }
 }
 async function scheduleSafeReconnect() {
-if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) return destroySock({ removeSession: false })
+if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot })
+reconnectAttempts = Math.max(1, MAX_RECONNECT_ATTEMPTS - 1)
+await sleep(120000 + Math.floor(Math.random() * 30000))
+} else {
 reconnectAttempts += 1
-const waitMs = Math.min(30000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1)))
+const waitMs = Math.min(60000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1))) + Math.floor(Math.random() * 1000)
 await sleep(waitMs)
+}
 return creloadHandler(true).catch(error => console.error(`Error en reconexión segura del Sub-Bot ${subBotId}:`, error))
 }
 creloadHandler(false)

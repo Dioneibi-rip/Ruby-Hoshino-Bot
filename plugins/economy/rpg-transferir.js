@@ -36,8 +36,6 @@ handler.tags=['rpg']
 handler.command=['pay','transfer']
 handler.group=true
 handler.register=true
-handler.cooldown=10000
-handler.cooldownMessage=(seconds,time,hms)=>`${emoji2} Debes esperar ${hms} para usar #pay nuevamente.`
 export default handler
 function isNumber(x){
 if(typeof x==='string')x=x.trim()
