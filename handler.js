@@ -81,6 +81,17 @@ return content?.conversation
 || ''
 }
 
+function getRawStickerHash(message = {}) {
+const content = unwrapMessageContent(message?.message || message)
+const sha = content?.stickerMessage?.fileSha256 || content?.imageMessage?.fileSha256
+if (!sha) return ''
+try {
+return Buffer.from(sha).toString('base64')
+} catch {
+return ''
+}
+}
+
 function getRawCommandName(text = '') {
 const trimmed = String(text || '').trim()
 const match = trimmed.match(/^[#!./\\](\S+)/)
@@ -92,13 +103,48 @@ return CELESTIAL_COMMANDS.has(getRawCommandName(text))
 }
 
 function isCelestialCommandMessage(message = {}) {
-return isCelestialCommandText(getRawMessageText(message))
+const text = getRawMessageText(message) || getStickerCommandText(getRawStickerHash(message))
+return isCelestialCommandText(text)
 }
+function getStickerHashFromMessage(m = {}) {
+const sha = m?.msg?.fileSha256 || m?.message?.stickerMessage?.fileSha256 || m?.message?.imageMessage?.fileSha256
+if (!sha) return ''
+try {
+return Buffer.from(sha).toString('base64')
+} catch {
+return ''
+}
+}
+
+function getStickerCommandText(hash = '') {
+if (!hash) return ''
+try {
+const record = global.db?.getStickerCommand?.(hash) || global.db?.getSection?.('sticker')?.[hash] || global.db?.data?.sticker?.[hash]
+return typeof record?.text === 'string' ? record.text.trim() : ''
+} catch (error) {
+console.error('[sticker-cmd] no se pudo consultar el comando del sticker', error)
+return ''
+}
+}
+
+function hydrateStickerCommandText(m = {}) {
+if (m.text) return false
+const text = getStickerCommandText(getStickerHashFromMessage(m))
+if (!text) return false
+m.text = text
+m.body = text
+m.__stickerCommandHydrated = true
+if (m.msg && typeof m.msg === 'object') m.msg.caption = text
+return true
+}
+
 
 function shouldProcessRawGroupMessage(conn, message = {}) {
 const chat = conn?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
 if (!chat?.endsWith?.('@g.us')) return true
 if (isCelestialCommandMessage(message)) return true
+const stickerText = getStickerCommandText(getRawStickerHash(message))
+if (stickerText) return true
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
 return !shouldSilenceChatForBot(chatData, normalizeConnectionJid(conn))
 }
@@ -317,7 +363,7 @@ const chat = global.db?.data?.chats?.[m.chat]
 const user = global.db?.data?.users?.[sender]
 
 const isBotSecurityManager = canManageBotSecurity(sender, conn)
-if (m.isGroup && !UNBAN_COMMAND_FILES.includes(name) && isChatBannedForBot(chat, normalizeConnectionJid(conn)) && !isBotSelf && !isBotSecurityManager) return true
+if (m.isGroup && !CELESTIAL_COMMANDS.has(extra.command) && !UNBAN_COMMAND_FILES.includes(name) && isChatBannedForBot(chat, normalizeConnectionJid(conn)) && !isBotSelf && !isBotSecurityManager) return true
 if (m.text && user?.banned && !isBotSelf) {
 if (!user.lastBanMsg || Date.now() - user.lastBanMsg > 30_000) {
 m.reply(`《✦》Estas baneado/a, no puedes usar comandos en este bot!\n\n${user.bannedReason ? `✰ *Motivo:* ${user.bannedReason}` : '✰ *Motivo:* Sin Especificar'}\n\n> ✧ Si este Bot es cuenta ...`)
@@ -443,7 +489,9 @@ m = smsg(this, rawMessage) || rawMessage
 if (!m) return
 const opts = this.opts || global.opts || {}
 if (typeof m.text !== 'string') m.text = ''
+hydrateStickerCommandText(m)
 await global.updateMessageGlobals?.(m, this)
+hydrateStickerCommandText(m)
 
 if (m.isGroup && !isCelestialCommandText(m.text)) {
 const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
@@ -529,7 +577,7 @@ m.plugin = name
 const chatData = global.db?.data?.chats?.[m.chat] || {}
 const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJid(this))
 const isBotSecurityManager = canManageBotSecurity(sender, this)
-if (!isOwner && !isROwner && !isBotSender(this, m, sender) && isBotBannedInThisChat && !UNBAN_COMMAND_FILES.includes(name) && !isBotSecurityManager) return
+if (!isOwner && !isROwner && !isBotSender(this, m, sender) && isBotBannedInThisChat && !CELESTIAL_COMMANDS.has(commandParsed.command) && !UNBAN_COMMAND_FILES.includes(name) && !isBotSecurityManager) return
 const __filename = join(pluginDir, name)
 const extra = { match, usedPrefix, ...commandParsed, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
 await executePlugin(this, plugin, name, m, extra, permissionContext, sender)

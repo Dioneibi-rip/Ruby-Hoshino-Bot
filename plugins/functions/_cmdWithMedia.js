@@ -5,10 +5,10 @@ areJidsSameUser
 } = (await import('@whiskeysockets/baileys')).default
 
 export async function all(m, chatUpdate) {
-if (m.isBaileys || !m.message || !m.msg.fileSha256) return
+if (m.__stickerCommandHydrated || m.isBaileys || !m.message || !m.msg.fileSha256) return
 
 const sha = Buffer.from(m.msg.fileSha256).toString('base64')
-const hash = global.db.getSection('sticker')[sha]
+const hash = global.db.getStickerCommand?.(sha) || global.db.getSection('sticker')[sha]
 if (!hash) return
 
 const { text, mentionedJid } = hash
