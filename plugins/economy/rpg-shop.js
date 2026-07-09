@@ -29,5 +29,7 @@ handler.tags = ['economy'];
 handler.command = ['buy', 'buyall'];
 handler.group = true;
 handler.register = true;
+handler.cooldown = 10000;
+handler.cooldownMessage = (seconds, time, hms) => `${emoji2} Debes esperar ${hms} para usar #buy nuevamente.`;
 
 export default handler;

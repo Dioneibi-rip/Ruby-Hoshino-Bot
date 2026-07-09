@@ -15,14 +15,13 @@ const streak=user.dailyStreak
 const base=3120
 const streakBonus=streak*312
 const premiumBonus=user.premium?1080:0
-const coinReward=Math.floor((base+streakBonus+premiumBonus)*0.33)
+const coinReward=Math.floor((base+streakBonus+premiumBonus)*0.165)
 const diamondReward=2+Math.floor(streak/8)+(user.premium?1:0)
-const expReward=450+streak*70+(user.premium?200:0)
+const expReward=Math.floor((450+streak*70+(user.premium?200:0))*0.5)
 user.coin=(user.coin||0)+coinReward
 user.diamond=(user.diamond||0)+diamondReward
-user.diamonds=(user.diamonds||0)+diamondReward
 user.exp=(user.exp||0)+expReward
-conn.reply(m.chat,`「✿」Recompensa diaria reclamada (racha *${streak}*):\n`+`💰 ${m.moneda}: *+${coinReward.toLocaleString()}*\n`+`💎 Diamantes: *+${diamondReward}*\n`+`✨ Exp: *+${expReward}*\n\n`+`Siguiente día (racha ${Math.min(30,streak+1)}): *+${(base+(Math.min(30,streak+1)*312)+premiumBonus).toLocaleString()} ${m.moneda}*`,m)
+conn.reply(m.chat,`「✿」Recompensa diaria reclamada (racha *${streak}*):\n`+`💰 ${m.moneda}: *+${coinReward.toLocaleString()}*\n`+`💎 Diamantes: *+${diamondReward}*\n`+`✨ Exp: *+${expReward}*\n\n`+`Siguiente día (racha ${Math.min(30,streak+1)}): *+${Math.floor((base+(Math.min(30,streak+1)*312)+premiumBonus)*0.165).toLocaleString()} ${m.moneda}*`,m)
 }
 handler.help=['daily','diario']
 handler.tags=['rpg']

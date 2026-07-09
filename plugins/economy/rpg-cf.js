@@ -21,10 +21,11 @@ if (!user || user.coin < cantidad) {
 return m.reply(`${emoji2} No tienes suficientes ${m.moneda} para apostar. Tienes *${user.coin.toLocaleString()} ${m.moneda}*.`);
 }
 
+user.coin -= cantidad;
 let resultado = Math.random() < 0.5 ? 'cara' : 'cruz';
 
 if (resultado === eleccion) {
-let ganancia = Math.floor(cantidad + Math.random() * cantidad * 1.25);
+let ganancia = cantidad * 2;
 user.coin += ganancia;
 
 return conn.reply(m.chat,
@@ -32,8 +33,7 @@ return conn.reply(m.chat,
 > Tu elección fue *${eleccion.toUpperCase()}*
 ✨ ¡La suerte estuvo de tu lado! ✨`, m);
 } else {
-let perdida = Math.floor(cantidad + Math.random() * cantidad * 1.15);
-user.coin -= perdida;
+let perdida = cantidad;
 
 return conn.reply(m.chat,
 `🥀 La moneda cayó en *${resultado.toUpperCase()}* y perdiste *¥${perdida.toLocaleString()} ${m.moneda}*...
@@ -47,5 +47,7 @@ handler.tags = ['economy']
 handler.command = ['cf', 'suerte', 'caracruz']
 handler.group = true
 handler.register = true
+handler.cooldown = 30000
+handler.cooldownMessage = (seconds, time, hms) => `${emoji2} Debes esperar ${hms} para usar #cf nuevamente.`;
 
 export default handler;

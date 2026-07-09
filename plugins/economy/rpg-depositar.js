@@ -32,5 +32,7 @@ handler.tags = ['rpg']
 handler.command = ['deposit', 'depositar', 'd', 'aguardar']
 handler.group = true
 handler.register = true
+handler.cooldown = 5000
+handler.cooldownMessage = (seconds, time, hms) => `${emoji2} Debes esperar ${hms} para usar #deposit nuevamente.`
 
 export default handler

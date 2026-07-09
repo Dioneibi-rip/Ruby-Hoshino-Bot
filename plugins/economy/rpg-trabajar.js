@@ -25,9 +25,9 @@ let jobName = job.name.toUpperCase();
 let jobEmoji = job.emoji;
 
 if (ok) {
-let baseAmount = Math.floor(Math.random() * 1800 + 1200);
+let baseAmount = Math.floor((Math.random() * 1800 + 1200) * 0.5);
 let amount = Math.floor(baseAmount * job.workMultiplier * premiumBoost * jobBonus * 0.33);
-let xpEarned = Math.floor(amount * 0.15);
+let xpEarned = Math.floor(amount * 0.075);
 user.coin = (user.coin || 0) + amount;
 user.jobXp = (user.jobXp || 0) + xpEarned;
 global.db.updateUser(m.sender, { coin: user.coin, jobXp: user.jobXp });

@@ -44,7 +44,7 @@ return conn.sendMessage(m.chat, { text: texto, contextInfo: { mentionedJid: [tar
 }
 
 let amountLoss = Math.floor((Math.random() * 700 + 300) * job.slutLossMultiplier * slutLossResist);
-let loss = Math.min((user.coin || 0) + (user.bank || 0), amountLoss);
+let loss = Math.min(Math.floor((user.coin || 0) * 0.30), amountLoss);
 let rest = loss;
 let fromCoin = Math.min(user.coin || 0, rest);
 user.coin = Math.max(0, (user.coin || 0) - fromCoin);

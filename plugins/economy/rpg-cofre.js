@@ -4,14 +4,13 @@ if (!user) throw `${emoji4} Usuario no encontrado.`;
 
 const img = 'https://files.catbox.moe/qfx5pn.jpg';
 const premiumFactor = user.premium ? 1.35 : 1;
-const coin = Math.floor((Math.random() * 22000 + 12000) * premiumFactor);
+const coin = Math.floor((Math.random() * 11000 + 6000) * premiumFactor);
 const tokens = Math.floor((Math.random() * 16 + 10) * premiumFactor);
-const diamonds = Math.floor((Math.random() * 10 + 6) * premiumFactor);
-const exp = Math.floor((Math.random() * 9000 + 5000) * premiumFactor);
+const diamond = Math.floor((Math.random() * 10 + 6) * premiumFactor);
+const exp = Math.floor((Math.random() * 4500 + 2500) * premiumFactor);
 
 user.coin = (user.coin || 0) + coin;
-user.diamond = (user.diamond || 0) + diamonds;
-user.diamonds = (user.diamonds || 0) + diamonds;
+user.diamond = (user.diamond || 0) + diamond;
 user.joincount = (user.joincount || 0) + tokens;
 user.exp = (user.exp || 0) + exp;
 
@@ -24,7 +23,7 @@ const texto = `
 ╭━〔 Nυҽʋσʂ Rҽƈυɾʂσʂ 〕⬣
 ┃ *${coin.toLocaleString()} ${m.moneda}* 💸
 ┃ *${tokens} Tokens* ⚜️
-┃ *${diamonds} Diamantes* 💎
+┃ *${diamond} Diamantes* 💎
 ┃ *${exp.toLocaleString()} Exp* ✨
 ┃ *Multiplicador premium:* x${premiumFactor} 👑
 ╰━━━━━━━━━━━━⬣`;
