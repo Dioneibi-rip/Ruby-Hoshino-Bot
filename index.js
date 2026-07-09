@@ -17,7 +17,7 @@ import boxen from 'boxen'
 import pino from 'pino'
 import { Boom } from '@hapi/boom'
 import { makeWASocket, protoType, serialize } from './lib/simple.js'
-import { useSQLiteAuthState, createManagerDatabase } from '@nevi-dev/sqlite-auth'
+import { useSQLiteAuthState, createManagerDatabase } from './lib/sqliteAuthState.js'
 import SQLiteDatabase from './lib/database.js'
 import store from './lib/store.js'
 import readline, { createInterface } from 'readline'
@@ -265,7 +265,7 @@ try {
 if (!existsSync(sessionPath)) return
 for (const file of readdirSync(sessionPath)) {
 const filePath = join(sessionPath, file)
-if (/^(pre-key-|sender-key-|app-state-sync-key-|session-)/.test(file) || file.endsWith('-journal') || file.endsWith('-wal') || file.endsWith('-shm')) {
+if (/^(pre-key-|sender-key-|app-state-sync-key-|session-)/.test(file)) {
 try { rmSync(filePath, { recursive: true, force: true }) } catch {}
 }
 }

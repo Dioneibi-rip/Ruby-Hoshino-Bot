@@ -14,7 +14,7 @@ prepareWAMessageMedia,
 generateWAMessageFromContent,
 proto,
 } = (await import("@whiskeysockets/baileys"));
-import { useSQLiteAuthState, createManagerDatabase } from '@nevi-dev/sqlite-auth'
+import { useSQLiteAuthState, createManagerDatabase } from '../../lib/sqliteAuthState.js'
 import qrcode from "qrcode"
 import fs from "fs"
 import path from "path"
