@@ -41,13 +41,6 @@ if (!isAntiLinkEnabled(chat)) return !0
 
 if (isAdmin || isOwner || isROwner || m.fromMe) return !0
 
-if (hasWhatsAppText(m)) {
-try {
-console.log(JSON.stringify(m.message, null, 2))
-} catch (e) {
-console.log('No se pudo serializar m.message en antilink:', e)
-}
-}
 
 const detectedLink = findWhatsAppLink(m)
 if (!detectedLink) return !0
