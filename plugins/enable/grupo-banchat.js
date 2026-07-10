@@ -1,8 +1,9 @@
-import { canManageBotSecurity, normalizeSessionJid, setChatBannedForBot } from '../../src/core/session-utils.js'
+import { normalizeSessionJid, setChatBannedForBot } from '../../src/core/session-utils.js'
 
-let handler = async (m, { conn }) => {
+let handler = async (m, { conn, isOwner }) => {
 const botJid = normalizeSessionJid(conn)
-if (!canManageBotSecurity(m.sender, botJid)) return m.react('❌')
+const isAllowed = isOwner || m.fromMe
+if (!isAllowed) return m.react('❌')
 const chat = global.db.getChat(m.chat)
 const ok = setChatBannedForBot(chat, botJid, true)
 global.db.updateChat(m.chat, chat)
