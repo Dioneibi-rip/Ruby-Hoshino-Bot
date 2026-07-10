@@ -58,7 +58,12 @@ await conn.reply(m.chat, motive, m, { mentions: [sender] })
 user.messageSpam = motive
 
 if (userData.antiBan === 3) {
+try {
 await conn.groupParticipantsUpdate(m.chat, [sender], 'remove')
+} catch (error) {
+console.error('[antispam] no se pudo expulsar al usuario', error)
+await conn.reply(m.chat, '✦ Ocurrió un error al intentar expulsar al usuario.', m, { mentions: [sender] })
+}
 m.__pluginHalt = true
 }
 

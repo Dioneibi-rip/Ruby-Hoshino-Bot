@@ -83,7 +83,12 @@ await m.reply(mensajeFinal, null, { mentions: [who] });
 if (user.warn >= 3) {
 user.warn = 0;
 await new Promise(res => setTimeout(res, 2000)); // Pequeña pausa dramática
+try {
 await conn.groupParticipantsUpdate(m.chat, [who], 'remove');
+} catch (error) {
+console.error('[admin:advertencia] groupParticipantsUpdate failed', error);
+return m.reply(`✦ Ocurrió un error al intentar expulsar al usuario.`);
+}
 }
 
 return !1;

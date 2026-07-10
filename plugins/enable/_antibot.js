@@ -13,7 +13,11 @@ if (chat.antiBot) {
 
 if (isBotAdmin) {
 await conn.sendMessage(m.chat, { delete: { remoteJid: m.chat, fromMe: false, id: bang, participant: delet }})
+try {
 await conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
+} catch (error) {
+console.error('[antibot] no se pudo expulsar al usuario', error)
+}
 }
 }
 }

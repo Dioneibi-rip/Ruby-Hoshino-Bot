@@ -79,7 +79,13 @@ mentions: [perdedor]
 });
 
 await delay(60000);
+try {
 await conn.groupParticipantsUpdate(m.chat, [perdedor], 'remove');
+} catch (error) {
+console.error('[ruletamuerte] no se pudo expulsar al usuario', error);
+await conn.sendMessage(m.chat, { text: '✦ Ocurrió un error al intentar expulsar al usuario.' });
+}
+
 await conn.sendMessage(m.chat, {
 text: `❀ @${perdedor.split('@')[0]} ha sido eliminado. Fin del juego.`,
 mentions: [perdedor]

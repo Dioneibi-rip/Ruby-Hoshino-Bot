@@ -111,8 +111,8 @@ await conn.sendMessage(m.chat, { delete: deletePayload || m.key }).catch(error =
 await conn.sendMessage(m.chat, { text: `*「 ENLACE DETECTADO 」*\n\n《✧》@${String(sender || m.sender).split('@')[0]} Rompiste las reglas del Grupo. Serás eliminado...`, mentions: [sender || m.sender] }, { quoted: m }).catch(() => {})
 try {
 await conn.groupParticipantsUpdate?.(m.chat, [sender || m.sender], 'remove')
-} catch (e) {
-console.error('Error al expulsar infractor en antilink:', e)
+} catch (error) {
+console.error('[moderation] no se pudo expulsar al usuario', error)
 }
 m.__pluginHalt = true
 return true
