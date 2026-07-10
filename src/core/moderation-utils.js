@@ -1,6 +1,50 @@
-const GROUP_LINK_REGEX = /(?:https?:\/\/)?chat\.whatsapp\.com\/[0-9A-Za-z]{20,24}/i
-const CHANNEL_LINK_REGEX = /(?:https?:\/\/)?whatsapp\.com\/channel\/[0-9A-Za-z]{20,32}/i
+const GROUP_LINK_REGEX = /(?:https?:\/\/)?chat\.whatsapp\.com\/(?:invite\/)?[0-9A-Za-z]{16,}/i
+const CHANNEL_LINK_REGEX = /(?:https?:\/\/)?(?:www\.)?whatsapp\.com\/channel\/[0-9A-Za-z]{16,}/i
 const GENERIC_LINK_REGEX = /(?:https?:\/\/)?(?:www\.)?[\w-]+(?:\.[\w-]+)+(?:\/\S*)?/i
+const WHATSAPP_TEXT_REGEX = /whatsapp/i
+
+function extractStringsDeep(value, seen = new WeakSet()) {
+if (typeof value === 'string') return [value]
+if (!value || typeof value !== 'object') return []
+if (seen.has(value)) return []
+seen.add(value)
+if (Buffer.isBuffer(value)) return []
+if (Array.isArray(value)) return value.flatMap(item => extractStringsDeep(item, seen))
+return Object.values(value).flatMap(item => extractStringsDeep(item, seen))
+}
+
+export function getModerationTextCandidates(m = {}) {
+return [
+m.text,
+m.body,
+m.caption,
+m.message?.conversation,
+m.message?.extendedTextMessage?.text,
+m.message?.extendedTextMessage?.matchedText,
+m.message?.extendedTextMessage?.canonicalUrl,
+m.msg?.text,
+m.msg?.caption,
+m.msg?.matchedText,
+m.msg?.canonicalUrl,
+...extractStringsDeep(m.message),
+...extractStringsDeep(m.msg)
+].filter(text => typeof text === 'string' && text.length)
+}
+
+export function findModeratedLink(m = {}) {
+const values = typeof m === 'string' ? [m] : getModerationTextCandidates(m)
+return values.find(text => GROUP_LINK_REGEX.test(text) || CHANNEL_LINK_REGEX.test(text) || GENERIC_LINK_REGEX.test(text)) || ''
+}
+
+export function findWhatsAppModeratedLink(m = {}) {
+const values = typeof m === 'string' ? [m] : getModerationTextCandidates(m)
+return values.find(text => GROUP_LINK_REGEX.test(text) || CHANNEL_LINK_REGEX.test(text)) || ''
+}
+
+export function hasWhatsAppText(m = {}) {
+const values = typeof m === 'string' ? [m] : getModerationTextCandidates(m)
+return values.some(text => WHATSAPP_TEXT_REGEX.test(text))
+}
 
 export function isUserMutedInChat(user, chatId) {
 if (!user || !chatId) return false
@@ -31,32 +75,45 @@ if (deletePayload) await conn.sendMessage(m.chat, { delete: deletePayload }).cat
 return true
 }
 
-export function messageHasModeratedLink(text = '') {
-const value = String(text || '')
-return GROUP_LINK_REGEX.test(value) || CHANNEL_LINK_REGEX.test(value) || GENERIC_LINK_REGEX.test(value)
+export function messageHasModeratedLink(value = '') {
+return Boolean(findModeratedLink(value))
 }
 
 export async function enforceAntiLink(conn, m, sender, permissionContext = {}) {
-if (!m?.isGroup || !messageHasModeratedLink(m.text)) return false
+if (!m?.isGroup) return false
 const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
 if (!chat?.antiLink && !chat?.antilink) return false
 const { isAdmin, isOwner, isROwner, isBotAdmin } = permissionContext
 if (isAdmin || isOwner || isROwner || m.fromMe) return false
-if (!isBotAdmin && !m.isBotAdmin) return false
-const deletePayload = getMessageDeletePayload(m, sender)
-if (deletePayload) await conn.sendMessage(m.chat, { delete: deletePayload }).catch(() => {})
-const user = global.db?.getUser?.(sender) || global.db?.data?.users?.[sender]
-if (user) {
-if (typeof user.warn !== 'number' || !Number.isFinite(user.warn)) user.warn = 0
-user.warn += 1
+if (hasWhatsAppText(m)) {
+try {
+console.log(JSON.stringify(m.message, null, 2))
+} catch (e) {
+console.log('No se pudo serializar m.message en antilink:', e)
 }
-await conn.sendMessage(m.chat, { text: `*「 ENLACE DETECTADO 」*\n\n《✧》@${String(sender).split('@')[0]} Rompiste las reglas del Grupo serás eliminado...`, mentions: [sender] }, { quoted: m }).catch(() => {})
-await conn.groupParticipantsUpdate?.(m.chat, [sender], 'remove').catch(() => {})
+}
+const detectedLink = findWhatsAppModeratedLink(m)
+if (!detectedLink) return false
+if (!isBotAdmin && !m.isBotAdmin) {
+await m.reply?.('✦ El antilink está activo pero no puedo eliminarte porque no soy admin.').catch(() => {})
+return true
+}
+const inviteCode = await conn.groupInviteCode?.(m.chat).catch(() => null)
+if (inviteCode && detectedLink.includes(`chat.whatsapp.com/${inviteCode}`)) return false
+const deletePayload = getMessageDeletePayload(m, sender)
+await conn.sendMessage(m.chat, { delete: deletePayload || m.key }).catch(error => console.error('Error al borrar mensaje antilink:', error))
+await conn.sendMessage(m.chat, { text: `*「 ENLACE DETECTADO 」*\n\n《✧》@${String(sender || m.sender).split('@')[0]} Rompiste las reglas del Grupo. Serás eliminado...`, mentions: [sender || m.sender] }, { quoted: m }).catch(() => {})
+try {
+await conn.groupParticipantsUpdate?.(m.chat, [sender || m.sender], 'remove')
+} catch (e) {
+console.error('Error al expulsar infractor en antilink:', e)
+}
 m.__pluginHalt = true
 return true
 }
 
 export async function runAutoModeration(conn, m, sender, permissionContext = {}) {
 if (await enforceMutedUser(conn, m, sender, permissionContext)) return true
+if (await enforceAntiLink(conn, m, sender, permissionContext)) return true
 return false
 }
