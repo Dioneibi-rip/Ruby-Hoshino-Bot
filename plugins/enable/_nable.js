@@ -307,6 +307,7 @@ throw false;
 }
 }
 chat.antiLink = isEnable;
+chat.antilink = isEnable;
 break;
 case 'antitoxic':
 case 'antitoxicos':

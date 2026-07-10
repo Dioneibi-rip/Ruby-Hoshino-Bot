@@ -46,6 +46,12 @@ const values = typeof m === 'string' ? [m] : getModerationTextCandidates(m)
 return values.some(text => WHATSAPP_TEXT_REGEX.test(text))
 }
 
+export function isAntiLinkEnabled(chat = {}) {
+if (!chat || typeof chat !== 'object') return false
+if (typeof chat.antiLink !== 'undefined') return Boolean(chat.antiLink)
+return Boolean(chat.antilink)
+}
+
 export function isUserMutedInChat(user, chatId) {
 if (!user || !chatId) return false
 if (user.isMuted === true) return true
@@ -82,7 +88,7 @@ return Boolean(findModeratedLink(value))
 export async function enforceAntiLink(conn, m, sender, permissionContext = {}) {
 if (!m?.isGroup) return false
 const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
-if (!chat?.antiLink && !chat?.antilink) return false
+if (!isAntiLinkEnabled(chat)) return false
 const { isAdmin, isOwner, isROwner, isBotAdmin } = permissionContext
 if (isAdmin || isOwner || isROwner || m.fromMe) return false
 if (hasWhatsAppText(m)) {
