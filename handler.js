@@ -170,8 +170,6 @@ function shouldProcessRawGroupMessage(conn, message = {}) {
 const chat = conn?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
 if (!chat?.endsWith?.('@g.us')) return true
 if (isCelestialCommandMessage(message)) return true
-const stickerText = getStickerCommandText(getRawStickerHash(message))
-if (stickerText) return true
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
 return !shouldSilenceChatForBot(chatData, normalizeConnectionJid(conn))
 }
