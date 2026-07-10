@@ -28,7 +28,7 @@ import { attachSessionState, cleanupSessionState } from './src/core/session-mana
 import messageQueue from './src/core/message-queue.js'
 import { getCooldownKey, getCooldownSeconds, isRedisReady, redis } from './lib/redis.js'
 import { normalizeIdentityJid } from './src/core/identity-utils.js'
-import { getMessageDeletePayload, isUserMutedInChat, runAutoModeration } from './src/core/moderation-utils.js'
+import { getMessageDeletePayload, isUserMutedInChat, messageHasModeratedLink, runAutoModeration } from './src/core/moderation-utils.js'
 
 global.uptimeStart = Date.now()
 
@@ -173,6 +173,8 @@ if (isCelestialCommandMessage(message)) return true
 const stickerText = getStickerCommandText(getRawStickerHash(message))
 if (stickerText) return true
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+const hasActiveAntiLink = Boolean(chatData?.antiLink || chatData?.antilink)
+if (hasActiveAntiLink && messageHasModeratedLink(message)) return true
 return !shouldSilenceChatForBot(chatData, normalizeConnectionJid(conn))
 }
 
@@ -533,7 +535,8 @@ return
 
 if (m.isGroup && !isCelestialCommandText(m.text)) {
 const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
-if (shouldSilenceChatForBot(chat, normalizeConnectionJid(this))) return
+const hasActiveAntiLink = Boolean(chat?.antiLink || chat?.antilink)
+if (shouldSilenceChatForBot(chat, normalizeConnectionJid(this)) && !(hasActiveAntiLink && messageHasModeratedLink(m))) return
 }
 
 sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
