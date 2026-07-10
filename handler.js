@@ -23,7 +23,7 @@ isNumber,
 normalizeLidReferences,
 runMaintenance,
 } from './src/core/handler-utils.js'
-import { canManageBotSecurity, getAntiPrivateState, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from './src/core/session-utils.js'
+import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from './src/core/session-utils.js'
 import { attachSessionState, cleanupSessionState } from './src/core/session-manager.js'
 import messageQueue from './src/core/message-queue.js'
 import { getCooldownKey, getCooldownSeconds, isRedisReady, redis } from './lib/redis.js'
@@ -170,7 +170,8 @@ function shouldProcessRawGroupMessage(conn, message = {}) {
 const chat = conn?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
 if (!chat?.endsWith?.('@g.us')) return true
 if (isCelestialCommandMessage(message)) return true
-const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+const chatData = getFreshChatRecord(chat)
+if (shouldBlockForPrimaryBot(conn, chat)) return false
 const hasActiveAntiLink = Boolean(chatData?.antiLink || chatData?.antilink)
 if (hasActiveAntiLink && messageHasModeratedLink(message)) return true
 return !shouldSilenceChatForBot(chatData, normalizeConnectionJid(conn))
@@ -212,7 +213,26 @@ return IGNORED_BAILEYS_IDS.some((pattern) => pattern.test(id))
 }
 
 function normalizeConnectionJid(conn) {
-return normalizeSessionJid(conn)
+return normalizeSessionJid(conn?.user?.jid || conn?.user?.id || conn)
+}
+
+function getFreshChatRecord(chatId = '') {
+if (!chatId) return null
+try {
+const chat = global.db?.getChat?.(chatId)
+if (chat) return chat
+} catch (error) {
+console.error('[primary-bot] no se pudo consultar el chat en SQLite', error)
+}
+return global.db?.data?.chats?.[chatId] || null
+}
+
+function shouldBlockForPrimaryBot(conn, chatId = '') {
+const chat = getFreshChatRecord(chatId)
+const primaryBot = getPrimaryBotJid(chat)
+if (!primaryBot) return false
+const currentBot = normalizeConnectionJid(conn)
+return Boolean(currentBot && currentBot !== primaryBot)
 }
 
 async function normalizeJidForDatabase(conn, jid, participantsByLid = null) {
@@ -386,7 +406,7 @@ const isBotSelf = isBotSender(conn, m, sender)
 const canBypassGroupRestrictions = isBotSelf || isOwner || isROwner
 const isEconomyPremium = Boolean(global.db?.data?.users?.[sender]?.premium === true || (global.prems || []).map((v) => String(v).replace(/[^0-9]/g, '')).includes(String(sender || '').split('@')[0].replace(/[^0-9]/g, '')))
 const fail = plugin.fail || global.dfail
-const chat = global.db?.data?.chats?.[m.chat]
+const chat = getFreshChatRecord(m.chat)
 const user = global.db?.data?.users?.[sender]
 
 const isBotSecurityManager = canManageBotSecurity(sender, conn)
@@ -532,9 +552,10 @@ return
 }
 
 if (m.isGroup && !isCelestialCommandText(m.text)) {
-const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
+if (shouldBlockForPrimaryBot(this, m.chat)) return
+const chat = getFreshChatRecord(m.chat)
 const hasActiveAntiLink = Boolean(chat?.antiLink || chat?.antilink)
-if (shouldSilenceChatForBot(chat, normalizeConnectionJid(this)) && !(hasActiveAntiLink && messageHasModeratedLink(m))) return
+if (isChatBannedForBot(chat, normalizeConnectionJid(this)) && !(hasActiveAntiLink && messageHasModeratedLink(m))) return
 }
 
 sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
@@ -584,7 +605,7 @@ await runPluginHooks(this, plugin, name, m, baseContext)
 if (m.__pluginHalt) return
 }
 for (const hook of global.beforeHooks || beforeHooks || []) {
-const chatDataForAdminMode = m.isGroup ? (global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]) : null
+const chatDataForAdminMode = m.isGroup ? getFreshChatRecord(m.chat) : null
 if (parsed?.command && prefixMatch?.[0]?.[0] && chatDataForAdminMode?.modoadmin && !isAdmin && !isOwner && !isROwner) return
 const { name, plugin } = hook || {}
 if (!plugin || plugin.disabled) continue
@@ -614,7 +635,7 @@ const isCelestialCommand = CELESTIAL_COMMANDS.has(commandParsed.command) || UNBA
 global.comando = commandParsed.command
 if (shouldIgnoreBaileysMessage(m) && !isBotSender(this, m, sender) && !isCelestialCommand) return
 m.plugin = name
-const chatData = global.db?.data?.chats?.[m.chat] || {}
+const chatData = getFreshChatRecord(m.chat) || {}
 const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJid(this))
 const isBotSecurityManager = canManageBotSecurity(sender, this)
 if (!isOwner && !isROwner && !isBotSender(this, m, sender) && isBotBannedInThisChat && !isCelestialCommand && !isBotSecurityManager) return
