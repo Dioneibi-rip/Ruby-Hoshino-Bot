@@ -2,7 +2,7 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0'
 import { createRequire } from 'module'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { platform } from 'process'
-import { watchFile, unwatchFile, readdirSync, statSync, unlinkSync, existsSync, mkdirSync, rmSync, watch } from 'fs'
+import { watchFile, unwatchFile, readdirSync, statSync, unlinkSync, existsSync, mkdirSync, rmSync, watch, readFileSync } from 'fs'
 import { readdir, readFile, access } from 'fs/promises'
 import * as ws from 'ws'
 import cfonts from 'cfonts'
@@ -353,6 +353,42 @@ return true
 };
 await global.reloadHandler(false)
 global.rutaJadiBot = join(__dirname, './RubyJadiBots')
+function hasValidSubBotCredentials(sessionPath) {
+try {
+const credsPath = join(sessionPath, 'creds.json')
+const authDbPath = join(sessionPath, 'auth.db')
+if (existsSync(credsPath)) {
+const parsed = JSON.parse(readFileSync(credsPath, 'utf8'))
+return Boolean(parsed?.me || parsed?.registered || parsed?.noiseKey || parsed?.signedIdentityKey)
+}
+if (existsSync(authDbPath)) return statSync(authDbPath).size > 0
+return false
+} catch (error) {
+console.error(`Credenciales inválidas en ${sessionPath}:`, error)
+return false
+}
+}
+function limpiarSubBots() {
+const jadiDir = global.rutaJadiBot
+if (!existsSync(jadiDir)) return []
+const validPaths = []
+for (const entry of readdirSync(jadiDir)) {
+const sessionPath = join(jadiDir, entry)
+try {
+if (!statSync(sessionPath).isDirectory()) continue
+if (!hasValidSubBotCredentials(sessionPath)) {
+rmSync(sessionPath, { recursive: true, force: true })
+console.log(chalk.yellow(`🧹 Sub-Bot huérfano eliminado al inicio: ${entry}`))
+continue
+}
+validPaths.push(sessionPath)
+} catch (error) {
+console.error(`Error evaluando Sub-Bot ${entry}:`, error)
+try { rmSync(sessionPath, { recursive: true, force: true }) } catch (removeError) { console.error(`No pude borrar Sub-Bot corrupto ${entry}:`, removeError) }
+}
+}
+return validPaths
+}
 if (global.RubyJadibts || true) {
 if (!existsSync(global.rutaJadiBot)) {
 mkdirSync(global.rutaJadiBot, { recursive: true });
@@ -360,21 +396,14 @@ console.log(chalk.bold.cyan(`✅ Carpeta de sub-Bots creada`))
 } else {
 console.log(chalk.bold.cyan(`✨ Cargando sub-Bots...`))
 }
-const readRutaJadiBot = readdirSync(global.rutaJadiBot)
-if (readRutaJadiBot.length > 0) {
-const sessionMarkers = new Set(['creds.json', 'auth.db'])
-const subBotPaths = readRutaJadiBot
-.map(gjbts => join(global.rutaJadiBot, gjbts))
-.filter(botPath => {
-try { return statSync(botPath).isDirectory() && readdirSync(botPath).some(file => sessionMarkers.has(file)) }
-catch (e) { return false }
-})
+const subBotPaths = limpiarSubBots()
+if (subBotPaths.length > 0) {
 const batchSize = Math.max(1, Number(global.subBotLoadBatch || 3))
 for (let i = 0; i < subBotPaths.length; i += batchSize) {
 const batch = subBotPaths.slice(i, i + batchSize)
 await Promise.all(batch.map(async (botPath) => {
 try {
-await RubyJadiBot({ pathRubyJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/', command: 'serbot' })
+await RubyJadiBot({ pathRubyJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/', command: 'serbot', startupLoad: true })
 } catch(e) {
 console.log(chalk.red('Error cargando subbot:'), e)
 }
