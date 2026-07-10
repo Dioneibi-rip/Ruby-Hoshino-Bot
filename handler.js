@@ -26,7 +26,7 @@ runMaintenance,
 import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from './src/core/session-utils.js'
 import { attachSessionState, cleanupSessionState } from './src/core/session-manager.js'
 import messageQueue from './src/core/message-queue.js'
-import { getCooldownKey, getCooldownSeconds, isRedisReady, redis } from './lib/redis.js'
+import { getCooldownKey, getCooldownSeconds, isRedisReady, redis, setRedisWithTTL } from './lib/redis.js'
 import { normalizeIdentityJid } from './src/core/identity-utils.js'
 import { getMessageDeletePayload, isUserMutedInChat, messageHasModeratedLink, runAutoModeration } from './src/core/moderation-utils.js'
 
@@ -333,7 +333,7 @@ const message = getCooldownMessage(plugin, ttl)
 if (message) await conn.reply(m.chat, message, m)
 return { claimed: false, allowed: false, key }
 }
-const result = await redis.set(key, '1', 'EX', seconds, 'NX')
+const result = await setRedisWithTTL(key, '1', seconds, 'NX')
 if (result === 'OK') return { claimed: true, allowed: true, key }
 const remainingSeconds = Math.max(1, await redis.ttl(key))
 const message = getCooldownMessage(plugin, remainingSeconds)
