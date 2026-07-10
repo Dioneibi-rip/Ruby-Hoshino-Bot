@@ -91,13 +91,6 @@ const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
 if (!isAntiLinkEnabled(chat)) return false
 const { isAdmin, isOwner, isROwner, isBotAdmin } = permissionContext
 if (isAdmin || isOwner || isROwner || m.fromMe) return false
-if (hasWhatsAppText(m)) {
-try {
-console.log(JSON.stringify(m.message, null, 2))
-} catch (e) {
-console.log('No se pudo serializar m.message en antilink:', e)
-}
-}
 const detectedLink = findWhatsAppModeratedLink(m)
 if (!detectedLink) return false
 if (!isBotAdmin && !m.isBotAdmin) {

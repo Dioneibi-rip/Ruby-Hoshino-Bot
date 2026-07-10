@@ -327,7 +327,6 @@ const seconds = getCooldownSeconds(plugin)
 const key = getCooldownKey(command || name, sender)
 try {
 const ttl = await redis.ttl(key)
-console.log('[REDIS DEBUG] Usuario:', m.sender, '| Comando:', command, '| TTL Restante:', ttl)
 if (ttl > 0) {
 const message = getCooldownMessage(plugin, ttl)
 if (message) await conn.reply(m.chat, message, m)
