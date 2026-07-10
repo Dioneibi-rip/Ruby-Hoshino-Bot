@@ -115,7 +115,7 @@ if (global.__bannerShown) return
 global.__bannerShown = true
 console.clear()
 console.log(bannerASCII)
-console.log(chalk.bold.hex('#FF66C4')('—🍦ܶ߭ຼ ᪲  ۪  ︵ “Cada comienzo es una nueva oportunidad. Gracias por elegirme, daré lo mejor de mí para ayudarte.” ︵ ࣪'))
+console.log(chalk.bold.hex('#FF66C4')('—🍦ܶ߭ ᪲  ۪  ︵ “Cada comienzo es una nueva oportunidad. Gracias por elegirme, daré lo mejor de mí para ayudarte.” ︵ ࣪'))
 cfonts.say('Ruby hoshino Bot', { font: 'chrome', align: 'center', gradient: ['#ff4fcb', '#ff77ff'], transition: true, env: 'node' })
 console.log(boxen(chalk.bold.hex('#9900ff')('୨୧ㅤ۫ Proyecto iniciado con Exito. .ᐟ'), { padding: 1, margin: 1, borderStyle: 'double', borderColor: 'magenta', float: 'center' }))
 }
