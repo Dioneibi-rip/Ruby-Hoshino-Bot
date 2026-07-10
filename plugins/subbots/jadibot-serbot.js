@@ -206,7 +206,7 @@ await RubyJadiBot(options)
 global.db.getUser(m.sender).Subs = new Date * 1
 } catch (error) {
 clearSubBotConnectionState(id)
-await conn.reply(m.chat, `🥀 No pude iniciar la vinculación del Sub-Bot. Detalle: ${getPairingErrorMessage(error)}`, m)
+await conn.reply(m.chat, `🥀 no pude iniciar la vinculación del Sub-Bot. Detalle: ${getPairingErrorMessage(error)}`, m)
 }
 }
 handler.help = ['qr', 'code']
