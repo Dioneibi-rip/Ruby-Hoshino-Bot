@@ -117,7 +117,10 @@ this.userCache = new Map()
 this.userProxyCache = new Map()
 this.dirtyUsers = new Set()
 this.flushIntervalMs = 60_000
+this.flushDebounceMs = 3_000
+this.flushDirtyThreshold = 20
 this.flushScheduled = false
+this.flushTimeout = null
 this.flushTimer = setInterval(() => this.flush(), this.flushIntervalMs)
 this.flushTimer.unref?.()
 this._prepareSchema()
@@ -419,12 +422,23 @@ this.scheduleFlush()
 }
 }
 scheduleFlush() {
-if (this.flushScheduled) return
-this.flushScheduled = true
-setImmediate(() => {
+if (this.dirtyUsers.size >= this.flushDirtyThreshold) {
+if (this.flushTimeout) {
+clearTimeout(this.flushTimeout)
+this.flushTimeout = null
+}
 this.flushScheduled = false
 try { this.flush() } catch (error) { console.error('[sqlite] flush error', error) }
-})
+return
+}
+if (this.flushScheduled) return
+this.flushScheduled = true
+this.flushTimeout = setTimeout(() => {
+this.flushTimeout = null
+this.flushScheduled = false
+try { this.flush() } catch (error) { console.error('[sqlite] flush error', error) }
+}, this.flushDebounceMs)
+this.flushTimeout.unref?.()
 }
 _writeUserRow(id, user) {
 const values = {}
@@ -559,6 +573,11 @@ async read() { return this.data }
 async write() { this.flush() }
 async save() { this.flush() }
 flush() {
+if (this.flushTimeout) {
+clearTimeout(this.flushTimeout)
+this.flushTimeout = null
+}
+this.flushScheduled = false
 const ids = [...this.dirtyUsers]
 if (ids.length) {
 const tx = this.sqlite.transaction(rows => { for (const [id, user] of rows) this._writeUserRow(id, user) })

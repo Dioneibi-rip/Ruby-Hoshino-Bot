@@ -6,6 +6,13 @@ let jobCounter = 0
 let closed = false
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+const PRIORITY_VALUES = { high: 100, normal: 0, low: -100 }
+
+function normalizePriority(priority = 0) {
+if (typeof priority === 'string') return PRIORITY_VALUES[priority] ?? 0
+const value = Number(priority)
+return Number.isFinite(value) ? value : 0
+}
 
 export const mediaQueue = {
 add(name, data = {}, options = {}) {
@@ -36,9 +43,11 @@ const job = {
 id: options.jobId || String(++jobCounter),
 name,
 data,
-options
+options,
+priority: normalizePriority(options.priority || data.priority)
 }
 queue.push(job)
+if (queue.length > 1) queue.sort((a, b) => b.priority - a.priority || Number(a.id) - Number(b.id))
 processQueue()
 return job
 }
