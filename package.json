@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "directories": {
-    "lib": "lib",
-    "plugins": "plugins",
+    "infra": "src/infra",
+    "modules": "src/modules",
     "src": "src"
   },
   "scripts": {
@@ -15,7 +15,7 @@
     "eslintfix": "eslint --fix .",
     "qr": "node index.js qr",
     "start": "node index.js",
-    "test": "node --check index.js && node --check handler.js",
+    "test": "node --check index.js && node --check src/bootstrap/app.js && node --check src/router/handler.js",
     "test:baileys": "node scripts/baileys-smoke.js"
   },
   "author": {
