@@ -1,5 +1,5 @@
 import NodeCache from 'node-cache'
-import { TTLCache } from '../../lib/optimizer.js'
+import { TTLCache } from '../infra/optimizer.js'
 
 const DEFAULT_CACHE_TTL_SECONDS = 5 * 60
 const DEFAULT_GROUP_METADATA_TTL_MS = 60 * 1000
