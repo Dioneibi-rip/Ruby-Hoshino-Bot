@@ -181,6 +181,10 @@ function getQueueKey(message) {
 return message?.key?.participant || message?.participant || message?.key?.remoteJid || message?.chat || 'unknown'
 }
 
+function getQueueChatKey(message) {
+return message?.key?.remoteJid || message?.chat || message?.remoteJid || 'unknown-chat'
+}
+
 function isFreshMessage(message) {
 const rawTimestamp = Number(message?.messageTimestamp || 0)
 const messageTime = rawTimestamp > 0 ? rawTimestamp * 1000 : Date.now()
@@ -523,7 +527,7 @@ if (!liveMessages.length) return
 this.pushMessage?.(liveMessages).catch(console.error)
 for (const rawMessage of liveMessages) {
 const key = getQueueKey(rawMessage)
-messageQueue.enqueue(key, () => processMessage.call(this, chatUpdate, rawMessage))
+messageQueue.enqueue(key, () => processMessage.call(this, chatUpdate, rawMessage), { chatKey: getQueueChatKey(rawMessage) })
 }
 }
 
