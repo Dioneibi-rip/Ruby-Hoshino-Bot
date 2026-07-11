@@ -58,7 +58,14 @@ function setSubBotGroupMetadata(sock, jid, metadata = {}) {
 if (!jid || !metadata) return null
 sock.chats ||= {}
 const current = sock.chats[jid] || { id: jid }
-sock.chats[jid] = { ...current, id: jid, subject: metadata.subject || current.subject || '', isChats: true, metadata }
+const safeMetadata = {
+id: metadata.id || jid,
+subject: metadata.subject || current.subject || '',
+owner: metadata.owner || '',
+size: Number(metadata.size || metadata.participants?.length || current.metadata?.size || 0),
+updatedAt: Date.now()
+}
+sock.chats[jid] = { ...current, id: jid, subject: safeMetadata.subject, isChats: true, metadata: safeMetadata }
 return sock.chats[jid]
 }
 async function patchSubBotGroupMetadata(sock) {
@@ -175,6 +182,25 @@ function clearSubBotConnectionState(id) {
 subBotConnectionStates.delete(id)
 }
 
+function clearSubBotMemoryRefs(sock) {
+if (!sock) return
+try {
+const timers = sock.__participantRefreshTimers
+if (timers instanceof Map) {
+for (const timer of timers.values()) clearTimeout(timer)
+timers.clear()
+} else if (Array.isArray(timers)) {
+for (const timer of timers) clearTimeout(timer)
+timers.length = 0
+}
+} catch (error) {
+console.error('Error limpiando timers de participantes del Sub-Bot:', error)
+}
+try { sock.__groupFetchAllCache = null } catch {}
+try { sock.__msgRetryCache?.flushAll?.() } catch (error) { console.error('Error limpiando msgRetryCache del Sub-Bot:', error) }
+try { sock.chats = {} } catch {}
+}
+
 async function cleanupSubBotSession({ id, jid, sessionPath, sock, reason = 'manual' } = {}) {
 const normalizedJid = normalizeSubBotJid(jid || sock?.subBotJid || sock?.user?.jid || sock?.authState?.creds?.me?.jid || '')
 const sessionId = id || sock?.subBotId || subBotSessionId(normalizedJid)
@@ -185,6 +211,7 @@ try { sock.end?.() } catch (error) { console.error(`Error cerrando Sub-Bot ${ses
 try { sock.ws?.close?.() } catch (error) { console.error(`Error cerrando websocket del Sub-Bot ${sessionId}:`, error) }
 }
 try { sock?.ev?.removeAllListeners?.() } catch (error) { console.error(`Error quitando listeners del Sub-Bot ${sessionId}:`, error) }
+clearSubBotMemoryRefs(sock)
 if (Array.isArray(global.conns)) {
 global.conns = global.conns.filter(conn => conn && conn !== sock && conn.subBotId !== sessionId && normalizeSubBotJid(conn.subBotJid || conn.user?.jid || conn.authState?.creds?.me?.jid || '') !== normalizedJid)
 }
@@ -312,6 +339,7 @@ markOnlineOnConnect: false,
 syncFullHistory: false
 };
 let sock = makeWASocket(connectionOptions)
+sock.__msgRetryCache = msgRetryCache
 await patchSubBotGroupMetadata(sock)
 const subBotId = requestedSubBotId || subBotSessionId(subBotJid || sock?.authState?.creds?.me?.jid || path.basename(pathRubyJadiBot))
 sock.subBotId = subBotId
@@ -349,6 +377,8 @@ clearHealthMonitor()
 clearPairingCodeLock()
 try { sock.ws.close() } catch (e) {}
 try { sock.ev.removeAllListeners() } catch (e) {}
+try { msgRetryCache.flushAll?.() } catch (e) {}
+clearSubBotMemoryRefs(sock)
 removeSockFromPool(sock)
 cleanupSessionState(sock)
 global.authCredsFlushers?.delete(debouncedSaveCreds.flush)
@@ -373,6 +403,7 @@ removeSockFromPool(sock)
 try { sock.ws.close() } catch (e) { }
 try { sock.ev.removeAllListeners() } catch (e) {}
 sock = makeWASocket(connectionOptions, { chats: oldChats })
+sock.__msgRetryCache = msgRetryCache
 await patchSubBotGroupMetadata(sock)
 sock.subBotId = subBotId
 sock.subBotJid = subBotJid

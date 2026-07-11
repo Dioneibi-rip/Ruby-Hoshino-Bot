@@ -99,6 +99,19 @@ const match = trimmed.match(/^[#!./\\](\S+)/)
 return match?.[1]?.toLowerCase() || ''
 }
 
+function getMessageQueuePriority(message = {}) {
+const command = getRawCommandName(getRawMessageText(message) || getStickerCommandText(getRawStickerHash(message)))
+if (!command) return 'normal'
+const entry = commandsMap.get(command)
+const name = String(entry?.name || '')
+const plugin = entry?.plugin || {}
+const tags = Array.isArray(plugin.tags) ? plugin.tags.map(tag => String(tag).toLowerCase()) : []
+const haystack = `${name} ${tags.join(' ')} ${command}`.toLowerCase()
+if (/(sticker|descargas|downloader|download|convertidor|tiktok|instagram|facebook|twitter|spotify|mediafire|mega|terabox|play|youtubedl|youtube|pinterest|xvideos|xnxx|pornhub|hentai|ai-|chatgpt|gemini|copilot|\bia\b|\bai\b)/.test(haystack)) return 'low'
+if (/(admin|owner|grupo|enable|main|info|ping|runtime|speed|estado|sistema|menu|staff|unban|resetbot|ban|kick|promote|demote)/.test(haystack)) return 'high'
+return 'normal'
+}
+
 function isCelestialCommandText(text = '') {
 return CELESTIAL_COMMANDS.has(getRawCommandName(text))
 }
@@ -527,7 +540,8 @@ if (!liveMessages.length) return
 this.pushMessage?.(liveMessages).catch(console.error)
 for (const rawMessage of liveMessages) {
 const key = getQueueKey(rawMessage)
-messageQueue.enqueue(key, () => processMessage.call(this, chatUpdate, rawMessage), { chatKey: getQueueChatKey(rawMessage) })
+const priority = getMessageQueuePriority(rawMessage)
+messageQueue.enqueue(key, () => processMessage.call(this, chatUpdate, rawMessage), { chatKey: getQueueChatKey(rawMessage), priority })
 }
 }
 

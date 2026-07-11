@@ -10,6 +10,18 @@ taskTimeoutMs: Number(global.messageQueueTaskTimeoutMs || 120000),
 entryMaxAgeMs: Number(global.messageQueueEntryMaxAgeMs || 60000),
 }
 
+const PRIORITY_VALUES = {
+high: 100,
+normal: 0,
+low: -100,
+}
+
+function normalizePriority(priority = 0) {
+if (typeof priority === 'string') return PRIORITY_VALUES[priority] ?? 0
+const value = Number(priority)
+return Number.isFinite(value) ? value : 0
+}
+
 function defer(fn) {
 if (typeof setImmediate === 'function') return setImmediate(fn)
 return setTimeout(fn, 0)
@@ -55,8 +67,9 @@ if (queue.length >= this.options.maxUserQueue) {
 this.dropped++
 return false
 }
-queue.push({ key, task, priority: options.priority || 0, createdAt: Date.now() })
-if (queue.length > 1 && options.priority) queue.sort((a, b) => b.priority - a.priority || a.createdAt - b.createdAt)
+const priority = normalizePriority(options.priority)
+queue.push({ key, task, priority, createdAt: Date.now() })
+if (queue.length > 1) queue.sort((a, b) => b.priority - a.priority || a.createdAt - b.createdAt)
 this.queues.set(key, queue)
 this.accepted++
 this.schedule()
@@ -84,6 +97,9 @@ if (this.size > 0 && this.activeCount < this.options.maxGlobalConcurrency) this.
 next() {
 const keys = [...this.queues.keys()]
 if (!keys.length) return null
+let selectedKey = null
+let selectedIndex = -1
+let selectedEntry = null
 for (let i = 0; i < keys.length; i++) {
 const key = keys[(this.cursor + i) % keys.length]
 if (this.activeUsers.has(key)) continue
@@ -92,12 +108,19 @@ if (!queue?.length) {
 this.queues.delete(key)
 continue
 }
-this.cursor = (this.cursor + i + 1) % keys.length
-const entry = queue.shift()
-if (!queue.length) this.queues.delete(key)
-return entry
+const entry = queue[0]
+if (!selectedEntry || entry.priority > selectedEntry.priority || (entry.priority === selectedEntry.priority && entry.createdAt < selectedEntry.createdAt)) {
+selectedKey = key
+selectedIndex = i
+selectedEntry = entry
 }
-return null
+}
+if (!selectedEntry) return null
+const queue = this.queues.get(selectedKey)
+const entry = queue.shift()
+if (!queue.length) this.queues.delete(selectedKey)
+this.cursor = (this.cursor + selectedIndex + 1) % Math.max(keys.length, 1)
+return entry
 }
 
 run(entry) {
