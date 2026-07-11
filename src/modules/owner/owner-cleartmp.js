@@ -12,7 +12,7 @@ return []
 }
 
 let handler=async(m,{conn,__dirname})=>{
-const tmp=[tmpdir(),join(__dirname,'../tmp')]
+const tmp=[tmpdir(),join(process.cwd(),'tmp')]
 const nested=await Promise.all(tmp.map(listExistingFiles))
 const files=nested.flat()
 await Promise.allSettled(files.map(file=>fs.promises.unlink(file)))

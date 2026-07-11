@@ -42,6 +42,7 @@ const __dirname = global.__dirname(import.meta.url)
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
 global.__bannerShown = false
 global.prefix = new RegExp('^[#/!.]')
+mkdirSync(join(process.cwd(), 'tmp'), { recursive: true })
 global.db = new SQLiteDatabase(opts['db'] || './src/database/database.sqlite')
 global.DATABASE = global.db
 let databaseShutdownStarted = false
@@ -487,7 +488,7 @@ return phoneUtil.isValidNumber(parsedNumber)
 } catch (error) { return false }
 }
 function clearTmp() {
-const tmpDirectories = [tmpdir(), join(__dirname, '../../tmp')];
+const tmpDirectories = [tmpdir(), join(process.cwd(), 'tmp')];
 tmpDirectories.forEach(dir => {
 if (!existsSync(dir)) return;
 readdirSync(dir).forEach(file => {

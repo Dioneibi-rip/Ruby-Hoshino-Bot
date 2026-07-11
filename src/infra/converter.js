@@ -5,7 +5,9 @@ import { spawn } from 'child_process'
 function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
   return new Promise(async (resolve, reject) => {
     try {
-      let tmp = join(global.__dirname(import.meta.url), '../tmp', + new Date + '.' + ext)
+      const tmpDir = join(process.cwd(), 'tmp')
+      await promises.mkdir(tmpDir, { recursive: true })
+      let tmp = join(tmpDir, +new Date + '.' + ext)
       let out = tmp + '.' + ext2
       await promises.writeFile(tmp, buffer)
       spawn('ffmpeg', [

@@ -14,6 +14,7 @@ import Jimp from 'jimp'
 import pino from 'pino'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const tmpDir = path.join(process.cwd(), 'tmp')
 
 function getMessageContextInfo(node, predicate = null) {
 if (!node || typeof node !== 'object') return null
@@ -261,7 +262,12 @@ sendListB: {
                     mime: 'application/octet-stream',
                     ext: '.bin'
                 }
-                if (data && saveToFile && !filename) (filename = path.join(__dirname, '../tmp/' + new Date * 1 + '.' + type.ext), await fs.promises.writeFile(filename, data))
+                if (data && saveToFile && !filename) {
+                    await fs.promises.mkdir(tmpDir, { recursive: true })
+                    const ext = String(type.ext || 'bin').replace(/^\./, '')
+                    filename = path.join(tmpDir, `${Date.now()}.${ext}`)
+                    await fs.promises.writeFile(filename, data)
+                }
                 return {
                     res,
                     filename,
