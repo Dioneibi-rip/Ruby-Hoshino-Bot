@@ -1,6 +1,11 @@
 const DEFAULT_OPTIONS = {
 maxGlobalConcurrency: Number(global.messageQueueMaxConcurrency || 8),
 maxUserQueue: Number(global.messageQueueMaxUserQueue || 100),
+maxTotalQueue: Number(global.messageQueueMaxTotalQueue || 3000),
+userRateWindowMs: Number(global.messageQueueUserRateWindowMs || 10_000),
+userRateMax: Number(global.messageQueueUserRateMax || 8),
+chatRateWindowMs: Number(global.messageQueueChatRateWindowMs || 10_000),
+chatRateMax: Number(global.messageQueueChatRateMax || 40),
 taskTimeoutMs: Number(global.messageQueueTaskTimeoutMs || 120000),
 entryMaxAgeMs: Number(global.messageQueueEntryMaxAgeMs || 60000),
 }
@@ -23,12 +28,28 @@ this.completed = 0
 this.failed = 0
 this.dropped = 0
 this.timeouts = 0
+this.rateLimited = 0
+this.rateBuckets = new Map()
 this.cleanupInterval = setInterval(() => this.cleanup(), 60000)
 this.cleanupInterval.unref?.()
 }
 
 enqueue(key, task, options = {}) {
 if (!key || typeof task !== 'function') return false
+if (this.size >= this.options.maxTotalQueue) {
+this.dropped++
+return false
+}
+if (!this.consumeRate(`user:${key}`, this.options.userRateMax, this.options.userRateWindowMs)) {
+this.rateLimited++
+this.dropped++
+return false
+}
+if (options.chatKey && !this.consumeRate(`chat:${options.chatKey}`, this.options.chatRateMax, this.options.chatRateWindowMs)) {
+this.rateLimited++
+this.dropped++
+return false
+}
 const queue = this.queues.get(key) || []
 if (queue.length >= this.options.maxUserQueue) {
 this.dropped++
@@ -105,8 +126,22 @@ done(false)
 })
 }
 
+consumeRate(key, max, windowMs) {
+if (!key || !Number.isFinite(max) || max <= 0) return true
+const now = Date.now()
+const bucket = this.rateBuckets.get(key) || { count: 0, resetAt: now + windowMs }
+if (now >= bucket.resetAt) {
+bucket.count = 0
+bucket.resetAt = now + windowMs
+}
+bucket.count++
+this.rateBuckets.set(key, bucket)
+return bucket.count <= max
+}
+
 cleanup() {
 const now = Date.now()
+for (const [key, bucket] of this.rateBuckets) if (now >= bucket.resetAt) this.rateBuckets.delete(key)
 for (const [key, queue] of this.queues) {
 const fresh = queue.filter((entry) => {
 const keep = now - entry.createdAt <= this.options.entryMaxAgeMs
@@ -125,13 +160,14 @@ return total
 }
 
 stats() {
-return { activeCount: this.activeCount, totalQueued: this.size, usersWithQueue: this.queues.size, accepted: this.accepted, completed: this.completed, failed: this.failed, dropped: this.dropped, timeouts: this.timeouts }
+return { activeCount: this.activeCount, totalQueued: this.size, usersWithQueue: this.queues.size, accepted: this.accepted, completed: this.completed, failed: this.failed, dropped: this.dropped, rateLimited: this.rateLimited, timeouts: this.timeouts }
 }
 
 destroy() {
 clearInterval(this.cleanupInterval)
 this.queues.clear()
 this.activeUsers.clear()
+this.rateBuckets.clear()
 }
 }
 

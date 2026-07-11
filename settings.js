@@ -55,6 +55,15 @@ global.baileysSocketConfig = {
   defaultQueryTimeoutMs: 30000
 }
 
+// Límites de concurrencia y anti-spam interno para proteger el Event Loop bajo ráfagas.
+global.messageQueueMaxConcurrency = Number(process.env.MESSAGE_QUEUE_MAX_CONCURRENCY || 8)
+global.messageQueueMaxUserQueue = Number(process.env.MESSAGE_QUEUE_MAX_USER_QUEUE || 100)
+global.messageQueueMaxTotalQueue = Number(process.env.MESSAGE_QUEUE_MAX_TOTAL_QUEUE || 3000)
+global.messageQueueUserRateWindowMs = Number(process.env.MESSAGE_QUEUE_USER_RATE_WINDOW_MS || 10000)
+global.messageQueueUserRateMax = Number(process.env.MESSAGE_QUEUE_USER_RATE_MAX || 8)
+global.messageQueueChatRateWindowMs = Number(process.env.MESSAGE_QUEUE_CHAT_RATE_WINDOW_MS || 10000)
+global.messageQueueChatRateMax = Number(process.env.MESSAGE_QUEUE_CHAT_RATE_MAX || 40)
+
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.packname = '⏤̛̣̣̣̣̣̣̣̣̣̣̣͟͟͞͞⏤͟͟͞͞🍭𝐑υׁׅ𝐛𝐲 𝐇ᨵׁׅׅ𝐬𝐡𝐢𝐧ᨵׁׅׅ ૮(˶ᵔᵕᵔ˶)ა'
