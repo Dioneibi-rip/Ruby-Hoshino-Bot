@@ -115,6 +115,7 @@ this.sqlite.pragma('busy_timeout = 10000')
 this.sqlite.pragma('foreign_keys = ON')
 this.userCache = new Map()
 this.userProxyCache = new Map()
+this.recordProxyCache = new Map()
 this.dirtyUsers = new Set()
 this.flushIntervalMs = 60_000
 this.flushScheduled = false
@@ -549,12 +550,54 @@ return { idSale: row.id_sale, id: row.character_id, characterId: row.character_i
 }
 getSection(section) { if (section === 'sticker') return this.getStickerCommands(); if (section === 'users') return this.listUsers(); if (section === 'groups') return this.listGroups(); if (section === 'chats' || section === 'settings') { const out = {}; for (const r of this.sqlite.prepare(`SELECT id,value FROM ${section}`).all()) out[r.id] = parseJSON(r.value, {}); return out } if (section === 'marriages') return this.getMarriages(); if (section === 'harem') return Object.fromEntries(this.getHarem().map(e => [`${e.groupId}:${e.characterId}`, e])); if (section === 'waifus_venta' || section === 'gacha_market') return Object.fromEntries(this.getGachaMarket().map(e => [`${e.groupId}:${e.id}`, e])); if (section === 'claim_config') return Object.fromEntries(this.sqlite.prepare('SELECT user_id,message FROM claim_config').all().map(r => [r.user_id, r.message])); if (section === 'character_favorites') return Object.fromEntries(this.sqlite.prepare('SELECT user_id,character_id FROM character_favorites').all().map(r => [r.user_id, r.character_id])); const out = {}; for (const r of this.statements.allJson.all(section)) out[r.id] = parseJSON(r.value, {}); return out }
 replaceSection(section, values = {}) { if (section === 'sticker') return this.replaceStickerCommands(values); if (section === 'marriages') return this.replaceMarriages(values); if (section === 'harem') return this.replaceHarem(Object.values(values)); if (section === 'waifus_venta' || section === 'gacha_market') return this.replaceGachaMarket(Object.values(values)); if (section === 'users') { const tx = this.sqlite.transaction(entries => { for (const [id, value] of entries) this.updateUser(id, value || {}) }); return tx(Object.entries(values || {})) } if (section === 'groups') { const tx = this.sqlite.transaction(entries => { this.sqlite.prepare('DELETE FROM groups').run(); for (const [id, value] of entries) this.upsertGroupMetadata(id, value || {}) }); return tx(Object.entries(values || {})) } if (section === 'chats' || section === 'settings') { const tx = this.sqlite.transaction(obj => { this.sqlite.prepare(`DELETE FROM ${section}`).run(); const st = this._jsonSectionUpsertStatement(section); for (const [id, val] of Object.entries(obj || {})) st.run(this._jsonSectionPayload(section, id, val)) }); return tx(values) } if (section === 'claim_config') { const tx = this.sqlite.transaction(obj => { this.sqlite.prepare('DELETE FROM claim_config').run(); const st = this.sqlite.prepare('INSERT INTO claim_config(user_id,message,updated_at) VALUES(?,?,?)'); for (const [k, v] of Object.entries(obj)) st.run(k, String(v), now()) }); return tx(values) } if (section === 'character_favorites') { const tx = this.sqlite.transaction(obj => { this.sqlite.prepare('DELETE FROM character_favorites').run(); const st = this.sqlite.prepare('INSERT INTO character_favorites(user_id,character_id,updated_at) VALUES(?,?,?)'); for (const [k, v] of Object.entries(obj)) st.run(k, String(v), now()) }); return tx(values) } const tx = this.sqlite.transaction(obj => { this.sqlite.prepare('DELETE FROM json_records WHERE section=?').run(section); for (const [id, val] of Object.entries(obj || {})) this.statements.upsertJson.run(section, id, stringify(val)) }); tx(values) }
-get(section, id) { if (section === 'users') return this.getUser(id); return this.getSection(section)[id] }
+_recordProxy(section, id, value) {
+if (!id || value == null || typeof value !== 'object') return value
+const cacheKey = `${section}:${id}`
+const cached = this.recordProxyCache.get(cacheKey)
+if (cached?.target === value) return cached.proxy
+const persist = () => this.set(section, id, value)
+const wrap = (target) => {
+if (target == null || typeof target !== 'object') return target
+return new Proxy(target, {
+get: (obj, prop) => {
+if (INTERNAL_PROPS.has(prop)) return undefined
+if (prop === 'toJSON') return () => obj
+return wrap(obj[prop])
+},
+set: (obj, prop, newValue) => {
+if (typeof prop !== 'string') return false
+obj[prop] = newValue
+persist()
+return true
+},
+deleteProperty: (obj, prop) => {
+if (typeof prop !== 'string') return false
+delete obj[prop]
+persist()
+return true
+},
+ownKeys: (obj) => Reflect.ownKeys(obj),
+getOwnPropertyDescriptor: (obj, prop) => Object.getOwnPropertyDescriptor(obj, prop) || { enumerable: true, configurable: true }
+})
+}
+const proxy = wrap(value)
+this.recordProxyCache.set(cacheKey, { target: value, proxy })
+return proxy
+}
+get(section, id) {
+if (section === 'users') return this.getUser(id)
+let value = this.getSection(section)[id]
+if (typeof value === 'undefined' && ['chats', 'settings', 'stats', 'msgs', 'sessions', 'codes'].includes(section)) {
+value = section === 'chats' ? this.normalizeChatDefaults({}) : {}
+this.set(section, id, value)
+}
+return this._recordProxy(section, id, value)
+}
 set(section, id, value) { if (section === 'sticker') return this.setStickerCommand(id, value); if (section === 'users') return this.updateUser(id, value); if (section === 'groups') return this.upsertGroupMetadata(id, value); if (section === 'chats' || section === 'settings') return this._jsonSectionUpsertStatement(section).run(this._jsonSectionPayload(section, id, value)); this.statements.upsertJson.run(section, id, stringify(value)) }
 has(section, id) { if (section === 'users') return this.userExists(id); return this.get(section, id) !== undefined }
 delete(section, id) { if (section === 'sticker') return this.sqlite.prepare('DELETE FROM sticker_cmds WHERE hash=?').run(id); if (section === 'chats' || section === 'settings' || section === 'groups') { const table = section === 'groups' ? 'groups' : section; return this.sqlite.prepare(`DELETE FROM ${table} WHERE id=?`).run(id) } if (section === 'users') { for (const [cachedId, cachedUser] of this.userCache.entries()) if (cachedUser?.marry === id) { cachedUser.marry = ''; this.userCache.set(cachedId, cachedUser) } this.userCache.delete(id); this.userProxyCache.delete(id); this.dirtyUsers.delete(id); const tx = this.sqlite.transaction(userId => { this.sqlite.prepare('DELETE FROM marriages WHERE user_id=? OR partner_id=?').run(userId, userId); this.sqlite.prepare("UPDATE users SET marry='' WHERE marry=?").run(userId); this.sqlite.prepare("UPDATE harem SET user_id='', protection_json='{}' WHERE user_id=?").run(userId); return this.sqlite.prepare('DELETE FROM users WHERE id=?').run(userId) }); return tx(id) } this.sqlite.prepare('DELETE FROM json_records WHERE section=? AND id=?').run(section, id) }
 _createDataFacade() { return { users: this._sectionFacade('users'), chats: this._sectionFacade('chats'), settings: this._sectionFacade('settings'), stats: this._sectionFacade('stats'), msgs: this._sectionFacade('msgs'), sticker: this._sectionFacade('sticker'), sessions: this._sectionFacade('sessions'), codes: this._sectionFacade('codes') } }
-_sectionFacade(section) { return new Proxy({}, { get: (_target, id) => { if (INTERNAL_PROPS.has(id)) return undefined; if (id === 'toJSON') return () => this.getSection(section); if (typeof id !== 'string') return undefined; return this.get(section, id) }, set: (_target, id, value) => { if (typeof id !== 'string') return false; this.set(section, id, value); return true }, deleteProperty: (_target, id) => { if (typeof id !== 'string') return false; this.delete(section, id); return true }, ownKeys: () => Object.keys(this.getSection(section)), getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true }) }) }
+_sectionFacade(section) { return new Proxy({}, { get: (_target, id) => { if (INTERNAL_PROPS.has(id)) return undefined; if (id === 'toJSON') return () => this.getSection(section); if (typeof id !== 'string') return undefined; return this.get(section, id) }, set: (_target, id, value) => { if (typeof id !== 'string') return false; this.recordProxyCache.delete(`${section}:${id}`); this.set(section, id, value); return true }, deleteProperty: (_target, id) => { if (typeof id !== 'string') return false; this.recordProxyCache.delete(`${section}:${id}`); this.delete(section, id); return true }, ownKeys: () => Object.keys(this.getSection(section)), getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true }) }) }
 async read() { return this.data }
 async write() { this.flush() }
 async save() { this.flush() }
