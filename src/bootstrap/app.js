@@ -20,7 +20,7 @@ import pino from 'pino'
 import { Boom } from '@hapi/boom'
 import { makeWASocket, protoType, serialize } from '../infra/simple.js'
 import { useSQLiteAuthState, createManagerDatabase } from '../infra/sqliteAuthState.js'
-import SQLiteDatabase from '../infra/database.js'
+import { initializeDatabase } from '../infra/database.js'
 import store from '../infra/store.js'
 import readline, { createInterface } from 'readline'
 import { EventEmitter } from 'events'
@@ -44,7 +44,7 @@ global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse()
 global.__bannerShown = false
 global.prefix = new RegExp('^[#/!.]')
 mkdirSync(join(process.cwd(), 'tmp'), { recursive: true })
-global.db = new SQLiteDatabase(opts['db'] || './src/database/database.sqlite')
+global.db = await initializeDatabase(opts['db'] || './src/database/database.sqlite')
 global.DATABASE = global.db
 let databaseShutdownStarted = false
 global.authCredsFlushers ||= new Set()
@@ -160,7 +160,8 @@ clearInterval(databaseAutosaveInterval)
 await Promise.all([...global.authCredsFlushers].map(flush => flush()))
 await global.saveDatabase()
 await closeMediaQueue()
-if (typeof global.db?.close === 'function') global.db.close()
+store.closeStore?.()
+if (typeof global.db?.close === 'function') await global.db.close()
 } catch (saveError) {
 console.error(saveError)
 code = 1
@@ -221,16 +222,17 @@ mobile: MethodMobile,
 browser: ['Mac OS', 'Safari', '17.2.1'],
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })), },
 markOnlineOnConnect: true,
-generateHighQualityLinkPreview: true,
+generateHighQualityLinkPreview: socketCfg.generateHighQualityLinkPreview ?? false,
 getMessage: async (clave) => { let jid = jidNormalizedUser(clave.remoteJid); let msg = await store.loadMessage(jid, clave.id); return msg?.message || "" },
 msgRetryCounterCache,
 msgRetryCounterMap,
 defaultQueryTimeoutMs: socketCfg.defaultQueryTimeoutMs ?? 60000,
 version,
 syncFullHistory: false,
+shouldSyncHistoryMessage: () => false,
 connectTimeoutMs: socketCfg.connectTimeoutMs ?? 30000,
 keepAliveIntervalMs: socketCfg.keepAliveIntervalMs ?? 30000,
-retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 500,
+retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 3000,
 shouldReconnect: ({ statusCode }) => !DISCONNECT_AUTH_STATUS.has(statusCode) && (RECONNECT_REASONS.has(statusCode) || statusCode !== DisconnectReason.loggedOut)
 }
 global.conn = makeWASocket(connectionOptions);
@@ -308,7 +310,8 @@ return
 }
 if (reconnectTimer) return
 if ([408, 428, 429].includes(Number(statusCode))) cleanupTransientSessionState()
-const exponentialDelay = RECONNECT_BASE_DELAY_MS * (2 ** reconnectAttempt)
+const rateLimitDelay = [429, 503].includes(Number(statusCode)) ? 30000 : 0
+const exponentialDelay = Math.max(rateLimitDelay, RECONNECT_BASE_DELAY_MS * (2 ** reconnectAttempt))
 const jitter = Math.floor(Math.random() * 1000)
 const reconnectDelay = Math.min(Math.max(reconnectDelayMs || 0, exponentialDelay + jitter), RECONNECT_MAX_DELAY_MS)
 reconnectAttempt += 1

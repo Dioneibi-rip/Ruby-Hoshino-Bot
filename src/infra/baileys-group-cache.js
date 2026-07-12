@@ -1,6 +1,6 @@
 const GROUP_FETCH_ALL_TTL_MS = 10 * 60 * 1000
-const GROUP_FETCH_ALL_MIN_INTERVAL_MS = 90 * 1000
-const GROUP_FETCH_ALL_RETRY_DELAY_MS = 5 * 60 * 1000
+const GROUP_FETCH_ALL_MIN_INTERVAL_MS = Number(process.env.GROUP_FETCH_ALL_MIN_INTERVAL_MS || 3 * 60 * 1000)
+const GROUP_FETCH_ALL_RETRY_DELAY_MS = Number(process.env.GROUP_FETCH_ALL_RETRY_DELAY_MS || 10 * 60 * 1000)
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
