@@ -2,11 +2,10 @@ import { createRequire } from 'module'
 import { existsSync, mkdirSync } from 'fs'
 import path from 'path'
 import pino from 'pino'
+import createSQLiteStore from './sqlite-store.js'
 
 const baileysModule = await import('@whiskeysockets/baileys')
 const makeInMemoryStore = baileysModule.makeInMemoryStore || baileysModule.default?.makeInMemoryStore
-
-import createSQLiteStore from './sqlite-store.js'
 
 let instance
 let ownedSqlite
@@ -45,6 +44,15 @@ function createMemoryStore() {
   try {
     if (typeof makeInMemoryStore !== 'function') throw new TypeError('makeInMemoryStore no está disponible en Baileys')
     const store = makeInMemoryStore({ logger: pino({ level: process.env.BAILEYS_STORE_LOG_LEVEL || 'silent' }) })
+    const nativeBind = store.bind?.bind(store)
+    store.bind = conn => {
+      if (!conn?.ev) throw new TypeError('Baileys memory store requiere una conexión con EventEmitter en conn.ev')
+      nativeBind?.(conn.ev)
+      conn.baileysStore = store
+      conn.store = store
+      conn.chats = store.chats
+      return store
+    }
     if (existsSync(memoryFile)) store.readFromFile?.(memoryFile)
     startMemoryStorePersistence(store, memoryFile)
     return store
