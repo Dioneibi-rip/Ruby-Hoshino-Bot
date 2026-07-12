@@ -102,6 +102,7 @@ export class MongoDatabase {
     this.userCacheVersions = new Map()
     this.userDirtyFields = new Map()
     this.sectionCache = new Map()
+    this.recordProxyCache = new Map()
     this.pendingWrites = new Set()
     this.User = mongoose.models.User || mongoose.model('User', userSchema, 'users')
     this.Record = mongoose.models.DbRecord || mongoose.model('DbRecord', recordSchema, 'records')
@@ -208,6 +209,7 @@ export class MongoDatabase {
   setEconomy(id, field, value) { return this.updateUser(id, { [field]: value }) }
   async userExists(id) { await this.ready; return this.userCache.has(id) || Boolean(await this.User.exists({ _id: id })) }
   listUsers() { return Object.fromEntries([...this.userCache.entries()].map(([id, user]) => [id, normalizeUser(id, user)])) }
+  listUserRows() { return Object.entries(this.listUsers()).map(([id, user]) => ({ ...user, id })) }
   async listUsersAsync() { await this.ready; const rows = await this.User.find({}).lean(); for (const row of rows) this.userCache.set(row._id, normalizeUser(row._id, row)); return this.listUsers() }
 
   _userProxy(id) {
@@ -275,10 +277,53 @@ export class MongoDatabase {
       return this.Record.bulkWrite(entries.map(([key, value]) => ({ updateOne: { filter: { section, key }, update: { $set: { value } }, upsert: true } })), { ordered: false })
     }))
   }
-  get(section, id) { if (section === 'users') return this.getUser(id); return this.sectionCache.get(keyFor(section, id)) }
+  _recordProxy(section, id, value) {
+    if (!id || value == null || typeof value !== 'object') return value
+    const cacheKey = keyFor(section, id)
+    const cached = this.recordProxyCache.get(cacheKey)
+    if (cached?.target === value) return cached.proxy
+    const persist = () => this.set(section, id, value)
+    const wrap = (target) => {
+      if (target == null || typeof target !== 'object') return target
+      return new Proxy(target, {
+        get: (obj, prop) => {
+          if (INTERNAL_PROPS.has(prop)) return undefined
+          if (prop === 'toJSON') return () => clone(obj)
+          return wrap(obj[prop])
+        },
+        set: (obj, prop, newValue) => {
+          if (typeof prop !== 'string') return false
+          obj[prop] = newValue
+          persist()
+          return true
+        },
+        deleteProperty: (obj, prop) => {
+          if (typeof prop !== 'string') return false
+          delete obj[prop]
+          persist()
+          return true
+        },
+        ownKeys: (obj) => Reflect.ownKeys(obj),
+        getOwnPropertyDescriptor: (obj, prop) => Object.getOwnPropertyDescriptor(obj, prop) || { enumerable: true, configurable: true }
+      })
+    }
+    const proxy = wrap(value)
+    this.recordProxyCache.set(cacheKey, { target: value, proxy })
+    return proxy
+  }
+  get(section, id) {
+    if (section === 'users') return this.getUser(id)
+    let value = this.sectionCache.get(keyFor(section, id))
+    if (typeof value === 'undefined' && ['chats', 'settings', 'stats', 'msgs', 'sessions', 'codes'].includes(section)) {
+      value = section === 'chats' ? this.normalizeChatDefaults({}) : {}
+      this.set(section, id, value)
+    }
+    return this._recordProxy(section, id, value)
+  }
   set(section, id, value) {
     if (section === 'users') return this.updateUser(id, value)
-    this.sectionCache.set(keyFor(section, id), clone(value))
+    this.recordProxyCache.delete(keyFor(section, id))
+    this.sectionCache.set(keyFor(section, id), value && typeof value === 'object' ? value : clone(value))
     return this._trackWrite(this.Record.updateOne({ section, key: id }, { $set: { value } }, { upsert: true }))
   }
   async has(section, id) { if (section === 'users') return this.userExists(id); if (this.sectionCache.has(keyFor(section, id))) return true; await this.ready; return Boolean(await this.Record.exists({ section, key: id })) }
@@ -288,6 +333,7 @@ export class MongoDatabase {
       this.userProxyCache.delete(id)
       return this._trackWrite(this.User.deleteOne({ _id: id }))
     }
+    this.recordProxyCache.delete(keyFor(section, id))
     this.sectionCache.delete(keyFor(section, id))
     return this._trackWrite(this.Record.deleteOne({ section, key: id }))
   }
