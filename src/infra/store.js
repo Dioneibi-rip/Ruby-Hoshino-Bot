@@ -1,10 +1,25 @@
 import createSQLiteStore from './sqlite-store.js'
+import { createBaileysSQLite } from './database.js'
+
 let instance
+let ownedSqlite
 let pruneTimer
 const MAX_MESSAGES_PER_CHAT = 50
 const PRUNE_INTERVAL_MS = 60 * 60 * 1000
+const DEFAULT_BAILEYS_SQLITE_FILE = './src/database/baileys-store.sqlite'
+
+function resolveBaileysSqlite() {
+const sqlite = global.db?.baileysSqlite || global.db?.sqlite
+if (sqlite) return sqlite
+if (!ownedSqlite) {
+console.warn('🟡 Baileys Store no recibió SQLite desde global.db; creando SQLite dedicado para sesiones/mensajes.')
+ownedSqlite = createBaileysSQLite(process.env.BAILEYS_STORE_SQLITE || DEFAULT_BAILEYS_SQLITE_FILE)
+}
+return ownedSqlite
+}
+
 function getStore() {
-if (!instance) instance = createSQLiteStore(global.db?.sqlite)
+if (!instance) instance = createSQLiteStore(resolveBaileysSqlite())
 return instance
 }
 function bind(conn) {
@@ -50,5 +65,8 @@ return getStore().loadMessage(jid, id)
 function countChats() {
 return getStore().countChats()
 }
-export { startMessagePruner, pruneStoreMessages }
-export default { bind, loadMessage, countChats, getStore, startMessagePruner, pruneStoreMessages }
+function closeStore() {
+try { ownedSqlite?.close?.() } catch (error) { console.error('[baileys-store] error cerrando SQLite dedicado', error) }
+}
+export { startMessagePruner, pruneStoreMessages, resolveBaileysSqlite, closeStore }
+export default { bind, loadMessage, countChats, getStore, startMessagePruner, pruneStoreMessages, closeStore }
