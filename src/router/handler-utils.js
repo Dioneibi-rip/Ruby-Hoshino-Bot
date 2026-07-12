@@ -153,6 +153,23 @@ conn.__maintenanceAt = Date.now()
 conn.__groupMetadataCache?.clearExpired?.()
 if (conn.__commandTesterCache?.size > 3000) conn.__commandTesterCache.clear()
 if (conn.__prefixMatcherCache?.size > 2000) conn.__prefixMatcherCache.clear()
+global.__rubyMessageQueue?.cleanup?.()
+const states = global.subBotConnectionStates
+if (states instanceof Map) {
+const now = Date.now()
+for (const [id, state] of states) {
+if (['offline', 'fatal', 'removed'].includes(state?.status) && now - Number(state?.ts || 0) > 10 * 60_000) states.delete(id)
+}
+}
+const registry = global.subBotRegistry
+if (registry instanceof Map) {
+for (const [id, entry] of registry) {
+const sock = entry?.sock || entry
+const alive = sock?.user && sock?.ws?.socket?.readyState !== 3
+const state = states?.get?.(id)?.status
+if (!alive && ['offline', 'fatal', 'removed'].includes(state || 'offline')) registry.delete(id)
+}
+}
 }
 
 
