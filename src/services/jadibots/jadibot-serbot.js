@@ -41,6 +41,7 @@ const __dirname = path.dirname(__filename)
 const pairingCodeRequests = global.pairingCodeRequests || (global.pairingCodeRequests = new Map())
 const PAIRING_CODE_TTL_MS = 45000
 const PAIRING_CODE_COOLDOWN_MS = 60000
+const SUBBOT_GROUP_PREFETCH_ON_CONNECT = process.env.SUBBOT_GROUP_PREFETCH_ON_CONNECT === 'true'
 
 async function refreshSubBotGroups(sock, { retry = true } = {}) {
 try {
@@ -332,13 +333,14 @@ msgRetry,
 msgRetryCache,
 browser: mcode ? ['Windows', 'Chrome', '121.0.0.0'] : ['Mac OS', 'Safari', '17.2.1'],
 version: version,
-generateHighQualityLinkPreview: true,
+generateHighQualityLinkPreview: subSocketCfg.generateHighQualityLinkPreview ?? false,
 defaultQueryTimeoutMs: subSocketCfg.defaultQueryTimeoutMs ?? 45000,
 connectTimeoutMs: subSocketCfg.connectTimeoutMs ?? 60000,
 keepAliveIntervalMs: subSocketCfg.keepAliveIntervalMs ?? 20000,
-retryRequestDelayMs: subSocketCfg.retryRequestDelayMs ?? 1500,
+retryRequestDelayMs: subSocketCfg.retryRequestDelayMs ?? 5000,
 markOnlineOnConnect: false,
-syncFullHistory: false
+syncFullHistory: false,
+shouldSyncHistoryMessage: () => false
 };
 let sock = makeWASocket(connectionOptions)
 sock.__msgRetryCache = msgRetryCache
@@ -443,7 +445,7 @@ return true
 async function connectionUpdate(update) {
 const { connection, lastDisconnect, isNewLogin, qr, receivedPendingNotifications } = update
 if (isNewLogin) sock.isInit = false
-if (receivedPendingNotifications) refreshSubBotGroups(sock).catch(() => {})
+if (receivedPendingNotifications && SUBBOT_GROUP_PREFETCH_ON_CONNECT) refreshSubBotGroups(sock).catch(() => {})
 if (qr && !mcode) {
 if (qrMessageSent) return
 qrMessageSent = true
@@ -545,7 +547,8 @@ reconnectAttempts = Math.max(1, MAX_RECONNECT_ATTEMPTS - 1)
 await sleep(120000 + Math.floor(Math.random() * 30000))
 } else {
 reconnectAttempts += 1
-const waitMs = Math.min(60000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1))) + Math.floor(Math.random() * 1000)
+const rateLimitDelay = String(closeReason || '').includes('429') || String(closeReason || '').includes('rate') ? 30000 : 0
+const waitMs = Math.max(rateLimitDelay, Math.min(60000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1)))) + Math.floor(Math.random() * 1000)
 await sleep(waitMs)
 }
 try {
@@ -587,7 +590,7 @@ registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() 
 setSubBotConnectionState(subBotId, 'online', { jid: subBotJid, path: pathRubyJadiBot, connectedAt: Date.now() })
 upsertSubBotAuthRegistry(subBotId, sock, 'online', { path: pathRubyJadiBot, jid: subBotJid, connectedAt: Date.now() })
 clearPairingCodeLock()
-refreshSubBotGroups(sock).catch(() => {})
+if (SUBBOT_GROUP_PREFETCH_ON_CONNECT) refreshSubBotGroups(sock).catch(() => {})
 m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `@${m.sender.split('@')[0]}, genial ya eres parte de nuestro ecosistema de bots.`}, {quoted: m}).catch(() => {}) : null
 joinChannels(sock).catch(() => {})
 if (!healthInterval) {
@@ -613,7 +616,8 @@ reconnectAttempts = Math.max(1, MAX_RECONNECT_ATTEMPTS - 1)
 await sleep(120000 + Math.floor(Math.random() * 30000))
 } else {
 reconnectAttempts += 1
-const waitMs = Math.min(60000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1))) + Math.floor(Math.random() * 1000)
+const rateLimitDelay = String(closeReason || '').includes('429') || String(closeReason || '').includes('rate') ? 30000 : 0
+const waitMs = Math.max(rateLimitDelay, Math.min(60000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1)))) + Math.floor(Math.random() * 1000)
 await sleep(waitMs)
 }
 return creloadHandler(true).catch(error => console.error(`Error en reconexión segura del Sub-Bot ${subBotId}:`, error))

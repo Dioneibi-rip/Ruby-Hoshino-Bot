@@ -222,16 +222,17 @@ mobile: MethodMobile,
 browser: ['Mac OS', 'Safari', '17.2.1'],
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })), },
 markOnlineOnConnect: true,
-generateHighQualityLinkPreview: true,
+generateHighQualityLinkPreview: socketCfg.generateHighQualityLinkPreview ?? false,
 getMessage: async (clave) => { let jid = jidNormalizedUser(clave.remoteJid); let msg = await store.loadMessage(jid, clave.id); return msg?.message || "" },
 msgRetryCounterCache,
 msgRetryCounterMap,
 defaultQueryTimeoutMs: socketCfg.defaultQueryTimeoutMs ?? 60000,
 version,
 syncFullHistory: false,
+shouldSyncHistoryMessage: () => false,
 connectTimeoutMs: socketCfg.connectTimeoutMs ?? 30000,
 keepAliveIntervalMs: socketCfg.keepAliveIntervalMs ?? 30000,
-retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 500,
+retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 3000,
 shouldReconnect: ({ statusCode }) => !DISCONNECT_AUTH_STATUS.has(statusCode) && (RECONNECT_REASONS.has(statusCode) || statusCode !== DisconnectReason.loggedOut)
 }
 global.conn = makeWASocket(connectionOptions);
@@ -309,7 +310,8 @@ return
 }
 if (reconnectTimer) return
 if ([408, 428, 429].includes(Number(statusCode))) cleanupTransientSessionState()
-const exponentialDelay = RECONNECT_BASE_DELAY_MS * (2 ** reconnectAttempt)
+const rateLimitDelay = [429, 503].includes(Number(statusCode)) ? 30000 : 0
+const exponentialDelay = Math.max(rateLimitDelay, RECONNECT_BASE_DELAY_MS * (2 ** reconnectAttempt))
 const jitter = Math.floor(Math.random() * 1000)
 const reconnectDelay = Math.min(Math.max(reconnectDelayMs || 0, exponentialDelay + jitter), RECONNECT_MAX_DELAY_MS)
 reconnectAttempt += 1

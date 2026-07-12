@@ -99,6 +99,8 @@ export class MongoDatabase {
     this.connected = false
     this.userCache = new Map()
     this.userProxyCache = new Map()
+    this.userCacheVersions = new Map()
+    this.userDirtyFields = new Map()
     this.sectionCache = new Map()
     this.pendingWrites = new Set()
     this.User = mongoose.models.User || mongoose.model('User', userSchema, 'users')
@@ -119,6 +121,27 @@ export class MongoDatabase {
       console.error('[mongodb] no se pudo conectar a MongoDB', error)
       throw error
     }
+  }
+
+  _userVersion(id) { return this.userCacheVersions.get(id) || 0 }
+  _bumpUserVersion(id) { const version = this._userVersion(id) + 1; this.userCacheVersions.set(id, version); return version }
+  _markUserDirty(id, patch = {}) {
+    const dirty = this.userDirtyFields.get(id) || new Set()
+    for (const key of Object.keys(patch || {})) dirty.add(key in USER_DEFAULTS ? key : 'extras')
+    this.userDirtyFields.set(id, dirty)
+  }
+  _mergeUserDocument(id, doc, preferCache = false) {
+    if (!doc) return this.userCache.get(id) || normalizeUser(id)
+    const fromDb = normalizeUser(id, doc)
+    if (!preferCache) return fromDb
+    const current = normalizeUser(id, this.userCache.get(id))
+    const dirty = this.userDirtyFields.get(id) || new Set()
+    const merged = { ...fromDb }
+    for (const field of dirty) {
+      if (field === 'extras') merged.extras = { ...(fromDb.extras || {}), ...(current.extras || {}) }
+      else merged[field] = current[field]
+    }
+    return normalizeUser(id, merged)
   }
 
   _trackWrite(promise) {
@@ -149,9 +172,10 @@ export class MongoDatabase {
     if (!id || typeof id !== 'string') throw new TypeError('getUser requiere un id de usuario válido')
     if (!this.userCache.has(id)) {
       this.userCache.set(id, normalizeUser(id))
+      const cacheVersion = this._userVersion(id)
       const insertData = normalizeUserForInsert(id)
-      this._trackWrite(this.User.findByIdAndUpdate(id, { $setOnInsert: insertData }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: true }).then(doc => {
-        if (doc) this.userCache.set(id, normalizeUser(id, doc))
+      this._trackWrite(this.User.findByIdAndUpdate(id, { $setOnInsert: insertData }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: false }).then(doc => {
+        if (doc) this.userCache.set(id, this._mergeUserDocument(id, doc, this._userVersion(id) !== cacheVersion))
       }))
     }
     return this._userProxy(id)
@@ -162,10 +186,12 @@ export class MongoDatabase {
     if (!id || typeof id !== 'string') throw new TypeError('updateUser requiere un id de usuario válido')
     const next = applyPatchToUser(id, this.userCache.get(id), patch)
     this.userCache.set(id, next)
+    this._markUserDirty(id, patch)
+    const cacheVersion = this._bumpUserVersion(id)
     const $set = splitUserPatch(patch)
     const insertData = normalizeUserForInsert(id, $set)
-    return this._trackWrite(this.User.findByIdAndUpdate(id, { $setOnInsert: insertData, $set }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: true }).then(doc => {
-      if (doc) this.userCache.set(id, normalizeUser(id, doc))
+    return this._trackWrite(this.User.findByIdAndUpdate(id, { $setOnInsert: insertData, $set }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: false }).then(doc => {
+      if (doc) this.userCache.set(id, this._mergeUserDocument(id, doc, this._userVersion(id) !== cacheVersion))
       return this._userProxy(id)
     }))
   }
