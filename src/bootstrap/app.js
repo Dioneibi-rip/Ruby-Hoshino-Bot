@@ -20,7 +20,7 @@ import pino from 'pino'
 import { Boom } from '@hapi/boom'
 import { makeWASocket, protoType, serialize } from '../infra/simple.js'
 import { useSQLiteAuthState, createManagerDatabase } from '../infra/sqliteAuthState.js'
-import SQLiteDatabase from '../infra/database.js'
+import { initializeDatabase } from '../infra/database.js'
 import store from '../infra/store.js'
 import readline, { createInterface } from 'readline'
 import { EventEmitter } from 'events'
@@ -44,7 +44,7 @@ global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse()
 global.__bannerShown = false
 global.prefix = new RegExp('^[#/!.]')
 mkdirSync(join(process.cwd(), 'tmp'), { recursive: true })
-global.db = new SQLiteDatabase(opts['db'] || './src/database/database.sqlite')
+global.db = await initializeDatabase(opts['db'] || './src/database/database.sqlite')
 global.DATABASE = global.db
 let databaseShutdownStarted = false
 global.authCredsFlushers ||= new Set()
@@ -160,7 +160,8 @@ clearInterval(databaseAutosaveInterval)
 await Promise.all([...global.authCredsFlushers].map(flush => flush()))
 await global.saveDatabase()
 await closeMediaQueue()
-if (typeof global.db?.close === 'function') global.db.close()
+store.closeStore?.()
+if (typeof global.db?.close === 'function') await global.db.close()
 } catch (saveError) {
 console.error(saveError)
 code = 1
