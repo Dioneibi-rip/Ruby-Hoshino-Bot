@@ -2,16 +2,6 @@ import { isAntiLinkEnabled } from '../../core/moderation-utils.js'
 const WHATSAPP_LINK_REGEX = /(?:https?:\/\/)?(?:chat\.whatsapp\.com\/(?:invite\/)?[0-9A-Za-z]{16,}|(?:www\.)?whatsapp\.com\/channel\/[0-9A-Za-z]{16,})/i
 const WHATSAPP_TEXT_REGEX = /whatsapp/i
 
-function extractStringsDeep(value, seen = new WeakSet()) {
-if (typeof value === 'string') return [value]
-if (!value || typeof value !== 'object') return []
-if (seen.has(value)) return []
-seen.add(value)
-if (Buffer.isBuffer(value)) return []
-if (Array.isArray(value)) return value.flatMap(item => extractStringsDeep(item, seen))
-return Object.values(value).flatMap(item => extractStringsDeep(item, seen))
-}
-
 function getAllCandidateStrings(m) {
 return [
 m.text,
@@ -21,7 +11,9 @@ m.message?.conversation,
 m.message?.extendedTextMessage?.text,
 m.message?.extendedTextMessage?.matchedText,
 m.message?.extendedTextMessage?.canonicalUrl,
-...extractStringsDeep(m.message)
+m.message?.imageMessage?.caption,
+m.message?.videoMessage?.caption,
+m.message?.documentMessage?.caption
 ].filter(text => typeof text === 'string' && text.length)
 }
 
@@ -39,7 +31,7 @@ if (!m.isGroup) return !0
 const chat = global.db.data.chats[m.chat] || {}
 if (!isAntiLinkEnabled(chat)) return !0
 
-if (isAdmin || isOwner || isROwner || m.fromMe) return !0
+if (isAdmin || isOwner || isROwner || m.fromMe || conn.decodeJid?.(m.sender) === conn.decodeJid?.(conn.user?.id)) return !0
 
 
 const detectedLink = findWhatsAppLink(m)

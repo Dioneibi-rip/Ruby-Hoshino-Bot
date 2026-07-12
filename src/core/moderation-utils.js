@@ -3,14 +3,19 @@ const CHANNEL_LINK_REGEX = /(?:https?:\/\/)?(?:www\.)?whatsapp\.com\/channel\/[0
 const GENERIC_LINK_REGEX = /(?:https?:\/\/)?(?:www\.)?[\w-]+(?:\.[\w-]+)+(?:\/\S*)?/i
 const WHATSAPP_TEXT_REGEX = /whatsapp/i
 
-function extractStringsDeep(value, seen = new WeakSet()) {
-if (typeof value === 'string') return [value]
-if (!value || typeof value !== 'object') return []
-if (seen.has(value)) return []
-seen.add(value)
-if (Buffer.isBuffer(value)) return []
-if (Array.isArray(value)) return value.flatMap(item => extractStringsDeep(item, seen))
-return Object.values(value).flatMap(item => extractStringsDeep(item, seen))
+function directMessageTexts(message = {}) {
+return [
+message.conversation,
+message.extendedTextMessage?.text,
+message.extendedTextMessage?.matchedText,
+message.extendedTextMessage?.canonicalUrl,
+message.imageMessage?.caption,
+message.videoMessage?.caption,
+message.documentMessage?.caption,
+message.buttonsResponseMessage?.selectedDisplayText,
+message.listResponseMessage?.title,
+message.templateButtonReplyMessage?.selectedDisplayText
+]
 }
 
 export function getModerationTextCandidates(m = {}) {
@@ -18,16 +23,11 @@ return [
 m.text,
 m.body,
 m.caption,
-m.message?.conversation,
-m.message?.extendedTextMessage?.text,
-m.message?.extendedTextMessage?.matchedText,
-m.message?.extendedTextMessage?.canonicalUrl,
 m.msg?.text,
 m.msg?.caption,
 m.msg?.matchedText,
 m.msg?.canonicalUrl,
-...extractStringsDeep(m.message),
-...extractStringsDeep(m.msg)
+...directMessageTexts(m.message || {})
 ].filter(text => typeof text === 'string' && text.length)
 }
 
@@ -91,6 +91,7 @@ const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
 if (!isAntiLinkEnabled(chat)) return false
 const { isAdmin, isOwner, isROwner, isBotAdmin } = permissionContext
 if (isAdmin || isOwner || isROwner || m.fromMe) return false
+if (conn?.decodeJid?.(sender || m.sender) === conn?.decodeJid?.(conn?.user?.id)) return false
 const detectedLink = findWhatsAppModeratedLink(m)
 if (!detectedLink) return false
 if (!isBotAdmin && !m.isBotAdmin) {
