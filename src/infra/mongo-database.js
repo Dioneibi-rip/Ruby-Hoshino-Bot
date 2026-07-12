@@ -209,6 +209,7 @@ export class MongoDatabase {
   setEconomy(id, field, value) { return this.updateUser(id, { [field]: value }) }
   async userExists(id) { await this.ready; return this.userCache.has(id) || Boolean(await this.User.exists({ _id: id })) }
   listUsers() { return Object.fromEntries([...this.userCache.entries()].map(([id, user]) => [id, normalizeUser(id, user)])) }
+  listUserRows() { return Object.entries(this.listUsers()).map(([id, user]) => ({ ...user, id })) }
   async listUsersAsync() { await this.ready; const rows = await this.User.find({}).lean(); for (const row of rows) this.userCache.set(row._id, normalizeUser(row._id, row)); return this.listUsers() }
 
   _userProxy(id) {
