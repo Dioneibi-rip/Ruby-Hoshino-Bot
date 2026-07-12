@@ -8,9 +8,22 @@ const MAX_MESSAGES_PER_CHAT = 50
 const PRUNE_INTERVAL_MS = 60 * 60 * 1000
 const DEFAULT_BAILEYS_SQLITE_FILE = './src/database/baileys-store.sqlite'
 
+function createMemoryStore() {
+const store = {
+contacts: {},
+chats: {},
+messages: {},
+bind(conn) { conn.baileysStore = store; conn.store = store; return store },
+loadMessage() { return null },
+countChats() { return Object.keys(store.chats).length },
+}
+return store
+}
+
 function resolveBaileysSqlite() {
 const sqlite = global.db?.baileysSqlite || global.db?.sqlite
 if (sqlite) return sqlite
+if (process.env.MONGODB_URI) return null
 if (!ownedSqlite) {
 console.warn('🟡 Baileys Store no recibió SQLite desde global.db; creando SQLite dedicado para sesiones/mensajes.')
 ownedSqlite = createBaileysSQLite(process.env.BAILEYS_STORE_SQLITE || DEFAULT_BAILEYS_SQLITE_FILE)
@@ -19,7 +32,10 @@ return ownedSqlite
 }
 
 function getStore() {
-if (!instance) instance = createSQLiteStore(resolveBaileysSqlite())
+if (!instance) {
+const sqlite = resolveBaileysSqlite()
+instance = sqlite ? createSQLiteStore(sqlite) : createMemoryStore()
+}
 return instance
 }
 function bind(conn) {

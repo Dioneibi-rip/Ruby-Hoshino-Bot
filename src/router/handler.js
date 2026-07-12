@@ -252,6 +252,21 @@ const currentBot = normalizeConnectionJid(conn)
 return Boolean(currentBot && currentBot !== primaryBot)
 }
 
+function enforcePrimaryBotMiddleware(conn, m = {}) {
+if (!m?.isGroup || isCelestialCommandText(m?.text || '')) return false
+const chat = getFreshChatRecord(m.chat)
+const primaryBot = getPrimaryBotJid(chat)
+if (!primaryBot) return false
+const currentBot = normalizeConnectionJid(conn)
+if (!currentBot || currentBot !== primaryBot) return true
+if (chat && typeof chat === 'object') {
+if (chat.primaryBot !== primaryBot) chat.primaryBot = primaryBot
+if (chat.botPrimario !== primaryBot) chat.botPrimario = primaryBot
+global.db?.updateChat?.(m.chat, chat)
+}
+return false
+}
+
 async function normalizeJidForDatabase(conn, jid, participantsByLid = null) {
 return normalizeIdentityJid(conn, jid, participantsByLid) || jid
 }
@@ -400,10 +415,20 @@ command: (rawCommand || '').toLowerCase(),
 }
 }
 
+function buildPluginContext(conn, context = {}) {
+return {
+...context,
+conn,
+sock: conn,
+socket: conn,
+baileys: global.baileys || global.Baileys || {},
+}
+}
+
 async function runPluginHooks(conn, plugin, name, m, context) {
 if (typeof plugin?.all === 'function') {
 try {
-await plugin.all.call(conn, m, context)
+await plugin.all.call(conn, m, buildPluginContext(conn, context))
 } catch (error) {
 console.error(error)
 }
@@ -568,6 +593,8 @@ await forceResetBotState(this, m, sender, participantsByLid)
 return
 }
 
+if (enforcePrimaryBotMiddleware(this, m)) return
+
 if (m.isGroup && !isCelestialCommandText(m.text)) {
 if (shouldBlockForPrimaryBot(this, m.chat)) return
 const chat = getFreshChatRecord(m.chat)
@@ -587,6 +614,7 @@ sender = await normalizeMessageIdentifiers(this, m, sender, participantsByLid)
 m.exp = 0
 m.coin = false
 const { user: _user, settings } = hydrateDatabaseForMessage(this, m, sender)
+if (enforcePrimaryBotMiddleware(this, m)) return
 
 if (opts.nyimak) return
 if (!m.fromMe && opts.self) return
@@ -629,7 +657,7 @@ if (!plugin || plugin.disabled) continue
 if (!opts.restrict && plugin.tags?.includes?.('admin')) continue
 const __filename = join(pluginDir, name)
 const match = getPrefixMatch(this, plugin, m.text)
-const beforeContext = { match, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
+const beforeContext = buildPluginContext(this, { match, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename })
 const beforeResult = await plugin.before.call(this, m, beforeContext)
 if (m.__pluginHalt) return
 if (beforeResult && commandEntry?.name === name) return
@@ -657,7 +685,7 @@ const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJi
 const isBotSecurityManager = canManageBotSecurity(sender, this)
 if (!isOwner && !isROwner && !isBotSender(this, m, sender) && isBotBannedInThisChat && !isCelestialCommand && !isBotSecurityManager) return
 const __filename = join(pluginDir, name)
-const extra = { match, usedPrefix, ...commandParsed, conn: this, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename }
+const extra = buildPluginContext(this, { match, usedPrefix, ...commandParsed, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename })
 await executePlugin(this, plugin, name, m, extra, permissionContext, sender)
 } catch (error) {
 console.error(error)

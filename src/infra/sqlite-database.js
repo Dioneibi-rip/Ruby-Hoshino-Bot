@@ -497,7 +497,15 @@ if (typeof chat.welcome === 'undefined') chat.welcome = true
 if (typeof chat.antiLink === 'undefined') chat.antiLink = true
 if (typeof chat.antilink === 'undefined') chat.antilink = true
 if (typeof chat.detect === 'undefined') chat.detect = true
-if (!chat.botSettings || typeof chat.botSettings !== 'object') chat.botSettings = {}
+const primary = chat.primaryBot ?? chat.botPrimario ?? null
+if (primary) {
+chat.primaryBot = primary
+chat.botPrimario = primary
+} else {
+if (typeof chat.primaryBot === 'undefined') chat.primaryBot = null
+if (typeof chat.botPrimario === 'undefined') chat.botPrimario = null
+}
+if (!chat.botSettings || typeof chat.botSettings !== 'object' || Array.isArray(chat.botSettings)) chat.botSettings = {}
 if (chat.isBanned === true) chat.isBanned = { '*': true }
 else if (!chat.isBanned || typeof chat.isBanned !== 'object') chat.isBanned = {}
 for (const [jid, banned] of Object.entries(chat.isBanned)) {
