@@ -118,7 +118,9 @@ this.userProxyCache = new Map()
 this.recordProxyCache = new Map()
 this.dirtyUsers = new Set()
 this.flushIntervalMs = 60_000
+this.flushDebounceMs = Number(process.env.SQLITE_BATCH_DELAY_MS || 5_000)
 this.flushScheduled = false
+this.flushTimerHandle = null
 this.flushTimer = setInterval(() => this.flush(), this.flushIntervalMs)
 this.flushTimer.unref?.()
 this._prepareSchema()
@@ -422,10 +424,12 @@ this.scheduleFlush()
 scheduleFlush() {
 if (this.flushScheduled) return
 this.flushScheduled = true
-setImmediate(() => {
+this.flushTimerHandle = setTimeout(() => {
 this.flushScheduled = false
+this.flushTimerHandle = null
 try { this.flush() } catch (error) { console.error('[sqlite] flush error', error) }
-})
+}, this.flushDebounceMs)
+this.flushTimerHandle.unref?.()
 }
 _writeUserRow(id, user) {
 const values = {}
@@ -601,14 +605,14 @@ this.set(section, id, value)
 }
 return this._recordProxy(section, id, value)
 }
-set(section, id, value) { if (section === 'sticker') return this.setStickerCommand(id, value); if (section === 'users') return this.updateUser(id, value); if (section === 'groups') return this.upsertGroupMetadata(id, value); if (section === 'chats' || section === 'settings') return this._jsonSectionUpsertStatement(section).run(this._jsonSectionPayload(section, id, value)); this.statements.upsertJson.run(section, id, stringify(value)) }
+set(section, id, value) { if (section === 'sticker') return this.setStickerCommand(id, value); if (section === 'users') return this.updateUser(id, value); if (section === 'groups') return this.upsertGroupMetadata(id, value); if (section === 'claim_config') return this.sqlite.prepare('INSERT INTO claim_config(user_id,message,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET message=excluded.message, updated_at=excluded.updated_at').run(id, String(value || ''), now()); if (section === 'character_favorites') return this.sqlite.prepare('INSERT INTO character_favorites(user_id,character_id,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET character_id=excluded.character_id, updated_at=excluded.updated_at').run(id, String(value || ''), now()); if (section === 'chats' || section === 'settings') return this._jsonSectionUpsertStatement(section).run(this._jsonSectionPayload(section, id, value)); this.statements.upsertJson.run(section, id, stringify(value)) }
 has(section, id) { if (section === 'users') return this.userExists(id); return this.get(section, id) !== undefined }
-delete(section, id) { if (section === 'sticker') return this.sqlite.prepare('DELETE FROM sticker_cmds WHERE hash=?').run(id); if (section === 'chats' || section === 'settings' || section === 'groups') { const table = section === 'groups' ? 'groups' : section; return this.sqlite.prepare(`DELETE FROM ${table} WHERE id=?`).run(id) } if (section === 'users') { for (const [cachedId, cachedUser] of this.userCache.entries()) if (cachedUser?.marry === id) { cachedUser.marry = ''; this.userCache.set(cachedId, cachedUser) } this.userCache.delete(id); this.userProxyCache.delete(id); this.dirtyUsers.delete(id); const tx = this.sqlite.transaction(userId => { this.sqlite.prepare('DELETE FROM marriages WHERE user_id=? OR partner_id=?').run(userId, userId); this.sqlite.prepare("UPDATE users SET marry='' WHERE marry=?").run(userId); this.sqlite.prepare("UPDATE harem SET user_id='', protection_json='{}' WHERE user_id=?").run(userId); return this.sqlite.prepare('DELETE FROM users WHERE id=?').run(userId) }); return tx(id) } this.sqlite.prepare('DELETE FROM json_records WHERE section=? AND id=?').run(section, id) }
+delete(section, id) { if (section === 'sticker') return this.sqlite.prepare('DELETE FROM sticker_cmds WHERE hash=?').run(id); if (section === 'claim_config') return this.sqlite.prepare('DELETE FROM claim_config WHERE user_id=?').run(id); if (section === 'character_favorites') return this.sqlite.prepare('DELETE FROM character_favorites WHERE user_id=?').run(id); if (section === 'chats' || section === 'settings' || section === 'groups') { const table = section === 'groups' ? 'groups' : section; return this.sqlite.prepare(`DELETE FROM ${table} WHERE id=?`).run(id) } if (section === 'users') { for (const [cachedId, cachedUser] of this.userCache.entries()) if (cachedUser?.marry === id) { cachedUser.marry = ''; this.userCache.set(cachedId, cachedUser) } this.userCache.delete(id); this.userProxyCache.delete(id); this.dirtyUsers.delete(id); const tx = this.sqlite.transaction(userId => { this.sqlite.prepare('DELETE FROM marriages WHERE user_id=? OR partner_id=?').run(userId, userId); this.sqlite.prepare("UPDATE users SET marry='' WHERE marry=?").run(userId); this.sqlite.prepare("UPDATE harem SET user_id='', protection_json='{}' WHERE user_id=?").run(userId); return this.sqlite.prepare('DELETE FROM users WHERE id=?').run(userId) }); return tx(id) } this.sqlite.prepare('DELETE FROM json_records WHERE section=? AND id=?').run(section, id) }
 _createDataFacade() { return { users: this._sectionFacade('users'), chats: this._sectionFacade('chats'), settings: this._sectionFacade('settings'), stats: this._sectionFacade('stats'), msgs: this._sectionFacade('msgs'), sticker: this._sectionFacade('sticker'), sessions: this._sectionFacade('sessions'), codes: this._sectionFacade('codes') } }
 _sectionFacade(section) { return new Proxy({}, { get: (_target, id) => { if (INTERNAL_PROPS.has(id)) return undefined; if (id === 'toJSON') return () => this.getSection(section); if (typeof id !== 'string') return undefined; return this.get(section, id) }, set: (_target, id, value) => { if (typeof id !== 'string') return false; this.recordProxyCache.delete(`${section}:${id}`); this.set(section, id, value); return true }, deleteProperty: (_target, id) => { if (typeof id !== 'string') return false; this.recordProxyCache.delete(`${section}:${id}`); this.delete(section, id); return true }, ownKeys: () => Object.keys(this.getSection(section)), getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true }) }) }
 async read() { return this.data }
-async write() { this.flush() }
-async save() { this.flush() }
+async write() { if (this.flushTimerHandle) { clearTimeout(this.flushTimerHandle); this.flushTimerHandle = null; this.flushScheduled = false }; this.flush() }
+async save() { await this.write() }
 flush() {
 const ids = [...this.dirtyUsers]
 if (ids.length) {
@@ -617,7 +621,7 @@ tx(ids.map(id => [id, this.userCache.get(id)]).filter(([, user]) => user))
 for (const id of ids) this.dirtyUsers.delete(id)
 }
 }
-close() { this.flush(); if (this.flushTimer) clearInterval(this.flushTimer); this.sqlite.pragma('wal_checkpoint(PASSIVE)'); this.sqlite.close() } snapshot() { return { users: this.getSection('users'), marriages: this.getSection('marriages'), harem: this.getSection('harem'), gacha_market: this.getSection('gacha_market'), claim_config: this.getSection('claim_config'), character_favorites: this.getSection('character_favorites') } }
+close() { if (this.flushTimerHandle) clearTimeout(this.flushTimerHandle); this.flush(); if (this.flushTimer) clearInterval(this.flushTimer); this.sqlite.pragma('wal_checkpoint(PASSIVE)'); this.sqlite.close() } snapshot() { return { users: this.getSection('users'), marriages: this.getSection('marriages'), harem: this.getSection('harem'), gacha_market: this.getSection('gacha_market'), claim_config: this.getSection('claim_config'), character_favorites: this.getSection('character_favorites') } }
 }
 export { SQLiteDatabase as DbManager }
 export default SQLiteDatabase

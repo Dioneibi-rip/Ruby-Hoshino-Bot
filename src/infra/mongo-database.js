@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
-import { existsSync, readFileSync } from 'fs'
+import { existsSync } from 'fs'
+import { readFile } from 'fs/promises'
 import path from 'path'
 
 const DEFAULT_MONGO_OPTIONS = {
@@ -32,6 +33,50 @@ function now() { return Date.now() }
 function normalizeSearchText(text = '') { return String(text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim() }
 function findCharactersFile() { return [path.resolve('./src/database/characters.json'), path.resolve('./database/characters.json')].find(candidate => existsSync(candidate)) }
 function keyFor(section, id) { return `${section}:${id}` }
+
+class TTLMap {
+  constructor(ttlMs = 30 * 60 * 1000, maxSize = 25_000) {
+    this.ttlMs = ttlMs
+    this.maxSize = maxSize
+    this.store = new Map()
+  }
+  _entry(value, ttlMs = this.ttlMs) { return { value, expiresAt: Date.now() + ttlMs } }
+  _evict() {
+    const now = Date.now()
+    for (const [key, entry] of this.store) if (entry.expiresAt <= now) this.store.delete(key)
+    while (this.store.size > this.maxSize) this.store.delete(this.store.keys().next().value)
+  }
+  get(key) {
+    const entry = this.store.get(key)
+    if (!entry) return undefined
+    if (entry.expiresAt <= Date.now()) { this.store.delete(key); return undefined }
+    this.store.delete(key)
+    this.store.set(key, entry)
+    return entry.value
+  }
+  set(key, value, ttlMs) {
+    if (this.store.has(key)) this.store.delete(key)
+    this.store.set(key, this._entry(value, ttlMs))
+    if (this.store.size > this.maxSize) this._evict()
+    return this
+  }
+  has(key) { return this.get(key) !== undefined }
+  delete(key) { return this.store.delete(key) }
+  clear() { this.store.clear() }
+  keys() { this._evict(); return this.store.keys() }
+  entries() { this._evict(); return [...this.store.entries()].map(([key, entry]) => [key, entry.value])[Symbol.iterator]() }
+  values() { this._evict(); return [...this.store.values()].map(entry => entry.value)[Symbol.iterator]() }
+  get size() { this._evict(); return this.store.size }
+}
+
+const MONGO_CACHE_TTL_MS = Number(process.env.MONGODB_CACHE_TTL_MS || 30 * 60 * 1000)
+const MONGO_USER_CACHE_MAX = Number(process.env.MONGODB_USER_CACHE_MAX || 50_000)
+const MONGO_RECORD_CACHE_MAX = Number(process.env.MONGODB_RECORD_CACHE_MAX || 75_000)
+const MONGO_BATCH_DELAY_MS = Number(process.env.MONGODB_BATCH_DELAY_MS || 5_000)
+const CHARACTER_SEARCH_CACHE_TTL_MS = Number(process.env.CHARACTER_SEARCH_CACHE_TTL_MS || 10 * 60 * 1000)
+const MONGO_LISTENER_KEY = Symbol.for('ruby-hoshino.mongo.listeners')
+const MONGO_INSTANCE_SET_KEY = Symbol.for('ruby-hoshino.mongo.instances')
+
 function normalizeUser(id, value = {}) {
   const source = { ...clone(USER_DEFAULTS), ...(clone(value) || {}), id }
   delete source._id
@@ -130,26 +175,48 @@ export class MongoDatabase {
     this.uri = uri
     this.dbName = dbName
     this.connected = false
-    this.userCache = new Map()
-    this.userProxyCache = new Map()
-    this.userCacheVersions = new Map()
-    this.userDirtyFields = new Map()
-    this.sectionCache = new Map()
-    this.recordProxyCache = new Map()
+    this.userCache = new TTLMap(MONGO_CACHE_TTL_MS, MONGO_USER_CACHE_MAX)
+    this.userProxyCache = new TTLMap(MONGO_CACHE_TTL_MS, MONGO_USER_CACHE_MAX)
+    this.userCacheVersions = new TTLMap(MONGO_CACHE_TTL_MS, MONGO_USER_CACHE_MAX)
+    this.userDirtyFields = new TTLMap(MONGO_CACHE_TTL_MS, MONGO_USER_CACHE_MAX)
+    this.sectionCache = new TTLMap(MONGO_CACHE_TTL_MS, MONGO_RECORD_CACHE_MAX)
+    this.recordProxyCache = new TTLMap(MONGO_CACHE_TTL_MS, MONGO_RECORD_CACHE_MAX)
     this.pendingWrites = new Set()
+    this.pendingUserPatches = new Map()
+    this.pendingRecordWrites = new Map()
+    this.pendingRecordDeletes = new Map()
+    this.batchFlushTimer = null
+    this.batchDelayMs = MONGO_BATCH_DELAY_MS
+    this.characterSearchCache = { file: '', loadedAt: 0, rows: [], promise: null }
     this.User = mongoose.models.User || mongoose.model('User', userSchema, 'users')
     this.Record = mongoose.models.DbRecord || mongoose.model('DbRecord', recordSchema, 'records')
     this.sqlite = createMongoSqliteCompatibility(this)
     this.ready = this.connect()
     this.data = this._createDataFacade()
+    globalThis[MONGO_INSTANCE_SET_KEY] ||= new Set()
+    globalThis[MONGO_INSTANCE_SET_KEY].add(this)
+  }
+
+  _ensureConnectionListeners() {
+    if (mongoose.connection[MONGO_LISTENER_KEY]) return
+    const onDisconnected = () => {
+      for (const instance of globalThis[MONGO_INSTANCE_SET_KEY] || []) instance.connected = false
+      console.error('[mongodb] conexión perdida; mongoose intentará reconectar')
+    }
+    const onReconnected = () => {
+      for (const instance of globalThis[MONGO_INSTANCE_SET_KEY] || []) instance.connected = true
+      console.info('[mongodb] conexión restaurada')
+    }
+    mongoose.connection.on('disconnected', onDisconnected)
+    mongoose.connection.on('reconnected', onReconnected)
+    mongoose.connection[MONGO_LISTENER_KEY] = { onDisconnected, onReconnected }
   }
 
   async connect() {
     try {
       if (mongoose.connection.readyState === 0) await mongoose.connect(this.uri, { ...DEFAULT_MONGO_OPTIONS, dbName: this.dbName })
       this.connected = true
-      mongoose.connection.on('disconnected', () => { this.connected = false; console.error('[mongodb] conexión perdida; mongoose intentará reconectar') })
-      mongoose.connection.on('reconnected', () => { this.connected = true; console.info('[mongodb] conexión restaurada') })
+      this._ensureConnectionListeners()
       return mongoose.connection
     } catch (error) {
       this.connected = false
@@ -182,10 +249,68 @@ export class MongoDatabase {
   _trackWrite(promise) {
     const tracked = Promise.resolve(promise).catch(error => {
       console.error('[mongodb] escritura fallida', error)
-      throw error
+      return null
     }).finally(() => this.pendingWrites.delete(tracked))
     this.pendingWrites.add(tracked)
     return tracked
+  }
+
+  _scheduleBatchFlush() {
+    if (this.batchFlushTimer) return
+    this.batchFlushTimer = setTimeout(() => {
+      this.batchFlushTimer = null
+      this._flushBatches().catch(error => console.error('[mongodb] batch flush fallido', error))
+    }, this.batchDelayMs)
+    this.batchFlushTimer.unref?.()
+  }
+
+  _queueUserWrite(id, patch = {}) {
+    const current = this.pendingUserPatches.get(id) || {}
+    this.pendingUserPatches.set(id, { ...current, ...(patch || {}) })
+    this._scheduleBatchFlush()
+    return Promise.resolve(this._userProxy(id))
+  }
+
+  _queueRecordWrite(section, id, value) {
+    const cacheKey = keyFor(section, id)
+    this.pendingRecordDeletes.delete(cacheKey)
+    this.pendingRecordWrites.set(cacheKey, { section, id, value: clone(value) })
+    this._scheduleBatchFlush()
+    return Promise.resolve(value)
+  }
+
+  _queueRecordDelete(section, id) {
+    const cacheKey = keyFor(section, id)
+    this.pendingRecordWrites.delete(cacheKey)
+    this.pendingRecordDeletes.set(cacheKey, { section, id })
+    this._scheduleBatchFlush()
+    return Promise.resolve(null)
+  }
+
+  async _flushBatches() {
+    await this.ready
+    const userEntries = [...this.pendingUserPatches.entries()]
+    const recordWrites = [...this.pendingRecordWrites.values()]
+    const recordDeletes = [...this.pendingRecordDeletes.values()]
+    if (!userEntries.length && !recordWrites.length && !recordDeletes.length) return
+    this.pendingUserPatches.clear()
+    this.pendingRecordWrites.clear()
+    this.pendingRecordDeletes.clear()
+    const operations = []
+    if (userEntries.length) {
+      operations.push(this.User.bulkWrite(userEntries.map(([id, patch]) => {
+        const $set = splitUserPatch(patch)
+        return { updateOne: { filter: { _id: id }, update: { $setOnInsert: normalizeUserForInsert(id, $set), $set }, upsert: true } }
+      }), { ordered: false }))
+      for (const [id] of userEntries) this.userDirtyFields.delete(id)
+    }
+    if (recordWrites.length) {
+      operations.push(this.Record.bulkWrite(recordWrites.map(({ section, id, value }) => ({ updateOne: { filter: { section, key: id }, update: { $set: { value } }, upsert: true } })), { ordered: false }))
+    }
+    if (recordDeletes.length) {
+      operations.push(this.Record.bulkWrite(recordDeletes.map(({ section, id }) => ({ deleteOne: { filter: { section, key: id } } })), { ordered: false }))
+    }
+    await Promise.all(operations.map(operation => this._trackWrite(operation)))
   }
 
   async read() {
@@ -198,20 +323,16 @@ export class MongoDatabase {
     for (const row of records) this.sectionCache.set(keyFor(row.section, row.key), clone(row.value))
     return this.data
   }
-  async write() { await this.ready; await Promise.allSettled([...this.pendingWrites]) }
+  async write() { if (this.batchFlushTimer) { clearTimeout(this.batchFlushTimer); this.batchFlushTimer = null }; await this._flushBatches(); await Promise.allSettled([...this.pendingWrites]) }
   async save() { return this.write() }
   async flush() { return this.write() }
-  async close() { await this.write(); try { await mongoose.connection.close(false) } catch (error) { console.error('[mongodb] error cerrando conexión', error) } }
+  async close() { await this.write(); globalThis[MONGO_INSTANCE_SET_KEY]?.delete(this); try { await mongoose.connection.close(false) } catch (error) { console.error('[mongodb] error cerrando conexión', error) } }
 
   getUser(id) {
     if (!id || typeof id !== 'string') throw new TypeError('getUser requiere un id de usuario válido')
     if (!this.userCache.has(id)) {
       this.userCache.set(id, normalizeUser(id))
-      const cacheVersion = this._userVersion(id)
-      const insertData = normalizeUserForInsert(id)
-      this._trackWrite(this.User.findByIdAndUpdate(id, { $setOnInsert: insertData }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: false }).then(doc => {
-        if (doc) this.userCache.set(id, this._mergeUserDocument(id, doc, this._userVersion(id) !== cacheVersion))
-      }))
+      this._queueUserWrite(id, {})
     }
     return this._userProxy(id)
   }
@@ -222,13 +343,8 @@ export class MongoDatabase {
     const next = applyPatchToUser(id, this.userCache.get(id), patch)
     this.userCache.set(id, next)
     this._markUserDirty(id, patch)
-    const cacheVersion = this._bumpUserVersion(id)
-    const $set = splitUserPatch(patch)
-    const insertData = normalizeUserForInsert(id, $set)
-    return this._trackWrite(this.User.findByIdAndUpdate(id, { $setOnInsert: insertData, $set }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: false }).then(doc => {
-      if (doc) this.userCache.set(id, this._mergeUserDocument(id, doc, this._userVersion(id) !== cacheVersion))
-      return this._userProxy(id)
-    }))
+    this._bumpUserVersion(id)
+    return this._queueUserWrite(id, patch)
   }
 
   incrementUserField(id, field, delta) {
@@ -365,19 +481,21 @@ if (!chat.botSettings || typeof chat.botSettings !== 'object' || Array.isArray(c
   set(section, id, value) {
     if (section === 'users') return this.updateUser(id, value)
     this.recordProxyCache.delete(keyFor(section, id))
-    this.sectionCache.set(keyFor(section, id), value && typeof value === 'object' ? value : clone(value))
-    return this._trackWrite(this.Record.updateOne({ section, key: id }, { $set: { value } }, { upsert: true }))
+    const stored = value && typeof value === 'object' ? value : clone(value)
+    this.sectionCache.set(keyFor(section, id), stored)
+    return this._queueRecordWrite(section, id, stored)
   }
   async has(section, id) { if (section === 'users') return this.userExists(id); if (this.sectionCache.has(keyFor(section, id))) return true; await this.ready; return Boolean(await this.Record.exists({ section, key: id })) }
   delete(section, id) {
     if (section === 'users') {
       this.userCache.delete(id)
       this.userProxyCache.delete(id)
+      this.pendingUserPatches.delete(id)
       return this._trackWrite(this.User.deleteOne({ _id: id }))
     }
     this.recordProxyCache.delete(keyFor(section, id))
     this.sectionCache.delete(keyFor(section, id))
-    return this._trackWrite(this.Record.deleteOne({ section, key: id }))
+    return this._queueRecordDelete(section, id)
   }
 
   _createDataFacade() {
@@ -414,13 +532,32 @@ if (!chat.botSettings || typeof chat.botSettings !== 'object' || Array.isArray(c
   removeGachaMarketSale(groupId, characterId) { const key = `${groupId}:${characterId}`; const sale = this.get('gacha_market', key); this.delete('gacha_market', key); return sale || null }
 
   syncCharactersFts() { return 0 }
-  searchCharacter(query, { limit = 10 } = {}) {
+  async _loadCharacterSearchRows() {
     const file = findCharactersFile()
     if (!file) return []
+    const nowMs = now()
+    if (this.characterSearchCache.file === file && this.characterSearchCache.rows.length && nowMs - this.characterSearchCache.loadedAt < CHARACTER_SEARCH_CACHE_TTL_MS) return this.characterSearchCache.rows
+    if (this.characterSearchCache.promise) return this.characterSearchCache.promise
+    this.characterSearchCache.promise = readFile(file, 'utf8').then(content => {
+      const parsed = JSON.parse(content)
+      const rows = (Array.isArray(parsed) ? parsed : Object.values(parsed || {})).map(character => ({
+        character,
+        searchText: normalizeSearchText([character.id, character.name, character.anime, character.source, ...(character.aliases || []), ...(character.tags || [])].join(' '))
+      }))
+      this.characterSearchCache = { file, loadedAt: now(), rows, promise: null }
+      return rows
+    }).catch(error => {
+      this.characterSearchCache.promise = null
+      console.error('[mongodb] no se pudo cargar índice de personajes', error)
+      return this.characterSearchCache.rows || []
+    })
+    return this.characterSearchCache.promise
+  }
+  async searchCharacter(query, { limit = 10 } = {}) {
     const term = normalizeSearchText(query)
     if (!term) return []
-    const rows = JSON.parse(readFileSync(file, 'utf8'))
-    return (Array.isArray(rows) ? rows : Object.values(rows || {})).filter(character => normalizeSearchText([character.id, character.name, character.anime, character.source, ...(character.aliases || []), ...(character.tags || [])].join(' ')).includes(term)).slice(0, Math.min(Math.max(Number(limit) || 10, 1), 50)).map(character => ({ id: String(character.id || ''), name: character.name || '', anime: character.anime || character.source || '', score: 0 }))
+    const rows = await this._loadCharacterSearchRows()
+    return rows.filter(row => row.searchText.includes(term)).slice(0, Math.min(Math.max(Number(limit) || 10, 1), 50)).map(({ character }) => ({ id: String(character.id || ''), name: character.name || '', anime: character.anime || character.source || '', score: 0 }))
   }
   async snapshot() { await this.write(); return { users: this.listUsers(), marriages: this.getSection('marriages'), harem: this.getSection('harem'), gacha_market: this.getSection('gacha_market'), claim_config: this.getSection('claim_config'), character_favorites: this.getSection('character_favorites') } }
 }
