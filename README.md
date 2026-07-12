@@ -114,11 +114,11 @@ Ruby Hoshino Bot incluye un gestor híbrido pensado para que cualquier persona p
 
 - No necesitas crear una cuenta ni configurar credenciales.
 - Si clonas el repositorio y ejecutas `npm start` sin archivo `.env`, el bot usa **SQLite local automáticamente**.
-- Este modo es ideal para pruebas, desarrollo, Termux, Cloud Shell o instalaciones pequeñas: es **Plug & Play**.
+- Este modo es lo decente, ideal para desarrollo, Termux, Cloud Shell.
 
 ### 🟢 Modo Producción (MongoDB)
 
-Usa MongoDB cuando quieras desplegar el bot en un hosting, mantener datos persistentes en la nube o alojar muchos Sub-Bots.
+Usa MongoDB cuando quieras mantener datos persistentes en la nube o alojar muchos Sub-Bots.
 
 1. Crea un clúster en [MongoDB Atlas](https://www.mongodb.com/atlas/database).
 2. Copia la plantilla de entorno:
