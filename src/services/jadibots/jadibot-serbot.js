@@ -244,9 +244,10 @@ if (getSubBotConnectionState(id) || await pathExists(sessionPath)) {
 await cleanupSubBotSession({ id, jid: normalizedJid, sessionPath, reason: 'overwrite' })
 }
 }
-let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
+let handler = async (m, { conn, args = [], usedPrefix, command, isOwner }) => {
 const limiteSubBots = global.subbotlimitt || 26;
-const subBots = [...new Set([...global.conns.filter((c) => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)])]
+const activeConns = Array.isArray(global.conns) ? global.conns : []
+const subBots = [...new Set(activeConns.filter((c) => c?.user && c?.ws?.socket && c.ws.socket.readyState !== ws.CLOSED))]
 const subBotsCount = subBots.length
 if (subBotsCount >= limiteSubBots) {
 return m.reply(`🥀 Se ha alcanzado o superado el límite de *Sub-Bots* activos (${subBotsCount}/${limiteSubBots}).\n\nNo se pueden crear más conexiones hasta que un Sub-Bot se desconecte.`)
@@ -258,7 +259,7 @@ const legacyId = `${subBotJid.split`@`[0]}`
 const newPathRubyJadiBot = path.join(`./${jadi}/`, id)
 const legacyPathRubyJadiBot = path.join(`./${jadi}/`, legacyId)
 let pathRubyJadiBot = (await pathExists(newPathRubyJadiBot)) || !(await pathExists(legacyPathRubyJadiBot)) ? newPathRubyJadiBot : legacyPathRubyJadiBot
-const existingById = global.conns.find(c => (c?.subBotId === id || c?.subBotJid === subBotJid) && [ws.OPEN, ws.CONNECTING].includes(c?.ws?.socket?.readyState))
+const existingById = activeConns.find(c => (c?.subBotId === id || c?.subBotJid === subBotJid) && [ws.OPEN, ws.CONNECTING].includes(c?.ws?.socket?.readyState))
 const activeState = getSubBotConnectionState(id)
 if (existingById || ['connecting', 'online', 'reconnecting'].includes(activeState?.status) || await pathExists(pathRubyJadiBot)) {
 await conn.reply(m.chat, '♻️ Detecté una sesión previa de Sub-Bot. La cerraré y borraré para generar un código nuevo.', m).catch(() => {})
@@ -270,7 +271,7 @@ setSubBotConnectionState(id, 'connecting', { jid: subBotJid, path: pathRubyJadiB
 if (!await pathExists(pathRubyJadiBot)){
 await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })
 }
-const options = { pathRubyJadiBot, subBotJid, subBotId: id, m, conn, args: [...args], usedPrefix, command, fromCommand: true }
+const options = { pathRubyJadiBot, subBotJid, subBotId: id, m, conn, args: Array.isArray(args) ? [...args] : String(args || '').split(/\s+/).filter(Boolean), usedPrefix, command, fromCommand: true }
 try {
 await RubyJadiBot(options)
 global.db.getUser(m.sender).Subs = new Date * 1
@@ -285,6 +286,7 @@ handler.command = ['qr', 'code']
 export default handler
 export async function RubyJadiBot(options) {
 let { pathRubyJadiBot, subBotJid, subBotId: requestedSubBotId, m, conn, args, usedPrefix, command } = options
+args = Array.isArray(args) ? args : String(args || '').split(/\s+/).filter(Boolean)
 if (command === 'code') {
 command = 'qr';
 args.unshift('code')}
