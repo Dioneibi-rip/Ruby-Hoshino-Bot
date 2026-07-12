@@ -103,6 +103,39 @@ npm start
 > ✔️ Asegúrate de que tu Cloud Shell tenga Node.js instalado.
 </details>
 
+
+---
+
+## 💾 Sistema de Base de Datos Híbrida
+
+Ruby Hoshino Bot incluye un gestor híbrido pensado para que cualquier persona pueda iniciar el proyecto sin fricción y, al mismo tiempo, escalarlo en producción.
+
+### 🟡 Modo Local (Por defecto)
+
+- No necesitas crear una cuenta ni configurar credenciales.
+- Si clonas el repositorio y ejecutas `npm start` sin archivo `.env`, el bot usa **SQLite local automáticamente**.
+- Este modo es ideal para pruebas, desarrollo, Termux, Cloud Shell o instalaciones pequeñas: es **Plug & Play**.
+
+### 🟢 Modo Producción (MongoDB)
+
+Usa MongoDB cuando quieras desplegar el bot en un hosting, mantener datos persistentes en la nube o alojar muchos Sub-Bots.
+
+1. Crea un clúster en [MongoDB Atlas](https://www.mongodb.com/atlas/database).
+2. Copia la plantilla de entorno:
+
+```bash
+cp .env.example .env
+```
+
+3. Abre `.env` y pega tu conexión en `MONGODB_URI=`.
+4. Inicia el bot normalmente:
+
+```bash
+npm start
+```
+
+> Si `MONGODB_URI` queda vacío o MongoDB no responde, Ruby Hoshino Bot vuelve a SQLite automáticamente para evitar que el arranque falle.
+
 ---
 
 ### 💖 **`ACTIVAR SI SE DETUVO (TERMUX)`**

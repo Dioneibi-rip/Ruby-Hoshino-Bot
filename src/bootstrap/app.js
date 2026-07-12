@@ -287,6 +287,8 @@ if ((qr && opcion === '1') || methodCodeQR) {
 console.log(boxen(chalk.hex('#FF66C4')('—🍦ܶ߭ຼ ᪲  ۪  ︵ Escanea el codigo QR aqui ︵ ࣪'), { padding: 1, borderStyle: 'classic', borderColor: 'magenta' }))
 }
 if (connection === 'open') {
+conn.__groupEventStartedAt = Date.now()
+conn.__groupEventReadyAt = conn.__groupEventStartedAt + 20_000
 reconnectAttempt = 0
 if (reconnectTimer) {
 clearTimeout(reconnectTimer)
