@@ -658,7 +658,14 @@ if (!opts.restrict && plugin.tags?.includes?.('admin')) continue
 const __filename = join(pluginDir, name)
 const match = getPrefixMatch(this, plugin, m.text)
 const beforeContext = buildPluginContext(this, { match, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename })
-const beforeResult = await plugin.before.call(this, m, beforeContext)
+let beforeResult = false
+try {
+beforeResult = await plugin.before.call(this, m, beforeContext)
+} catch (error) {
+console.error(`[plugin-before] ${name}`, error)
+m.pluginFailed = true
+continue
+}
 if (m.__pluginHalt) return
 if (beforeResult && commandEntry?.name === name) return
 if (m.__pluginHalt) return
