@@ -40,6 +40,11 @@ function normalizeUser(id, value = {}) {
   for (const field of BOOLEAN_FIELDS) source[field] = Boolean(source[field])
   return source
 }
+function normalizeUserForInsert(id) {
+  const insertData = normalizeUser(id)
+  delete insertData.extras
+  return insertData
+}
 function splitUserPatch(patch = {}) {
   const $set = { updatedAt: new Date() }
   for (const [key, value] of Object.entries(patch || {})) {
@@ -140,7 +145,8 @@ export class MongoDatabase {
     if (!id || typeof id !== 'string') throw new TypeError('getUser requiere un id de usuario válido')
     if (!this.userCache.has(id)) {
       this.userCache.set(id, normalizeUser(id))
-      this._trackWrite(this.User.findByIdAndUpdate(id, { $setOnInsert: normalizeUser(id) }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: true }).then(doc => {
+      const insertData = normalizeUserForInsert(id)
+      this._trackWrite(this.User.findByIdAndUpdate(id, { $setOnInsert: insertData }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: true }).then(doc => {
         if (doc) this.userCache.set(id, normalizeUser(id, doc))
       }))
     }
@@ -152,7 +158,8 @@ export class MongoDatabase {
     if (!id || typeof id !== 'string') throw new TypeError('updateUser requiere un id de usuario válido')
     const next = applyPatchToUser(id, this.userCache.get(id), patch)
     this.userCache.set(id, next)
-    return this._trackWrite(this.User.findByIdAndUpdate(id, { $setOnInsert: normalizeUser(id), $set: splitUserPatch(patch) }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: true }).then(doc => {
+    const insertData = normalizeUserForInsert(id)
+    return this._trackWrite(this.User.findByIdAndUpdate(id, { $setOnInsert: insertData, $set: splitUserPatch(patch) }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: true }).then(doc => {
       if (doc) this.userCache.set(id, normalizeUser(id, doc))
       return this._userProxy(id)
     }))
