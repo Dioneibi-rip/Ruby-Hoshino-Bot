@@ -63,6 +63,39 @@ function splitUserPatch(patch = {}) {
   }
   return $set
 }
+
+function createMongoSqliteCompatibility(db) {
+  const unsupported = (sql) => { throw new Error(`[mongodb] Consulta SQLite no soportada por el adaptador de compatibilidad: ${sql}`) }
+  return {
+    prepare(sql = '') {
+      const normalized = String(sql || '').replace(/\s+/g, ' ').trim().toLowerCase()
+      if (normalized.includes('from character_favorites') && normalized.includes('group by character_id')) {
+        return { all: () => {
+          const counts = new Map()
+          for (const characterId of Object.values(db.getSection('character_favorites') || {})) if (characterId) counts.set(characterId, (counts.get(characterId) || 0) + 1)
+          return [...counts.entries()].map(([character_id, total]) => ({ character_id, total })).sort((a, b) => b.total - a.total).slice(0, 11)
+        } }
+      }
+      if (normalized.includes('select character_id from character_favorites where user_id')) {
+        return { get: (userId) => {
+          const character_id = db.getSection('character_favorites')?.[userId]
+          return character_id ? { character_id } : undefined
+        } }
+      }
+      if (normalized.startsWith('insert into character_favorites')) {
+        return { run: (userId, characterId) => db.set('character_favorites', userId, String(characterId || '')) }
+      }
+      if (normalized.includes('delete from claim_config where user_id')) {
+        return { run: (userId) => db.delete('claim_config', userId) }
+      }
+      if (normalized.startsWith('insert into claim_config')) {
+        return { run: (userId, message) => db.set('claim_config', userId, String(message || '')) }
+      }
+      return { all: () => unsupported(sql), get: () => unsupported(sql), run: () => unsupported(sql) }
+    }
+  }
+}
+
 function applyPatchToUser(id, current, patch = {}) {
   const next = normalizeUser(id, current)
   for (const [key, value] of Object.entries(patch || {})) {
@@ -106,6 +139,7 @@ export class MongoDatabase {
     this.pendingWrites = new Set()
     this.User = mongoose.models.User || mongoose.model('User', userSchema, 'users')
     this.Record = mongoose.models.DbRecord || mongoose.model('DbRecord', recordSchema, 'records')
+    this.sqlite = createMongoSqliteCompatibility(this)
     this.ready = this.connect()
     this.data = this._createDataFacade()
   }
@@ -255,7 +289,15 @@ export class MongoDatabase {
     if (typeof chat.antiLink === 'undefined') chat.antiLink = true
     if (typeof chat.antilink === 'undefined') chat.antilink = true
     if (typeof chat.detect === 'undefined') chat.detect = true
-    if (!chat.botSettings || typeof chat.botSettings !== 'object') chat.botSettings = {}
+    const primary = chat.primaryBot ?? chat.botPrimario ?? null
+if (primary) {
+chat.primaryBot = primary
+chat.botPrimario = primary
+} else {
+if (typeof chat.primaryBot === 'undefined') chat.primaryBot = null
+if (typeof chat.botPrimario === 'undefined') chat.botPrimario = null
+}
+if (!chat.botSettings || typeof chat.botSettings !== 'object' || Array.isArray(chat.botSettings)) chat.botSettings = {}
     if (chat.isBanned === true) chat.isBanned = { '*': true }
     else if (!chat.isBanned || typeof chat.isBanned !== 'object') chat.isBanned = {}
     chat.bannedBots = Object.entries(chat.botSettings).filter(([, value]) => value?.isBanned === true).map(([jid]) => jid)

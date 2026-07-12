@@ -28,8 +28,11 @@ import { attachSessionState, createMessageRetryCache } from '../core/session-man
 import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from '../router/handler-utils.js'
 import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from '../infra/queue.js'
 EventEmitter.defaultMaxListeners = 100
-const { proto } = (await import('@whiskeysockets/baileys')).default
-const { DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, Browsers } = await import('@whiskeysockets/baileys')
+const baileysModule = await import('@whiskeysockets/baileys')
+global.baileys = baileysModule
+global.Baileys = baileysModule
+const { proto } = baileysModule.default
+const { DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, Browsers } = baileysModule
 import pkg from 'google-libphonenumber'
 const { PhoneNumberUtil } = pkg
 const phoneUtil = PhoneNumberUtil.getInstance()
