@@ -364,7 +364,7 @@ upsertJson: this.sqlite.prepare('INSERT INTO json_records(section,id,value,updat
 
 
 _bindPublicApi() {
-for (const name of ['getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
+for (const name of ['topUsers', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
 this[name] = this[name].bind(this)
 }
 }
@@ -466,6 +466,13 @@ this._markUserDirty(id)
 return this.getUser(id)
 }
 setEconomy(id, field, value) { return this.updateUser(id, { [field]: value }) }
+topUsers({ field = 'coin', limit = 10, offset = 0 } = {}) {
+const safeField = String(field || '').trim()
+if (!(safeField in USER_COLUMNS) || !NUMERIC_FIELDS.has(safeField)) throw new Error(`Campo de ranking no permitido: ${safeField}`)
+const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100)
+const safeOffset = Math.max(Number(offset) || 0, 0)
+return this.sqlite.prepare(`SELECT id, ${q(safeField)} AS ${q(safeField)} FROM users WHERE ${q(safeField)} > 0 ORDER BY ${q(safeField)} DESC, id ASC LIMIT ? OFFSET ?`).all(safeLimit, safeOffset)
+}
 
 
 _syncCharactersFtsFromJson() {
@@ -598,13 +605,16 @@ return proxy
 }
 get(section, id) {
 if (section === 'users') return this.getUser(id)
-let value = this.getSection(section)[id]
+let value = this.getRecord(section, id)
 if (typeof value === 'undefined' && ['chats', 'settings', 'stats', 'msgs', 'sessions', 'codes'].includes(section)) {
 value = section === 'chats' ? this.normalizeChatDefaults({}) : {}
 this.set(section, id, value)
 }
 return this._recordProxy(section, id, value)
 }
+getRecord(section, id) { if (section === 'users') return this.getUser(id); if (section === 'sticker') return this.getStickerCommand(id); if (section === 'groups') return this.getGroup(id); if (section === 'claim_config') return this.sqlite.prepare('SELECT message FROM claim_config WHERE user_id=?').get(id)?.message; if (section === 'character_favorites') return this.sqlite.prepare('SELECT character_id FROM character_favorites WHERE user_id=?').get(id)?.character_id; if (section === 'chats') return this.getChat(id); if (section === 'settings') { const row = this.sqlite.prepare('SELECT value FROM settings WHERE id=?').get(id); return parseJSON(row?.value, undefined) } const row = this.statements.getJson.get(section, id); return parseJSON(row?.value, undefined) }
+setRecord(section, id, value) { return this.set(section, id, value) }
+countSection(section, filter = {}) { if (section === 'users') return this.sqlite.prepare('SELECT COUNT(*) AS total FROM users').get().total; if (section === 'chats' || section === 'settings') return this.sqlite.prepare(`SELECT COUNT(*) AS total FROM ${section}`).get().total; if (section === 'groups') return this.sqlite.prepare('SELECT COUNT(*) AS total FROM groups').get().total; if (section === 'claim_config') return this.sqlite.prepare('SELECT COUNT(*) AS total FROM claim_config').get().total; if (section === 'character_favorites') return this.sqlite.prepare('SELECT COUNT(*) AS total FROM character_favorites').get().total; return this.sqlite.prepare('SELECT COUNT(*) AS total FROM json_records WHERE section=?').get(section).total }
 set(section, id, value) { if (section === 'sticker') return this.setStickerCommand(id, value); if (section === 'users') return this.updateUser(id, value); if (section === 'groups') return this.upsertGroupMetadata(id, value); if (section === 'claim_config') return this.sqlite.prepare('INSERT INTO claim_config(user_id,message,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET message=excluded.message, updated_at=excluded.updated_at').run(id, String(value || ''), now()); if (section === 'character_favorites') return this.sqlite.prepare('INSERT INTO character_favorites(user_id,character_id,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET character_id=excluded.character_id, updated_at=excluded.updated_at').run(id, String(value || ''), now()); if (section === 'chats' || section === 'settings') return this._jsonSectionUpsertStatement(section).run(this._jsonSectionPayload(section, id, value)); this.statements.upsertJson.run(section, id, stringify(value)) }
 has(section, id) { if (section === 'users') return this.userExists(id); return this.get(section, id) !== undefined }
 delete(section, id) { if (section === 'sticker') return this.sqlite.prepare('DELETE FROM sticker_cmds WHERE hash=?').run(id); if (section === 'claim_config') return this.sqlite.prepare('DELETE FROM claim_config WHERE user_id=?').run(id); if (section === 'character_favorites') return this.sqlite.prepare('DELETE FROM character_favorites WHERE user_id=?').run(id); if (section === 'chats' || section === 'settings' || section === 'groups') { const table = section === 'groups' ? 'groups' : section; return this.sqlite.prepare(`DELETE FROM ${table} WHERE id=?`).run(id) } if (section === 'users') { for (const [cachedId, cachedUser] of this.userCache.entries()) if (cachedUser?.marry === id) { cachedUser.marry = ''; this.userCache.set(cachedId, cachedUser) } this.userCache.delete(id); this.userProxyCache.delete(id); this.dirtyUsers.delete(id); const tx = this.sqlite.transaction(userId => { this.sqlite.prepare('DELETE FROM marriages WHERE user_id=? OR partner_id=?').run(userId, userId); this.sqlite.prepare("UPDATE users SET marry='' WHERE marry=?").run(userId); this.sqlite.prepare("UPDATE harem SET user_id='', protection_json='{}' WHERE user_id=?").run(userId); return this.sqlite.prepare('DELETE FROM users WHERE id=?').run(userId) }); return tx(id) } this.sqlite.prepare('DELETE FROM json_records WHERE section=? AND id=?').run(section, id) }

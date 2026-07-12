@@ -360,6 +360,16 @@ export class MongoDatabase {
   async userExists(id) { await this.ready; return this.userCache.has(id) || Boolean(await this.User.exists({ _id: id })) }
   listUsers() { return Object.fromEntries([...this.userCache.entries()].map(([id, user]) => [id, normalizeUser(id, user)])) }
   listUserRows() { return Object.entries(this.listUsers()).map(([id, user]) => ({ ...user, id })) }
+  async topUsers({ field = 'coin', limit = 10, offset = 0 } = {}) {
+    await this.ready
+    const safeField = String(field || '').trim()
+    if (!Object.prototype.hasOwnProperty.call(USER_DEFAULTS, safeField) || !NUMERIC_FIELDS.has(safeField)) throw new Error(`Campo de ranking no permitido: ${safeField}`)
+    const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100)
+    const safeOffset = Math.max(Number(offset) || 0, 0)
+    const rows = await this.User.find({ [safeField]: { $gt: 0 } }, { _id: 1, [safeField]: 1 }).sort({ [safeField]: -1, _id: 1 }).skip(safeOffset).limit(safeLimit).lean()
+    for (const row of rows) this.userCache.set(row._id, normalizeUser(row._id, row))
+    return rows.map(row => ({ id: row._id, [safeField]: Number(row[safeField]) || 0 }))
+  }
   async listUsersAsync() { await this.ready; const rows = await this.User.find({}).lean(); for (const row of rows) this.userCache.set(row._id, normalizeUser(row._id, row)); return this.listUsers() }
 
   _userProxy(id) {
@@ -426,6 +436,24 @@ if (!chat.botSettings || typeof chat.botSettings !== 'object' || Array.isArray(c
     return Object.fromEntries([...this.sectionCache.entries()].filter(([key]) => key.startsWith(prefix)).map(([key, value]) => [key.slice(prefix.length), clone(value)]))
   }
   async getSectionAsync(section) { await this.ready; const rows = await this.Record.find({ section }).lean(); for (const row of rows) this.sectionCache.set(keyFor(section, row.key), clone(row.value)); return this.getSection(section) }
+  async getRecord(section, id, { bypassCache = false } = {}) {
+    if (section === 'users') return bypassCache ? normalizeUser(id, await this.User.findById(id).lean()) : this.getUser(id)
+    const cacheKey = keyFor(section, id)
+    let value = bypassCache ? undefined : this.sectionCache.get(cacheKey)
+    if (typeof value === 'undefined') {
+      await this.ready
+      const row = await this.Record.findOne({ section, key: id }).lean()
+      value = row ? clone(row.value) : undefined
+      if (typeof value !== 'undefined') this.sectionCache.set(cacheKey, value)
+    }
+    return this._recordProxy(section, id, value)
+  }
+  setRecord(section, id, value) { return this.set(section, id, value) }
+  async countSection(section, filter = {}) {
+    await this.ready
+    if (section === 'users') return this.User.countDocuments(filter || {})
+    return this.Record.countDocuments({ section, ...(filter || {}) })
+  }
   replaceSection(section, values = {}) {
     for (const key of [...this.sectionCache.keys()]) if (key.startsWith(`${section}:`)) this.sectionCache.delete(key)
     for (const [id, value] of Object.entries(values || {})) this.sectionCache.set(keyFor(section, id), clone(value))

@@ -16,10 +16,8 @@ let rows = []
 if (typeof global.db?.write === 'function') {
 try { await global.db.write() } catch {}
 }
-if (global.db?.sqlite) {
-rows = global.db.sqlite
-.prepare('SELECT id, msg_count FROM users WHERE msg_count > 0 ORDER BY msg_count DESC LIMIT ? OFFSET ?')
-.all(PER_PAGE * 3, offset)
+if (typeof global.db?.topUsers === 'function') {
+rows = await global.db.topUsers({ field: 'msg_count', limit: PER_PAGE * 3, offset })
 } else {
 const users = typeof global.db?.listUserRows === 'function'
 ? global.db.listUserRows()

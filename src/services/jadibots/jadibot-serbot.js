@@ -352,9 +352,44 @@ attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.j
 sock.isInit = false
 let isInit = true
 let healthInterval = null
-let reconnectAttempts = 0
 const MAX_RECONNECT_ATTEMPTS = options.startupLoad ? 3 : subSocketCfg.maxReconnectAttempts ?? 6
 const RECONNECT_BASE_DELAY_MS = subSocketCfg.reconnectBaseDelayMs ?? 1500
+
+class SubBotReconnectStateMachine {
+constructor({ id, jid, sessionPath, startupLoad, reconnect, onFatal }) {
+this.id = id
+this.jid = jid
+this.sessionPath = sessionPath
+this.startupLoad = Boolean(startupLoad)
+this.reconnect = reconnect
+this.onFatal = onFatal
+this.attempts = 0
+this.state = 'offline'
+}
+transition(state, metadata = {}) {
+this.state = state
+setSubBotConnectionState(this.id, state, { jid: this.jid, path: this.sessionPath, ...metadata })
+}
+markOnline(metadata = {}) { this.attempts = 0; this.transition('online', metadata) }
+markFatal(metadata = {}) { this.transition('fatal', metadata); return this.onFatal?.(metadata) }
+async reconnectAfter(closeReason = 'unknown') {
+if (this.attempts >= MAX_RECONNECT_ATTEMPTS) {
+if (this.startupLoad) return this.markFatal({ lastReason: closeReason, removeSession: true })
+console.log(chalk.bold.yellow(`⚠️ Sub-Bot +${this.id} alcanzó ${MAX_RECONNECT_ATTEMPTS} reconexiones; se conserva la sesión y se reintenta con pausa larga.`))
+this.transition('reconnecting', { lastReason: closeReason })
+this.attempts = Math.max(1, MAX_RECONNECT_ATTEMPTS - 1)
+await sleep(120000 + Math.floor(Math.random() * 30000))
+} else {
+this.attempts += 1
+this.transition('reconnecting', { lastReason: closeReason, attempts: this.attempts })
+const rateLimitDelay = String(closeReason || '').includes('429') || String(closeReason || '').includes('rate') ? 30000 : 0
+const waitMs = Math.max(rateLimitDelay, Math.min(60000, RECONNECT_BASE_DELAY_MS * (2 ** (this.attempts - 1)))) + Math.floor(Math.random() * 1000)
+await sleep(waitMs)
+}
+try { await this.reconnect(); return true } catch (error) { console.error(`Error reconectando +${this.id}:`, error); return this.reconnectAfter(closeReason) }
+}
+}
+
 let pairingCodeSent = false
 let pairingCodeMessageKey = null
 let pairingCodeTimer = null
@@ -536,28 +571,10 @@ const endSesion = async (loaded) => {
 if (!loaded) destroySock({ removeSession: false })
 }
 const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode
+const reconnectMachine = sock.__reconnectMachine || (sock.__reconnectMachine = new SubBotReconnectStateMachine({ id: subBotId, jid: subBotJid, sessionPath: pathRubyJadiBot, startupLoad: options.startupLoad, reconnect: () => creloadHandler(true), onFatal: ({ removeSession = false } = {}) => destroySock({ removeSession }) }))
 const scheduleReconnect = async (closeReason, reconnectFn) => {
-if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-if (options.startupLoad) {
-await destroySock({ removeSession: true })
-return false
-}
-console.log(chalk.bold.yellow(`⚠️ Sub-Bot +${subBotId} alcanzó ${MAX_RECONNECT_ATTEMPTS} reconexiones; se conserva la sesión y se reintenta con pausa larga.`))
-setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot, lastReason: closeReason })
-reconnectAttempts = Math.max(1, MAX_RECONNECT_ATTEMPTS - 1)
-await sleep(120000 + Math.floor(Math.random() * 30000))
-} else {
-reconnectAttempts += 1
-const rateLimitDelay = String(closeReason || '').includes('429') || String(closeReason || '').includes('rate') ? 30000 : 0
-const waitMs = Math.max(rateLimitDelay, Math.min(60000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1)))) + Math.floor(Math.random() * 1000)
-await sleep(waitMs)
-}
-try {
-await reconnectFn()
-} catch (e) {
-console.error(`Error reconectando +${subBotId}:`, e)
-return scheduleReconnect(closeReason, reconnectFn)
-}
+if (reconnectFn) reconnectMachine.reconnect = reconnectFn
+return reconnectMachine.reconnectAfter(closeReason)
 }
 if (connection === 'close') {
 if (FATAL_RECONNECT_REASONS.has(reason)) {
@@ -586,7 +603,7 @@ userName = sock.authState.creds.me.name || 'Anónimo'
 userJid = sock.authState.creds.me.jid || `${path.basename(pathRubyJadiBot)}@s.whatsapp.net`
 console.log(chalk.bold.cyanBright(`\n❒⸺⸺⸺⸺【• SUB-BOT •】⸺⸺⸺⸺❒\n│\n│ 🟢 ${userName} (+${path.basename(pathRubyJadiBot)}) conectado exitosamente.\n│\n❒⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺❒`))
 sock.isInit = true
-reconnectAttempts = 0
+reconnectMachine.markOnline({ connectedAt: Date.now() })
 if (!global.conns.includes(sock)) global.conns.push(sock)
 registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() })
 setSubBotConnectionState(subBotId, 'online', { jid: subBotJid, path: pathRubyJadiBot, connectedAt: Date.now() })
@@ -598,31 +615,14 @@ joinChannels(sock).catch(() => {})
 if (!healthInterval) {
 healthInterval = setInterval(async () => {
 if (!sock.user || sock?.ws?.socket?.readyState === ws.CLOSED) {
-if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot })
 scheduleSafeReconnect('health-check').catch(() => {})
-}
 }
 }, 90000)
 }
 }
 }
 async function scheduleSafeReconnect(closeReason = 'unknown') {
-if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-if (options.startupLoad) {
-await destroySock({ removeSession: true })
-return false
-}
-setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot })
-reconnectAttempts = Math.max(1, MAX_RECONNECT_ATTEMPTS - 1)
-await sleep(120000 + Math.floor(Math.random() * 30000))
-} else {
-reconnectAttempts += 1
-const rateLimitDelay = String(closeReason || '').includes('429') || String(closeReason || '').includes('rate') ? 30000 : 0
-const waitMs = Math.max(rateLimitDelay, Math.min(60000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1)))) + Math.floor(Math.random() * 1000)
-await sleep(waitMs)
-}
-return creloadHandler(true).catch(error => console.error(`Error en reconexión segura del Sub-Bot ${subBotId}:`, error))
+return reconnectMachine.reconnectAfter(closeReason).catch(error => console.error(`Error en reconexión segura del Sub-Bot ${subBotId}:`, error))
 }
 creloadHandler(false)
 if (mcode && m?.chat) {
