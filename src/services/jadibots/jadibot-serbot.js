@@ -431,7 +431,7 @@ sock.participantsUpdate = handlerModule.participantsUpdate.bind(sock)
 sock.groupsUpdate = handlerModule.groupsUpdate.bind(sock)
 sock.connectionUpdate = update => connectionUpdate(update).catch(async error => {
 console.error(`Error crítico en connection.update del Sub-Bot ${subBotId}:`, error)
-if (sock?.ws?.socket?.readyState !== ws.OPEN) await scheduleSafeReconnect()
+if (sock?.ws?.socket?.readyState !== ws.OPEN) await scheduleSafeReconnect(error?.output?.statusCode || error?.data?.statusCode || error?.statusCode || 'connection-update-error')
 })
 sock.credsUpdate = debouncedSaveCreds
 sock.ev.on("messages.upsert", sock.handler)
@@ -445,6 +445,7 @@ return true
 async function connectionUpdate(update) {
 const { connection, lastDisconnect, isNewLogin, qr, receivedPendingNotifications } = update
 if (isNewLogin) sock.isInit = false
+if (!global.db?.getSection) await global.loadDatabase?.()
 if (receivedPendingNotifications && SUBBOT_GROUP_PREFETCH_ON_CONNECT) refreshSubBotGroups(sock).catch(() => {})
 if (qr && !mcode) {
 if (qrMessageSent) return
@@ -576,11 +577,10 @@ return scheduleReconnect(reason, async () => {
 await creloadHandler(true)
 })
 }
-if (!global.db?.getSection) loadDatabase()
 if (connection == `open`) {
 sock.__groupEventStartedAt = Date.now()
 sock.__groupEventReadyAt = sock.__groupEventStartedAt + 20_000
-if (!global.db?.getSection?.('users')) loadDatabase()
+if (!global.db?.getSection?.('users')) await global.loadDatabase?.()
 let userName, userJid
 userName = sock.authState.creds.me.name || 'Anónimo'
 userJid = sock.authState.creds.me.jid || `${path.basename(pathRubyJadiBot)}@s.whatsapp.net`
@@ -600,14 +600,14 @@ healthInterval = setInterval(async () => {
 if (!sock.user || sock?.ws?.socket?.readyState === ws.CLOSED) {
 if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
 setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot })
-scheduleSafeReconnect().catch(() => {})
+scheduleSafeReconnect('health-check').catch(() => {})
 }
 }
 }, 90000)
 }
 }
 }
-async function scheduleSafeReconnect() {
+async function scheduleSafeReconnect(closeReason = 'unknown') {
 if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
 if (options.startupLoad) {
 await destroySock({ removeSession: true })

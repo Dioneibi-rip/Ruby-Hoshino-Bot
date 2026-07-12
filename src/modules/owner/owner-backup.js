@@ -1,21 +1,48 @@
-import fs from 'fs'
+function sanitizeSnapshot(value) {
+return JSON.parse(JSON.stringify(value ?? {}, (_key, item) => typeof item === 'bigint' ? item.toString() : item))
+}
 
-let handler = async (m, { conn, text, usedPrefix, command }) => {
-await m.reply(`${emoji} Enviando base de datos de ${packname}...`)
+async function createDatabaseBackup() {
+if (!global.db) throw new Error('La base de datos global no está inicializada')
+if (typeof global.db.write === 'function') await global.db.write().catch(() => {})
+if (typeof global.db.flush === 'function') await global.db.flush().catch(() => {})
+const snapshot = typeof global.db.snapshot === 'function'
+? await global.db.snapshot()
+: {
+users: global.db.getSection?.('users') || global.db.data?.users || {},
+chats: global.db.getSection?.('chats') || global.db.data?.chats || {},
+settings: global.db.getSection?.('settings') || global.db.data?.settings || {},
+stats: global.db.getSection?.('stats') || global.db.data?.stats || {},
+}
+return sanitizeSnapshot({
+createdAt: new Date().toISOString(),
+engine: global.db.uri ? 'mongodb' : global.db.filename ? 'sqlite' : 'unknown',
+filename: global.db.filename || null,
+dbName: global.db.dbName || null,
+snapshot,
+})
+}
+
+let handler = async (m, { conn }) => {
+await m.reply(`${emoji} Generando respaldo compatible de ${packname}...`)
 try {
 await m.react(rwait)
-let d = new Date
-let date = d.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })
-let database = await fs.promises.readFile(`./src/database/database.sqlite`)
-let creds = await fs.promises.readFile(`./RubySessions/creds.json`)
-await conn.reply(m.chat, `*• Fecha:* ${date}`, m)
-await conn.sendMessage(m.sender, {document: database, mimetype: 'application/vnd.sqlite3', fileName: `database.sqlite`}, { quoted: fkontak })
-await m.react(done)
-await conn.sendMessage(m.sender, {document: creds, mimetype: 'application/json', fileName: `creds.json`}, { quoted: fkontak })
+const d = new Date()
+const date = d.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })
+const backup = await createDatabaseBackup()
+const payload = Buffer.from(JSON.stringify(backup, null, 2), 'utf8')
+const stamp = d.toISOString().replace(/[:.]/g, '-')
+await conn.reply(m.chat, `*• Fecha:* ${date}\n*• Motor:* ${backup.engine}`, m)
+await conn.sendMessage(m.sender, {
+document: payload,
+mimetype: 'application/json',
+fileName: `ruby-hoshino-db-backup-${stamp}.json`,
+}, { quoted: fkontak })
 await m.react(done)
 } catch (e) {
+console.error('[backup]', e)
 await m.react(error)
-conn.reply(m.chat, `${msm} Ocurrió un error.`, m)
+conn.reply(m.chat, `${msm} Ocurrió un error generando el respaldo.`, m)
 return false
 }
 }
