@@ -29,8 +29,8 @@ function attachBaileysStoreDatabase(db, sqlite = null, filename = DEFAULT_BAILEY
 }
 
 function createSQLiteFallback(filename = DEFAULT_SQLITE_FILE, options = {}, reason = null) {
-  if (reason) console.warn(`🟡 MongoDB no disponible (${reason.message || reason}). Usando SQLite local para mantener el bot en línea.`)
-  else console.warn('🟡 MONGODB_URI no detectado. Iniciando base de datos local en SQLite por defecto...')
+  if (reason) console.warn(`🟡 Usando SQLite local: MongoDB no disponible (${reason.message || reason}). El bot seguirá en línea.`)
+  else console.warn('🟡 Usando SQLite local: MONGODB_URI no está configurado.')
   const db = new SQLiteDatabase(filename)
   return attachBaileysStoreDatabase(db, db.sqlite, options.baileysFilename)
 }
@@ -53,7 +53,7 @@ async function initializeDatabase(filename = DEFAULT_SQLITE_FILE, options = {}) 
     console.info('🟢 MONGODB_URI detectado. Conectando base de datos en MongoDB...')
     const db = new MongoDatabase(filename, { ...options, uri })
     await db.ready
-    console.info('✅ MongoDB conectado. La base de datos principal usará MongoDB.')
+    console.info('🟢 Conectado a MongoDB. La base de datos principal usará MongoDB.')
     return attachBaileysStoreDatabase(db, null, options.baileysFilename)
   } catch (error) {
     return createSQLiteFallback(filename, options, error)
