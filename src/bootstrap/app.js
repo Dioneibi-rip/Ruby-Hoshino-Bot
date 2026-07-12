@@ -14,6 +14,7 @@ import chalk from 'chalk'
 import syntaxerror from 'syntax-error'
 import { tmpdir } from 'os'
 import { format } from 'util'
+import 'dotenv/config';
 import boxen from 'boxen'
 import pino from 'pino'
 import { Boom } from '@hapi/boom'
