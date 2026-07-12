@@ -25,14 +25,16 @@ const USER_DEFAULTS = {
 const NUMERIC_FIELDS = new Set(Object.entries(USER_DEFAULTS).filter(([, value]) => typeof value === 'number').map(([key]) => key))
 const BOOLEAN_FIELDS = new Set(Object.entries(USER_DEFAULTS).filter(([, value]) => typeof value === 'boolean').map(([key]) => key))
 const INTERNAL_PROPS = new Set(['then', 'inspect', 'toJSON', 'valueOf', Symbol.toStringTag, Symbol.iterator])
-const SECTION_COLLECTIONS = new Set(['chats', 'settings', 'stats', 'msgs', 'sticker', 'sessions', 'codes', 'groups', 'marriages', 'harem', 'gacha_market', 'claim_config', 'character_favorites'])
+const SECTION_COLLECTIONS = ['chats', 'settings', 'stats', 'msgs', 'sticker', 'sessions', 'codes', 'groups', 'marriages', 'harem', 'gacha_market', 'claim_config', 'character_favorites']
 
 function clone(value) { return JSON.parse(JSON.stringify(value ?? {})) }
 function now() { return Date.now() }
 function normalizeSearchText(text = '') { return String(text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim() }
 function findCharactersFile() { return [path.resolve('./src/database/characters.json'), path.resolve('./database/characters.json')].find(candidate => existsSync(candidate)) }
+function keyFor(section, id) { return `${section}:${id}` }
 function normalizeUser(id, value = {}) {
   const source = { ...clone(USER_DEFAULTS), ...(clone(value) || {}), id }
+  delete source._id
   source.extras = source.extras && typeof source.extras === 'object' && !Array.isArray(source.extras) ? source.extras : {}
   for (const field of NUMERIC_FIELDS) source[field] = Number.isFinite(Number(source[field])) ? Number(source[field]) : USER_DEFAULTS[field]
   for (const field of BOOLEAN_FIELDS) source[field] = Boolean(source[field])
@@ -40,7 +42,6 @@ function normalizeUser(id, value = {}) {
 }
 function splitUserPatch(patch = {}) {
   const $set = { updatedAt: new Date() }
-  const extras = {}
   for (const [key, value] of Object.entries(patch || {})) {
     if (key === 'id' || key === '_id' || key === 'createdAt' || key === 'updatedAt') continue
     if (key === 'extras' && value && typeof value === 'object' && !Array.isArray(value)) {
@@ -48,11 +49,20 @@ function splitUserPatch(patch = {}) {
     } else if (key in USER_DEFAULTS) {
       $set[key] = value instanceof Date ? value.getTime() : value
     } else {
-      extras[key] = value instanceof Date ? value.getTime() : value
+      $set[`extras.${key}`] = value instanceof Date ? value.getTime() : value
     }
   }
-  for (const [key, value] of Object.entries(extras)) $set[`extras.${key}`] = value
   return $set
+}
+function applyPatchToUser(id, current, patch = {}) {
+  const next = normalizeUser(id, current)
+  for (const [key, value] of Object.entries(patch || {})) {
+    if (key === 'id' || key === '_id') continue
+    if (key === 'extras' && value && typeof value === 'object' && !Array.isArray(value)) next.extras = { ...next.extras, ...value }
+    else if (key in USER_DEFAULTS) next[key] = value instanceof Date ? value.getTime() : value
+    else next.extras[key] = value instanceof Date ? value.getTime() : value
+  }
+  return normalizeUser(id, next)
 }
 
 const userSchema = new mongoose.Schema({
@@ -74,13 +84,14 @@ recordSchema.index({ section: 1, key: 1 }, { unique: true })
 
 export class MongoDatabase {
   constructor(_legacySqliteFilename = './src/database/database.sqlite', { uri = process.env.MONGODB_URI, dbName = process.env.MONGODB_DB_NAME } = {}) {
-    if (!uri) throw new Error('MONGODB_URI es obligatorio para iniciar la base de datos MongoDB')
+    if (!uri) throw new Error('MONGODB_URI es obligatorio; configúralo como variable de entorno y no lo hardcodees')
     this.uri = uri
     this.dbName = dbName
     this.connected = false
     this.userCache = new Map()
     this.userProxyCache = new Map()
     this.sectionCache = new Map()
+    this.pendingWrites = new Set()
     this.User = mongoose.models.User || mongoose.model('User', userSchema, 'users')
     this.Record = mongoose.models.DbRecord || mongoose.model('DbRecord', recordSchema, 'records')
     this.ready = this.connect()
@@ -101,43 +112,65 @@ export class MongoDatabase {
     }
   }
 
-  async read() { await this.ready; await this._warmupSections(); return this.data }
-  async write() { await this.ready }
+  _trackWrite(promise) {
+    const tracked = Promise.resolve(promise).catch(error => {
+      console.error('[mongodb] escritura fallida', error)
+      throw error
+    }).finally(() => this.pendingWrites.delete(tracked))
+    this.pendingWrites.add(tracked)
+    return tracked
+  }
+
+  async read() {
+    await this.ready
+    const [users, records] = await Promise.all([
+      this.User.find({}).lean(),
+      this.Record.find({ section: { $in: SECTION_COLLECTIONS } }).lean()
+    ])
+    for (const row of users) this.userCache.set(row._id, normalizeUser(row._id, row))
+    for (const row of records) this.sectionCache.set(keyFor(row.section, row.key), clone(row.value))
+    return this.data
+  }
+  async write() { await this.ready; await Promise.allSettled([...this.pendingWrites]) }
   async save() { return this.write() }
   async flush() { return this.write() }
-  async close() { try { await mongoose.connection.close(false) } catch (error) { console.error('[mongodb] error cerrando conexión', error) } }
+  async close() { await this.write(); try { await mongoose.connection.close(false) } catch (error) { console.error('[mongodb] error cerrando conexión', error) } }
 
-  async getUser(id) {
+  getUser(id) {
     if (!id || typeof id !== 'string') throw new TypeError('getUser requiere un id de usuario válido')
-    await this.ready
     if (!this.userCache.has(id)) {
-      const doc = await this.User.findByIdAndUpdate(id, { $setOnInsert: normalizeUser(id) }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: true })
-      this.userCache.set(id, normalizeUser(id, { ...doc, id: doc?._id || id }))
+      this.userCache.set(id, normalizeUser(id))
+      this._trackWrite(this.User.findByIdAndUpdate(id, { $setOnInsert: normalizeUser(id) }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: true }).then(doc => {
+        if (doc) this.userCache.set(id, normalizeUser(id, doc))
+      }))
     }
     return this._userProxy(id)
   }
+  async getUserAsync(id) { await this.ready; if (!this.userCache.has(id)) await this.updateUser(id, {}); return this.getUser(id) }
 
-  async updateUser(id, patch = {}) {
+  updateUser(id, patch = {}) {
     if (!id || typeof id !== 'string') throw new TypeError('updateUser requiere un id de usuario válido')
-    await this.ready
-    const doc = await this.User.findByIdAndUpdate(id, { $setOnInsert: normalizeUser(id), $set: splitUserPatch(patch) }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: true })
-    this.userCache.set(id, normalizeUser(id, { ...doc, id: doc?._id || id }))
-    return this._userProxy(id)
+    const next = applyPatchToUser(id, this.userCache.get(id), patch)
+    this.userCache.set(id, next)
+    return this._trackWrite(this.User.findByIdAndUpdate(id, { $setOnInsert: normalizeUser(id), $set: splitUserPatch(patch) }, { upsert: true, new: true, lean: true, setDefaultsOnInsert: true }).then(doc => {
+      if (doc) this.userCache.set(id, normalizeUser(id, doc))
+      return this._userProxy(id)
+    }))
   }
 
-  async incrementUserField(id, field, delta) {
-    await this.ready
-    const value = Number(delta) || 0
-    const update = NUMERIC_FIELDS.has(field) ? { $inc: { [field]: value }, $setOnInsert: normalizeUser(id), $set: { updatedAt: new Date() } } : { $set: { [`extras.${field}`]: ((await this.getUser(id))[field] || 0) + value } }
-    const doc = await this.User.findByIdAndUpdate(id, update, { upsert: true, new: true, lean: true, setDefaultsOnInsert: true })
-    this.userCache.set(id, normalizeUser(id, { ...doc, id: doc?._id || id }))
-    return this._userProxy(id)
+  incrementUserField(id, field, delta) {
+    const amount = Number(delta) || 0
+    const user = this.getUser(id)
+    const current = Number(user[field]) || 0
+    user[field] = current + amount
+    return user
   }
-  async addMoney(id, amount, field = 'coin') { return this.incrementUserField(id, field, amount) }
-  async addEconomy(id, fieldOrAmount, maybeAmount) { return typeof fieldOrAmount === 'string' ? this.addMoney(id, maybeAmount, fieldOrAmount) : this.addMoney(id, fieldOrAmount, maybeAmount || 'coin') }
-  async setEconomy(id, field, value) { return this.updateUser(id, { [field]: value }) }
-  async userExists(id) { await this.ready; return Boolean(await this.User.exists({ _id: id })) }
-  async listUsers() { await this.ready; const rows = await this.User.find({}).lean(); return Object.fromEntries(rows.map(row => [row._id, normalizeUser(row._id, row)])) }
+  addMoney(id, amount, field = 'coin') { return this.incrementUserField(id, field, amount) }
+  addEconomy(id, fieldOrAmount, maybeAmount) { return typeof fieldOrAmount === 'string' ? this.addMoney(id, maybeAmount, fieldOrAmount) : this.addMoney(id, fieldOrAmount, maybeAmount || 'coin') }
+  setEconomy(id, field, value) { return this.updateUser(id, { [field]: value }) }
+  async userExists(id) { await this.ready; return this.userCache.has(id) || Boolean(await this.User.exists({ _id: id })) }
+  listUsers() { return Object.fromEntries([...this.userCache.entries()].map(([id, user]) => [id, normalizeUser(id, user)])) }
+  async listUsersAsync() { await this.ready; const rows = await this.User.find({}).lean(); for (const row of rows) this.userCache.set(row._id, normalizeUser(row._id, row)); return this.listUsers() }
 
   _userProxy(id) {
     if (this.userProxyCache.has(id)) return this.userProxyCache.get(id)
@@ -145,7 +178,7 @@ export class MongoDatabase {
       get: (_target, prop) => {
         if (INTERNAL_PROPS.has(prop)) return undefined
         if (prop === 'id') return id
-        if (prop === 'toJSON') return () => clone(this.userCache.get(id) || {})
+        if (prop === 'toJSON') return () => clone(this.userCache.get(id) || normalizeUser(id))
         const user = this.userCache.get(id) || normalizeUser(id)
         return Object.prototype.hasOwnProperty.call(user, prop) ? user[prop] : user.extras?.[prop]
       },
@@ -154,14 +187,18 @@ export class MongoDatabase {
         const user = normalizeUser(id, this.userCache.get(id))
         if (prop in USER_DEFAULTS) user[prop] = value
         else user.extras[prop] = value
-        this.userCache.set(id, user)
-        this.updateUser(id, { [prop]: value }).catch(error => console.error(`[mongodb] no se pudo persistir usuario ${id}`, error))
+        this.userCache.set(id, normalizeUser(id, user))
+        this.updateUser(id, { [prop]: value })
         return true
       },
       deleteProperty: (_target, prop) => {
         if (typeof prop !== 'string') return false
-        const unset = prop in USER_DEFAULTS ? { [prop]: USER_DEFAULTS[prop] } : { extras: { [prop]: undefined } }
-        this.updateUser(id, unset).catch(error => console.error(`[mongodb] no se pudo borrar campo ${prop} de ${id}`, error))
+        const user = normalizeUser(id, this.userCache.get(id))
+        if (prop in USER_DEFAULTS) user[prop] = USER_DEFAULTS[prop]
+        else delete user.extras[prop]
+        this.userCache.set(id, normalizeUser(id, user))
+        const update = prop in USER_DEFAULTS ? { [prop]: USER_DEFAULTS[prop] } : { extras: user.extras }
+        this.updateUser(id, update)
         return true
       },
       ownKeys: () => Object.keys(this.userCache.get(id) || normalizeUser(id)),
@@ -171,8 +208,8 @@ export class MongoDatabase {
     return proxy
   }
 
-  async getChat(id) { const chat = await this.get('chats', id); return this.normalizeChatDefaults(chat || {}) }
-  async updateChat(id, patch = {}) { const chat = this.normalizeChatDefaults({ ...(await this.getChat(id)), ...(patch || {}) }); await this.set('chats', id, chat); return chat }
+  getChat(id) { return this.normalizeChatDefaults(this.get('chats', id) || {}) }
+  updateChat(id, patch = {}) { const chat = this.normalizeChatDefaults({ ...this.getChat(id), ...(patch || {}) }); this.set('chats', id, chat); return chat }
   normalizeChatDefaults(chat = {}) {
     if (typeof chat.welcome === 'undefined') chat.welcome = true
     if (typeof chat.antiLink === 'undefined') chat.antiLink = true
@@ -185,31 +222,70 @@ export class MongoDatabase {
     return chat
   }
 
-  async getSection(section) { if (section === 'users') return this.listUsers(); await this.ready; const rows = await this.Record.find({ section }).lean(); return Object.fromEntries(rows.map(row => [row.key, row.value])) }
-  async replaceSection(section, values = {}) { await this.ready; await this.Record.deleteMany({ section }); if (!Object.keys(values || {}).length) return; await this.Record.bulkWrite(Object.entries(values).map(([key, value]) => ({ updateOne: { filter: { section, key }, update: { $set: { value } }, upsert: true } })), { ordered: false }) }
-  async get(section, id) { if (section === 'users') return this.getUser(id); await this.ready; const cached = this.sectionCache.get(`${section}:${id}`); if (cached !== undefined) return cached; const row = await this.Record.findOne({ section, key: id }).lean(); const value = row?.value; this.sectionCache.set(`${section}:${id}`, value); return value }
-  async set(section, id, value) { if (section === 'users') return this.updateUser(id, value); await this.ready; this.sectionCache.set(`${section}:${id}`, value); await this.Record.updateOne({ section, key: id }, { $set: { value } }, { upsert: true }) }
-  async has(section, id) { if (section === 'users') return this.userExists(id); return (await this.get(section, id)) !== undefined }
-  async delete(section, id) { if (section === 'users') { this.userCache.delete(id); this.userProxyCache.delete(id); return this.User.deleteOne({ _id: id }) } this.sectionCache.delete(`${section}:${id}`); return this.Record.deleteOne({ section, key: id }) }
+  getSection(section) {
+    if (section === 'users') return this.listUsers()
+    const prefix = `${section}:`
+    return Object.fromEntries([...this.sectionCache.entries()].filter(([key]) => key.startsWith(prefix)).map(([key, value]) => [key.slice(prefix.length), clone(value)]))
+  }
+  async getSectionAsync(section) { await this.ready; const rows = await this.Record.find({ section }).lean(); for (const row of rows) this.sectionCache.set(keyFor(section, row.key), clone(row.value)); return this.getSection(section) }
+  replaceSection(section, values = {}) {
+    for (const key of [...this.sectionCache.keys()]) if (key.startsWith(`${section}:`)) this.sectionCache.delete(key)
+    for (const [id, value] of Object.entries(values || {})) this.sectionCache.set(keyFor(section, id), clone(value))
+    return this._trackWrite(this.Record.deleteMany({ section }).then(() => {
+      const entries = Object.entries(values || {})
+      if (!entries.length) return null
+      return this.Record.bulkWrite(entries.map(([key, value]) => ({ updateOne: { filter: { section, key }, update: { $set: { value } }, upsert: true } })), { ordered: false })
+    }))
+  }
+  get(section, id) { if (section === 'users') return this.getUser(id); return this.sectionCache.get(keyFor(section, id)) }
+  set(section, id, value) {
+    if (section === 'users') return this.updateUser(id, value)
+    this.sectionCache.set(keyFor(section, id), clone(value))
+    return this._trackWrite(this.Record.updateOne({ section, key: id }, { $set: { value } }, { upsert: true }))
+  }
+  async has(section, id) { if (section === 'users') return this.userExists(id); if (this.sectionCache.has(keyFor(section, id))) return true; await this.ready; return Boolean(await this.Record.exists({ section, key: id })) }
+  delete(section, id) {
+    if (section === 'users') {
+      this.userCache.delete(id)
+      this.userProxyCache.delete(id)
+      return this._trackWrite(this.User.deleteOne({ _id: id }))
+    }
+    this.sectionCache.delete(keyFor(section, id))
+    return this._trackWrite(this.Record.deleteOne({ section, key: id }))
+  }
 
-  async _warmupSections() { for (const section of SECTION_COLLECTIONS) this.data[section] ||= this._sectionFacade(section) }
-  _createDataFacade() { return { users: this._sectionFacade('users'), chats: this._sectionFacade('chats'), settings: this._sectionFacade('settings'), stats: this._sectionFacade('stats'), msgs: this._sectionFacade('msgs'), sticker: this._sectionFacade('sticker'), sessions: this._sectionFacade('sessions'), codes: this._sectionFacade('codes') } }
-  _sectionFacade(section) { return new Proxy({}, { get: (_target, id) => { if (INTERNAL_PROPS.has(id)) return undefined; if (id === 'toJSON') return () => this.getSection(section); if (typeof id !== 'string') return undefined; return this.get(section, id) }, set: (_target, id, value) => { if (typeof id !== 'string') return false; this.set(section, id, value).catch(error => console.error(`[mongodb] no se pudo persistir ${section}:${id}`, error)); return true }, deleteProperty: (_target, id) => { if (typeof id !== 'string') return false; this.delete(section, id).catch(error => console.error(`[mongodb] no se pudo borrar ${section}:${id}`, error)); return true }, ownKeys: () => [], getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true }) }) }
+  _createDataFacade() {
+    return Object.fromEntries(['users', ...SECTION_COLLECTIONS].map(section => [section, this._sectionFacade(section)]))
+  }
+  _sectionFacade(section) {
+    return new Proxy({}, {
+      get: (_target, id) => {
+        if (INTERNAL_PROPS.has(id)) return undefined
+        if (id === 'toJSON') return () => this.getSection(section)
+        if (typeof id !== 'string') return undefined
+        return this.get(section, id)
+      },
+      set: (_target, id, value) => { if (typeof id !== 'string') return false; this.set(section, id, value); return true },
+      deleteProperty: (_target, id) => { if (typeof id !== 'string') return false; this.delete(section, id); return true },
+      ownKeys: () => Object.keys(this.getSection(section)),
+      getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true })
+    })
+  }
 
-  async getGroup(id) { return this.get('groups', id) }
-  async upsertGroupMetadata(id, metadata = {}) { const payload = { ...(metadata || {}), id }; await this.set('groups', id, payload); return payload }
-  async listGroups() { return this.getSection('groups') }
-  async getMarriages(groupId = 'global') { return (await this.get('marriages', groupId)) || {} }
-  async replaceMarriages(values = {}, groupId = 'global') { return this.set('marriages', groupId, values) }
-  async setMarriagePair(userId, partnerId, date = now(), groupId = 'global') { const current = await this.getMarriages(groupId); current[userId] = { partner: partnerId, date }; current[partnerId] = { partner: userId, date }; await Promise.all([this.replaceMarriages(current, groupId), this.updateUser(userId, { marry: partnerId }), this.updateUser(partnerId, { marry: userId })]); return current }
-  async divorcePair(userId, groupId = 'global') { const current = await this.getMarriages(groupId); const partnerId = current[userId]?.partner || ''; delete current[userId]; if (partnerId) delete current[partnerId]; await Promise.all([this.replaceMarriages(current, groupId), this.updateUser(userId, { marry: '' }), partnerId ? this.updateUser(partnerId, { marry: '' }) : Promise.resolve()]); return partnerId }
-  async getHarem() { return Object.values(await this.getSection('harem')) }
-  async replaceHarem(list = []) { return this.replaceSection('harem', Object.fromEntries(list.map(e => [`${e.groupId}:${e.characterId}`, e]))) }
-  async upsertHaremClaim(e) { return this.set('harem', `${e.groupId}:${e.characterId}`, e) }
-  async getGachaMarket(groupId = '') { const all = Object.values(await this.getSection('gacha_market')); return groupId ? all.filter(e => e.groupId === groupId || e.group_id === groupId) : all }
-  async replaceGachaMarket(list = []) { return this.replaceSection('gacha_market', Object.fromEntries(list.map(e => [`${e.groupId || e.group_id || 'global'}:${e.id || e.characterId}`, e]))) }
-  async addGachaMarketSale(e) { const payload = { ...e, idSale: e.idSale || now(), groupId: e.groupId || e.group_id || 'global', characterId: e.characterId || e.id }; await this.set('gacha_market', `${payload.groupId}:${payload.characterId}`, payload); return payload }
-  async removeGachaMarketSale(groupId, characterId) { const key = `${groupId}:${characterId}`; const sale = await this.get('gacha_market', key); await this.delete('gacha_market', key); return sale || null }
+  getGroup(id) { return this.get('groups', id) || {} }
+  upsertGroupMetadata(id, metadata = {}) { const payload = { ...(metadata || {}), id }; this.set('groups', id, payload); return payload }
+  listGroups() { return this.getSection('groups') }
+  getMarriages(groupId = 'global') { return this.get('marriages', groupId) || {} }
+  replaceMarriages(values = {}, groupId = 'global') { return this.set('marriages', groupId, values) }
+  setMarriagePair(userId, partnerId, date = now(), groupId = 'global') { const current = this.getMarriages(groupId); current[userId] = { partner: partnerId, date }; current[partnerId] = { partner: userId, date }; this.replaceMarriages(current, groupId); this.updateUser(userId, { marry: partnerId }); this.updateUser(partnerId, { marry: userId }); return current }
+  divorcePair(userId, groupId = 'global') { const current = this.getMarriages(groupId); const partnerId = current[userId]?.partner || ''; delete current[userId]; if (partnerId) delete current[partnerId]; this.replaceMarriages(current, groupId); this.updateUser(userId, { marry: '' }); if (partnerId) this.updateUser(partnerId, { marry: '' }); return partnerId }
+  getHarem() { return Object.values(this.getSection('harem')) }
+  replaceHarem(list = []) { return this.replaceSection('harem', Object.fromEntries(list.map(e => [`${e.groupId}:${e.characterId}`, e]))) }
+  upsertHaremClaim(e) { return this.set('harem', `${e.groupId}:${e.characterId}`, e) }
+  getGachaMarket(groupId = '') { const all = Object.values(this.getSection('gacha_market')); return groupId ? all.filter(e => e.groupId === groupId || e.group_id === groupId) : all }
+  replaceGachaMarket(list = []) { return this.replaceSection('gacha_market', Object.fromEntries(list.map(e => [`${e.groupId || e.group_id || 'global'}:${e.id || e.characterId}`, e]))) }
+  addGachaMarketSale(e) { const payload = { ...e, idSale: e.idSale || now(), groupId: e.groupId || e.group_id || 'global', characterId: e.characterId || e.id }; this.set('gacha_market', `${payload.groupId}:${payload.characterId}`, payload); return payload }
+  removeGachaMarketSale(groupId, characterId) { const key = `${groupId}:${characterId}`; const sale = this.get('gacha_market', key); this.delete('gacha_market', key); return sale || null }
 
   syncCharactersFts() { return 0 }
   searchCharacter(query, { limit = 10 } = {}) {
@@ -220,7 +296,7 @@ export class MongoDatabase {
     const rows = JSON.parse(readFileSync(file, 'utf8'))
     return (Array.isArray(rows) ? rows : Object.values(rows || {})).filter(character => normalizeSearchText([character.id, character.name, character.anime, character.source, ...(character.aliases || []), ...(character.tags || [])].join(' ')).includes(term)).slice(0, Math.min(Math.max(Number(limit) || 10, 1), 50)).map(character => ({ id: String(character.id || ''), name: character.name || '', anime: character.anime || character.source || '', score: 0 }))
   }
-  async snapshot() { return { users: await this.listUsers(), marriages: await this.getSection('marriages'), harem: await this.getSection('harem'), gacha_market: await this.getSection('gacha_market'), claim_config: await this.getSection('claim_config'), character_favorites: await this.getSection('character_favorites') } }
+  async snapshot() { await this.write(); return { users: this.listUsers(), marriages: this.getSection('marriages'), harem: this.getSection('harem'), gacha_market: this.getSection('gacha_market'), claim_config: this.getSection('claim_config'), character_favorites: this.getSection('character_favorites') } }
 }
 
 export { MongoDatabase as DbManager }
