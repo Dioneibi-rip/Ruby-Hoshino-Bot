@@ -34,7 +34,7 @@ conn.__groupMetadataLastFetch.set(chatId, Date.now())
 const fetchGroupMetadata = conn.__rawGroupMetadata || conn.groupMetadata?.bind(conn)
 const request = Promise.resolve(fetchGroupMetadata?.(chatId)).then((metadata) => {
 metadata ||= cached || {}
-if (Array.isArray(metadata?.participants)) metadata.participants = metadata.participants.map(normalizeParticipant)
+metadata.participants = normalizeParticipantList(metadata?.participants)
 metadata.__cachedAt = Date.now()
 conn.__groupMetadataCache.set(chatId, metadata)
 global.db?.upsertGroupMetadata?.(chatId, metadata)
@@ -48,9 +48,15 @@ conn.__groupMetadataInflight.set(chatId, request)
 return request
 }
 
+export function normalizeParticipantList(participants = []) {
+if (Array.isArray(participants)) return participants.filter(Boolean).map(normalizeParticipant)
+if (participants && typeof participants === 'object') return Object.values(participants).filter(Boolean).map(normalizeParticipant)
+return []
+}
+
 export function createParticipantIndex(participants = []) {
 const byLid = new Map()
-for (const p of participants) {
+for (const p of normalizeParticipantList(participants)) {
 if (p?.lid) byLid.set(p.lid, p)
 if (p?.lid && p.lid.endsWith('@lid')) byLid.set(p.lid.replace('@lid', '@hosted.lid'), p)
 }
@@ -123,6 +129,7 @@ return false
 }
 
 export function buildPermissionContext(conn, m, sender, participants = []) {
+participants = normalizeParticipantList(participants)
 const decode = (jid) => conn?.decodeJid ? conn.decodeJid(jid) : jid
 const userGroup = (m?.isGroup ? participants.find((u) => decode(u?.jid) === sender) : {}) || {}
 const botGroup = (m?.isGroup ? participants.find((u) => decode(u?.jid) === conn?.user?.jid) : {}) || {}
