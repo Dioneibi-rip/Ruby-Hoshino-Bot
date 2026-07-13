@@ -21,7 +21,7 @@ isNumber,
 normalizeLidReferences,
 runMaintenance,
 } from './handler-utils.js'
-import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
+import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, isPrimaryBotForChat, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
 import { attachSessionState, cleanupSessionState } from '../core/session-manager.js'
 import messageQueue from '../core/message-queue.js'
 import { normalizeIdentityJid } from '../core/identity-utils.js'
@@ -302,7 +302,7 @@ const chat = getFreshChatRecord(chatId)
 const primaryBot = getPrimaryBotJid(chat)
 if (!primaryBot) return false
 const currentBot = normalizeConnectionJid(conn)
-return Boolean(currentBot && currentBot !== primaryBot)
+return Boolean(currentBot && !isPrimaryBotForChat(chat, currentBot))
 }
 
 function enforcePrimaryBotMiddleware(conn, m = {}) {

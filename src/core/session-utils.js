@@ -57,10 +57,16 @@ const value = chat?.primaryBot || chat?.botPrimario || ''
 return normalizeSessionJid(value)
 }
 
+export function getPrimaryBotJids(chat = {}) {
+const primary = getPrimaryBotJid(chat)
+const aliases = Array.isArray(chat?.primaryBotAliases) ? chat.primaryBotAliases : []
+return [...new Set([primary, ...aliases.map(alias => normalizeSessionJid(alias))].filter(Boolean))]
+}
+
 export function isPrimaryBotForChat(chat = {}, connOrJid = '') {
-const primaryBot = getPrimaryBotJid(chat)
-if (!primaryBot) return true
-return normalizeSessionJid(connOrJid) === primaryBot
+const primaryBots = getPrimaryBotJids(chat)
+if (!primaryBots.length) return true
+return primaryBots.includes(normalizeSessionJid(connOrJid))
 }
 
 export function shouldSilenceChatForBot(chat = {}, connOrJid = '') {
