@@ -1,8 +1,7 @@
 import { getCachedParticipatingGroups } from './baileys-group-cache.js'
 import path from 'path'  
-import { toAudio } from './converter.js'
+import { toAudio } from './media-converter.js'
 import chalk from 'chalk'
-import fetch from 'node-fetch'
 import PhoneNumber from 'awesome-phonenumber'
 import fs from 'fs'
 import util from 'util'
@@ -256,7 +255,7 @@ sendListB: {
              */
             async value(PATH, saveToFile = false) {
                 let res, filename
-                const data = Buffer.isBuffer(PATH) ? PATH : PATH instanceof ArrayBuffer ? PATH.toBuffer() : /^data:.*?\/.*?;base64,/i.test(PATH) ? Buffer.from(PATH.split`,`[1], 'base64') : /^https?:\/\//.test(PATH) ? await (res = await fetch(PATH)).buffer() : fs.existsSync(PATH) ? (filename = PATH, fs.readFileSync(PATH)) : typeof PATH === 'string' ? PATH : Buffer.alloc(0)
+                const data = Buffer.isBuffer(PATH) ? PATH : PATH instanceof ArrayBuffer ? PATH.toBuffer() : /^data:.*?\/.*?;base64,/i.test(PATH) ? Buffer.from(PATH.split`,`[1], 'base64') : /^https?:\/\//.test(PATH) ? Buffer.from(await (res = await fetch(PATH)).arrayBuffer()) : fs.existsSync(PATH) ? (filename = PATH, fs.readFileSync(PATH)) : typeof PATH === 'string' ? PATH : Buffer.alloc(0)
                 if (!Buffer.isBuffer(data)) throw new TypeError('Result is not a buffer')
                 const type = await fileTypeFromBuffer(data) || {
                     mime: 'application/octet-stream',

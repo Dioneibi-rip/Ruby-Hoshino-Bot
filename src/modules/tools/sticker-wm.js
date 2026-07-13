@@ -1,8 +1,6 @@
 import { addExif } from '../../infra/sticker.js';
 import { sticker } from '../../infra/sticker.js';
-import fetch from 'node-fetch';
-import axios from 'axios';
-
+import axios from '../../infra/http.js'
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 if (!m.quoted) return m.reply(`${emoji} Por favor, responde a un sticker con el comando *${usedPrefix + command}* seguido del nuevo nombre.\nEjemplo: *${usedPrefix + command} Nuevo Nombre*`);
 

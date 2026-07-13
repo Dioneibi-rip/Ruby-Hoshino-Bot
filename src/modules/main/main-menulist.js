@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import { prepareWAMessageMedia, generateWAMessageFromContent } from '@whiskeysockets/baileys';
 import moment from 'moment-timezone';
 

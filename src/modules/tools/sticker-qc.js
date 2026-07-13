@@ -1,5 +1,5 @@
 import { sticker } from '../../infra/sticker.js'
-import axios from 'axios'
+import axios from '../../infra/http.js'
 const handler = async (m, { conn, args }) => {
 const rwait = global.rwait || "⏳";
 const done = global.done || "✅";

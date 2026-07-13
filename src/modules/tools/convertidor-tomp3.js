@@ -1,4 +1,4 @@
-import {toAudio} from '../../infra/converter.js';
+import {toAudio} from '../../infra/media-converter.js';
 
 const handler = async (m, {conn, usedPrefix, command}) => {
 const q = m.quoted ? m.quoted : m;

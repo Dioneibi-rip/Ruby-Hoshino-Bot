@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import axios from 'axios';
-
+import axios from '../../infra/http.js'
 let handler = async (m, { conn, usedPrefix }) => {
 let frases = [
 {

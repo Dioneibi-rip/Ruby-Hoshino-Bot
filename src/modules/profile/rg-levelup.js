@@ -1,6 +1,5 @@
 import { canLevelUp, xpRange } from '../../infra/levelling.js';
 import db from '../../infra/database.js';
-import fetch from 'node-fetch';
 import { ensureUserRole } from '../functions/_roles.js';
 
 let handler = async (m, { conn }) => {

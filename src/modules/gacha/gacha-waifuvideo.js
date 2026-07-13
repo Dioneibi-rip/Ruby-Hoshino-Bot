@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs'
 import path from 'path'
-import axios from 'axios'
+import axios from '../../infra/http.js'
 import { spawn } from 'child_process'
 import { tmpdir } from 'os'
 import { loadCharacters, findCharacterByName } from '../../infra/gacha-characters.js'

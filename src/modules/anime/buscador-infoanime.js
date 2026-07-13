@@ -1,5 +1,3 @@
-import fetch from 'node-fetch'
-
 var handler = async (m, { conn, usedPrefix, command, text }) => {
 
 if (!text) return conn.reply(m.chat, `${emoji} Ingrese el nombre de algun anime\n\n> Ejemplo, ${usedPrefix + command} Roshidere`, m)

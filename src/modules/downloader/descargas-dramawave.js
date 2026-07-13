@@ -1,6 +1,4 @@
 import crypto from 'crypto'
-import fetch from 'node-fetch'
-
 const LOGIN_SALT = '8IAcbWyCsVhYv82S2eofRqK1DF3nNDAv'
 const OAUTH_SALT = '8IAcbWyCsVhYv82S2eofRqK1DF3nNDAv&'
 const API_BASE = 'https://api.mydramawave.com/dm-api'

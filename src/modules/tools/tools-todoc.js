@@ -1,4 +1,4 @@
-import { toAudio } from '../../infra/converter.js'
+import { toAudio } from '../../infra/media-converter.js'
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 let q = m.quoted || m

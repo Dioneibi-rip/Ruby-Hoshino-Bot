@@ -1,7 +1,5 @@
-import uploadFile from '../../infra/uploadFile.js'
-import uploadImage from '../../infra/uploadImage.js'
-import fetch from 'node-fetch'
-
+import uploadFile from '../../infra/uploader.js'
+import uploadImage from '../../infra/uploader.js'
 let handler = async (m) => {
 let q = m.quoted ? m.quoted : m
 let mime = (q.msg || q).mimetype || ''
@@ -14,7 +12,7 @@ try {
 let media = await q.download()
 let isTele = /image\/(png|jpe?g|gif)|video\/mp4/.test(mime)
 let link = await (isTele ? uploadImage : uploadFile)(media)
-let img = await (await fetch(`${link}`)).buffer()
+let img = Buffer.from(await (await fetch(`${link}`)).arrayBuffer())
 let txt = `乂  *L I N K - E N L A C E*  乂\n\n`
 txt += `*» Enlace* : ${link}\n`
 txt += `*» Acortado* : ${await shortUrl(link)}\n`

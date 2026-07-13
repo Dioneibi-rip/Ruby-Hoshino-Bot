@@ -1,13 +1,3 @@
-import acrcloud from 'acrcloud'
-import yts from 'yt-search'
-import { ytmp3 } from '../../infra/youtubedl.js'
-
-let acr = new acrcloud({
-host: 'identify-eu-west-1.acrcloud.com',
-access_key: 'c33c767d683f78bd17d4bd4991955d81',
-access_secret: 'bvgaIAEtADBTbLwiPGYlxupWqkNGIjT7J9Ag2vIu'
-})
-
 let handler = async (m, { conn, usedPrefix, command }) => {
 let q = m.quoted ? m.quoted : m
 let mime = (q.msg || q).mimetype || q.mediaType || ''
@@ -15,6 +5,17 @@ if (!/audio|video/.test(mime)) {
 await conn.reply(m.chat, `🐚 𝗘𝘁𝗶𝗾𝘂𝗲𝘁𝗮 𝘂𝗻 𝗮𝘂𝗱𝗶𝗼 𝗼 𝘃𝗶𝗱𝗲𝗼 𝗰𝗼𝗿𝘁𝗼 𝗰𝗼𝗻 *${usedPrefix + command}* 𝗽𝗮𝗿𝗮 𝗯𝘂𝘀𝗰𝗮𝗿 𝗹𝗮 𝗺𝘂́𝘀𝗶𝗰𝗮`, m);
 return false;
 }
+
+const [{ default: acrcloud }, { default: yts }, { ytmp3 }] = await Promise.all([
+import('acrcloud'),
+import('yt-search'),
+import('../../infra/youtubedl.js')
+])
+const acr = new acrcloud({
+host: 'identify-eu-west-1.acrcloud.com',
+access_key: 'c33c767d683f78bd17d4bd4991955d81',
+access_secret: 'bvgaIAEtADBTbLwiPGYlxupWqkNGIjT7J9Ag2vIu'
+})
 
 let buffer = await q.download()
 

@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from '../../infra/http.js'
 const { generateWAMessageFromContent, generateWAMessageContent, proto } = (await import('@whiskeysockets/baileys')).default
 let handler = async (m, { conn, text }) => {
 if (!text) {

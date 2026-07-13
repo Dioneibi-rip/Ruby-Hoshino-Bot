@@ -1,5 +1,3 @@
-import fetch from 'node-fetch'
-
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
 const btoa2 = str => Buffer.from(str, 'utf8').toString('base64')
 const atob2 = b64 => Buffer.from(b64, 'base64').toString('utf8')

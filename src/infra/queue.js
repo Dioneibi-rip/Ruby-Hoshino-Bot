@@ -1,3 +1,4 @@
+import EventEmitter from 'events'
 const queue = []
 
 let activeConn = null
@@ -80,4 +81,44 @@ export async function closeMediaQueue() {
 closed = true
 queue.length = 0
 isProcessing = false
+}
+
+export class Queque extends EventEmitter {
+  _queque = new Set()
+  add(item) { this._queque.add(item) }
+  has(item) { return this._queque.has(item) }
+  delete(item) { this._queque.delete(item) }
+  first() { return [...this._queque].shift() }
+  isFirst(item) { return this.first() === item }
+  last() { return [...this._queque].pop() }
+  isLast(item) { return this.last() === item }
+  getIndex(item) { return [...this._queque].indexOf(item) }
+  getSize() { return this._queque.size }
+  isEmpty() { return this.getSize() === 0 }
+  unqueue(item) {
+    let queque
+    if (item) {
+      if (this.has(item)) {
+        queque = item
+        if (!this.isFirst(item)) throw new Error('Item is not first in queue')
+      }
+    } else queque = this.first()
+    if (queque) {
+      this.delete(queque)
+      this.emit(queque)
+    }
+  }
+  waitQueue(item) {
+    return new Promise((resolve, reject) => {
+      if (!this.has(item)) return reject(new Error('item not found'))
+      const solve = async (removeQueque = false) => {
+        await delay(5000)
+        if (removeQueque) this.unqueue(item)
+        if (!this.isEmpty()) this.unqueue()
+        resolve()
+      }
+      if (this.isFirst(item)) solve(true)
+      else this.once(item, solve)
+    })
+  }
 }

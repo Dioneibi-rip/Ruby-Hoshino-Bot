@@ -5,7 +5,6 @@ import { platform } from 'process'
 import { watchFile, unwatchFile, readdirSync, statSync, unlinkSync, existsSync, mkdirSync, rmSync, watch, readFileSync } from 'fs'
 import { readdir, readFile, access } from 'fs/promises'
 import * as ws from 'ws'
-import cfonts from 'cfonts'
 import path, { join, dirname } from 'path'
 import yargs from 'yargs'
 import { spawn } from 'child_process'
@@ -15,7 +14,6 @@ import syntaxerror from 'syntax-error'
 import { tmpdir } from 'os'
 import { format } from 'util'
 import 'dotenv/config';
-import boxen from 'boxen'
 import pino from 'pino'
 import { Boom } from '@hapi/boom'
 import { makeWASocket, protoType, serialize } from '../infra/simple.js'
@@ -121,8 +119,7 @@ global.__bannerShown = true
 console.clear()
 console.log(bannerASCII)
 console.log(chalk.bold.hex('#FF66C4')('—🍦ܶ߭ ᪲  ۪  ︵ “Cada comienzo es una nueva oportunidad. Gracias por elegirme, daré lo mejor de mí para ayudarte.” ︵ ࣪'))
-cfonts.say('Ruby hoshino Bot', { font: 'chrome', align: 'center', gradient: ['#ff4fcb', '#ff77ff'], transition: true, env: 'node' })
-console.log(boxen(chalk.bold.hex('#9900ff')('୨୧ㅤ۫ Proyecto iniciado con Exito. .ᐟ'), { padding: 1, margin: 1, borderStyle: 'double', borderColor: 'magenta', float: 'center' }))
+console.log(chalk.bold.hex('#9900ff')('୨୧ㅤ۫ Proyecto iniciado con Exito. .ᐟ'))
 }
 showBanner()
 global.loadDatabase = async function loadDatabase() {
@@ -261,7 +258,7 @@ addNumber = phoneNumber.replace(/\D/g, '')
 setTimeout(async () => {
 let codeBot = await conn.requestPairingCode(addNumber);
 codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
-console.log(boxen(chalk.bold.white(' Codigo : ') + chalk.bold.bgMagenta(` ${codeBot} `), { borderStyle: 'round', borderColor: 'magenta', padding: 1, margin: 1, title: '👾 VINCULACION', titleAlignment: 'center' }))
+console.log(chalk.bold.white(' Codigo : ') + chalk.bold.bgMagenta(` ${codeBot} `))
 }, 3000)
 }
 }
@@ -287,7 +284,7 @@ global.stopped = connection
 if (isNewLogin) conn.isInit = true
 if (global.db.data == null) loadDatabase()
 if ((qr && opcion === '1') || methodCodeQR) {
-console.log(boxen(chalk.hex('#FF66C4')('—🍦ܶ߭ຼ ᪲  ۪  ︵ Escanea el codigo QR aqui ︵ ࣪'), { padding: 1, borderStyle: 'classic', borderColor: 'magenta' }))
+console.log(chalk.hex('#FF66C4')('—🍦ܶ߭ຼ ᪲  ۪  ︵ Escanea el codigo QR aqui ︵ ࣪'))
 }
 if (connection === 'open') {
 conn.__groupEventStartedAt = Date.now()
@@ -298,12 +295,12 @@ clearTimeout(reconnectTimer)
 reconnectTimer = undefined
 }
 console.log('\n')
-console.log(boxen(chalk.bold.hex('#00FF00')('୭ৎ֮֮ BOT CONECTADO CORRECTAMENTE 🪼 ׄ'), { padding: 1, borderStyle: 'double', borderColor: 'green', title: '✅ 𝖤𝖷𝖨𝖳𝖮', titleAlignment: 'center' }))
+console.log(chalk.bold.hex('#00FF00')('୭ৎ֮֮ BOT CONECTADO CORRECTAMENTE 🪼 ׄ'))
 console.log('\n')
 }
 if (connection === 'close') {
 const statusCode = (lastDisconnect?.error)?.output?.statusCode || (lastDisconnect?.error)?.statusCode || DisconnectReason.connectionClosed
-const show = (color, text, icon) => console.log(boxen(color(text), { padding: 1, borderStyle: 'round', borderColor: 'red', title: icon, titleAlignment: 'center' }))
+const show = (color, text, icon) => console.log(`${icon} ${color(text)}`)
 if (DISCONNECT_AUTH_STATUS.has(statusCode)) {
 show(chalk.red, `👋 SESION INVALIDA ${statusCode}. BORRE LA CARPETA ${global.Rubysessions} Y VINCULE DE NUEVO`, '🚪')
 return

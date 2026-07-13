@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 const handler = async (m, { args, usedPrefix, command, conn }) => {
 if (!args[0]) {
 return m.reply(`✳️ *Uso correcto del comando:*\n${usedPrefix + command} <texto o URL>\n\n🧩 Ejemplo:\n${usedPrefix + command} https://wa.me`);

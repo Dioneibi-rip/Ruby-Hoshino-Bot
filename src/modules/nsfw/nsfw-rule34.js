@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import baileys from '@whiskeysockets/baileys';
 import { enqueueMediaJob, getMediaQueueConnection } from '../../infra/queue.js';
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));

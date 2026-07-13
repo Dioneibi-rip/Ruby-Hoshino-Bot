@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 const newsletterJid  = '120363335626706839@newsletter';
 const newsletterName = '🌸『 Ruby-Hoshino Waifu Channel 』🌸';
 

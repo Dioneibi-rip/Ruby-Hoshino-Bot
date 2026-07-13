@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import cheerio from 'cheerio'
 
 const MEDIAFIRE_URL_REGEX = /^https?:\/\/(www\.)?mediafire\.com\//i

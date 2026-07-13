@@ -1,4 +1,4 @@
-import { webp2png } from '../../infra/webp2mp4.js'
+import { webp2png } from '../../infra/media-converter.js'
 
 let handler = async (m, { conn, usedPrefix, command }) => {
 const notStickerMessage = `${emoji} Debes citar un sticker para convertir a imagen.`

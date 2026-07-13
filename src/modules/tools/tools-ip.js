@@ -1,5 +1,4 @@
-import axios from 'axios'
-
+import axios from '../../infra/http.js'
 let handler = async (m, { conn, text }) => {
 let bot = '🍭 Buscando espere un momento....'
 conn.reply(m.chat, bot, m)

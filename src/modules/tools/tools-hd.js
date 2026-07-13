@@ -1,7 +1,3 @@
-import axios from 'axios'
-import * as cheerio from 'cheerio'
-import FormData from 'form-data'
-
 let handler = async (m, { conn, usedPrefix, command }) => {
 try {
 let quoted = m.quoted ? m.quoted : m
@@ -36,6 +32,7 @@ export default handler
 
 async function getToken() {
 try {
+const [{ default: axios }, cheerio] = await Promise.all([import('../../infra/http.js'), import('cheerio')])
 const html = await axios.get('https://www.iloveimg.com/upscale-image')
 const $ = cheerio.load(html.data)
 
@@ -56,6 +53,7 @@ return false;
 }
 
 async function uploadImage(server, headers, buffer, task) {
+const { default: axios } = await import('../../infra/http.js')
 const form = new FormData()
 
 form.append('name', 'image.jpg')
@@ -63,7 +61,7 @@ form.append('chunk', '0')
 form.append('chunks', '1')
 form.append('task', task)
 form.append('preview', '1')
-form.append('file', buffer, 'image.jpg')
+form.append('file', new Blob([buffer], { type: 'image/jpeg' }), 'image.jpg')
 
 const res = await axios.post(
 `https://${server}.iloveimg.com/v1/upload`,
@@ -71,7 +69,6 @@ form,
 {
 headers: {
 ...headers,
-...form.getHeaders(),
 },
 }
 )
@@ -80,6 +77,7 @@ return res.data
 }
 
 async function hdr(buffer, scale = 4) {
+const { default: axios } = await import('../../infra/http.js')
 const { token, csrf } = await getToken()
 
 const servers = [
@@ -112,7 +110,6 @@ form,
 {
 headers: {
 ...headers,
-...form.getHeaders(),
 },
 responseType: 'arraybuffer',
 }

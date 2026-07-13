@@ -1,6 +1,4 @@
-import fetch from "node-fetch";
 import crypto from "crypto";
-import { FormData, Blob } from "formdata-node";
 import { fileTypeFromBuffer } from "file-type";
 
 let handler = async (m, { conn }) => {

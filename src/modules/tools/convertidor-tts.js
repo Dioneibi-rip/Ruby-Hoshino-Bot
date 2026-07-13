@@ -1,6 +1,3 @@
-import gtts from 'node-gtts'
-import fs from 'fs'
-import { join } from 'path'
 const defaultLang='es'
 const handler=async(m,{conn,args})=>{
 let lang=args[0]
@@ -32,6 +29,7 @@ function saveSpeech(ttsEngine,filePath,text){
 return new Promise((resolve,reject)=>ttsEngine.save(filePath,text,error=>error?reject(error):resolve()))
 }
 async function tts(text,lang='es'){
+const [{ default: gtts }, fs, { join }] = await Promise.all([import('node-gtts'), import('fs'), import('path')])
 const ttsEngine=gtts(lang)
 const tmpDir=join(process.cwd(),'tmp')
 if(!fs.existsSync(tmpDir))fs.mkdirSync(tmpDir,{recursive:true})

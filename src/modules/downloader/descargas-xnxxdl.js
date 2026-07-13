@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import cheerio from 'cheerio';
 
 const handler = async (m, {conn, args, command, usedPrefix}) => {

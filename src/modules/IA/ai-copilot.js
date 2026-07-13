@@ -1,6 +1,4 @@
 import WebSocket from 'ws'
-import fetch from 'node-fetch'
-
 function decorateAiReply(title, text) {
 const body = String(text || 'Sin respuesta.').trim()
 return `╭─❖ 𓆩 ${title} 𓆪 ❖─╮

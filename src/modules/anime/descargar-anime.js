@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import { download, detail, search } from "../../infra/anime.js";
 
 const SESSION_TTL = 10 * 60 * 1000;

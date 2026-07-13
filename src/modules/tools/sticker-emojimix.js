@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import { sticker } from '../../infra/sticker.js'
 
 const EMOJI_KITCHEN_URL = 'https://tenor.googleapis.com/v2/featured'
