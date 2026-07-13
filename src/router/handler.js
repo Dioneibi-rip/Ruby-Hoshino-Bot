@@ -97,6 +97,26 @@ content.conversation
 ).trim()
 }
 
+function parseCommand(rawText = '', prefix = '') {
+const source = String(rawText || '').trim()
+const usedPrefix = String(prefix || '')
+const payload = usedPrefix && source.startsWith(usedPrefix) ? source.slice(usedPrefix.length).trim() : source
+const tokens = payload ? payload.split(/\s+/).filter(Boolean) : []
+const command = (tokens.shift() || '').toLowerCase()
+const text = payload.slice(command.length).trim()
+return {
+prefix: usedPrefix,
+usedPrefix,
+command,
+args: tokens,
+_arg: tokens,
+_args: tokens,
+text,
+noPrefix: payload,
+raw: source,
+}
+}
+
 function isCelestialCommandMessage(message = {}) {
 const text = getRawMessageText(message) || getStickerCommandText(getRawStickerHash(message))
 return isCelestialCommandText(text)
