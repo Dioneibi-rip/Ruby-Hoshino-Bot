@@ -1,5 +1,4 @@
 import { smsg } from '../infra/simple.js'
-import { format } from 'util'
 import * as ws from 'ws'
 import { join } from 'path'
 import { fileURLToPath } from 'url'
@@ -11,7 +10,6 @@ import autodetectPlugin from '../modules/enable/_autodetect.js'
 import {
 buildPermissionContext,
 createParticipantIndex,
-getCachedGroupMetadata,
 allHooks,
 beforeHooks,
 commandsMap,
@@ -26,9 +24,12 @@ runMaintenance,
 import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
 import { attachSessionState, cleanupSessionState } from '../core/session-manager.js'
 import messageQueue from '../core/message-queue.js'
-import { getCooldownKey, getCooldownSeconds, isRedisReady, redis, setRedisWithTTL } from '../infra/redis.js'
 import { normalizeIdentityJid } from '../core/identity-utils.js'
 import { getMessageDeletePayload, isUserMutedInChat, messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
+import { getGroupMetadataOnDemand } from '../infra/global-cache.js'
+import { getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash } from './raw-filter.js'
+import { executePlugin } from './plugin-executor.js'
+import { pluginRequiresGroupParticipants } from './permission-guard.js'
 
 global.uptimeStart = Date.now()
 
@@ -57,46 +58,8 @@ if (chatUpdate?.type !== 'notify') return []
 return Array.isArray(chatUpdate?.messages) ? chatUpdate.messages.filter(Boolean) : []
 }
 
-function unwrapMessageContent(content = {}) {
-return content?.ephemeralMessage?.message
-|| content?.viewOnceMessage?.message
-|| content?.viewOnceMessageV2?.message
-|| content?.documentWithCaptionMessage?.message
-|| content
-}
-
-function getRawMessageChat(message = {}) {
-return message?.key?.remoteJid || message?.chat || message?.remoteJid || ''
-}
-
-function getRawMessageText(message = {}) {
-const content = unwrapMessageContent(message?.message || message)
-return content?.conversation
-|| content?.extendedTextMessage?.text
-|| content?.imageMessage?.caption
-|| content?.videoMessage?.caption
-|| content?.documentMessage?.caption
-|| content?.buttonsResponseMessage?.selectedButtonId
-|| content?.listResponseMessage?.singleSelectReply?.selectedRowId
-|| content?.templateButtonReplyMessage?.selectedId
-|| ''
-}
-
-function getRawStickerHash(message = {}) {
-const content = unwrapMessageContent(message?.message || message)
-const sha = content?.stickerMessage?.fileSha256 || content?.imageMessage?.fileSha256
-if (!sha) return ''
-try {
-return Buffer.from(sha).toString('base64')
-} catch {
-return ''
-}
-}
-
-function getRawCommandName(text = '') {
-const trimmed = String(text || '').trim()
-const match = trimmed.match(/^[#!./\\](\S+)/)
-return match?.[1]?.toLowerCase() || ''
+function getRawFastPath(conn, message = {}) {
+return buildRawFastPath(conn, message, { maxAgeMs: SYSTEM_MESSAGE_MAX_AGE_MS, getStickerCommandText })
 }
 
 function getMessageQueuePriority(message = {}) {
@@ -198,12 +161,6 @@ function getQueueChatKey(message) {
 return message?.key?.remoteJid || message?.chat || message?.remoteJid || 'unknown-chat'
 }
 
-function isFreshMessage(message) {
-const rawTimestamp = Number(message?.messageTimestamp || 0)
-const messageTime = rawTimestamp > 0 ? rawTimestamp * 1000 : Date.now()
-return Date.now() - messageTime <= SYSTEM_MESSAGE_MAX_AGE_MS
-}
-
 function getEventTime(update = {}) {
 const raw = Number(update.timestamp || update.time || update.messageTimestamp || update.creation || update.date || 0)
 if (!raw) return 0
@@ -300,226 +257,6 @@ m.mentions = []
 return normalizedSender
 }
 
-function pluginNeedsJob(plugin, name, command) {
-const tags = Array.isArray(plugin?.tags) ? plugin.tags.map((tag) => String(tag).toLowerCase()) : []
-const economyTagged = tags.some((tag) => ['economy', 'economia', 'rpg'].includes(tag)) || String(name || '').startsWith('rpg-')
-if (!economyTagged) return false
-return !['trabajo', 'job', 'empleo'].includes(String(command || '').toLowerCase())
-}
-
-function userHasJob(user) {
-const job = String(user?.job || '').trim().toLowerCase()
-return Boolean(job && !['ninguno', 'none', 'null', 'undefined', 'sin trabajo'].includes(job))
-}
-
-function pluginUsesRedisCooldown(plugin) {
-return Boolean(getCooldownSeconds(plugin))
-}
-
-function isSameJid(a, b) {
-const left = String(a || '').split('@')[0]
-const right = String(b || '').split('@')[0]
-return Boolean(left && right && left === right)
-}
-
-function isBotSender(conn, m, sender) {
-const botJid = conn?.decodeJid?.(conn?.user?.jid) || conn?.user?.jid
-return Boolean(m?.fromMe || isSameJid(sender, botJid))
-}
-
-function formatCooldownTime(seconds) {
-const safeSeconds = Math.max(1, Number(seconds) || 1)
-const hours = Math.floor(safeSeconds / 3600)
-const minutes = Math.floor((safeSeconds % 3600) / 60)
-const remainingSeconds = safeSeconds % 60
-const parts = []
-if (hours) parts.push(`*${hours}* hora${hours === 1 ? '' : 's'}`)
-if (minutes) parts.push(`*${minutes}* minuto${minutes === 1 ? '' : 's'}`)
-if (remainingSeconds || !parts.length) parts.push(`*${remainingSeconds}* segundo${remainingSeconds === 1 ? '' : 's'}`)
-return parts.join(' y ')
-}
-
-function getCooldownMessage(plugin, remainingSeconds) {
-const customMessage = plugin?.cooldownMessage || plugin?.cooldownText || plugin?.cooldownReply
-if (typeof customMessage === 'function') return customMessage(remainingSeconds, formatCooldownTime(remainingSeconds), segundosAHMS(remainingSeconds))
-if (typeof customMessage === 'string') {
-return customMessage
-.replace(/%time%/g, formatCooldownTime(remainingSeconds))
-.replace(/%hms%/g, segundosAHMS(remainingSeconds))
-.replace(/%seconds%/g, String(remainingSeconds))
-}
-return null
-}
-
-
-async function claimRedisCooldown(conn, plugin, name, m, command, sender, bypass = false) {
-if (bypass || !pluginUsesRedisCooldown(plugin)) return { claimed: false, allowed: true, key: null }
-if (!isRedisReady()) return { claimed: false, allowed: true, key: null }
-const seconds = getCooldownSeconds(plugin)
-const key = getCooldownKey(command || name, sender)
-try {
-const ttl = await redis.ttl(key)
-if (ttl > 0) {
-const message = getCooldownMessage(plugin, ttl)
-if (message) await conn.reply(m.chat, message, m)
-return { claimed: false, allowed: false, key }
-}
-const result = await setRedisWithTTL(key, '1', seconds, 'NX')
-if (result === 'OK') return { claimed: true, allowed: true, key }
-const remainingSeconds = Math.max(1, await redis.ttl(key))
-const message = getCooldownMessage(plugin, remainingSeconds)
-if (message) await conn.reply(m.chat, message, m)
-return { claimed: false, allowed: false, key }
-} catch (error) {
-console.error('[redis] cooldown claim error', error)
-return { claimed: false, allowed: true, key }
-}
-}
-
-
-async function releaseRedisCooldown(cooldownState) {
-if (!cooldownState?.claimed || !cooldownState?.key || !isRedisReady()) return
-try {
-await redis.del(cooldownState.key)
-} catch (error) {
-console.error('[redis] cooldown release error', error)
-}
-}
-
-function getInvalidCommandMessage(command, usedPrefix) {
-const suggestion = commandsMap?.size ? [...commandsMap.keys()].find((name) => name && command && (name.startsWith(command[0]) || command.startsWith(name[0]))) : null
-const hint = suggestion ? `\n\n✧ Quizás quisiste usar *${usedPrefix}${suggestion}*` : ''
-return `✧ El comando *${usedPrefix}${command || ''}* no existe.${hint}`
-}
-
-async function runInvalidCommandNotice(conn, m, parsed, usedPrefix) {
-if (!parsed?.command || !usedPrefix) return
-if (isBotSender(conn, m, m?.sender)) return
-if (shouldIgnoreBaileysMessage(m)) return
-if (m.__invalidCommandNotified) return
-m.__invalidCommandNotified = true
-await conn.reply?.(m.chat, getInvalidCommandMessage(parsed.command, usedPrefix), m)
-}
-
-function parseCommand(text, usedPrefix) {
-const noPrefix = text.replace(usedPrefix, '')
-const parts = noPrefix.trim().split` `.filter(Boolean)
-const [rawCommand, ...args] = parts
-const _args = noPrefix.trim().split` `.slice(1)
-return {
-noPrefix,
-args,
-_args,
-text: _args.join` `,
-command: (rawCommand || '').toLowerCase(),
-}
-}
-
-function buildPluginContext(conn, context = {}) {
-return {
-...context,
-conn,
-sock: conn,
-socket: conn,
-baileys: global.baileys || global.Baileys || {},
-}
-}
-
-async function runPluginHooks(conn, plugin, name, m, context) {
-if (typeof plugin?.all === 'function') {
-try {
-await plugin.all.call(conn, m, buildPluginContext(conn, context))
-} catch (error) {
-console.error(error)
-}
-}
-}
-
-function sanitizeError(error) {
-let text = format(error)
-for (const key of Object.values(global.APIKeys || {})) text = text.replace(new RegExp(key, 'g'), 'Administrador')
-return text
-}
-
-async function executePlugin(conn, plugin, name, m, extra, permissionContext, sender) {
-const { isROwner, isOwner, isMods, isPrems, isAdmin, isBotAdmin } = permissionContext
-const isBotSelf = isBotSender(conn, m, sender)
-const canBypassGroupRestrictions = isBotSelf || isOwner || isROwner
-const isEconomyPremium = Boolean(global.db?.data?.users?.[sender]?.premium === true || (global.prems || []).map((v) => String(v).replace(/[^0-9]/g, '')).includes(String(sender || '').split('@')[0].replace(/[^0-9]/g, '')))
-const fail = plugin.fail || global.dfail
-const chat = getFreshChatRecord(m.chat)
-const user = global.db?.data?.users?.[sender]
-
-const isBotSecurityManager = canManageBotSecurity(sender, conn)
-if (m.isGroup && !CELESTIAL_COMMANDS.has(extra.command) && !UNBAN_COMMAND_FILES.includes(name) && isChatBannedForBot(chat, normalizeConnectionJid(conn)) && !isBotSelf && !isBotSecurityManager) return true
-if (m.text && user?.banned && !isBotSelf) {
-if (!user.lastBanMsg || Date.now() - user.lastBanMsg > 30_000) {
-m.reply(`《✦》Estas baneado/a, no puedes usar comandos en este bot!\n\n${user.bannedReason ? `✰ *Motivo:* ${user.bannedReason}` : '✰ *Motivo:* Sin Especificar'}\n\n> ✧ Si este Bot es cuenta ...`)
-global.db?.updateUser?.(sender, { lastBanMsg: Date.now() })
-}
-return true
-}
-if (user?.antispam && !user.banned) user.antispam = 0
-
-const adminMode = chat?.modoadmin
-if (adminMode && m.isGroup && !isAdmin && !canBypassGroupRestrictions) return true
-if (!canBypassGroupRestrictions && plugin.botAdmin && !isBotAdmin) { fail('botAdmin', m, conn); return false }
-if (plugin.rowner && !isROwner && !isBotSelf) { fail('rowner', m, conn); return false }
-if (plugin.owner && !isOwner && !isBotSelf) { fail('owner', m, conn); return false }
-if (plugin.mods && !isMods && !isBotSelf) { fail('mods', m, conn); return false }
-if (!canBypassGroupRestrictions && plugin.premium && !isPrems) { fail('premium', m, conn); return false }
-if (!canBypassGroupRestrictions && plugin.admin && !isAdmin) { fail('admin', m, conn); return false }
-if (!isBotSelf && plugin.private && m.isGroup) { fail('private', m, conn); return false }
-if (!isBotSelf && plugin.group && !m.isGroup) { fail('group', m, conn); return false }
-if (!isBotSelf && pluginNeedsJob(plugin, name, extra.command) && !userHasJob(user)) {
-conn.reply(m.chat, `💼 Primero debes elegir una chamba. Usa *${extra.usedPrefix}trabajo lista* y luego *${extra.usedPrefix}trabajo elegir <trabajo>* para desbloquear la economía RPG.`, m)
-return false
-}
-
-m.isCommand = true
-const xp = 'exp' in plugin ? parseInt(plugin.exp) : 17
-if (xp > 200) m.reply('chirrido -_-')
-else m.exp += xp
-
-if (!isBotSelf && !isEconomyPremium && plugin.coin && (global.db?.data?.users?.[sender]?.coin || 0) < plugin.coin * 1) {
-conn.reply(m.chat, `❮✦❯ Se agotaron tus ${m.moneda}`, m)
-return false
-}
-if (!isBotSelf && plugin.level > (user?.level || 0)) {
-conn.reply(m.chat, `❮✦❯ Se requiere el nivel: *${plugin.level}*\n\n• Tu nivel actual es: *${user?.level || 0}*\n\n• Usa este comando para subir de nivel:\n*${extra.usedPrefix}levelup*`, m)
-return false
-}
-
-const cooldownState = await claimRedisCooldown(conn, plugin, name, m, extra.command, sender, isBotSelf)
-if (!cooldownState.allowed) return false
-
-let pluginResult
-try {
-pluginResult = await plugin.call(conn, m, extra)
-const pluginSucceeded = pluginResult !== false && !m.error
-m.pluginFailed = !pluginSucceeded
-if (!pluginSucceeded) await releaseRedisCooldown(cooldownState)
-if (pluginSucceeded && !isEconomyPremium && !isBotSelf) m.coin = m.coin || plugin.coin || false
-} catch (error) {
-m.error = error
-await releaseRedisCooldown(cooldownState)
-console.error(error)
-if (error) m.reply(sanitizeError(error))
-m.pluginFailed = true
-pluginResult = false
-} finally {
-if (typeof plugin.after === 'function') {
-try {
-await plugin.after.call(conn, m, extra)
-} catch (error) {
-console.error(error)
-}
-}
-if (m.coin) conn.reply(m.chat, `❮✦❯ Utilizaste ${+m.coin} ${m.moneda}`, m)
-}
-return pluginResult !== false
-}
-
 async function updateStatsAndEconomy(conn, m, sender) {
 const data = global.db?.data
 if (!data || !m) return
@@ -557,10 +294,18 @@ stat.lastSuccess = now
 export async function handler(chatUpdate) {
 attachSessionState(this)
 runMaintenance(this)
-const messages = getIncomingMessages(chatUpdate).filter(isFreshMessage)
+const messages = getIncomingMessages(chatUpdate)
 if (!messages.length) return
+const fastMessages = []
+for (const message of messages) {
+const fastPath = getRawFastPath(this, message)
+if (!fastPath) continue
+message.__rubyFastPath = fastPath
+fastMessages.push(message)
+}
+if (!fastMessages.length) return
 if (global.db && global.db.data == null) await global.loadDatabase?.()
-const liveMessages = messages.filter((message) => shouldProcessRawGroupMessage(this, message))
+const liveMessages = fastMessages.filter((message) => shouldProcessRawGroupMessage(this, message))
 if (!liveMessages.length) return
 this.pushMessage?.(liveMessages).catch(console.error)
 for (const rawMessage of liveMessages) {
@@ -574,38 +319,43 @@ async function processMessage(chatUpdate, rawMessage) {
 let m = null
 let sender = null
 try {
+const fastPath = rawMessage.__rubyFastPath || getRawFastPath(this, rawMessage)
+if (!fastPath) return
 m = smsg(this, rawMessage) || rawMessage
 if (!m) return
 const opts = this.opts || global.opts || {}
 if (typeof m.text !== 'string') m.text = ''
-hydrateStickerCommandText(m)
-await global.updateMessageGlobals?.(m, this)
-hydrateStickerCommandText(m)
+if (!m.text && fastPath.text) m.text = fastPath.text
+if (!m.body && fastPath.text) m.body = fastPath.text
 
-const rawCommand = getRawCommandName(m.text)
+const rawCommand = fastPath.rawCommand || getRawCommandName(m.text)
 if (rawCommand === 'resetbot') {
 sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
 if (!sender) return
-const groupMetadata = m.isGroup ? await getCachedGroupMetadata(this, m.chat) : {}
+const groupMetadata = m.isGroup ? await getGroupMetadataOnDemand(this, m.chat, { requireParticipants: true }) : {}
 const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
 const participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
 await forceResetBotState(this, m, sender, participantsByLid)
 return
 }
 
-if (enforcePrimaryBotMiddleware(this, m)) return
-
-if (m.isGroup && !isCelestialCommandText(m.text)) {
-if (shouldBlockForPrimaryBot(this, m.chat)) return
-const chat = getFreshChatRecord(m.chat)
-const hasActiveAntiLink = Boolean(chat?.antiLink || chat?.antilink)
-if (isChatBannedForBot(chat, normalizeConnectionJid(this)) && !(hasActiveAntiLink && messageHasModeratedLink(m))) return
+const prefixMatch = fastPath.usedPrefix ? [[fastPath.usedPrefix], null] : getPrefixMatch(this, {}, m.text)
+const parsed = fastPath.parsed || (prefixMatch?.[0]?.[0] ? parseCommand(m.text, prefixMatch[0][0]) : null)
+const commandEntry = fastPath.commandEntry || (parsed?.command ? commandsMap.get(parsed.command) : null)
+const requiresPersistence = Boolean(commandEntry || fastPath.needsModeration || rawCommand === 'resetbot')
+if (!requiresPersistence) {
+if (parsed?.command && prefixMatch?.[0]?.[0]) {
+m.__skipStats = true
+await runInvalidCommandNotice(this, m, parsed, prefixMatch[0][0])
+}
+return
 }
 
 sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
 if (!sender) return
 m.__deleteKey = m.key ? { ...m.key } : null
-const groupMetadata = m.isGroup ? await getCachedGroupMetadata(this, m.chat) : {}
+const needsParticipants = Boolean(m.isGroup && (fastPath.needsModeration || pluginRequiresGroupParticipants(commandEntry?.plugin)))
+const groupMetadata = needsParticipants ? await getGroupMetadataOnDemand(this, m.chat, { requireParticipants: true }) : {}
 const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
 const participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
 sender = normalizeLidReferences(m, sender, participantsByLid)
@@ -615,6 +365,9 @@ m.exp = 0
 m.coin = false
 const { user: _user, settings } = hydrateDatabaseForMessage(this, m, sender)
 if (enforcePrimaryBotMiddleware(this, m)) return
+
+await global.updateMessageGlobals?.(m, this)
+hydrateStickerCommandText(m)
 
 if (opts.nyimak) return
 if (!m.fromMe && opts.self) return
@@ -637,10 +390,9 @@ return
 m.moneda = settings?.moneda || 'Coins'
 m.exp += Math.ceil(Math.random() * 10)
 
+if (!commandEntry && !parsed?.command) return
+
 const pluginDir = getPluginDirectory()
-const prefixMatch = getPrefixMatch(this, {}, m.text)
-const parsed = prefixMatch?.[0]?.[0] ? parseCommand(m.text, prefixMatch[0][0]) : null
-const commandEntry = parsed?.command ? commandsMap.get(parsed.command) : null
 for (const hook of global.allHooks || allHooks || []) {
 const { name, plugin } = hook || {}
 if (!plugin || plugin.disabled) continue
@@ -693,12 +445,12 @@ const isBotSecurityManager = canManageBotSecurity(sender, this)
 if (!isOwner && !isROwner && !isBotSender(this, m, sender) && isBotBannedInThisChat && !isCelestialCommand && !isBotSecurityManager) return
 const __filename = join(pluginDir, name)
 const extra = buildPluginContext(this, { match, usedPrefix, ...commandParsed, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename })
-await executePlugin(this, plugin, name, m, extra, permissionContext, sender)
+await executePlugin(this, plugin, name, m, extra, permissionContext, sender, { chat: chatData, user: global.db?.data?.users?.[sender], isCelestialCommand })
 } catch (error) {
 console.error(error)
 } finally {
 try {
-await updateStatsAndEconomy(this, m, sender)
+if (!m?.__skipStats) await updateStatsAndEconomy(this, m, sender)
 } catch (error) {
 console.error(error)
 }
@@ -735,7 +487,7 @@ if (shouldSilenceChatForBot(chatData, normalizeConnectionJid(this))) continue
 if (!chatData?.detect) continue
 const stub = buildGroupUpdateStub({ ...update, id: chat })
 if (!stub) continue
-const groupMetadata = await getCachedGroupMetadata(this, chat)
+const groupMetadata = await getGroupMetadataOnDemand(this, chat, { requireParticipants: true })
 await autodetectPlugin.before.call(this, stub, { conn: this, participants: groupMetadata?.participants || [], groupMetadata: groupMetadata || {} })
 } catch (error) {
 console.error('[detect] groups.update error', error)
@@ -754,7 +506,7 @@ if (!messageStubType) return
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
 if (shouldSilenceChatForBot(chatData, normalizeConnectionJid(this))) return
 if (!chatData?.welcome) return
-const groupMetadata = await getCachedGroupMetadata(this, chat)
+const groupMetadata = await getGroupMetadataOnDemand(this, chat, { requireParticipants: true })
 const m = {
 chat,
 isGroup: true,

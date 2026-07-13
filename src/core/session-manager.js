@@ -1,16 +1,14 @@
 import NodeCache from 'node-cache'
-import { TTLCache } from '../infra/optimizer.js'
+import { commandTesterCache, groupMetadataCache, msgRetryCounterCache, prefixMatcherCache } from '../infra/global-cache.js'
 
 const DEFAULT_CACHE_TTL_SECONDS = 5 * 60
-const DEFAULT_GROUP_METADATA_TTL_MS = 60 * 1000
-const DEFAULT_GROUP_METADATA_MAX = 500
 
 function createSessionCaches() {
   return {
-    msgRetryCounterCache: new NodeCache({ stdTTL: DEFAULT_CACHE_TTL_SECONDS, checkperiod: 120, useClones: false }),
-    groupMetadataCache: new TTLCache(DEFAULT_GROUP_METADATA_TTL_MS, DEFAULT_GROUP_METADATA_MAX),
-    commandTesterCache: new Map(),
-    prefixMatcherCache: new Map(),
+    msgRetryCounterCache,
+    groupMetadataCache,
+    commandTesterCache,
+    prefixMatcherCache,
   }
 }
 
@@ -38,16 +36,11 @@ export function attachSessionState(conn, { id, type = 'standard', parentId = nul
 }
 
 export function createMessageRetryCache() {
-  return new NodeCache({ stdTTL: DEFAULT_CACHE_TTL_SECONDS, checkperiod: 120, useClones: false })
+  return msgRetryCounterCache || new NodeCache({ stdTTL: DEFAULT_CACHE_TTL_SECONDS, checkperiod: 120, useClones: false })
 }
 
 export function cleanupSessionState(conn) {
   if (!conn?.__rubyState?.caches) return
-  const { groupMetadataCache, commandTesterCache, prefixMatcherCache, msgRetryCounterCache } = conn.__rubyState.caches
-  groupMetadataCache?.store?.clear?.()
-  commandTesterCache?.clear?.()
-  prefixMatcherCache?.clear?.()
-  msgRetryCounterCache?.flushAll?.()
   delete conn.__rubyState
   delete conn.__groupMetadataCache
   delete conn.__commandTesterCache
