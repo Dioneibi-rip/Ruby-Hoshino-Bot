@@ -27,9 +27,9 @@ import messageQueue from '../core/message-queue.js'
 import { normalizeIdentityJid } from '../core/identity-utils.js'
 import { getMessageDeletePayload, isUserMutedInChat, messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
 import { getGroupMetadataOnDemand } from '../infra/global-cache.js'
-import { getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash } from './raw-filter.js'
+import { getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash, unwrapMessageContent } from './raw-filter.js'
 import { executePlugin } from './plugin-executor.js'
-import { pluginRequiresGroupParticipants } from './permission-guard.js'
+import { isBotSender, pluginRequiresGroupParticipants } from './permission-guard.js'
 
 global.uptimeStart = Date.now()
 
@@ -77,6 +77,102 @@ return 'normal'
 
 function isCelestialCommandText(text = '') {
 return CELESTIAL_COMMANDS.has(getRawCommandName(text))
+}
+
+function pickPlainMessageText(message = {}, fallback = '') {
+const content = unwrapMessageContent(message?.message || message) || {}
+const selectedRow = content.listResponseMessage?.singleSelectReply?.selectedRowId
+return String(
+content.conversation
+|| content.extendedTextMessage?.text
+|| content.imageMessage?.caption
+|| content.videoMessage?.caption
+|| content.documentMessage?.caption
+|| content.buttonsResponseMessage?.selectedButtonId
+|| selectedRow
+|| content.templateButtonReplyMessage?.selectedId
+|| content.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson
+|| fallback
+|| ''
+).trim()
+}
+
+function parseCommand(rawText = '', prefix = '') {
+const source = String(rawText || '').trim()
+const usedPrefix = String(prefix || '')
+const payload = usedPrefix && source.startsWith(usedPrefix) ? source.slice(usedPrefix.length).trim() : source
+const tokens = payload ? payload.split(/\s+/).filter(Boolean) : []
+const command = (tokens.shift() || '').toLowerCase()
+const text = payload.slice(command.length).trim()
+return {
+prefix: usedPrefix,
+usedPrefix,
+command,
+args: tokens,
+_arg: tokens,
+_args: tokens,
+text,
+noPrefix: payload,
+raw: source,
+}
+}
+
+function buildPluginContext(conn, input = {}) {
+const match = input.match || [[input.usedPrefix || input.prefix || '']]
+const usedPrefix = String(input.usedPrefix || input.prefix || match?.[0]?.[0] || '')
+const parsed = input.command ? input : parseCommand(input.messageText || input.m?.text || '', usedPrefix)
+const args = Array.isArray(input.args) ? input.args : (Array.isArray(parsed.args) ? parsed.args : [])
+const text = typeof input.text === 'string' ? input.text : (typeof parsed.text === 'string' ? parsed.text : args.join(' '))
+const command = String(input.command || parsed.command || '').toLowerCase()
+return {
+conn,
+match,
+usedPrefix,
+prefix: usedPrefix,
+command,
+args,
+_arg: Array.isArray(input._arg) ? input._arg : args,
+_args: Array.isArray(input._args) ? input._args : args,
+text,
+noPrefix: input.noPrefix || parsed.noPrefix || [command, ...args].filter(Boolean).join(' '),
+participants: Array.isArray(input.participants) ? input.participants : [],
+groupMetadata: input.groupMetadata || {},
+user: input.user || {},
+bot: input.bot || {},
+isROwner: Boolean(input.isROwner),
+isOwner: Boolean(input.isOwner),
+isRAdmin: Boolean(input.isRAdmin),
+isAdmin: Boolean(input.isAdmin),
+isBotAdmin: Boolean(input.isBotAdmin),
+isPrems: Boolean(input.isPrems),
+chatUpdate: input.chatUpdate,
+__dirname: input.__dirname,
+__filename: input.__filename,
+}
+}
+
+async function runPluginHooks(conn, plugin, name, m, baseContext = {}) {
+if (typeof plugin?.all !== 'function') return false
+const context = buildPluginContext(conn, { ...baseContext, m, messageText: m?.text || '' })
+try {
+const result = await plugin.all.call(conn, m, context)
+return result === true
+} catch (error) {
+console.error(`[plugin-all] ${name}`, error)
+m.pluginFailed = true
+return false
+}
+}
+
+async function runInvalidCommandNotice(conn, m, parsed = {}, usedPrefix = '') {
+if (!parsed?.command || !usedPrefix || shouldIgnoreBaileysMessage(m)) return false
+const commandText = `${usedPrefix}${parsed.command}`
+const message = `(,,•᷄‎ࡇ•᷅ ,,)? ᥱᥣ ᥴ᥆mᥲᥒძ᥆ *${commandText}* ᥒ᥆ sᥱ ᥱᥒᥴᥙᥱᥒ𝗍rᥲ rᥱgіs𝗍rᥲძ᥆.
+
+⍴ᥲrᥲ ᥴ᥆ᥒsᥙᥣ𝗍ᥲr ᥣᥲ ᥣіs𝗍ᥲ ᥴ᥆m⍴ᥣᥱ𝗍ᥲ ძᥱ 𝖿ᥙᥒᥴі᥆ᥒᥲᥣіძᥲძᥱs ᥙsᥲ:
+» *${usedPrefix}help*`
+await (m.reply?.(message) || conn.reply?.(m.chat, message, m))
+return true
 }
 
 function isCelestialCommandMessage(message = {}) {
@@ -324,9 +420,10 @@ if (!fastPath) return
 m = smsg(this, rawMessage) || rawMessage
 if (!m) return
 const opts = this.opts || global.opts || {}
+const plainText = pickPlainMessageText(rawMessage, fastPath.text)
 if (typeof m.text !== 'string') m.text = ''
-if (!m.text && fastPath.text) m.text = fastPath.text
-if (!m.body && fastPath.text) m.body = fastPath.text
+if (!m.text && plainText) m.text = plainText
+if (!m.body && plainText) m.body = plainText
 
 const rawCommand = fastPath.rawCommand || getRawCommandName(m.text)
 if (rawCommand === 'resetbot') {
@@ -409,7 +506,7 @@ if (!plugin || plugin.disabled) continue
 if (!opts.restrict && plugin.tags?.includes?.('admin')) continue
 const __filename = join(pluginDir, name)
 const match = getPrefixMatch(this, plugin, m.text)
-const beforeContext = buildPluginContext(this, { match, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename })
+const beforeContext = buildPluginContext(this, { match, m, messageText: m.text, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename })
 let beforeResult = false
 try {
 beforeResult = await plugin.before.call(this, m, beforeContext)
