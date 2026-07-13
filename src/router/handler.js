@@ -198,9 +198,6 @@ if (settings && typeof settings === 'object') settings.isBanned = false
 }
 global.db?.updateChat?.(m.chat, chat)
 cleanupSessionState(conn)
-if (conn === global.conn && typeof global.reloadHandler === 'function') {
-setTimeout(() => global.reloadHandler(true).catch(console.error), 500).unref?.()
-}
 await conn.reply?.(m.chat, '✅ Estado de bots restablecido: sin bot primario y con todos los sub-bots habilitados en este grupo.', m)
 return true
 }
@@ -241,7 +238,6 @@ return true
 function shouldProcessRawGroupMessage(conn, message = {}) {
 const chat = conn?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
 if (!chat?.endsWith?.('@g.us')) return true
-if (isCelestialCommandMessage(message)) return true
 const chatData = getFreshChatRecord(chat)
 if (shouldBlockForPrimaryBot(conn, chat)) return false
 const hasActiveAntiLink = Boolean(chatData?.antiLink || chatData?.antilink)
@@ -392,15 +388,17 @@ attachSessionState(this)
 runMaintenance(this)
 const messages = getIncomingMessages(chatUpdate)
 if (!messages.length) return
+if (global.db && global.db.data == null) await global.loadDatabase?.()
 const fastMessages = []
 for (const message of messages) {
+const rawChat = this?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
+if (rawChat?.endsWith?.('@g.us') && shouldBlockForPrimaryBot(this, rawChat)) continue
 const fastPath = getRawFastPath(this, message)
 if (!fastPath) continue
 message.__rubyFastPath = fastPath
 fastMessages.push(message)
 }
 if (!fastMessages.length) return
-if (global.db && global.db.data == null) await global.loadDatabase?.()
 const liveMessages = fastMessages.filter((message) => shouldProcessRawGroupMessage(this, message))
 if (!liveMessages.length) return
 this.pushMessage?.(liveMessages).catch(console.error)
