@@ -7,11 +7,21 @@ function normalizePlainJid(value = '') {
 const raw = String(value || '').trim().replace(/^@/, '')
 if (!raw) return ''
 const jid = raw.includes('@') ? raw : `${raw.replace(/[^0-9]/g, '')}@s.whatsapp.net`
-return normalizeSessionJid(jidNormalizedUser(jid) || jid)
+const normalized = normalizeSessionJid(jidNormalizedUser(jid) || jid)
+const [local, domain] = normalized.split('@')
+const validDomain = ['s.whatsapp.net', 'lid', 'hosted.lid'].includes(domain)
+if (!local || !validDomain || !/^\d+$/.test(local)) return ''
+return normalized
 }
 
 function uniqueJids(values = []) {
-return [...new Set(values.map(normalizePlainJid).filter(Boolean))]
+return [...new Set((Array.isArray(values) ? values : [values]).map(normalizePlainJid).filter(Boolean))]
+}
+
+function getPrimaryAliases(chat = {}) {
+if (Array.isArray(chat.primaryBotAliases)) return chat.primaryBotAliases
+if (chat.primaryBotAliases && typeof chat.primaryBotAliases === 'object') return Object.values(chat.primaryBotAliases)
+return []
 }
 
 async function resolvePrimaryBotJid(conn, rawTarget = '', participants = []) {
@@ -33,7 +43,7 @@ return m.mentionedJid?.[0] || m.quoted?.sender || m.quoted?.participant || m.quo
 }
 
 function isSamePrimary(chat = {}, aliases = []) {
-const stored = uniqueJids([chat.primaryBot, chat.botPrimario, ...(Array.isArray(chat.primaryBotAliases) ? chat.primaryBotAliases : [])])
+const stored = uniqueJids([chat.primaryBot, chat.botPrimario, ...getPrimaryAliases(chat)])
 return aliases.some(alias => stored.includes(alias))
 }
 
