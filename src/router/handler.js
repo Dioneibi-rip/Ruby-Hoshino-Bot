@@ -117,6 +117,64 @@ raw: source,
 }
 }
 
+function buildPluginContext(conn, input = {}) {
+const match = input.match || [[input.usedPrefix || input.prefix || '']]
+const usedPrefix = String(input.usedPrefix || input.prefix || match?.[0]?.[0] || '')
+const parsed = input.command ? input : parseCommand(input.messageText || input.m?.text || '', usedPrefix)
+const args = Array.isArray(input.args) ? input.args : (Array.isArray(parsed.args) ? parsed.args : [])
+const text = typeof input.text === 'string' ? input.text : (typeof parsed.text === 'string' ? parsed.text : args.join(' '))
+const command = String(input.command || parsed.command || '').toLowerCase()
+return {
+conn,
+match,
+usedPrefix,
+prefix: usedPrefix,
+command,
+args,
+_arg: Array.isArray(input._arg) ? input._arg : args,
+_args: Array.isArray(input._args) ? input._args : args,
+text,
+noPrefix: input.noPrefix || parsed.noPrefix || [command, ...args].filter(Boolean).join(' '),
+participants: Array.isArray(input.participants) ? input.participants : [],
+groupMetadata: input.groupMetadata || {},
+user: input.user || {},
+bot: input.bot || {},
+isROwner: Boolean(input.isROwner),
+isOwner: Boolean(input.isOwner),
+isRAdmin: Boolean(input.isRAdmin),
+isAdmin: Boolean(input.isAdmin),
+isBotAdmin: Boolean(input.isBotAdmin),
+isPrems: Boolean(input.isPrems),
+chatUpdate: input.chatUpdate,
+__dirname: input.__dirname,
+__filename: input.__filename,
+}
+}
+
+async function runPluginHooks(conn, plugin, name, m, baseContext = {}) {
+if (typeof plugin?.all !== 'function') return false
+const context = buildPluginContext(conn, { ...baseContext, m, messageText: m?.text || '' })
+try {
+const result = await plugin.all.call(conn, m, context)
+return result === true
+} catch (error) {
+console.error(`[plugin-all] ${name}`, error)
+m.pluginFailed = true
+return false
+}
+}
+
+async function runInvalidCommandNotice(conn, m, parsed = {}, usedPrefix = '') {
+if (!parsed?.command || !usedPrefix || shouldIgnoreBaileysMessage(m)) return false
+const commandText = `${usedPrefix}${parsed.command}`
+const message = `(,,•᷄‎ࡇ•᷅ ,,)? ᥱᥣ ᥴ᥆mᥲᥒძ᥆ *${commandText}* ᥒ᥆ sᥱ ᥱᥒᥴᥙᥱᥒ𝗍rᥲ rᥱgіs𝗍rᥲძ᥆.
+
+⍴ᥲrᥲ ᥴ᥆ᥒsᥙᥣ𝗍ᥲr ᥣᥲ ᥣіs𝗍ᥲ ᥴ᥆m⍴ᥣᥱ𝗍ᥲ ძᥱ 𝖿ᥙᥒᥴі᥆ᥒᥲᥣіძᥲძᥱs ᥙsᥲ:
+» *${usedPrefix}help*`
+await (m.reply?.(message) || conn.reply?.(m.chat, message, m))
+return true
+}
+
 function isCelestialCommandMessage(message = {}) {
 const text = getRawMessageText(message) || getStickerCommandText(getRawStickerHash(message))
 return isCelestialCommandText(text)
@@ -448,7 +506,7 @@ if (!plugin || plugin.disabled) continue
 if (!opts.restrict && plugin.tags?.includes?.('admin')) continue
 const __filename = join(pluginDir, name)
 const match = getPrefixMatch(this, plugin, m.text)
-const beforeContext = buildPluginContext(this, { match, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename })
+const beforeContext = buildPluginContext(this, { match, m, messageText: m.text, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename })
 let beforeResult = false
 try {
 beforeResult = await plugin.before.call(this, m, beforeContext)
