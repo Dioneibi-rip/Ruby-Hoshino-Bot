@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 let handler = async (m, { conn }) => {
 let user = global.db.getUser(m.sender);
 let img = 'https://files.catbox.moe/bj45rp.jpg';

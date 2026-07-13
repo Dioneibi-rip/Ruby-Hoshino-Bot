@@ -1,5 +1,4 @@
 import { Sticker } from 'wa-sticker-formatter'
-import fetch from 'node-fetch'
 import { fileTypeFromBuffer } from 'file-type'
 import { randomUUID } from 'crypto'
 import { tmpdir } from 'os'

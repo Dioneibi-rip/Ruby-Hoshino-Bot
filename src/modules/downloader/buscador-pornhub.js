@@ -1,7 +1,6 @@
 
 import cheerio from 'cheerio';
-import axios from 'axios';
-
+import axios from '../../infra/http.js'
 let handler = async (m, { conn, args, command, usedPrefix }) => {
 if (!global.db.getChat(m.chat).nsfw && m.isGroup) {
 return conn.reply(m.chat, `${emoji} El contenido *NSFW* está desactivado en este grupo.\n> Un administrador puede activarlo con el comando » *#nsfw on*`, m);

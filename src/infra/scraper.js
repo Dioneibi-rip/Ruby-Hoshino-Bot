@@ -1,7 +1,5 @@
 import cheerio from 'cheerio'
-import fetch from 'node-fetch'
-import axios from 'axios'
-
+import axios from './http.js'
 async function sekaikomikDl(url) {
 	let res = await fetch(url)
 	let $ = cheerio.load(await res.text())

@@ -1,10 +1,8 @@
-import { File } from "megajs";
-import path from "path";
-
 let handler = async (m, { conn, args, usedPrefix, text, command }) => {
 try {
 if (!text) return conn.reply(m.chat, `${emoji} Por favor, envia un link de MEGA para descargar el archivo.`, null, { quoted: fkontak });
 
+const { File } = await import("megajs");
 const file = File.fromURL(text);
 await file.loadAttributes();
 
@@ -16,7 +14,7 @@ const caption = `   *✿--- Descargas de MEGA ---✿*\n✐ File: ${file.name}\n�
 
 const data = await file.downloadBuffer();
 
-const fileExtension = path.extname(file.name).toLowerCase();
+const fileExtension = file.name.includes(".") ? `.${file.name.split(".").pop().toLowerCase()}` : "";
 const mimeTypes = {
 ".mp4": "video/mp4",
 ".pdf": "application/pdf",

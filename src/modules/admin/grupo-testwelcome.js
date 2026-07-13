@@ -1,6 +1,4 @@
 import { WAMessageStubType } from '@whiskeysockets/baileys';
-import fetch from 'node-fetch';
-
 let handler = async (m, { conn, usedPrefix, command, text }) => {
 if (!global.db.getChat(m.chat).welcome && m.isGroup) {
 return m.reply(`${emoji} Para usar este comando debe activar las Bienvenidas con *#welcome*`);
@@ -18,9 +16,9 @@ let defaultImage = 'https://files.catbox.moe/xr2m6u.jpg';
 let img;
 try {
 let pp = await conn.profilePictureUrl(who[0], 'image');
-img = await (await fetch(pp)).buffer();
+img = Buffer.from(await (await fetch(pp)).arrayBuffer());
 } catch (e) {
-img = await (await fetch(defaultImage)).buffer();
+img = Buffer.from(await (await fetch(defaultImage)).arrayBuffer());
 }
 
 let bienvenida = `❀ *Bienvenido* a ${groupMetadata.subject}\n ✰ ${taguser}\n${global.welcom1}\n •(=^●ω●^=)• Disfruta tu estadía en el grupo!\n> ✐ Puedes usar *#help* para ver la lista de comandos.`;

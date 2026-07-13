@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import { normalizeIdentityJid } from '../../core/identity-utils.js'
 
 var handler = async (m, { conn, args, participants }) => {

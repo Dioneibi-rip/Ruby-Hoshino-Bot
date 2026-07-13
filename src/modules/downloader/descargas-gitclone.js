@@ -1,5 +1,3 @@
-import fetch from 'node-fetch'
-
 let regex = /(?:https|git)(?::\/\/|@)github\.com[\/:]([^\/:]+)\/(.+)/i
 let handler = async (m, { args, usedPrefix, command }) => {
 if (!args[0]) {
@@ -32,7 +30,7 @@ txt += `✩  *Url* : ${args[0]}\n\n`
 txt += `> ${dev}`
 
 await conn.sendFile(m.chat, img, 'thumbnail.jpg', txt, m)
-await conn.sendFile(m.chat, await zipResponse.buffer(), filename, null, m)
+await conn.sendFile(m.chat, Buffer.from(await zipResponse.arrayBuffer()), filename, null, m)
 await m.react(done)
 } catch (e) {
 await m.react(error)

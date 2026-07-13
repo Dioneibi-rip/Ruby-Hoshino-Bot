@@ -1,5 +1,4 @@
-import axios from "axios"
-
+import axios from '../../infra/http.js'
 const channelRD = '120363335626706839@newsletter'
 const canalNombreM = '𖥔ᰔᩚ⋆｡˚ ꒰🍒 ʀᴜʙʏ-ʜᴏꜱʜɪɴᴏ | ᴄʜᴀɴɴᴇʟ-ʙᴏᴛ 💫꒱࣭'
 

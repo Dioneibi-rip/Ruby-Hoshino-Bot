@@ -1,6 +1,4 @@
-import fetch from "node-fetch";
 import crypto from "crypto";
-import { FormData, Blob } from "formdata-node";
 import { fileTypeFromBuffer } from "file-type";
 
 let handler = async (m, { conn }) => {
@@ -49,7 +47,7 @@ return `${(bytes / 1024 ** i).toFixed(2)} ${sizes[i]}`;
 
 async function catbox(content) {
 const { ext, mime } = (await fileTypeFromBuffer(content)) || {};
-const blob = new Blob([content.toArrayBuffer()], { type: mime });
+const blob = new Blob([content], { type: mime });
 const formData = new FormData();
 const randomBytes = crypto.randomBytes(5).toString("hex");
 formData.append("reqtype", "fileupload");

@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from '../../infra/http.js'
 let enviando = false;
 
 const handler = async (m, { conn, text, usedPrefix, command, args }) => {

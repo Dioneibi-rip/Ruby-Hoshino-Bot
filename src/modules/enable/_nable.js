@@ -1,5 +1,4 @@
 import { createHash } from 'crypto';
-import fetch from 'node-fetch';
 import { getAntiPrivateState, normalizeSessionJid } from '../../core/session-utils.js';
 
 const fancyFontMap = {

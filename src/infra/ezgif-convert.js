@@ -1,8 +1,4 @@
-import {
-    FormData
-} from 'formdata-node';
-import axios from 'axios';
-
+import axios from './http.js'
 const linksConvert = {
     "video-gif": {
         "url": "https://ezgif.com/video-to-gif",
@@ -473,9 +469,7 @@ async function convert(fields) {
 
     if (fields?.file) {
         if (!fields.filename) throw new Error(`filename must be provided to upload files.(with extension)`);
-        form.append('new-image', fields.file, {
-            filename: fields.filename,
-        });
+        form.append('new-image', fields.file instanceof Blob ? fields.file : new Blob([fields.file]), fields.filename);
     } else if (fields?.url) {
         form.append('new-image-url', fields.url);
     } else throw new Error('Either file or url field is required.');
@@ -561,9 +555,7 @@ async function convert(fields) {
 async function overlay(fields) {
     let form = new FormData();
     let form_over = new FormData();
-    form.append('new-image', fields.file, {
-        filename: fields.filename,
-    });
+    form.append('new-image', fields.file instanceof Blob ? fields.file : new Blob([fields.file]), fields.filename);
 
     let link = await axios({
         method: 'post',
@@ -587,9 +579,7 @@ async function overlay(fields) {
     if (!redir) throw new Error(`Oops! Something unknown happened!`);
     let id = redir.split('/')[redir.split('/').length - 1];
 
-    form_over.append('new-overlay', Buffer.from(fields.overlay.file), {
-        filename: `${fields.overlay.filename}`,
-    });
+    form_over.append('new-overlay', new Blob([Buffer.from(fields.overlay.file)]), `${fields.overlay.filename}`);
     form_over.append('overlay', 'Upload image!');
 
     let link_over = await axios({
@@ -672,9 +662,7 @@ async function render(fields) {
     for (let i = 0; i < fields.files.length; i++) {
         if (!fields.files[i].data) throw new Error(`File buffer not provided for files[${i}]`);
         if (!fields.files[i].name) throw new Error(`File name not provided for files[${i}]`);
-        form.append('files[]', fields.files[i].data, {
-            filename: fields.files[i].name
-        });
+        form.append('files[]', fields.files[i].data instanceof Blob ? fields.files[i].data : new Blob([fields.files[i].data]), fields.files[i].name);
         fields['delays[]'].push(fields.files[i].delay ?? fields.delay);
     }
 

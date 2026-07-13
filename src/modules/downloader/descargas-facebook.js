@@ -1,6 +1,5 @@
 import { fbdl } from 'ruhend-scraper'
 import { enqueueMediaJob, getMediaQueueConnection } from '../../infra/queue.js'
-import fetch from 'node-fetch'
 import cheerio from 'cheerio'
 
 var handler = async (m, { conn, args, command, usedPrefix, text }) => {

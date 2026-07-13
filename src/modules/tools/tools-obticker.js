@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from '../../infra/http.js'
 import sharp from 'sharp'
 class StickerLy {
 async search(query) {

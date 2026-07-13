@@ -1,6 +1,3 @@
-
-import fetch from 'node-fetch'
-
 let handler = async (m, { text, usedPrefix, command }) => {
 
 if (!text) return conn.reply(m.chat, `${emoji} Escribe el nonbre del scraper.\nEjemplo: ${usedPrefix + command} yt-search`, m)

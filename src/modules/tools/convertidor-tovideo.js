@@ -1,5 +1,5 @@
-import {webp2mp4} from '../../infra/webp2mp4.js';
-import {ffmpeg} from '../../infra/converter.js';
+import {webp2mp4} from '../../infra/media-converter.js';
+import {ffmpeg} from '../../infra/media-converter.js';
 
 const handler = async (m, {conn, usedPrefix, command}) => {
 if (!m.quoted) {

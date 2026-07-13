@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 let handler = async (m, { conn, text }) => {
 if (!text) return conn.reply(m.chat, `${emoji} Por favor, ingresa el nombre del Pokemon que quiere buscar.`, m)
 await m.react(rwait)

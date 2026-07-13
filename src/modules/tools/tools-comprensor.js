@@ -1,8 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import fetch from 'node-fetch';
 import crypto from 'crypto';
-import { FormData, Blob } from 'formdata-node';
 import { fileTypeFromBuffer } from 'file-type';
 
 const handler = async (m, { conn, text }) => {
@@ -15,7 +13,7 @@ buffer = await m.quoted.download();
 
 const res = await fetch(text);
 if (!res.ok) throw new Error(`No se pudo descargar la imagen`);
-buffer = await res.buffer();
+buffer = Buffer.from(await res.arrayBuffer());
 } else {
 return m.reply(`❌ *Responde a una imagen o envía un link directo a una imagen válida con el comando* _.comprimir_`);
 }
@@ -27,7 +25,7 @@ const urlCatbox = await catbox(buffer);
 const apiURL = `https://api.siputzx.my.id/api/iloveimg/compress?image=${encodeURIComponent(urlCatbox)}`;
 const response = await fetch(apiURL);
 if (!response.ok) throw new Error(`Error HTTP ${response.status}`);
-const compressed = await response.buffer();
+const compressed = Buffer.from(await response.arrayBuffer());
 
 await conn.sendMessage(m.chat, {
 image: compressed,
@@ -51,7 +49,7 @@ export default handler;
 
 async function catbox(content) {
 const { ext, mime } = (await fileTypeFromBuffer(content)) || {};
-const blob = new Blob([content.toArrayBuffer()], { type: mime });
+const blob = new Blob([content], { type: mime });
 const formData = new FormData();
 const random = crypto.randomBytes(5).toString('hex');
 formData.append('reqtype', 'fileupload');

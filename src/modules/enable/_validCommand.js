@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import { isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from '../../core/session-utils.js';
 
 let cachedCommands = new Set();

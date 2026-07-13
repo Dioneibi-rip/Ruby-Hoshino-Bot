@@ -1,5 +1,4 @@
-
-import axios from 'axios';
+import axios from '../../infra/http.js'
 import cheerio from 'cheerio';
 
 let handler = async (m, { conn, text, args, command, usedPrefix }) => {

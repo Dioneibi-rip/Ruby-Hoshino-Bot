@@ -1,5 +1,4 @@
-import uploadImage from '../../infra/uploadImage.js'
-import fetch from 'node-fetch'
+import uploadImage from '../../infra/uploader.js'
 let handler = async (m, { conn, usedPrefix, command, args, text }) => {
 let q = m.quoted ? m.quoted : m
 let mime = (q.msg || q).mimetype || ''

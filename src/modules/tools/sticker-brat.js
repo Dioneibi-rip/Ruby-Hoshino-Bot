@@ -1,6 +1,5 @@
 import { sticker } from '../../infra/sticker.js';
-import axios from 'axios';
-
+import axios from '../../infra/http.js'
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function fetchSticker(text) {

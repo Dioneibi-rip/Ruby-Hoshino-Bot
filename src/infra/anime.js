@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from './http.js'
 import * as cheerio from "cheerio";
 
 const BASE_URL = "https://animeav1.com";

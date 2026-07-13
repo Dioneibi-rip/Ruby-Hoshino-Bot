@@ -1,5 +1,4 @@
-import axios from 'axios';
-import fetch from 'node-fetch';
+import axios from '../../infra/http.js'
 const handler = async (m, { conn, usedPrefix, command, text, args }) => {
 const [efecto, ...textoArray] = text.split(" ");
 const texto = textoArray.join("");

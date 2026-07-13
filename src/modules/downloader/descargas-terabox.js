@@ -1,5 +1,4 @@
-import axios from 'axios';
-
+import axios from '../../infra/http.js'
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 if (!text) return m.reply(`${emoji} Por favor, ingresa un enlace de *Terabox*.`);
 await m.react('🕓');

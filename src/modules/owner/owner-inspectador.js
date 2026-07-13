@@ -1,8 +1,7 @@
 
 import { getUrlFromDirectPath } from "@whiskeysockets/baileys"
 import _ from "lodash"
-import axios from 'axios'
-
+import axios from '../../infra/http.js'
 let handler = async (m, { conn, command, usedPrefix, args, text, groupMetadata, isOwner, isROwner }) => {
 const isCommand1 = /^(inspect|inspeccionar)\b$/i.test(command)
 const isCommand2 = /^(seguircanal)\b$/i.test(command)

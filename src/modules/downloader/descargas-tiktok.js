@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import { enqueueMediaJob, getMediaQueueConnection } from '../../infra/queue.js'
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {

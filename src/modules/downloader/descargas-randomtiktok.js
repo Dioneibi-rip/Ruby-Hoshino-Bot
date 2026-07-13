@@ -1,5 +1,4 @@
-import axios from 'axios'
-
+import axios from '../../infra/http.js'
 const query = ['story%20wa','story%20sad','video%20fun','story%20wa%20galau','story%20wa%20sindiran','story%20wa%20bahagia','story%20wa%20lirik%20lagu%20overlay','story%20wa%20lirik%20lagu','video%20viral']
 
 let handler = async (m, {

@@ -1,5 +1,4 @@
-import fetch from 'node-fetch';
-import axios from 'axios';
+import axios from '../../infra/http.js'
 import cheerio from 'cheerio';
 
 const handler = async (m, { conn, args, command, usedPrefix }) => {

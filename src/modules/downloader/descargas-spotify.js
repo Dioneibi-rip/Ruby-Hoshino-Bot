@@ -1,8 +1,4 @@
-
-
-import axios from 'axios'
-import fetch from 'node-fetch'
-
+import axios from '../../infra/http.js'
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 
 if (!text) return conn.reply(m.chat, `${emoji} Por favor proporciona el nombre de una canción o artista.`, m)

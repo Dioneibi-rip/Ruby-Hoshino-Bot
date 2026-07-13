@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from '../../infra/http.js'
 import fs from 'fs'
 import path from 'path'
 import { spawn } from 'child_process'

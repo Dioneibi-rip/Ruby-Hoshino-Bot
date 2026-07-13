@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import {format} from 'util';
 const handler = async (m, {text}) => {
 if (!/^https?:\/\//.test(text)) return m.reply(`${emoji} Te faltó el *url* de la pagina.`);
@@ -9,7 +8,7 @@ if (res.headers.get('content-length') > 100 * 1024 * 1024 * 1024) {
 throw `Content-Length: ${res.headers.get('content-length')}`;
 }
 if (!/text|json/.test(res.headers.get('content-type'))) return conn.sendFile(m.chat, url, 'file', text, m);
-let txt = await res.buffer();
+let txt = Buffer.from(await res.arrayBuffer());
 try {
 txt = format(JSON.parse(txt + ''));
 } catch (e) {

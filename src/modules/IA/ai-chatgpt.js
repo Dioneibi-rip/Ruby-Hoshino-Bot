@@ -1,5 +1,4 @@
-import axios from 'axios'
-
+import axios from '../../infra/http.js'
 const CHATGPT_ENDPOINT = 'https://chatgptgratuit.app/wp-admin/admin-ajax.php'
 
 function decorateAiReply(title, text) {

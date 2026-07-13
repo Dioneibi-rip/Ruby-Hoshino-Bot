@@ -1,8 +1,5 @@
 import fs from 'fs'
-import FormData from 'form-data'
-import axios from 'axios'
-import fetch from 'node-fetch'
-
+import axios from '../../infra/http.js'
 let handler = async (m, { conn }) => {
 
 let q = m.quoted ? m.quoted : m
@@ -15,12 +12,10 @@ await m.react('🕓')
 
 let media = await q.download()
 let formData = new FormData()
-formData.append('image', media, { filename: 'file' })
+formData.append('image', new Blob([media], { type: mime }), 'file')
 
 let api = await axios.post('https://api.imgbb.com/1/upload?key=10604ee79e478b08aba6de5005e6c798', formData, {
-headers: {
-...formData.getHeaders()
-}
+headers: {}
 })
 
 if (api.data.data) {
