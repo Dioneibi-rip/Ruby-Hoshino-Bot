@@ -53,10 +53,16 @@ updatedAt: row.updated_at || 0
 function compact(value = {}) {
 return Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined && item !== null && item !== ''))
 }
+function resolveSQLiteDatabase(candidate) {
+const sqlite = candidate?.sqlite && typeof candidate.sqlite.prepare === 'function' ? candidate.sqlite : candidate
+if (!sqlite || typeof sqlite.prepare !== 'function' || typeof sqlite.exec !== 'function') {
+throw new TypeError('SQLiteBaileysStore requiere una instancia cruda de better-sqlite3 con prepare() y exec()')
+}
+return sqlite
+}
 class SQLiteBaileysStore {
 constructor(sqlite) {
-if (!sqlite) throw new Error('SQLiteBaileysStore requiere una instancia better-sqlite3')
-this.sqlite = sqlite
+this.sqlite = resolveSQLiteDatabase(sqlite)
 this.conn = null
 this.statements = {}
 this._prepareSchema()
