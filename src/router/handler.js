@@ -27,9 +27,9 @@ import messageQueue from '../core/message-queue.js'
 import { normalizeIdentityJid } from '../core/identity-utils.js'
 import { getMessageDeletePayload, isUserMutedInChat, messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
 import { getGroupMetadataOnDemand } from '../infra/global-cache.js'
-import { getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash } from './raw-filter.js'
+import { getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash, unwrapMessageContent } from './raw-filter.js'
 import { executePlugin } from './plugin-executor.js'
-import { pluginRequiresGroupParticipants } from './permission-guard.js'
+import { isBotSender, pluginRequiresGroupParticipants } from './permission-guard.js'
 
 global.uptimeStart = Date.now()
 
@@ -77,6 +77,44 @@ return 'normal'
 
 function isCelestialCommandText(text = '') {
 return CELESTIAL_COMMANDS.has(getRawCommandName(text))
+}
+
+function pickPlainMessageText(message = {}, fallback = '') {
+const content = unwrapMessageContent(message?.message || message) || {}
+const selectedRow = content.listResponseMessage?.singleSelectReply?.selectedRowId
+return String(
+content.conversation
+|| content.extendedTextMessage?.text
+|| content.imageMessage?.caption
+|| content.videoMessage?.caption
+|| content.documentMessage?.caption
+|| content.buttonsResponseMessage?.selectedButtonId
+|| selectedRow
+|| content.templateButtonReplyMessage?.selectedId
+|| content.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson
+|| fallback
+|| ''
+).trim()
+}
+
+function parseCommand(rawText = '', prefix = '') {
+const source = String(rawText || '').trim()
+const usedPrefix = String(prefix || '')
+const payload = usedPrefix && source.startsWith(usedPrefix) ? source.slice(usedPrefix.length).trim() : source
+const tokens = payload ? payload.split(/\s+/).filter(Boolean) : []
+const command = (tokens.shift() || '').toLowerCase()
+const text = payload.slice(command.length).trim()
+return {
+prefix: usedPrefix,
+usedPrefix,
+command,
+args: tokens,
+_arg: tokens,
+_args: tokens,
+text,
+noPrefix: payload,
+raw: source,
+}
 }
 
 function isCelestialCommandMessage(message = {}) {
@@ -324,9 +362,10 @@ if (!fastPath) return
 m = smsg(this, rawMessage) || rawMessage
 if (!m) return
 const opts = this.opts || global.opts || {}
+const plainText = pickPlainMessageText(rawMessage, fastPath.text)
 if (typeof m.text !== 'string') m.text = ''
-if (!m.text && fastPath.text) m.text = fastPath.text
-if (!m.body && fastPath.text) m.body = fastPath.text
+if (!m.text && plainText) m.text = plainText
+if (!m.body && plainText) m.body = plainText
 
 const rawCommand = fastPath.rawCommand || getRawCommandName(m.text)
 if (rawCommand === 'resetbot') {
