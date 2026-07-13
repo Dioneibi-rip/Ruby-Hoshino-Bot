@@ -26,8 +26,10 @@ const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
 import { makeWASocket } from '../../infra/simple.js'
 import { attachSessionState, cleanupSessionState, createMessageRetryCache, registerSubBot } from '../../core/session-manager.js'
+import { startSubBotSupervisor } from '../../core/subbot-supervisor.js'
+import * as sharedHandlerModule from '../../router/handler.js'
 import { getCachedParticipatingGroups } from '../../infra/baileys-group-cache.js'
-import { getCachedGroupMetadata } from '../../router/handler-utils.js'
+import { getGroupMetadataOnDemand } from '../../infra/global-cache.js'
 import { fileURLToPath } from 'url'
 let crm1 = "Y2QgcGx1Z2lucy"
 let crm2 = "A7IG1kNXN1b"
@@ -75,7 +77,7 @@ sock.__rawGroupMetadata = originalGroupMetadata
 sock.groupMetadata = async jid => {
 const cached = sock.chats?.[jid]?.metadata
 if (cached?.participants?.length) return cached
-const metadata = await getCachedGroupMetadata(sock, jid)
+const metadata = await getGroupMetadataOnDemand(sock, jid, { requireParticipants: true })
 if (metadata?.id) setSubBotGroupMetadata(sock, jid, metadata)
 return metadata
 }
@@ -94,7 +96,7 @@ if (!jid || sock.__participantRefreshTimers.has(jid)) return
 const timer = setTimeout(async () => {
 try {
 sock.__groupMetadataCache?.store?.delete?.(jid)
-const metadata = await getCachedGroupMetadata(sock, jid)
+const metadata = await getGroupMetadataOnDemand(sock, jid, { requireParticipants: true, force: true })
 if (metadata?.id) setSubBotGroupMetadata(sock, jid, metadata)
 } catch (error) {
 console.error(`Error refrescando participantes del grupo ${jid}:`, error)
@@ -158,10 +160,36 @@ return error?.output?.payload?.message || error?.output?.message || error?.messa
 }
 if (global.conns instanceof Array) console.log()
 else global.conns = []
+startSubBotSupervisor()
 if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
 const subBotConnectionStates = global.subBotConnectionStates || (global.subBotConnectionStates = new Map())
 const SUBBOT_CONNECTING_TTL_MS = 120000
 const FATAL_RECONNECT_REASONS = new Set([DisconnectReason.loggedOut, 401, 403, 405])
+const SUBBOT_MSG_STORE_LIMIT = 500
+
+function createBoundedSubBotMessageStore(limit = SUBBOT_MSG_STORE_LIMIT) {
+const store = new Map()
+const keyFor = key => `${key?.remoteJid || key?.chat || ''}:${key?.id || ''}`
+return {
+store,
+remember(message) {
+const id = keyFor(message?.key || message)
+if (!id || id === ':') return
+store.set(id, message)
+while (store.size > limit) store.delete(store.keys().next().value)
+},
+rememberMany(messages = []) {
+for (const message of messages || []) this.remember(message)
+},
+get(key) {
+const hit = store.get(keyFor(key))
+return hit?.message || hit || null
+},
+clear() {
+store.clear()
+},
+}
+}
 
 function getSubBotConnectionState(id) {
 const state = subBotConnectionStates.get(id)
@@ -320,6 +348,7 @@ let { version, isLatest } = await fetchLatestBaileysVersion()
 const subSocketCfg = global.baileysSocketConfig || {}
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = createMessageRetryCache()
+const liteMsgStore = createBoundedSubBotMessageStore(SUBBOT_MSG_STORE_LIMIT)
 const { state, saveCreds } = useSQLiteAuthState(pathRubyJadiBot, { dbName: 'auth.db', cleanOldFiles: true })
 const debouncedSaveCreds = createDebouncedSaveCreds(() => saveCreds.call(sock, true))
 global.authCredsFlushers ||= new Set()
@@ -340,10 +369,12 @@ keepAliveIntervalMs: subSocketCfg.keepAliveIntervalMs ?? 20000,
 retryRequestDelayMs: subSocketCfg.retryRequestDelayMs ?? 5000,
 markOnlineOnConnect: false,
 syncFullHistory: false,
-shouldSyncHistoryMessage: () => false
+shouldSyncHistoryMessage: () => false,
+getMessage: async key => liteMsgStore.get(key) || ''
 };
 let sock = makeWASocket(connectionOptions)
 sock.__msgRetryCache = msgRetryCache
+sock.__liteMsgStore = liteMsgStore.store
 await patchSubBotGroupMetadata(sock)
 const subBotId = requestedSubBotId || subBotSessionId(subBotJid || sock?.authState?.creds?.me?.jid || path.basename(pathRubyJadiBot))
 sock.subBotId = subBotId
@@ -351,44 +382,10 @@ sock.subBotJid = subBotJid
 attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.jid || 'primary', path: pathRubyJadiBot })
 sock.isInit = false
 let isInit = true
-let healthInterval = null
 const MAX_RECONNECT_ATTEMPTS = options.startupLoad ? 3 : subSocketCfg.maxReconnectAttempts ?? 6
 const RECONNECT_BASE_DELAY_MS = subSocketCfg.reconnectBaseDelayMs ?? 1500
-
-class SubBotReconnectStateMachine {
-constructor({ id, jid, sessionPath, startupLoad, reconnect, onFatal }) {
-this.id = id
-this.jid = jid
-this.sessionPath = sessionPath
-this.startupLoad = Boolean(startupLoad)
-this.reconnect = reconnect
-this.onFatal = onFatal
-this.attempts = 0
-this.state = 'offline'
-}
-transition(state, metadata = {}) {
-this.state = state
-setSubBotConnectionState(this.id, state, { jid: this.jid, path: this.sessionPath, ...metadata })
-}
-markOnline(metadata = {}) { this.attempts = 0; this.transition('online', metadata) }
-markFatal(metadata = {}) { this.transition('fatal', metadata); return this.onFatal?.(metadata) }
-async reconnectAfter(closeReason = 'unknown') {
-if (this.attempts >= MAX_RECONNECT_ATTEMPTS) {
-if (this.startupLoad) return this.markFatal({ lastReason: closeReason, removeSession: true })
-console.log(chalk.bold.yellow(`⚠️ Sub-Bot +${this.id} alcanzó ${MAX_RECONNECT_ATTEMPTS} reconexiones; se conserva la sesión y se reintenta con pausa larga.`))
-this.transition('reconnecting', { lastReason: closeReason })
-this.attempts = Math.max(1, MAX_RECONNECT_ATTEMPTS - 1)
-await sleep(120000 + Math.floor(Math.random() * 30000))
-} else {
-this.attempts += 1
-this.transition('reconnecting', { lastReason: closeReason, attempts: this.attempts })
-const rateLimitDelay = String(closeReason || '').includes('429') || String(closeReason || '').includes('rate') ? 30000 : 0
-const waitMs = Math.max(rateLimitDelay, Math.min(60000, RECONNECT_BASE_DELAY_MS * (2 ** (this.attempts - 1)))) + Math.floor(Math.random() * 1000)
-await sleep(waitMs)
-}
-try { await this.reconnect(); return true } catch (error) { console.error(`Error reconectando +${this.id}:`, error); return this.reconnectAfter(closeReason) }
-}
-}
+let reconnectAttempts = 0
+let reconnectTimer = null
 
 let pairingCodeSent = false
 let pairingCodeMessageKey = null
@@ -400,11 +397,9 @@ if (i >= 0) {
 global.conns.splice(i, 1)
 }
 }
-const clearHealthMonitor = () => {
-if (healthInterval) {
-clearInterval(healthInterval)
-healthInterval = null
-}
+const clearReconnectTimer = () => {
+if (reconnectTimer) clearTimeout(reconnectTimer)
+reconnectTimer = null
 }
 const clearPairingCodeLock = () => {
 if (pairingCodeTimer) clearTimeout(pairingCodeTimer)
@@ -412,11 +407,12 @@ pairingCodeTimer = null
 pairingCodeRequests.delete(subBotId)
 }
 const destroySock = async ({ removeSession = false } = {}) => {
-clearHealthMonitor()
+clearReconnectTimer()
 clearPairingCodeLock()
 try { sock.ws.close() } catch (e) {}
 try { sock.ev.removeAllListeners() } catch (e) {}
 try { msgRetryCache.flushAll?.() } catch (e) {}
+try { liteMsgStore.clear() } catch (e) {}
 clearSubBotMemoryRefs(sock)
 removeSockFromPool(sock)
 cleanupSessionState(sock)
@@ -428,14 +424,31 @@ if (removeSession) {
 await cleanupSubBotSession({ id: subBotId, jid: subBotJid, sessionPath: pathRubyJadiBot, sock, reason: 'fatal-disconnect' })
 }
 }
-let handlerModule = await import(`../../router/handler.js?t=${Date.now()}`)
-let creloadHandler = async function (restatConn) {
-try {
-const freshHandler = await import(`../../router/handler.js?t=${Date.now()}`).catch(console.error)
-if (freshHandler?.handler) handlerModule = freshHandler
-} catch (e) {
-console.error('Error recargando handler:', e)
+const scheduleSafeReconnect = async (closeReason = 'unknown', reconnectFn = null) => {
+if (reconnectTimer) return false
+if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS && options.startupLoad) {
+setSubBotConnectionState(subBotId, 'fatal', { jid: subBotJid, path: pathRubyJadiBot, lastReason: closeReason })
+await destroySock({ removeSession: true })
+return false
 }
+if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) reconnectAttempts = Math.max(1, MAX_RECONNECT_ATTEMPTS - 1)
+reconnectAttempts += 1
+setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot, lastReason: closeReason, attempts: reconnectAttempts })
+const rateLimitDelay = String(closeReason || '').includes('429') || String(closeReason || '').includes('rate') ? 30000 : 0
+const waitMs = Math.max(rateLimitDelay, Math.min(60000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1)))) + Math.floor(Math.random() * 1000)
+reconnectTimer = setTimeout(async () => {
+reconnectTimer = null
+try { await (reconnectFn || (() => creloadHandler(true)))() }
+catch (error) {
+console.error(`Error reconectando +${subBotId}:`, error)
+scheduleSafeReconnect(closeReason, reconnectFn).catch(() => {})
+}
+}, waitMs)
+reconnectTimer.unref?.()
+return true
+}
+let handlerModule = sharedHandlerModule
+let creloadHandler = async function (restatConn) {
 if (restatConn) {
 const oldChats = sock.chats
 removeSockFromPool(sock)
@@ -443,6 +456,7 @@ try { sock.ws.close() } catch (e) { }
 try { sock.ev.removeAllListeners() } catch (e) {}
 sock = makeWASocket(connectionOptions, { chats: oldChats })
 sock.__msgRetryCache = msgRetryCache
+sock.__liteMsgStore = liteMsgStore.store
 await patchSubBotGroupMetadata(sock)
 sock.subBotId = subBotId
 sock.subBotJid = subBotJid
@@ -461,7 +475,10 @@ sock.ev.off('creds.update', sock.credsUpdate)
 }
 sock.__groupEventStartedAt = Date.now()
 sock.__groupEventReadyAt = sock.__groupEventStartedAt + 15_000
-sock.handler = handlerModule.handler.bind(sock)
+sock.handler = update => {
+liteMsgStore.rememberMany(update?.messages)
+return handlerModule.handler.call(sock, update)
+}
 sock.participantsUpdate = handlerModule.participantsUpdate.bind(sock)
 sock.groupsUpdate = handlerModule.groupsUpdate.bind(sock)
 sock.connectionUpdate = update => connectionUpdate(update).catch(async error => {
@@ -585,10 +602,8 @@ const endSesion = async (loaded) => {
 if (!loaded) destroySock({ removeSession: false })
 }
 const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode
-const reconnectMachine = sock.__reconnectMachine || (sock.__reconnectMachine = new SubBotReconnectStateMachine({ id: subBotId, jid: subBotJid, sessionPath: pathRubyJadiBot, startupLoad: options.startupLoad, reconnect: () => creloadHandler(true), onFatal: ({ removeSession = false } = {}) => destroySock({ removeSession }) }))
 const scheduleReconnect = async (closeReason, reconnectFn) => {
-if (reconnectFn) reconnectMachine.reconnect = reconnectFn
-return reconnectMachine.reconnectAfter(closeReason)
+return scheduleSafeReconnect(closeReason, reconnectFn)
 }
 if (connection === 'close') {
 if (FATAL_RECONNECT_REASONS.has(reason)) {
@@ -617,26 +632,17 @@ userName = sock.authState.creds.me.name || 'Anónimo'
 userJid = sock.authState.creds.me.jid || `${path.basename(pathRubyJadiBot)}@s.whatsapp.net`
 console.log(chalk.bold.cyanBright(`\n❒⸺⸺⸺⸺【• SUB-BOT •】⸺⸺⸺⸺❒\n│\n│ 🟢 ${userName} (+${path.basename(pathRubyJadiBot)}) conectado exitosamente.\n│\n❒⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺❒`))
 sock.isInit = true
-reconnectMachine.markOnline({ connectedAt: Date.now() })
+reconnectAttempts = 0
+clearReconnectTimer()
+setSubBotConnectionState(subBotId, 'online', { jid: subBotJid, path: pathRubyJadiBot, connectedAt: Date.now() })
 if (!global.conns.includes(sock)) global.conns.push(sock)
 registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() })
-setSubBotConnectionState(subBotId, 'online', { jid: subBotJid, path: pathRubyJadiBot, connectedAt: Date.now() })
 upsertSubBotAuthRegistry(subBotId, sock, 'online', { path: pathRubyJadiBot, jid: subBotJid, connectedAt: Date.now() })
 clearPairingCodeLock()
 if (SUBBOT_GROUP_PREFETCH_ON_CONNECT) refreshSubBotGroups(sock).catch(() => {})
 m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `@${m.sender.split('@')[0]}, genial ya eres parte de nuestro ecosistema de bots.`}, {quoted: m}).catch(() => {}) : null
 joinChannels(sock).catch(() => {})
-if (!healthInterval) {
-healthInterval = setInterval(async () => {
-if (!sock.user || sock?.ws?.socket?.readyState === ws.CLOSED) {
-scheduleSafeReconnect('health-check').catch(() => {})
 }
-}, 90000)
-}
-}
-}
-async function scheduleSafeReconnect(closeReason = 'unknown') {
-return reconnectMachine.reconnectAfter(closeReason).catch(error => console.error(`Error en reconexión segura del Sub-Bot ${subBotId}:`, error))
 }
 creloadHandler(false)
 if (mcode && m?.chat) {
