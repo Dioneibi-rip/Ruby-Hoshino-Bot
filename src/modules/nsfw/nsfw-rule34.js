@@ -47,32 +47,16 @@ const handler = async (m, { conn, args, command, usedPrefix }) => {
 const rwait = global.rwait || "⏳";
 const done = global.done || "✅";
 const error = global.error || "❌";
-try {
-const chatConfig = global.db?.data?.chats?.[m.chat] || global.db?.getChat?.(m.chat) || {};
-if (!chatConfig?.nsfw && m.isGroup) {
+if (!db.data.chats[m.chat].nsfw && m.isGroup) {
 return m.reply("> (っ- ‸ - ς) 𝖤𝗅 𝖼𝗈𝗇𝗍𝖾𝗇𝗂𝖽𝗈 𝖭𝖲𝖥𝖶 𝖾𝗌𝗍⍺́ 𝖽𝖾𝗌⍺𝖼𝗍𝗂𝗏⍺𝖽𝗈 𝖾𝗇 𝖾𝗌𝗍𝖾 𝗀𝗋𝗎𝗉𝗈... 🌸");
 }
 if (!args[0]) {
 return conn.reply(m.chat, `> ꒰ঌ(˶ˆᗜˆ˵)໒꒱ 𝖣𝖾𝖻𝖾𝗌 𝖾𝗌𝖼𝗋𝗂𝖻𝗂𝗋 𝗎𝗇 𝗍⍺𝗀 𝗉⍺𝗋⍺ 𝖻𝗎𝗌𝖼⍺𝗋... ⍺𝗌𝗂́:\n> 💌 \`${usedPrefix}${command} yor_forger\``, m);
 }
-const apiKey = process.env.RULE34_API_KEY?.trim();
-const userId = process.env.RULE34_USER_ID?.trim();
-if (!apiKey) {
-return conn.reply(m.chat, '> 🔐 𝖤𝗅 𝗌𝖾𝗋𝗏𝗂𝖼𝗂𝗈 𝖱𝗎𝗅𝖾𝟥𝟦 𝗇𝗈 𝖾𝗌𝗍⍺́ 𝖼𝗈𝗇𝖿𝗂𝗀𝗎𝗋⍺𝖽𝗈: falta RULE34_API_KEY.', m);
-}
 const query = args.join(" ").trim().split(/\s+/).map(tag => tag.replace(/\s+/g, '_')).join(" ");
+try {
 await m.react(rwait);
-const params = new URLSearchParams({
-page: 'dapi',
-s: 'post',
-q: 'index',
-json: '1',
-tags: query,
-limit: '100',
-api_key: apiKey,
-});
-if (userId) params.set('user_id', userId);
-const apiUrl = `https://api.rule34.xxx/index.php?${params.toString()}`;
+const apiUrl = "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=" + encodeURIComponent(query) + "&limit=100&user_id=5405830&api_key=2b11e512aee1a0f952dd9cda56da50c441957c087278bc59a948fd2e7c9fdc21263580f4ee7a7927c36788ddedeaf64bfa79092750969aca4667966c4018992c";
 const res = await fetch(apiUrl);
 const text = await res.text();
 let json;
@@ -90,7 +74,7 @@ const imageUrls = [];
 const limit = Math.min(json.length, 5);
 for (let i = 0; i < limit; i++) {
 const randomItem = json[Math.floor(Math.random() * json.length)];
-if (randomItem?.file_url && !imageUrls.includes(randomItem.file_url)) {
+if (!imageUrls.includes(randomItem.file_url)) {
 imageUrls.push(randomItem.file_url);
 }
 }
