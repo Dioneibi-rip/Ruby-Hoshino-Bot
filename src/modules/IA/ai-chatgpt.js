@@ -1,8 +1,18 @@
 import axios from '../../infra/http.js'
 import crypto from 'crypto'
 
-// Objeto para guardar las sesiones y mantener el contexto de la conversación por usuario
 const sessions = {}
+
+// Generador de UUID compatible
+const generateUUID = () => {
+  if (crypto && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
 
 function decorateAiReply(title, text) {
   const body = String(text || 'Sin respuesta.').trim()
@@ -18,59 +28,66 @@ ${body.split('\n').map(line => `│ ${line}`.trimEnd()).join('\n')}
 const parseCookies = (arr) => Object.fromEntries((arr || []).map(c => c.split(';')[0].split('=').map(s => s.trim())))
 
 function cleanSpecialTags(text) {
-  if (!text) return '';
+  if (!text) return ''
   text = text.replace(/\ue200entity\ue202([^\ue201]+)\ue201/g, (match, p1) => {
     try {
-      const arr = JSON.parse(p1);
-      return arr[1] || arr[0] || '';
+      const arr = JSON.parse(p1)
+      return arr[1] || arr[0] || ''
     } catch {
-      return '';
+      return ''
     }
-  });
-  text = text.replace(/\ue200[^\ue201]*\ue201/g, '');
-  return text.trim();
+  })
+  text = text.replace(/\ue200[^\ue201]*\ue201/g, '')
+  return text.trim()
 }
 
 async function getSession() {
-  const deviceId = crypto.randomUUID()
-  const res = await axios.post('https://android.chat.openai.com/backend-anon/sentinel/chat-requirements', {}, {
-    headers: {
-      'User-Agent': 'ChatGPT/1.2026.181 (Android 16; Neo/1.0; build 2222222)',
-      'OAI-Package-Name': 'com.openai.chatgpt',
-      'OAI-Client-Type': 'android',
-      'OAI-Device-Id': deviceId,
-      'Accept-Language': 'id-ID,in;q=0.9',
-      'X-Device-Tier': 'upper_mid',
-      'X-OpenAI-Target-Path': '/backend-anon/sentinel/chat-requirements',
-      'ChatGPT-Account-Id': 'default',
-      'ChatGPT-Residency-Region': 'no_constraint',
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
+  const deviceId = generateUUID()
+  try {
+    const res = await axios.post('https://android.chat.openai.com/backend-anon/sentinel/chat-requirements', {}, {
+      headers: {
+        'User-Agent': 'ChatGPT/1.2026.181 (Android 16; Neo/1.0; build 2222222)',
+        'OAI-Package-Name': 'com.openai.chatgpt',
+        'OAI-Client-Type': 'android',
+        'OAI-Device-Id': deviceId,
+        'Accept-Language': 'id-ID,in;q=0.9',
+        'X-Device-Tier': 'upper_mid',
+        'X-OpenAI-Target-Path': '/backend-anon/sentinel/chat-requirements',
+        'ChatGPT-Account-Id': 'default',
+        'ChatGPT-Residency-Region': 'no_constraint',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      timeout: 15000
+    })
+
+    const cookies = parseCookies(res.headers['set-cookie'])
+    const cookieStr = Object.entries(cookies).map(([k, v]) => `${k}=${v}`).join('; ')
+    
+    let oaiSc = cookies['oai-sc']
+    if (!oaiSc && res.data?.token) {
+      oaiSc = `0${res.data.token}`
     }
-  })
 
-  const cookies = parseCookies(res.headers['set-cookie'])
-  const cookieStr = Object.entries(cookies).map(([k, v]) => `${k}=${v}`).join('; ')
-  
-  let oaiSc = cookies['oai-sc']
-  if (!oaiSc && res.data?.token) {
-    oaiSc = `0${res.data.token}`
+    const cookie = oaiSc && !cookieStr.includes('oai-sc') ? `oai-sc=${oaiSc}; ${cookieStr}` : cookieStr
+    return { cookie, deviceId, parentMessageId: generateUUID() }
+  } catch (error) {
+    const status = error.response?.status || 'Desconocido'
+    const statusText = error.response?.statusText || ''
+    const msg = error.message || ''
+    throw new Error(`[Fallo en getSession] Código: ${status} (${statusText}) | Info: ${msg}`)
   }
-
-  const cookie = oaiSc && !cookieStr.includes('oai-sc') ? `oai-sc=${oaiSc}; ${cookieStr}` : cookieStr
-
-  return { cookie, deviceId, parentMessageId: crypto.randomUUID() }
 }
 
 async function chatgpt(prompt, auth = null, chatId = null) {
   auth = auth || await getSession()
-  if (!auth.deviceId) auth.deviceId = crypto.randomUUID()
-  if (!auth.parentMessageId) auth.parentMessageId = crypto.randomUUID()
+  if (!auth.deviceId) auth.deviceId = generateUUID()
+  if (!auth.parentMessageId) auth.parentMessageId = generateUUID()
 
   const isAuthorized = !!(auth.authorization || auth.token)
   const baseUrl = isAuthorized ? 'https://android.chat.openai.com/backend-api' : 'https://android.chat.openai.com/backend-anon'
   
-  const currentMessageId = crypto.randomUUID()
+  const currentMessageId = generateUUID()
   const parentMessageId = auth.parentMessageId
 
   const headers = {
@@ -94,24 +111,17 @@ async function chatgpt(prompt, auth = null, chatId = null) {
     })
   }
 
-  if (isAuthorized) {
-    headers['Authorization'] = auth.authorization || `Bearer ${auth.token}`
-  }
-
-  const userMessage = {
-    id: currentMessageId,
-    author: { role: "user" },
-    content: {
-      content_type: "text",
-      parts: [prompt]
-    },
-    status: "finished_successfully",
-    recipient: "all"
-  }
+  if (isAuthorized) headers['Authorization'] = auth.authorization || `Bearer ${auth.token}`
 
   const body = {
     action: "next",
-    messages: [userMessage],
+    messages: [{
+      id: currentMessageId,
+      author: { role: "user" },
+      content: { content_type: "text", parts: [prompt] },
+      status: "finished_successfully",
+      recipient: "all"
+    }],
     model: "auto",
     history_and_training_disabled: false,
     fork_from_shared_post: false,
@@ -125,10 +135,7 @@ async function chatgpt(prompt, auth = null, chatId = null) {
     timezone_offset_min: 240,
     system_hints: [],
     is_onboarding_conversation: false,
-    no_auth_ad_preferences: {
-      personalization_enabled: true,
-      history_enabled: true
-    },
+    no_auth_ad_preferences: { personalization_enabled: true, history_enabled: true },
     client_prepare_state: "none",
     stream: true
   }
@@ -138,71 +145,75 @@ async function chatgpt(prompt, auth = null, chatId = null) {
     body.parent_message_id = parentMessageId
   }
 
-  const stream = await axios.post(`${baseUrl}/f/conversation`, body, {
-    headers,
-    responseType: 'stream'
-  })
+  try {
+    const stream = await axios.post(`${baseUrl}/f/conversation`, body, {
+      headers,
+      responseType: 'stream',
+      timeout: 30000
+    })
 
-  return new Promise((resolve) => {
-    let text = '', buf = ''
-    let lastPath = null
-    let lastOp = null
-    let finalChatId = chatId
-    let currentAssistantMsgId = null
+    return new Promise((resolve, reject) => {
+      let text = '', buf = ''
+      let lastPath = null
+      let lastOp = null
+      let finalChatId = chatId
+      let currentAssistantMsgId = null
 
-    stream.data.on('data', chunk => {
-      buf += chunk.toString()
-      const lines = buf.split('\n')
-      buf = lines.pop()
+      stream.data.on('data', chunk => {
+        buf += chunk.toString()
+        const lines = buf.split('\n')
+        buf = lines.pop()
 
-      for (const line of lines) {
-        const trimmed = line.trim()
-        if (!trimmed || trimmed === 'data: [DONE]') continue
+        for (const line of lines) {
+          const trimmed = line.trim()
+          if (!trimmed || trimmed === 'data: [DONE]') continue
 
-        if (trimmed.startsWith('data: ')) {
-          try {
-            const data = JSON.parse(trimmed.substring(6))
+          if (trimmed.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(trimmed.substring(6))
+              if (data.conversation_id) finalChatId = data.conversation_id
+              
+              const p = data.p !== undefined ? data.p : lastPath
+              const o = data.o !== undefined ? data.o : lastOp
 
-            if (data.conversation_id) {
-              finalChatId = data.conversation_id
-            }
+              if (data.p !== undefined) lastPath = data.p
+              if (data.o !== undefined) lastOp = data.o
 
-            const p = data.p !== undefined ? data.p : lastPath
-            const o = data.o !== undefined ? data.o : lastOp
-
-            if (data.p !== undefined) lastPath = data.p
-            if (data.o !== undefined) lastOp = data.o
-
-            if (o === 'add' && data.v && data.v.message) {
-              if (data.v.message.author && data.v.message.author.role === 'assistant') {
-                currentAssistantMsgId = data.v.message.id
-                const parts = data.v.message.content?.parts
-                if (parts && parts[0]) {
-                  text = parts[0]
+              if (o === 'add' && data.v && data.v.message) {
+                if (data.v.message.author && data.v.message.author.role === 'assistant') {
+                  currentAssistantMsgId = data.v.message.id
+                  const parts = data.v.message.content?.parts
+                  if (parts && parts[0]) text = parts[0]
                 }
-              }
-            } else if (o === 'patch' && Array.isArray(data.v)) {
-              for (const op of data.v) {
-                if (op.o === 'append' && op.p && op.p.startsWith('/message/content/parts/')) {
-                  text += op.v
+              } else if (o === 'patch' && Array.isArray(data.v)) {
+                for (const op of data.v) {
+                  if (op.o === 'append' && op.p && op.p.startsWith('/message/content/parts/')) text += op.v
                 }
+              } else if (o === 'append' && p && p.startsWith('/message/content/parts/') && typeof data.v === 'string') {
+                text += data.v
               }
-            } else if (o === 'append' && p && p.startsWith('/message/content/parts/') && typeof data.v === 'string') {
-              text += data.v
-            }
-          } catch {}
+            } catch (e) {}
+          }
         }
-      }
+      })
+
+      stream.data.on('end', () => {
+        if (!text) return reject(new Error('El stream cerró pero ChatGPT no devolvió ningún texto.'))
+        if (currentAssistantMsgId) auth.parentMessageId = currentAssistantMsgId
+        resolve({ response: cleanSpecialTags(text), chatId: finalChatId, auth })
+      })
+
+      stream.data.on('error', (err) => {
+        reject(new Error(`[Error en flujo Stream] Info: ${err.message}`))
+      })
     })
 
-    stream.data.on('end', () => {
-      if (currentAssistantMsgId) {
-        auth.parentMessageId = currentAssistantMsgId
-      }
-      // Cambiamos el JSON.stringify para devolver el objeto directamente y hacerlo más limpio en el handler
-      resolve({ response: cleanSpecialTags(text), chatId: finalChatId, auth })
-    })
-  })
+  } catch (error) {
+    const status = error.response?.status || 'Desconocido'
+    const statusText = error.response?.statusText || ''
+    const msg = error.message || ''
+    throw new Error(`[Fallo en f/conversation] Código: ${status} (${statusText}) | Info: ${msg}`)
+  }
 }
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
@@ -210,23 +221,29 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   await m.react?.('⏳')
   
   try {
-    // Identificador único por chat/usuario para mantener el hilo de la conversación
     const userId = m.sender || m.chat
     sessions[userId] = sessions[userId] || {}
 
-    // Llamamos a la API usando los datos de la sesión anterior (si existen)
     const result = await chatgpt(text.trim(), sessions[userId].auth, sessions[userId].chatId)
 
-    // Guardamos la nueva información de sesión para la próxima vez
     sessions[userId].auth = result.auth
     sessions[userId].chatId = result.chatId
 
     await conn.sendMessage(m.chat, { text: decorateAiReply('ChatGPT', result.response) }, { quoted: m })
     await m.react?.('✅')
   } catch (error) {
-    console.error('[chatgpt]', error)
+    console.error('[chatgpt handler error]:', error.message)
     await m.react?.('💔')
-    await m.reply(decorateAiReply('ChatGPT', 'No pude conectar con ChatGPT. Intenta nuevamente en unos minutos.'))
+
+    // Formateamos el reporte detallado para enviarlo al chat directamente
+    const errorReport = `⚠️ *SISTEMA DE LOGS INTERNOS* ⚠️\n\n` +
+                        `*Mensaje del Error:* \n\`\`\`${error.message}\`\`\`\n\n` +
+                        `💡 *Guía rápida de diagnóstico:* \n` +
+                        `• *Código 403 (Forbidden):* La IP de tu hosting fue bloqueada por Cloudflare/OpenAI.\n` +
+                        `• *Código 429 (Too Many Requests):* Tu IP alcanzó el límite de peticiones anónimas permitidas por minuto.\n` +
+                        `• *Info: timeout...:* Tu servidor tardó demasiado en conectar con OpenAI (mala señal de red).`
+
+    await m.reply(decorateAiReply('Error de Conexión', errorReport))
   }
 }
 
