@@ -25,7 +25,7 @@ ${body.split('\n').map(line => `│ ${line}`.trimEnd()).join('\n')}
 ╰─❖ 𖹭 ─────────────╯`.trim()
 }
 
-// NUEVA FUNCIÓN A PRUEBA DE ERRORES: Maneja Arrays y Strings sin colapsar
+// Función para parsear cookies universalmente
 const parseCookies = (headerInfo) => {
   if (!headerInfo) return {}
   const arr = Array.isArray(headerInfo) ? headerInfo : [headerInfo]
@@ -36,7 +36,7 @@ const parseCookies = (headerInfo) => {
       const key = parts[0]?.trim()
       const value = parts.slice(1).join('=').trim()
       return [key, value]
-    }).filter(pair => pair[0]) // Filtra por si hay entradas vacías
+    }).filter(pair => pair[0])
   )
 }
 
@@ -118,8 +118,8 @@ async function chatgpt(prompt, auth = null, chatId = null) {
     'Cookie': auth.cookie,
     'X-Sentinel-Payload': JSON.stringify({
       bot_token: {
-        failure_reason: "-2: Standard Integrity API error (-2): The Play Store app is either not installed or not the official version.\nAsk the user to install an official and recent version of Play Store.\n (https://developer.android.com/google/play/integrity/reference/com/google/android/play/core/integrity/model/StandardIntegrityErrorCode.html#PLAY_STORE_NOT_FOUND).",
-        failure_detail: "[qdb0.j(SourceFile:9), g4n.a(SourceFile:85), f4n.invokeSuspend(SourceFile:14), kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(SourceFile:5), qni.run(SourceFile:104), fnf.run(SourceFile:112)]"
+        failure_reason: "-2: Standard Integrity API error (-2): The Play Store app is either not installed or not the official version.",
+        failure_detail: "[qdb0.j(SourceFile:9)]"
       }
     })
   }
@@ -159,20 +159,21 @@ async function chatgpt(prompt, auth = null, chatId = null) {
   }
 
   try {
-    const stream = await axios.post(`${baseUrl}/f/conversation`, body, {
+    const streamReq = await axios.post(`${baseUrl}/f/conversation`, body, {
       headers,
       responseType: 'stream',
       timeout: 30000
     })
 
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       let text = '', buf = ''
       let lastPath = null
       let lastOp = null
       let finalChatId = chatId
       let currentAssistantMsgId = null
 
-      stream.data.on('data', chunk => {
+      const processChunk = (chunk) => {
+        if (!chunk) return
         buf += chunk.toString()
         const lines = buf.split('\n')
         buf = lines.pop()
@@ -208,24 +209,48 @@ async function chatgpt(prompt, auth = null, chatId = null) {
             } catch (e) {}
           }
         }
-      })
+      }
 
-      stream.data.on('end', () => {
-        if (!text) return reject(new Error('El stream cerró pero ChatGPT no devolvió ningún texto.'))
+      const finishProcessing = () => {
+        if (!text) return reject(new Error('ChatGPT procesó la petición pero no devolvió texto.'))
         if (currentAssistantMsgId) auth.parentMessageId = currentAssistantMsgId
         resolve({ response: cleanSpecialTags(text), chatId: finalChatId, auth })
-      })
+      }
 
-      stream.data.on('error', (err) => {
-        reject(new Error(`[Error en flujo Stream] Info: ${err.message}`))
-      })
+      const data = streamReq.data;
+
+      // PARSER UNIVERSAL: Maneja cualquier tipo de objeto que devuelva Axios
+      if (typeof data === 'string') {
+        // Caso 1: El wrapper forzó el stream a convertirse en un String
+        processChunk(data)
+        processChunk('\n\n') // Forzamos vaciar el buffer
+        finishProcessing()
+      } else if (data && typeof data.on === 'function') {
+        // Caso 2: Stream nativo de Node.js (Lo que esperábamos originalmente)
+        data.on('data', processChunk)
+        data.on('end', finishProcessing)
+        data.on('error', (err) => reject(new Error(`[Stream Error] ${err.message}`)))
+      } else if (data && typeof data[Symbol.asyncIterator] === 'function') {
+        // Caso 3: Web Streams iterables
+        try {
+          for await (const chunk of data) {
+            processChunk(chunk)
+          }
+          finishProcessing()
+        } catch (err) {
+          reject(new Error(`[AsyncIterator Error] ${err.message}`))
+        }
+      } else {
+        // Caso 4: Tipo de dato desconocido / Axios devolvió JSON
+        reject(new Error(`La respuesta HTTP tiene un formato desconocido. Tipo recibido: ${typeof data}`))
+      }
     })
 
   } catch (error) {
     const status = error.response?.status || 'Desconocido'
     const statusText = error.response?.statusText || ''
     const msg = error.message || ''
-    throw new Error(`[Fallo en f/conversation] Código: ${status} (${statusText}) | Info: ${msg}`)
+    throw new Error(`[Fallo en API Conversation] Código: ${status} (${statusText}) | Info: ${msg}`)
   }
 }
 
@@ -251,9 +276,9 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     const errorReport = `⚠️ *SISTEMA DE LOGS INTERNOS* ⚠️\n\n` +
                         `*Mensaje del Error:* \n\`\`\`${error.message}\`\`\`\n\n` +
                         `💡 *Guía rápida de diagnóstico:* \n` +
-                        `• *Código 403 (Forbidden):* La IP de tu hosting fue bloqueada por Cloudflare/OpenAI.\n` +
-                        `• *Código 429 (Too Many Requests):* Tu IP alcanzó el límite de peticiones permitidas.\n` +
-                        `• *Info: timeout...:* Tu servidor tardó demasiado en conectar con OpenAI.`
+                        `• *Código 403 (Forbidden):* La IP de tu hosting fue bloqueada.\n` +
+                        `• *Código 429 (Too Many Requests):* Tu IP alcanzó el límite de peticiones.\n` +
+                        `• *Info: timeout...:* Tu servidor tardó demasiado en conectar.`
 
     await m.reply(decorateAiReply('Error de Conexión', errorReport))
   }
