@@ -206,7 +206,6 @@ global.updateMessageGlobals = async function updateMessageGlobals(m = {}, conn =
   global.saludo = global.getSaludo(now)
   global.nombre = m.pushName || 'Anónimo'
   global.taguser = '@' + String(sender).split('@')[0]
-  global.packsticker = global.nombre
 }
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*

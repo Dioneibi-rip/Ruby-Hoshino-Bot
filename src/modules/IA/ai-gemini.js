@@ -1,3 +1,4 @@
+import { buildAiPromptWithContext, rememberAiExchange } from '../../core/ai-context.js'
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
 const btoa2 = str => Buffer.from(str, 'utf8').toString('base64')
 const atob2 = b64 => Buffer.from(b64, 'base64').toString('utf8')
@@ -112,8 +113,10 @@ await m.react('⏳')
 const userId = m.sender || m.chat
 sessions[userId] = sessions[userId] || {}
 try {
-let res = await askGemini(text, sessions[userId].id)
+const prompt = buildAiPromptWithContext('gemini', userId, text, { maxMessages: 8 })
+let res = await askGemini(prompt, sessions[userId].id)
 sessions[userId].id = res.id
+rememberAiExchange('gemini', userId, text, res.text, { maxMessages: 8 })
 if (res.images?.length) {
 await conn.sendMessage(m.chat, { image: { url: res.images[0] }, caption: res.text || '🖼️' }, { quoted: m })
 } else {

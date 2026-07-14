@@ -9,11 +9,11 @@ return false
 }
 await m.react('🧃')
 try {
-let packstickers = global.db.getUser(m.sender) || {}
-let texto1 = packstickers.text1 || global.packsticker || ''
-let texto2 = packstickers.text2 || global.packsticker2 || ''
-let txt = args.join(' ')
-let marca = txt ? txt.split(/[\u2022|]/).map(v => v.trim()) : [texto1, texto2]
+const packstickers = global.db.getUser(m.sender) || {}
+const defaultPack = String(packstickers.text1 ?? m.pushName ?? '').trim()
+const defaultAuthor = String(packstickers.text2 ?? '').trim()
+const txt = args.join(' ').trim()
+const marca = txt ? txt.split(/[\u2022|]/).map(v => v.trim()) : [defaultPack, defaultAuthor]
 let stiker = null
 if (mime) {
 if (/video/.test(mime) && q.seconds > 15) {

@@ -482,7 +482,8 @@ sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.s
 if (!sender) return
 m.__deleteKey = m.key ? { ...m.key } : null
 const needsParticipants = Boolean(m.isGroup && (fastPath.needsModeration || pluginRequiresGroupParticipants(commandEntry?.plugin)))
-let groupMetadata = needsParticipants ? await getGroupMetadataOnDemand(this, m.chat, { requireParticipants: true }) : {}
+const requiresFreshAdminMetadata = Boolean(commandEntry?.plugin?.admin || commandEntry?.plugin?.botAdmin || commandEntry?.plugin?.needsParticipants)
+let groupMetadata = needsParticipants ? await getGroupMetadataOnDemand(this, m.chat, { requireParticipants: true, force: requiresFreshAdminMetadata }) : {}
 let participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
 let participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
 sender = normalizeLidReferences(m, sender, participantsByLid)

@@ -369,6 +369,7 @@ await conn.reply(m.chat, replyText, fkontak || m);
 
 handler.help = ['welcome', 'audios', 'antiPorno', 'bv', 'bienvenida', 'antiprivado', 'antipriv', 'antiprivate', 'antigrupos', 'antigroup', 'antigrupo', 'restrict', 'restringir', 'autolevelup', 'autonivel', 'autosticker', 'antibot', 'antibots', 'antisubbots', 'antisub', 'antisubot', 'antibot2', 'modoadmin', 'soloadmin', 'onlyadmin', 'autoread', 'autoleer', 'autover', 'reaction', 'reaccion', 'emojis', 'nsfw', 'nsfwhot', 'nsfwhorny', 'antispam', 'antiSpam', 'antispamosos', 'antidelete', 'antieliminar', 'jadibotmd', 'modejadibot', 'subbots', 'detect', 'configuraciones', 'avisodegp', 'detect2', 'avisos', 'eventos', 'antilink', 'antitoxic', 'antitoxicos'];
 handler.tags = ['nable'];
+handler.needsParticipants = true;
 handler.command = ['welcome', 'audios', 'bv', 'bienvenida', 'antiprivado', 'antipriv', 'antiprivate', 'antigrupos', 'antigroup', 'antigrupo', 'antigrupos', 'antigroup', 'antigrupo', 'restrict', 'restringir', 'autolevelup', 'autonivel', 'autosticker', 'antibot', 'antibots', 'antisubbots', 'antisubbots', 'antisub', 'antisubot', 'antibot2', 'modoadmin', 'soloadmin', 'onlyadmin', 'autoread', 'autoleer', 'autover', 'reaction', 'reaccion', 'emojis', 'nsfw', 'nsfwhot', 'nsfwhorny', 'antispam', 'antiSpam', 'antispamosos', 'antidelete', 'antieliminar', 'jadibotmd', 'modejadibot', 'subbots', 'detect', 'configuraciones', 'avisodegp', 'detect2', 'avisos', 'eventos', 'antilink'];
 
 export default handler;
