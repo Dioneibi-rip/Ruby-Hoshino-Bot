@@ -21,7 +21,7 @@ isNumber,
 normalizeLidReferences,
 runMaintenance,
 } from './handler-utils.js'
-import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, isPrimaryBotForChat, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
+import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
 import { attachSessionState, cleanupSessionState } from '../core/session-manager.js'
 import messageQueue from '../core/message-queue.js'
 import { normalizeIdentityJid } from '../core/identity-utils.js'
@@ -39,6 +39,9 @@ const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js', 'enable/grupo-unbanchat.js', 
 const CELESTIAL_COMMANDS = new Set(['resetbot', 'unbanchat', 'desbanearchat'])
 const REALTIME_EVENT_GRACE_MS = 15_000
 const REALTIME_EVENT_MAX_AGE_MS = 60_000
+const PRIMARY_BOT_CACHE = global.__rubyPrimaryBotCache ||= new Map()
+const PRIMARY_BOT_EMPTY = ''
+
 
 
 export function segundosAHMS(totalSeconds = 0) {
@@ -189,6 +192,7 @@ const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
 if (!chat) return true
 chat.primaryBot = null
 chat.botPrimario = null
+forgetPrimaryBot(m.chat)
 chat.isBanned = {}
 chat.bannedBots = []
 if (chat.botSettings && typeof chat.botSettings === 'object') {
@@ -196,6 +200,7 @@ for (const settings of Object.values(chat.botSettings)) {
 if (settings && typeof settings === 'object') settings.isBanned = false
 }
 }
+rememberPrimaryBot(m.chat, chat)
 global.db?.updateChat?.(m.chat, chat)
 await global.db?.write?.()
 cleanupSessionState(conn)
@@ -283,35 +288,61 @@ function normalizeConnectionJid(conn) {
 return normalizeSessionJid(conn?.user?.jid || conn?.user?.id || conn)
 }
 
+function rememberPrimaryBot(chatId = '', chat = null) {
+if (!chatId) return PRIMARY_BOT_EMPTY
+const primaryBot = getPrimaryBotJid(chat)
+PRIMARY_BOT_CACHE.set(chatId, primaryBot || PRIMARY_BOT_EMPTY)
+return primaryBot
+}
+
+function forgetPrimaryBot(chatId = '') {
+if (chatId) PRIMARY_BOT_CACHE.delete(chatId)
+}
+
+function getCachedPrimaryBot(chatId = '') {
+if (!chatId) return PRIMARY_BOT_EMPTY
+if (PRIMARY_BOT_CACHE.has(chatId)) return PRIMARY_BOT_CACHE.get(chatId) || PRIMARY_BOT_EMPTY
+const chat = global.db?.data?.chats?.[chatId] || null
+return rememberPrimaryBot(chatId, chat)
+}
+
+function isCurrentBotPrimaryForCachedChat(conn, chatId = '') {
+const primaryBot = getCachedPrimaryBot(chatId)
+if (!primaryBot) return true
+return normalizeConnectionJid(conn) === primaryBot
+}
+
 function getFreshChatRecord(chatId = '') {
 if (!chatId) return null
 try {
 const chat = global.db?.getChat?.(chatId)
-if (chat) return chat
+if (chat) {
+rememberPrimaryBot(chatId, chat)
+return chat
+}
 } catch (error) {
 console.error('[primary-bot] no se pudo consultar el chat en SQLite', error)
 }
-return global.db?.data?.chats?.[chatId] || null
+const chat = global.db?.data?.chats?.[chatId] || null
+rememberPrimaryBot(chatId, chat)
+return chat
 }
 
 function shouldBlockForPrimaryBot(conn, chatId = '') {
-const chat = getFreshChatRecord(chatId)
-const primaryBot = getPrimaryBotJid(chat)
-if (!primaryBot) return false
-const currentBot = normalizeConnectionJid(conn)
-return Boolean(currentBot && !isPrimaryBotForChat(chat, currentBot))
+return !isCurrentBotPrimaryForCachedChat(conn, chatId)
 }
 
 function enforcePrimaryBotMiddleware(conn, m = {}) {
 if (!m?.isGroup || isCelestialCommandText(m?.text || '')) return false
-const chat = getFreshChatRecord(m.chat)
-const primaryBot = getPrimaryBotJid(chat)
+const primaryBot = getCachedPrimaryBot(m.chat)
 if (!primaryBot) return false
+const chat = getFreshChatRecord(m.chat)
 const currentBot = normalizeConnectionJid(conn)
 if (!currentBot || currentBot !== primaryBot) return true
 if (chat && typeof chat === 'object') {
 if (chat.primaryBot !== primaryBot) chat.primaryBot = primaryBot
 if (chat.botPrimario !== primaryBot) chat.botPrimario = primaryBot
+rememberPrimaryBot(m.chat, chat)
 global.db?.updateChat?.(m.chat, chat)
 }
 return false

@@ -625,7 +625,7 @@ await creloadHandler(true)
 }
 if (connection == `open`) {
 sock.__groupEventStartedAt = Date.now()
-sock.__groupEventReadyAt = sock.__groupEventStartedAt + 20_000
+sock.__groupEventReadyAt = sock.__groupEventStartedAt + 15_000
 if (!global.db?.getSection?.('users')) await global.loadDatabase?.()
 let userName, userJid
 userName = sock.authState.creds.me.name || 'Anónimo'
