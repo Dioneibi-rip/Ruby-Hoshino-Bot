@@ -25,7 +25,20 @@ ${body.split('\n').map(line => `│ ${line}`.trimEnd()).join('\n')}
 ╰─❖ 𖹭 ─────────────╯`.trim()
 }
 
-const parseCookies = (arr) => Object.fromEntries((arr || []).map(c => c.split(';')[0].split('=').map(s => s.trim())))
+// NUEVA FUNCIÓN A PRUEBA DE ERRORES: Maneja Arrays y Strings sin colapsar
+const parseCookies = (headerInfo) => {
+  if (!headerInfo) return {}
+  const arr = Array.isArray(headerInfo) ? headerInfo : [headerInfo]
+  
+  return Object.fromEntries(
+    arr.map(c => {
+      const parts = String(c).split(';')[0].split('=')
+      const key = parts[0]?.trim()
+      const value = parts.slice(1).join('=').trim()
+      return [key, value]
+    }).filter(pair => pair[0]) // Filtra por si hay entradas vacías
+  )
+}
 
 function cleanSpecialTags(text) {
   if (!text) return ''
@@ -235,13 +248,12 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     console.error('[chatgpt handler error]:', error.message)
     await m.react?.('💔')
 
-    // Formateamos el reporte detallado para enviarlo al chat directamente
     const errorReport = `⚠️ *SISTEMA DE LOGS INTERNOS* ⚠️\n\n` +
                         `*Mensaje del Error:* \n\`\`\`${error.message}\`\`\`\n\n` +
                         `💡 *Guía rápida de diagnóstico:* \n` +
                         `• *Código 403 (Forbidden):* La IP de tu hosting fue bloqueada por Cloudflare/OpenAI.\n` +
-                        `• *Código 429 (Too Many Requests):* Tu IP alcanzó el límite de peticiones anónimas permitidas por minuto.\n` +
-                        `• *Info: timeout...:* Tu servidor tardó demasiado en conectar con OpenAI (mala señal de red).`
+                        `• *Código 429 (Too Many Requests):* Tu IP alcanzó el límite de peticiones permitidas.\n` +
+                        `• *Info: timeout...:* Tu servidor tardó demasiado en conectar con OpenAI.`
 
     await m.reply(decorateAiReply('Error de Conexión', errorReport))
   }
