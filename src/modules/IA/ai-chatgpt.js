@@ -1,9 +1,200 @@
 import axios from '../../infra/http.js'
-const CHATGPT_ENDPOINT = 'https://chatgptgratuit.app/wp-admin/admin-ajax.php'
+import crypto from 'crypto'
 
+// ---- Funciones auxiliares del nuevo sistema ----
+const parseCookies = (arr) => Object.fromEntries((arr || []).map(c => c.split(';')[0].split('=').map(s => s.trim())))
+
+function cleanSpecialTags(text) {
+  if (!text) return '';
+  text = text.replace(/\ue200entity\ue202([^\ue201]+)\ue201/g, (match, p1) => {
+    try {
+      const arr = JSON.parse(p1);
+      return arr[1] || arr[0] || '';
+    } catch {
+      return '';
+    }
+  });
+  text = text.replace(/\ue200[^\ue201]*\ue201/g, '');
+  return text.trim();
+}
+
+async function getSession() {
+  const deviceId = crypto.randomUUID()
+  const res = await axios.post('https://android.chat.openai.com/backend-anon/sentinel/chat-requirements', {}, {
+    headers: {
+      'User-Agent': 'ChatGPT/1.2026.181 (Android 16; Neo/1.0; build 2222222)',
+      'OAI-Package-Name': 'com.openai.chatgpt',
+      'OAI-Client-Type': 'android',
+      'OAI-Device-Id': deviceId,
+      'Accept-Language': 'id-ID,in;q=0.9',
+      'X-Device-Tier': 'upper_mid',
+      'X-OpenAI-Target-Path': '/backend-anon/sentinel/chat-requirements',
+      'ChatGPT-Account-Id': 'default',
+      'ChatGPT-Residency-Region': 'no_constraint',
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  })
+
+  const cookies = parseCookies(res.headers['set-cookie'])
+  const cookieStr = Object.entries(cookies).map(([k, v]) => `${k}=${v}`).join('; ')
+  
+  let oaiSc = cookies['oai-sc']
+  if (!oaiSc && res.data?.token) {
+    oaiSc = `0${res.data.token}`
+  }
+
+  const cookie = oaiSc && !cookieStr.includes('oai-sc') ? `oai-sc=${oaiSc}; ${cookieStr}` : cookieStr
+
+  return { cookie, deviceId, parentMessageId: crypto.randomUUID() }
+}
+
+async function chatgpt(prompt, auth = null, chatId = null) {
+  auth = auth || await getSession()
+  if (!auth.deviceId) auth.deviceId = crypto.randomUUID()
+  if (!auth.parentMessageId) auth.parentMessageId = crypto.randomUUID()
+
+  const isAuthorized = !!(auth.authorization || auth.token)
+  const baseUrl = isAuthorized ? 'https://android.chat.openai.com/backend-api' : 'https://android.chat.openai.com/backend-anon'
+  
+  const currentMessageId = crypto.randomUUID()
+  const parentMessageId = auth.parentMessageId
+
+  const headers = {
+    'User-Agent': 'ChatGPT/1.2026.181 (Android 16; Neo/1.0; build 2222222)',
+    'OAI-Package-Name': 'com.openai.chatgpt',
+    'OAI-Client-Type': 'android',
+    'OAI-Device-Id': auth.deviceId,
+    'Accept-Language': 'id-ID,in;q=0.9',
+    'X-Device-Tier': 'upper_mid',
+    'X-OpenAI-Target-Path': isAuthorized ? '/backend-api/f/conversation' : '/backend-anon/f/conversation',
+    'ChatGPT-Account-Id': isAuthorized ? (auth.accountId || 'default') : 'default',
+    'ChatGPT-Residency-Region': 'no_constraint',
+    'Content-Type': 'application/json',
+    'Accept': 'text/event-stream',
+    'Cookie': auth.cookie,
+    'X-Sentinel-Payload': JSON.stringify({
+      bot_token: {
+        failure_reason: "-2: Standard Integrity API error (-2): The Play Store app is either not installed or not the official version.\nAsk the user to install an official and recent version of Play Store.\n (https://developer.android.com/google/play/integrity/reference/com/google/android/play/core/integrity/model/StandardIntegrityErrorCode.html#PLAY_STORE_NOT_FOUND).",
+        failure_detail: "[qdb0.j(SourceFile:9), g4n.a(SourceFile:85), f4n.invokeSuspend(SourceFile:14), kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(SourceFile:5), qni.run(SourceFile:104), fnf.run(SourceFile:112)]"
+      }
+    })
+  }
+
+  if (isAuthorized) {
+    headers['Authorization'] = auth.authorization || `Bearer ${auth.token}`
+  }
+
+  const userMessage = {
+    id: currentMessageId,
+    author: { role: "user" },
+    content: {
+      content_type: "text",
+      parts: [prompt]
+    },
+    status: "finished_successfully",
+    recipient: "all"
+  }
+
+  const body = {
+    action: "next",
+    messages: [userMessage],
+    model: "auto",
+    history_and_training_disabled: false,
+    fork_from_shared_post: false,
+    enable_message_followups: true,
+    force_use_sse: true,
+    force_use_search: null,
+    force_paragen: false,
+    supported_encodings: ["v1"],
+    supports_buffering: true,
+    timezone: "Asia/Makassar",
+    timezone_offset_min: -480,
+    system_hints: [],
+    is_onboarding_conversation: false,
+    no_auth_ad_preferences: {
+      personalization_enabled: true,
+      history_enabled: true
+    },
+    client_prepare_state: "none",
+    stream: true
+  }
+
+  if (chatId) {
+    body.conversation_id = chatId
+    body.parent_message_id = parentMessageId
+  }
+
+  const stream = await axios.post(`${baseUrl}/f/conversation`, body, {
+    headers,
+    responseType: 'stream'
+  })
+
+  return new Promise((resolve) => {
+    let text = '', buf = ''
+    let lastPath = null
+    let lastOp = null
+    let finalChatId = chatId
+    let currentAssistantMsgId = null
+
+    stream.data.on('data', chunk => {
+      buf += chunk.toString()
+      const lines = buf.split('\n')
+      buf = lines.pop()
+
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (!trimmed || trimmed === 'data: [DONE]') continue
+
+        if (trimmed.startsWith('data: ')) {
+          try {
+            const data = JSON.parse(trimmed.substring(6))
+
+            if (data.conversation_id) {
+              finalChatId = data.conversation_id
+            }
+
+            const p = data.p !== undefined ? data.p : lastPath
+            const o = data.o !== undefined ? data.o : lastOp
+
+            if (data.p !== undefined) lastPath = data.p
+            if (data.o !== undefined) lastOp = data.o
+
+            if (o === 'add' && data.v && data.v.message) {
+              if (data.v.message.author && data.v.message.author.role === 'assistant') {
+                currentAssistantMsgId = data.v.message.id
+                const parts = data.v.message.content?.parts
+                if (parts && parts[0]) {
+                  text = parts[0]
+                }
+              }
+            } else if (o === 'patch' && Array.isArray(data.v)) {
+              for (const op of data.v) {
+                if (op.o === 'append' && op.p && op.p.startsWith('/message/content/parts/')) {
+                  text += op.v
+                }
+              }
+            } else if (o === 'append' && p && p.startsWith('/message/content/parts/') && typeof data.v === 'string') {
+              text += data.v
+            }
+          } catch {}
+        }
+      }
+    })
+
+    stream.data.on('end', () => {
+      if (currentAssistantMsgId) {
+        auth.parentMessageId = currentAssistantMsgId
+      }
+      resolve(JSON.stringify({ response: cleanSpecialTags(text), chatId: finalChatId, auth }, null, 2))
+    })
+  })
+}
+
+// ---- Decorador de respuesta (se mantiene igual) ----
 function decorateAiReply(title, text) {
-const body = String(text || 'Sin respuesta.').trim()
-return `╭─❖ 𓆩 ${title} 𓆪 ❖─╮
+  const body = String(text || 'Sin respuesta.').trim()
+  return `╭─❖ 𓆩 ${title} 𓆪 ❖─╮
 │ 🧠 𝚁𝚞𝚋𝚢 𝙰𝙸 𝚕𝚘 𝚑𝚊 𝚜𝚞𝚜𝚞𝚛𝚛𝚊𝚍𝚘:
 ├─────────────────────
 ${body.split('\n').map(line => `│ ${line}`.trimEnd()).join('\n')}
@@ -12,68 +203,20 @@ ${body.split('\n').map(line => `│ ${line}`.trimEnd()).join('\n')}
 ╰─❖ 𖹭 ─────────────╯`.trim()
 }
 
-function extractText(payload) {
-if (typeof payload === 'string') return payload
-const candidates = [
-payload?.data?.message,
-payload?.data?.reply,
-payload?.data?.response,
-payload?.data?.content,
-payload?.message,
-payload?.reply,
-payload?.response,
-payload?.content,
-payload?.answer,
-payload?.text,
-]
-for (const value of candidates) if (typeof value === 'string' && value.trim()) return value
-const seen = new Set()
-const stack = [payload]
-while (stack.length) {
-const node = stack.shift()
-if (!node || seen.has(node)) continue
-if (typeof node === 'object') seen.add(node)
-if (typeof node === 'string' && node.trim().length > 1) return node
-if (Array.isArray(node)) stack.push(...node)
-else if (typeof node === 'object') stack.push(...Object.values(node))
-}
-return ''
-}
-
-async function askChatGPTGratuit(message) {
-const form = new URLSearchParams()
-form.set('action', 'aipkit_frontend_chat_message')
-form.set('_ajax_nonce', 'ba71ebc353')
-form.set('bot_id', '2617')
-form.set('session_id', `ruby-${Date.now()}`)
-form.set('conversation_uuid', `ruby-${Date.now()}-${Math.random().toString(16).slice(2)}`)
-form.set('post_id', '1788')
-form.set('message', message)
-const { data } = await axios.post(CHATGPT_ENDPOINT, form, {
-headers: {
-Accept: 'application/json, text/javascript, */*; q=0.01',
-'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-Origin: 'https://chatgptgratuit.app',
-Referer: 'https://chatgptgratuit.app/',
-'X-Requested-With': 'XMLHttpRequest'
-},
-timeout: 45000
-})
-return extractText(data)
-}
-
+// ---- Handler del comando ----
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-if (!text?.trim()) return m.reply(decorateAiReply('ChatGPT', `Uso: *${usedPrefix}${command} <pregunta>*`))
-await m.react?.('⏳')
-try {
-const answer = await askChatGPTGratuit(text.trim())
-await conn.sendMessage(m.chat, { text: decorateAiReply('ChatGPT', answer) }, { quoted: m })
-await m.react?.('✅')
-} catch (error) {
-console.error('[chatgpt]', error)
-await m.react?.('💔')
-await m.reply(decorateAiReply('ChatGPT', 'No pude conectar con ChatGPT. Intenta nuevamente en unos minutos.'))
-}
+  if (!text?.trim()) return m.reply(decorateAiReply('ChatGPT', `Uso: *${usedPrefix}${command} <pregunta>*`))
+  await m.react?.('⏳')
+  try {
+    const responseRaw = await chatgpt(text.trim())  // sin auth ni chatId → sesión nueva cada vez
+    const { response } = JSON.parse(responseRaw)
+    await conn.sendMessage(m.chat, { text: decorateAiReply('ChatGPT', response) }, { quoted: m })
+    await m.react?.('✅')
+  } catch (error) {
+    console.error('[chatgpt]', error)
+    await m.react?.('💔')
+    await m.reply(decorateAiReply('ChatGPT', 'No pude conectar con ChatGPT. Intenta nuevamente en unos minutos.'))
+  }
 }
 
 handler.command = ['chatgpt', 'gpt', 'ia']
