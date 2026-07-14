@@ -20,15 +20,15 @@ admin: participant?.admin || participant?.isAdmin || participant?.role,
 }
 }
 
-export async function getCachedGroupMetadata(conn, chatId) {
+export async function getCachedGroupMetadata(conn, chatId, { force = false } = {}) {
 if (!conn || !chatId) return {}
 conn.__groupMetadataCache ||= new TTLCache(GROUP_METADATA_TTL, GROUP_METADATA_MAX)
 conn.__groupMetadataInflight ||= new Map()
-const cached = conn.__groupMetadataCache.get(chatId) || global.db?.getGroup?.(chatId)
-if (cached?.id && Date.now() - Number(cached.__cachedAt || cached.updatedAt || 0) < GROUP_METADATA_TTL) return cached
+const cached = !force ? (conn.__groupMetadataCache.get(chatId) || global.db?.getGroup?.(chatId)) : (global.db?.getGroup?.(chatId) || conn.__groupMetadataCache.get(chatId))
+if (!force && cached?.id && Date.now() - Number(cached.__cachedAt || cached.updatedAt || 0) < GROUP_METADATA_TTL) return cached
 conn.__groupMetadataLastFetch ||= new Map()
 const lastFetch = Number(conn.__groupMetadataLastFetch.get(chatId) || 0)
-if (cached?.id && Date.now() - lastFetch < GROUP_METADATA_MIN_INTERVAL) return cached
+if (!force && cached?.id && Date.now() - lastFetch < GROUP_METADATA_MIN_INTERVAL) return cached
 if (conn.__groupMetadataInflight.has(chatId)) return conn.__groupMetadataInflight.get(chatId)
 conn.__groupMetadataLastFetch.set(chatId, Date.now())
 const fetchGroupMetadata = conn.__rawGroupMetadata || conn.groupMetadata?.bind(conn)
@@ -131,8 +131,15 @@ return false
 export function buildPermissionContext(conn, m, sender, participants = []) {
 participants = normalizeParticipantList(participants)
 const decode = (jid) => conn?.decodeJid ? conn.decodeJid(jid) : jid
-const userGroup = (m?.isGroup ? participants.find((u) => decode(u?.jid) === sender) : {}) || {}
-const botGroup = (m?.isGroup ? participants.find((u) => decode(u?.jid) === conn?.user?.jid) : {}) || {}
+const sameIdentity = (candidate, target) => {
+const decodedCandidate = decode(candidate)
+const decodedTarget = decode(target)
+const left = String(decodedCandidate || '').split('@')[0]
+const right = String(decodedTarget || '').split('@')[0]
+return Boolean(left && right && (decodedCandidate === decodedTarget || left === right))
+}
+const userGroup = (m?.isGroup ? participants.find((u) => sameIdentity(u?.jid, sender) || sameIdentity(u?.id, sender) || sameIdentity(u?.lid, sender)) : {}) || {}
+const botGroup = (m?.isGroup ? participants.find((u) => sameIdentity(u?.jid, conn?.user?.jid) || sameIdentity(u?.id, conn?.user?.jid) || sameIdentity(u?.lid, conn?.user?.jid)) : {}) || {}
 const isRAdmin = normalizeAdmin(userGroup) === 'superadmin'
 const isAdmin = isRAdmin || normalizeAdmin(userGroup) === 'admin'
 const isBotAdmin = ['admin', 'superadmin'].includes(normalizeAdmin(botGroup))

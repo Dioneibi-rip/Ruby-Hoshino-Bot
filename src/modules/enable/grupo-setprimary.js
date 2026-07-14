@@ -31,7 +31,7 @@ chat.bannedBots = Object.entries(chat.botSettings)
 .map(([jid]) => jid)
 
 global.db.updateChat(m.chat, chat)
-global.db.scheduleFlush?.()
+await global.db.write?.()
 
 await conn.reply(m.chat, `✅ Bot primario actualizado para este grupo:\n@${selectedBot.split('@')[0]}\n\nSolo ese bot procesará comandos y respuestas desde ahora.`, m, { mentions: [selectedBot] })
 }

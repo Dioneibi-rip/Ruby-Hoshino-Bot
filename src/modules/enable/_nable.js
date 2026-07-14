@@ -102,6 +102,8 @@ global.dfail('admin', m, conn);
 throw false;
 }
 chat.welcome = isEnable;
+global.db.updateChat(m.chat, chat);
+await global.db.write?.();
 break;
 case 'antiprivado':
 case 'antipriv':
