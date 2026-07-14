@@ -11,7 +11,8 @@ const paramsJson = message.interactiveResponseMessage?.nativeFlowResponseMessage
 if (!paramsJson) return '';
 
 try {
-return JSON.parse(paramsJson).id;
+const params = JSON.parse(paramsJson);
+return params?.id || params?.selectedId || params?.rowId || params?.button_id || params?.buttonId || params?.command || params?.payload || '';
 } catch (e) {
 return '';
 }
