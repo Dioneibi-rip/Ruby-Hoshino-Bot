@@ -27,7 +27,7 @@ import messageQueue from '../core/message-queue.js'
 import { normalizeIdentityJid } from '../core/identity-utils.js'
 import { getMessageDeletePayload, isUserMutedInChat, messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
 import { getGroupMetadataOnDemand } from '../infra/global-cache.js'
-import { getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash, unwrapMessageContent } from './raw-filter.js'
+import { getInteractiveResponseText, getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash, unwrapMessageContent } from './raw-filter.js'
 import { executePlugin } from './plugin-executor.js'
 import { isBotSender, pluginRequiresGroupParticipants } from './permission-guard.js'
 
@@ -94,7 +94,7 @@ content.conversation
 || content.buttonsResponseMessage?.selectedButtonId
 || selectedRow
 || content.templateButtonReplyMessage?.selectedId
-|| content.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson
+|| getInteractiveResponseText(content)
 || fallback
 || ''
 ).trim()

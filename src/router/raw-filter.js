@@ -15,6 +15,27 @@ export function getRawMessageChat(message = {}) {
 return message?.key?.remoteJid || message?.chat || message?.remoteJid || ''
 }
 
+export function getInteractiveResponseText(content = {}) {
+const nativeFlow = content?.interactiveResponseMessage?.nativeFlowResponseMessage
+const paramsJson = nativeFlow?.paramsJson
+if (paramsJson) {
+try {
+const params = JSON.parse(paramsJson)
+return params?.id
+|| params?.selectedId
+|| params?.rowId
+|| params?.button_id
+|| params?.buttonId
+|| params?.command
+|| params?.payload
+|| params?.display_text
+|| params?.title
+|| ''
+} catch {}
+}
+return nativeFlow?.name || content?.interactiveResponseMessage?.body?.text || ''
+}
+
 export function getRawMessageText(message = {}) {
 const content = unwrapMessageContent(message?.message || message)
 return content?.conversation
@@ -25,6 +46,7 @@ return content?.conversation
 || content?.buttonsResponseMessage?.selectedButtonId
 || content?.listResponseMessage?.singleSelectReply?.selectedRowId
 || content?.templateButtonReplyMessage?.selectedId
+|| getInteractiveResponseText(content)
 || ''
 }
 
