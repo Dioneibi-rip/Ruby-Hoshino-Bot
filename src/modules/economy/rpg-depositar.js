@@ -1,5 +1,3 @@
-import db from '../../infra/database.js'
-
 let handler = async (m, { args }) => {
 let user = global.db.getUser(m.sender)
 let emoji = '🏦', emoji2 = '❌'
@@ -9,8 +7,8 @@ if (!args[0]) return m.reply(`${emoji} Ingresa la cantidad de *${m.moneda}* que 
 if (args[0] === 'all') {
 let total = user.coin || 0
 if (total === 0) return m.reply(`${emoji2} No tienes nada en tu cartera para depositar.`)
-user.coin = 0
-user.bank += total
+await global.db.updateUser(m.sender, { coin: 0, bank: (user.bank || 0) + total })
+await global.db.write?.()
 return m.reply(`✿ Depositaste *¥${total.toLocaleString()} ${m.moneda}* en el banco, ya no podrán robártelo.`)
 }
 
@@ -21,8 +19,8 @@ let cantidad = parseInt(args[0])
 if ((user.coin || 0) < cantidad)
 return m.reply(`${emoji2} Solo tienes *¥${(user.coin || 0).toLocaleString()} ${m.moneda}* en tu cartera.`)
 
-user.coin -= cantidad
-user.bank += cantidad
+await global.db.updateUser(m.sender, { coin: (user.coin || 0) - cantidad, bank: (user.bank || 0) + cantidad })
+await global.db.write?.()
 
 return m.reply(`✿ Depositaste *¥${cantidad.toLocaleString()} ${m.moneda}* en el banco, ya no podrán robártelo.`)
 }

@@ -375,13 +375,44 @@ export class MongoDatabase {
 
   _userProxy(id) {
     if (this.userProxyCache.has(id)) return this.userProxyCache.get(id)
+    const persistRoot = (rootProp) => {
+      if (typeof rootProp !== 'string') return
+      const user = normalizeUser(id, this.userCache.get(id))
+      if (rootProp in USER_DEFAULTS) this.updateUser(id, { [rootProp]: user[rootProp] })
+      else this.updateUser(id, { extras: { [rootProp]: user.extras?.[rootProp] } })
+    }
+    const wrapNested = (target, rootProp) => {
+      if (target == null || typeof target !== 'object') return target
+      return new Proxy(target, {
+        get: (obj, prop) => {
+          if (INTERNAL_PROPS.has(prop)) return undefined
+          if (prop === 'toJSON') return () => clone(obj)
+          return wrapNested(obj[prop], rootProp)
+        },
+        set: (obj, prop, value) => {
+          if (typeof prop !== 'string') return false
+          obj[prop] = value
+          persistRoot(rootProp)
+          return true
+        },
+        deleteProperty: (obj, prop) => {
+          if (typeof prop !== 'string') return false
+          delete obj[prop]
+          persistRoot(rootProp)
+          return true
+        },
+        ownKeys: (obj) => Reflect.ownKeys(obj),
+        getOwnPropertyDescriptor: (obj, prop) => Object.getOwnPropertyDescriptor(obj, prop) || { enumerable: true, configurable: true }
+      })
+    }
     const proxy = new Proxy({}, {
       get: (_target, prop) => {
         if (INTERNAL_PROPS.has(prop)) return undefined
         if (prop === 'id') return id
         if (prop === 'toJSON') return () => clone(this.userCache.get(id) || normalizeUser(id))
         const user = this.userCache.get(id) || normalizeUser(id)
-        return Object.prototype.hasOwnProperty.call(user, prop) ? user[prop] : user.extras?.[prop]
+        const value = Object.prototype.hasOwnProperty.call(user, prop) ? user[prop] : user.extras?.[prop]
+        return wrapNested(value, prop)
       },
       set: (_target, prop, value) => {
         if (typeof prop !== 'string') return false
