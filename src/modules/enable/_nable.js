@@ -92,13 +92,12 @@ switch (type) {
 case 'welcome':
 case 'bv':
 case 'bienvenida':
-if (!m.isGroup) {
-if (!isOwner) {
-global.dfail('group', m, conn);
+if (m.isGroup && !(isAdmin || isOwner || isROwner || m.fromMe)) {
+global.dfail('admin', m, conn);
 throw false;
 }
-} else if (!isAdmin) {
-global.dfail('admin', m, conn);
+if (!m.isGroup && !(isOwner || isROwner || m.fromMe)) {
+global.dfail('group', m, conn);
 throw false;
 }
 chat.welcome = isEnable;
