@@ -1,7 +1,20 @@
 import axios from '../../infra/http.js'
 import crypto from 'crypto'
 
-// ---- Funciones auxiliares del nuevo sistema ----
+// Objeto para guardar las sesiones y mantener el contexto de la conversación por usuario
+const sessions = {}
+
+function decorateAiReply(title, text) {
+  const body = String(text || 'Sin respuesta.').trim()
+  return `╭─❖ 𓆩 ${title} 𓆪 ❖─╮
+│ 🧠 𝚁𝚞𝚋𝚢 𝙰𝙸 𝚕𝚘 𝚑𝚊 𝚜𝚞𝚜𝚞𝚛𝚛𝚊𝚍𝚘:
+├─────────────────────
+${body.split('\n').map(line => `│ ${line}`.trimEnd()).join('\n')}
+├─────────────────────
+│ ✦ 𝙿𝚎𝚐𝚊𝚍𝚘 𝚊 𝚕𝚊 𝚙𝚊𝚛𝚎𝚍 • 𝚁𝚞𝚋𝚢 𝙷𝚘𝚜𝚑𝚒𝚗𝚘
+╰─❖ 𖹭 ─────────────╯`.trim()
+}
+
 const parseCookies = (arr) => Object.fromEntries((arr || []).map(c => c.split(';')[0].split('=').map(s => s.trim())))
 
 function cleanSpecialTags(text) {
@@ -108,8 +121,8 @@ async function chatgpt(prompt, auth = null, chatId = null) {
     force_paragen: false,
     supported_encodings: ["v1"],
     supports_buffering: true,
-    timezone: "Asia/Makassar",
-    timezone_offset_min: -480,
+    timezone: "America/Santo_Domingo",
+    timezone_offset_min: 240,
     system_hints: [],
     is_onboarding_conversation: false,
     no_auth_ad_preferences: {
@@ -186,31 +199,29 @@ async function chatgpt(prompt, auth = null, chatId = null) {
       if (currentAssistantMsgId) {
         auth.parentMessageId = currentAssistantMsgId
       }
-      resolve(JSON.stringify({ response: cleanSpecialTags(text), chatId: finalChatId, auth }, null, 2))
+      // Cambiamos el JSON.stringify para devolver el objeto directamente y hacerlo más limpio en el handler
+      resolve({ response: cleanSpecialTags(text), chatId: finalChatId, auth })
     })
   })
 }
 
-// ---- Decorador de respuesta (se mantiene igual) ----
-function decorateAiReply(title, text) {
-  const body = String(text || 'Sin respuesta.').trim()
-  return `╭─❖ 𓆩 ${title} 𓆪 ❖─╮
-│ 🧠 𝚁𝚞𝚋𝚢 𝙰𝙸 𝚕𝚘 𝚑𝚊 𝚜𝚞𝚜𝚞𝚛𝚛𝚊𝚍𝚘:
-├─────────────────────
-${body.split('\n').map(line => `│ ${line}`.trimEnd()).join('\n')}
-├─────────────────────
-│ ✦ 𝙿𝚎𝚐𝚊𝚍𝚘 𝚊 𝚕𝚊 𝚙𝚊𝚛𝚎𝚍 • 𝚁𝚞𝚋𝚢 𝙷𝚘𝚜𝚑𝚒𝚗𝚘
-╰─❖ 𖹭 ─────────────╯`.trim()
-}
-
-// ---- Handler del comando ----
 let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text?.trim()) return m.reply(decorateAiReply('ChatGPT', `Uso: *${usedPrefix}${command} <pregunta>*`))
   await m.react?.('⏳')
+  
   try {
-    const responseRaw = await chatgpt(text.trim())  // sin auth ni chatId → sesión nueva cada vez
-    const { response } = JSON.parse(responseRaw)
-    await conn.sendMessage(m.chat, { text: decorateAiReply('ChatGPT', response) }, { quoted: m })
+    // Identificador único por chat/usuario para mantener el hilo de la conversación
+    const userId = m.sender || m.chat
+    sessions[userId] = sessions[userId] || {}
+
+    // Llamamos a la API usando los datos de la sesión anterior (si existen)
+    const result = await chatgpt(text.trim(), sessions[userId].auth, sessions[userId].chatId)
+
+    // Guardamos la nueva información de sesión para la próxima vez
+    sessions[userId].auth = result.auth
+    sessions[userId].chatId = result.chatId
+
+    await conn.sendMessage(m.chat, { text: decorateAiReply('ChatGPT', result.response) }, { quoted: m })
     await m.react?.('✅')
   } catch (error) {
     console.error('[chatgpt]', error)
