@@ -197,6 +197,7 @@ if (settings && typeof settings === 'object') settings.isBanned = false
 }
 }
 global.db?.updateChat?.(m.chat, chat)
+await global.db?.write?.()
 cleanupSessionState(conn)
 await conn.reply?.(m.chat, '✅ Estado de bots restablecido: sin bot primario y con todos los sub-bots habilitados en este grupo.', m)
 return true
@@ -450,11 +451,22 @@ sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.s
 if (!sender) return
 m.__deleteKey = m.key ? { ...m.key } : null
 const needsParticipants = Boolean(m.isGroup && (fastPath.needsModeration || pluginRequiresGroupParticipants(commandEntry?.plugin)))
-const groupMetadata = needsParticipants ? await getGroupMetadataOnDemand(this, m.chat, { requireParticipants: true }) : {}
-const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
-const participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
+let groupMetadata = needsParticipants ? await getGroupMetadataOnDemand(this, m.chat, { requireParticipants: true }) : {}
+let participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
+let participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
 sender = normalizeLidReferences(m, sender, participantsByLid)
 sender = await normalizeMessageIdentifiers(this, m, sender, participantsByLid)
+if (needsParticipants && (!participants.length || !participants.some((participant) => {
+const ids = [participant?.jid, participant?.id, participant?.lid].filter(Boolean).map((jid) => String(this.decodeJid?.(jid) || jid).split('@')[0])
+const senderNumber = String(this.decodeJid?.(sender) || sender).split('@')[0]
+return senderNumber && ids.includes(senderNumber)
+}))) {
+groupMetadata = await getGroupMetadataOnDemand(this, m.chat, { requireParticipants: true, force: true })
+participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
+participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
+sender = normalizeLidReferences(m, sender, participantsByLid)
+sender = await normalizeMessageIdentifiers(this, m, sender, participantsByLid)
+}
 
 m.exp = 0
 m.coin = false

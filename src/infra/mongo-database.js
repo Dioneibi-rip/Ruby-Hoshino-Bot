@@ -323,6 +323,7 @@ export class MongoDatabase {
     for (const row of records) this.sectionCache.set(keyFor(row.section, row.key), clone(row.value))
     return this.data
   }
+  scheduleFlush() { this._scheduleBatchFlush(); return true }
   async write() { if (this.batchFlushTimer) { clearTimeout(this.batchFlushTimer); this.batchFlushTimer = null }; await this._flushBatches(); await Promise.allSettled([...this.pendingWrites]) }
   async save() { return this.write() }
   async flush() { return this.write() }

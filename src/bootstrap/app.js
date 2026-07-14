@@ -139,7 +139,7 @@ global.saveDatabase = async function saveDatabase() {
 if (!global.db) return false
 if (global.db.READ) await global.loadDatabase()
 if (typeof global.db.write === 'function') await global.db.write()
-if (typeof global.db.flush === 'function') global.db.flush()
+else if (typeof global.db.flush === 'function') await global.db.flush()
 return true
 }
 await loadDatabase()
@@ -170,6 +170,7 @@ process.exit(code)
 }
 process.once('SIGINT', () => shutdownDatabaseAndExit(0))
 process.once('SIGTERM', () => shutdownDatabaseAndExit(0))
+process.once('SIGHUP', () => shutdownDatabaseAndExit(0))
 protoType()
 serialize()
 const { state, saveCreds } = useSQLiteAuthState(`./${global.Rubysessions}`, { dbName: 'auth.db', cleanOldFiles: true })
@@ -326,7 +327,7 @@ reconnectTimer.unref?.()
 }
 }
 process.once('uncaughtException', error => shutdownDatabaseAndExit(1, error))
-process.on('unhandledRejection', console.error)
+process.once('unhandledRejection', error => shutdownDatabaseAndExit(1, error))
 let isInit = true;
 let handler = await import('../router/handler.js')
 global.reloadHandler = async function(restatConn) {
