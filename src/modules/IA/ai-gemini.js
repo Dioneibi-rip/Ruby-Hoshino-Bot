@@ -1,18 +1,7 @@
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
 const btoa2 = str => Buffer.from(str, 'utf8').toString('base64')
 const atob2 = b64 => Buffer.from(b64, 'base64').toString('utf8')
-
-function decorateAiReply(title, text) {
-const body = String(text || 'Sin respuesta.').trim()
-return `╭─❖ 𓆩 ${title} 𓆪 ❖─╮
-│ 💎 𝚁𝚞𝚋𝚢 𝙰𝙸 𝚍𝚎𝚜𝚙𝚒𝚎𝚛𝚝𝚊:
-├─────────────────────
-${body.split('\n').map(line => `│ ${line}`.trimEnd()).join('\n')}
-├─────────────────────
-│ ✦ 𝚃𝚎𝚡𝚝𝚘 𝚙𝚎𝚐𝚊𝚍𝚘 𝚊 𝚕𝚊 𝚙𝚊𝚛𝚎𝚍
-╰─❖ 𖹭 ─────────────╯`.trim()
-}
-
+const sessions = {}
 function walkDeep(node, visit, depth = 0, maxDepth = 7) {
 if (depth > maxDepth) return
 if (visit(node, depth) === false) return
@@ -117,25 +106,27 @@ return { text: parsed.text, id: btoa2(JSON.stringify({ resumeArray: parsed.resum
 }
 throw lastErr || new Error('Error desconocido')
 }
-
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-if (!text) return m.reply(decorateAiReply('Gemini', `Uso: *${usedPrefix}${command} <pregunta>*`))
+if (!text) return m.reply(`> ꒰ঌ(˶ˆᗜˆ˵)໒꒱ 𝖯𝗈𝗋 𝖿⍺𝗏𝗈𝗋 𝗂𝗇𝗀𝗋𝖾𝗌⍺ 𝗎𝗇⍺ 𝗉𝗋𝖾𝗀𝗎𝗇𝗍⍺ 𝗉⍺𝗋⍺ 𝖦𝖾𝗆𝗂𝗇𝗂... 🌸\n> 𝖤𝗃𝖾𝗆𝗉𝗅𝗈: *${usedPrefix}${command} ¿𝖰𝗎𝗂𝖾́𝗇 𝖾𝗋𝖾𝗌?*`)
 await m.react('⏳')
+const userId = m.sender || m.chat
+sessions[userId] = sessions[userId] || {}
 try {
-let res = await askGemini(text)
-const decorated = decorateAiReply('Gemini', res.text || 'Sin respuesta.')
-if (res.images?.length) await conn.sendMessage(m.chat, { image: { url: res.images[0] }, caption: decorated }, { quoted: m })
-else await m.reply(decorated)
+let res = await askGemini(text, sessions[userId].id)
+sessions[userId].id = res.id
+if (res.images?.length) {
+await conn.sendMessage(m.chat, { image: { url: res.images[0] }, caption: res.text || '🖼️' }, { quoted: m })
+} else {
+await conn.sendMessage(m.chat, { text: res.text || '> (っ- ‸ - ς) 𝖲𝗂𝗇 𝗋𝖾𝗌𝗉𝗎𝖾𝗌𝗍⍺...' }, { quoted: m })
+}
 await m.react('✅')
 } catch (e) {
-console.error('[gemini]', e)
+console.error('[Ruby Hoshino - Gemini Error]:', e)
 await m.react('💔')
-m.reply(decorateAiReply('Gemini', 'Gemini no respondió. Intenta de nuevo.'))
+await m.reply(`> (っ- ‸ - ς) 𝖮𝖼𝗎𝗋𝗋𝗂𝗈́ 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋 𝖼𝗈𝗇 𝖦𝖾𝗆𝗂𝗇𝗂... ✨\n\n> 💡 *𝖣𝖾𝗍⍺𝗅𝗅𝖾:* \`${e.message}\``)
 }
 }
-
 handler.command = ['gemini', 'gemi']
 handler.help = ['gemini <pregunta>']
 handler.tags = ['ai']
-
 export default handler
