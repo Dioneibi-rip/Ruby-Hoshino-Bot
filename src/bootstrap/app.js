@@ -220,7 +220,7 @@ const connectionOptions = {
 logger: pino({ level: 'silent' }),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile,
-browser: ['Mac OS', 'Safari', '17.2.1'],
+browser: ['Windows', 'Firefox', '141.0'],
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })), },
 markOnlineOnConnect: true,
 generateHighQualityLinkPreview: socketCfg.generateHighQualityLinkPreview ?? false,
