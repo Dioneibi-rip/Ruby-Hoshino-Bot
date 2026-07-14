@@ -8,7 +8,6 @@ if (args[0] === 'all') {
 let total = user.coin || 0
 if (total === 0) return m.reply(`${emoji2} No tienes nada en tu cartera para depositar.`)
 await global.db.updateUser(m.sender, { coin: 0, bank: (user.bank || 0) + total })
-await global.db.write?.()
 return m.reply(`✿ Depositaste *¥${total.toLocaleString()} ${m.moneda}* en el banco, ya no podrán robártelo.`)
 }
 
@@ -20,7 +19,6 @@ if ((user.coin || 0) < cantidad)
 return m.reply(`${emoji2} Solo tienes *¥${(user.coin || 0).toLocaleString()} ${m.moneda}* en tu cartera.`)
 
 await global.db.updateUser(m.sender, { coin: (user.coin || 0) - cantidad, bank: (user.bank || 0) + cantidad })
-await global.db.write?.()
 
 return m.reply(`✿ Depositaste *¥${cantidad.toLocaleString()} ${m.moneda}* en el banco, ya no podrán robártelo.`)
 }

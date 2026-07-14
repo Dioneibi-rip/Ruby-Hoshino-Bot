@@ -3,21 +3,20 @@ import db from '../../infra/database.js'
 let buatall = 1
 
 let handler = async (m, { conn, args, usedPrefix, command, DevMode }) => {
-let user = global.db.getUser(m.sender)
+const user = global.db.getUser(m.sender)
 let win = Math.random() < 0.48
 let Aku = win ? 48 : 52
 let Kamu = win ? 96 : 13
 let count = args[0]
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
 let username = conn.getName(who)
-count = count ? /all/i.test(count) ? Math.floor(global.db.getUser(m.sender).limit / buatall) : parseInt(count) : args[0] ? parseInt(args[0]) : 1
+count = count ? /all/i.test(count) ? Math.max(1, Math.abs(Number(user.coin) || 1)) : parseInt(count) : args[0] ? parseInt(args[0]) : 1
 count = Math.max(1, count)
 if (args.length < 1) {
 await conn.reply(m.chat, `${emoji} Ingresa la cantidad de ` + `💸 *${m.moneda}*` + ' que deseas aportar contra' + ` *${botname}*` + `\n\n` + '`Ejemplo:`\n' + `> *${usedPrefix + command}* 100`, m);
 return false;
 }
-if (user.coin >= count * 1) {
-user.coin -= count * 1
+user.coin = (Number(user.coin) || 0) - (count * 1)
 if (!win) {
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *PERDISTE* ${formatNumber(count)} 💸 ${m.moneda}.`.trim(), m)
 } else if (win) {
@@ -26,7 +25,7 @@ conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botna
 } else {
 user.coin += count * 1
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username} obtienes ${formatNumber(count * 1)} 💸 ${m.moneda}.`.trim(), m)}
-} else conn.reply(m.chat, `No tienes *${formatNumber(count)} 💸 ${m.moneda}* para apostar!`.trim(), m)}
+}
 
 handler.help = ['apostar *<cantidad>*']
 handler.tags = ['economy']

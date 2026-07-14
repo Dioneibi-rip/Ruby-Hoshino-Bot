@@ -119,11 +119,6 @@ check: ({ user }) => !userHasJob(user),
 fail: async ({ conn, m, extra }) => { conn.reply(m.chat, `💼 Primero debes elegir una chamba. Usa *${extra.usedPrefix}trabajo lista* y luego *${extra.usedPrefix}trabajo elegir <trabajo>* para desbloquear la economía RPG.`, m); return false },
 },
 {
-condition: ({ plugin, isBotSelf, isEconomyPremium }) => !isBotSelf && !isEconomyPremium && plugin.coin,
-check: ({ sender, plugin }) => (global.db?.data?.users?.[sender]?.coin || 0) < plugin.coin * 1,
-fail: async ({ conn, m }) => { conn.reply(m.chat, `❮✦❯ Se agotaron tus ${m.moneda}`, m); return false },
-},
-{
 condition: ({ plugin, isBotSelf }) => !isBotSelf && plugin.level,
 check: ({ plugin, user }) => plugin.level > (user?.level || 0),
 fail: async ({ conn, m, plugin, user, extra }) => { conn.reply(m.chat, `❮✦❯ Se requiere el nivel: *${plugin.level}*\n\n• Tu nivel actual es: *${user?.level || 0}*\n\n• Usa este comando para subir de nivel:\n*${extra.usedPrefix}levelup*`, m); return false },

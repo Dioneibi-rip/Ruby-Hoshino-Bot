@@ -70,7 +70,6 @@ ${arr.slice(6).join('')}
 
 ${isWin ? `@${(isSurrender ? room.game.currentTurn : room.game.winner).split('@')[0]} Ganaste 🥳, Te llevas +4999 XP` : isTie ? 'El juego termino en empate 😐' : `Turno de @${room.game.currentTurn.split('@')[0]}`}
 `.trim();
-const users = global.db.listUsers();
 if ((room.game._currentTurn ^ isSurrender ? room.x : room.o) !== m.chat) {
 room[room.game._currentTurn ^ isSurrender ? 'x' : 'o'] = m.chat;
 }
@@ -79,10 +78,13 @@ await this.sendMessage(room.x, {text: str, mentions: this.parseMention(str)}, {q
 }
 await this.sendMessage(room.o, {text: str, mentions: this.parseMention(str)}, {quoted: m});
 if (isTie || isWin) {
-users[room.game.playerX].exp += playScore;
-users[room.game.playerO].exp += playScore;
+const playerX = global.db.getUser(room.game.playerX);
+const playerO = global.db.getUser(room.game.playerO);
+playerX.exp = (Number(playerX.exp) || 0) + playScore;
+playerO.exp = (Number(playerO.exp) || 0) + playScore;
 if (isWin) {
-users[winner].exp += winScore - playScore;
+const winnerUser = winner === room.game.playerX ? playerX : winner === room.game.playerO ? playerO : global.db.getUser(winner);
+winnerUser.exp = (Number(winnerUser.exp) || 0) + winScore - playScore;
 }
 if (debugMode) {
 m.reply('[DEBUG]\n' + format(room));

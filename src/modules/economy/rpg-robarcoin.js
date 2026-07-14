@@ -30,7 +30,7 @@ return false;
 const targetUser = global.db.getUser(targetJid);
 
 const minVictimCash = 2500;
-const victimCash = Math.max(0, Number(targetUser.coin) || 0);
+const victimCash = Number(targetUser.coin) || 0;
 if (victimCash < minVictimCash) {
 await conn.reply(m.chat, `${emoji2} @${target.split('@')[0]} no tiene efectivo suficiente (mínimo ${minVictimCash.toLocaleString()} ${m.moneda}).`, m, { mentions: [target] });
 return false;
@@ -42,7 +42,7 @@ const minSteal = 600;
 
 if (Math.random() < successChance) {
 const amount = Math.min(victimCash, randomInt(minSteal, maxSteal));
-targetUser.coin = Math.max(0, victimCash - amount);
+targetUser.coin = victimCash - amount;
 user.coin = (Number(user.coin) || 0) + amount;
 
 return conn.reply(
@@ -53,8 +53,8 @@ m,
 );
 }
 
-const multa = Math.max(300, Math.floor((Number(user.coin) || 0) * 0.05));
-user.coin = Math.max(0, (Number(user.coin) || 0) - multa);
+const multa = Math.max(300, Math.floor(Math.abs(Number(user.coin) || 0) * 0.05));
+user.coin = (Number(user.coin) || 0) - multa;
 
 return conn.reply(
 m.chat,

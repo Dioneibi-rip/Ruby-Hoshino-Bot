@@ -367,10 +367,16 @@ export class MongoDatabase {
     if (!Object.prototype.hasOwnProperty.call(USER_DEFAULTS, safeField) || !NUMERIC_FIELDS.has(safeField)) throw new Error(`Campo de ranking no permitido: ${safeField}`)
     const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100)
     const safeOffset = Math.max(Number(offset) || 0, 0)
-    const rows = await this.User.find({ [safeField]: { $gt: 0 } }, { _id: 1, [safeField]: 1 }).sort({ [safeField]: -1, _id: 1 }).skip(safeOffset).limit(safeLimit).lean()
-    for (const row of rows) this.userCache.set(row._id, normalizeUser(row._id, row))
+    const rows = await this.User.find({}, { _id: 1, [safeField]: 1 }).sort({ [safeField]: -1, _id: 1 }).skip(safeOffset).limit(safeLimit).lean()
+    for (const row of rows) {
+      const cached = this.userCache.get(row._id) || {}
+      this.userCache.set(row._id, normalizeUser(row._id, { ...cached, [safeField]: row[safeField] }))
+    }
     return rows.map(row => ({ id: row._id, [safeField]: Number(row[safeField]) || 0 }))
   }
+  getTopUsers(options = {}) { return this.topUsers(options) }
+  async countUsers() { await this.ready; return this.User.estimatedDocumentCount() }
+  async countRegisteredUsers() { await this.ready; return this.User.countDocuments({ registered: true }) }
   async listUsersAsync() { await this.ready; const rows = await this.User.find({}).lean(); for (const row of rows) this.userCache.set(row._id, normalizeUser(row._id, row)); return this.listUsers() }
 
   _userProxy(id) {

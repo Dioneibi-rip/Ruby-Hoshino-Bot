@@ -364,7 +364,7 @@ upsertJson: this.sqlite.prepare('INSERT INTO json_records(section,id,value,updat
 
 
 _bindPublicApi() {
-for (const name of ['topUsers', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
+for (const name of ['topUsers', 'getTopUsers', 'countUsers', 'countRegisteredUsers', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
 this[name] = this[name].bind(this)
 }
 }
@@ -471,8 +471,11 @@ const safeField = String(field || '').trim()
 if (!(safeField in USER_COLUMNS) || !NUMERIC_FIELDS.has(safeField)) throw new Error(`Campo de ranking no permitido: ${safeField}`)
 const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100)
 const safeOffset = Math.max(Number(offset) || 0, 0)
-return this.sqlite.prepare(`SELECT id, ${q(safeField)} AS ${q(safeField)} FROM users WHERE ${q(safeField)} > 0 ORDER BY ${q(safeField)} DESC, id ASC LIMIT ? OFFSET ?`).all(safeLimit, safeOffset)
+return this.sqlite.prepare(`SELECT id, ${q(safeField)} AS ${q(safeField)} FROM users ORDER BY ${q(safeField)} DESC, id ASC LIMIT ? OFFSET ?`).all(safeLimit, safeOffset)
 }
+getTopUsers(options = {}) { return this.topUsers(options) }
+countUsers() { return Number(this.sqlite.prepare('SELECT COUNT(*) AS total FROM users').get()?.total) || 0 }
+countRegisteredUsers() { return Number(this.sqlite.prepare('SELECT COUNT(*) AS total FROM users WHERE registered = 1').get()?.total) || 0 }
 
 
 _syncCharactersFtsFromJson() {

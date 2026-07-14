@@ -28,7 +28,6 @@ target[type]=(target[type]||0)+received
 const mentionText=`@${who.split('@')[0]}`
 global.db.updateUser(senderJid,{[bankType]:user[bankType]})
 global.db.updateUser(targetJid,{[type]:target[type]})
-await global.db.write?.()
 m.reply(`✅ ¡𝗍rᥲᥒsFᥱrᥱᥒᥴіᥲ ᥱ᥊і𝗍᥆sᥲ!\n\n› һᥲs ᥱᥒ᥎іᥲძ᥆ *${count.toLocaleString()} ${m.moneda}* ᥲ ${mentionText}.\n› Impuesto comercial 10%: *${tax.toLocaleString()} ${m.moneda}*.\n› ${mentionText} recibió *${received.toLocaleString()} ${m.moneda}*.\n› 𝗍ᥱ 𝗊ᥙᥱძᥲᥒ *${user[bankType].toLocaleString()} ${m.moneda}* en el banco.`,null,{mentions:[who]})
 }
 handler.help=['pay <cantidad> @usuario']

@@ -58,7 +58,6 @@ function snapshotUser(user = {}) {
 async function persistUserPatch(jid, patch) {
   if (!global.db?.updateUser) throw new Error('Base de datos no disponible para updateUser')
   const result = await global.db.updateUser(jid, patch)
-  if (typeof global.db.write === 'function') await global.db.write()
   return result
 }
 
