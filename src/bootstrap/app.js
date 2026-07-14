@@ -289,7 +289,7 @@ console.log(chalk.hex('#FF66C4')('—🍦ܶ߭ຼ ᪲  ۪  ︵ Escanea el codigo 
 }
 if (connection === 'open') {
 conn.__groupEventStartedAt = Date.now()
-conn.__groupEventReadyAt = conn.__groupEventStartedAt + 20_000
+conn.__groupEventReadyAt = conn.__groupEventStartedAt + 15_000
 reconnectAttempt = 0
 if (reconnectTimer) {
 clearTimeout(reconnectTimer)

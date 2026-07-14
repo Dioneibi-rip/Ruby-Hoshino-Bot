@@ -441,7 +441,7 @@ export class MongoDatabase {
   }
 
   getChat(id) { return this.normalizeChatDefaults(this.get('chats', id) || {}) }
-  updateChat(id, patch = {}) { const chat = this.normalizeChatDefaults({ ...this.getChat(id), ...(patch || {}) }); this.set('chats', id, chat); return chat }
+  updateChat(id, patch = {}) { const chat = this.normalizeChatDefaults({ ...this.getChat(id), ...(patch || {}) }); this.set('chats', id, chat); const primary = chat.primaryBot || chat.botPrimario || ''; global.__rubyPrimaryBotCache?.set?.(id, primary ? String(primary).toLowerCase() : ''); return chat }
   normalizeChatDefaults(chat = {}) {
     if (typeof chat.welcome === 'undefined') chat.welcome = true
     if (typeof chat.antiLink === 'undefined') chat.antiLink = true

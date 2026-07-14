@@ -1,59 +1,111 @@
-import { JOBS, normalizeJobInput, ensureJobFields, getJobData, getJobTenureDays } from '../../infra/rpg-jobs.js';
+import { JOBS, normalizeJobInput, getJobData, getJobTenureDays } from '../../infra/rpg-jobs.js'
 
-const jobEntries=Object.values(JOBS);
-const jobActions=new Set(['elegir','set','escoger','seleccionar','tomar']);
-const infoActions=new Set(['actual','status','info','ver']);
-const listActions=new Set(['lista','list','jobs','empleos','menu']);
+const JOB_LIST = Object.values(JOBS).filter((job) => job?.key && job.key !== 'ninguno')
+const PICK_WORDS = new Set(['elegir', 'set', 'escoger', 'seleccionar', 'tomar', 'cambiar'])
+const LIST_WORDS = new Set(['lista', 'list', 'jobs', 'empleos', 'menu'])
+const INFO_WORDS = new Set(['actual', 'status', 'info', 'ver'])
 
-function getJobsListMessage(usedPrefix){
-const lines=jobEntries.map((job,index)=>`*${index+1}.* ${job.emoji} *${job.name}* (${job.key})\n↳ ${job.description}`);
-return `💼 *BOLSA DE TRABAJO*\n\n${lines.join('\n\n')}\n\n✦ Para tomar un empleo responde con:\n• *${usedPrefix}trabajo elegir <trabajo>*\n• *${usedPrefix}trabajo <número>*\n• *${usedPrefix}trabajo <trabajo>*\n\n✦ Usa *${usedPrefix}trabajar* para ganar ${global.db?.data?.settings?.[global.conn?.user?.jid]?.moneda||'Coins'}.`;
+function currencyName(conn) {
+  const jid = conn?.user?.jid || global.conn?.user?.jid || ''
+  return global.db?.data?.settings?.[jid]?.moneda || 'Coins'
 }
 
-function resolveSelectedJob(input){
-const normalizedInput=(input||'').trim();
-const numericIndex=Number.parseInt(normalizedInput,10);
-if(Number.isInteger(numericIndex)&&String(numericIndex)===normalizedInput&&numericIndex>=1&&numericIndex<=jobEntries.length)return jobEntries[numericIndex-1].key;
-return normalizeJobInput(normalizedInput);
+function renderJobs(usedPrefix, conn) {
+  const options = JOB_LIST.map((job, index) => [
+    `*${index + 1}.* ${job.emoji} *${job.name}*`,
+    `   Clave: \`${job.key}\``,
+    `   ${job.description}`,
+  ].join('\n'))
+
+  return [
+    '💼 *BOLSA DE TRABAJO*',
+    '',
+    options.join('\n\n'),
+    '',
+    '✦ Para guardar un empleo de forma permanente:',
+    `• *${usedPrefix}trabajo elegir <trabajo>*`,
+    `• *${usedPrefix}trabajo <número>*`,
+    `• *${usedPrefix}trabajo <trabajo>*`,
+    '',
+    `✦ Después usa *${usedPrefix}trabajar* para ganar ${currencyName(conn)}.`,
+  ].join('\n')
 }
 
-let handler=async(m,{conn,usedPrefix,args,participants})=>{
-let primaryJid=m.sender;
-if(primaryJid.endsWith('@lid')&&m.isGroup){
-const p=participants.find(x=>x.lid===primaryJid);
-if(p?.id)primaryJid=p.id;
+function normalizeSender(m, participants = []) {
+  const sender = String(m?.sender || '').trim()
+  if (!sender.endsWith('@lid') || !m?.isGroup) return sender
+  const participant = participants.find((entry) => entry?.lid === sender || entry?.jid === sender || entry?.id === sender)
+  return participant?.id || participant?.jid || sender
 }
-const user=global.db.getUser(primaryJid);
-ensureJobFields(user);
-const action=(args[0]||'').toLowerCase();
-if(!action||listActions.has(action))return conn.reply(m.chat,getJobsListMessage(usedPrefix),m);
-if(infoActions.has(action)){
-const current=getJobData(user);
-if(!current)return conn.reply(m.chat,`💼 No tienes trabajo todavía.\nUsa *${usedPrefix}trabajo lista* y luego *${usedPrefix}trabajo elegir <trabajo>*.`,m);
-const days=getJobTenureDays(user);
-return conn.reply(m.chat,`💼 Tu trabajo actual: ${current.emoji} *${current.name}*\n✦ Antigüedad: *${days} día(s)*\n✦ XP laboral: *${(user.jobXp||0).toLocaleString()}*`,m);
-}
-const desiredInput=jobActions.has(action)?args.slice(1).join(' ').trim():args.join(' ').trim();
-if(!desiredInput){
-await conn.reply(m.chat,`✦ Debes indicar un trabajo.\n> Ejemplo: *${usedPrefix}trabajo elegir programador*\n\n${getJobsListMessage(usedPrefix)}`,m);
-return false;
-}
-const selectedJobKey=resolveSelectedJob(desiredInput);
-if(!selectedJobKey){
-await conn.reply(m.chat,`✘ Trabajo inválido: *${desiredInput}*.\nUsa *${usedPrefix}trabajo lista* para ver opciones disponibles.`,m);
-return false;
-}
-const selectedJob=JOBS[selectedJobKey];
-if(user.job===selectedJobKey)return conn.reply(m.chat,`✅ Ya tienes ese trabajo: ${selectedJob.emoji} *${selectedJob.name}*.`,m);
-global.db.updateUser(primaryJid,{job:selectedJobKey,jobSince:Date.now(),jobXp:user.jobXp||0});
-await global.db.write?.();
-return conn.reply(m.chat,`✅ Ahora tu trabajo es ${selectedJob.emoji} *${selectedJob.name}*.\n✦ Ya puedes usar *${usedPrefix}trabajar*, *${usedPrefix}crime* y *${usedPrefix}slut*.`,m);
-};
 
-handler.help=['trabajo lista','trabajo elegir <trabajo>','trabajo <número>','trabajo info'];
-handler.tags=['economy'];
-handler.command=['trabajo','job','empleo'];
-handler.group=true;
-handler.register=true;
+function resolveJobKey(input = '') {
+  const text = String(input || '').trim()
+  const index = Number.parseInt(text, 10)
+  if (Number.isInteger(index) && String(index) === text && index >= 1 && index <= JOB_LIST.length) return JOB_LIST[index - 1].key
+  const key = normalizeJobInput(text)
+  return key && key !== 'ninguno' ? key : null
+}
 
-export default handler;
+function snapshotUser(user = {}) {
+  return {
+    coin: Number(user.coin) || 0,
+    job: typeof user.job === 'string' ? user.job : 'Ninguno',
+    jobSince: Number(user.jobSince) || 0,
+    jobXp: Number(user.jobXp) || 0,
+  }
+}
+
+async function persistUserPatch(jid, patch) {
+  if (!global.db?.updateUser) throw new Error('Base de datos no disponible para updateUser')
+  const result = await global.db.updateUser(jid, patch)
+  if (typeof global.db.write === 'function') await global.db.write()
+  return result
+}
+
+const handler = async (m, { conn, usedPrefix, args = [], participants = [] }) => {
+  const jid = normalizeSender(m, participants)
+  if (!jid) return conn.reply(m.chat, '❌ No pude identificar tu usuario para guardar el trabajo.', m)
+
+  const action = String(args[0] || '').trim().toLowerCase()
+  if (!action || LIST_WORDS.has(action)) return conn.reply(m.chat, renderJobs(usedPrefix, conn), m)
+
+  const currentUser = global.db?.getUser?.(jid) || {}
+  const current = snapshotUser(currentUser)
+
+  if (INFO_WORDS.has(action)) {
+    const activeJob = getJobData(current)
+    const tenure = getJobTenureDays(current)
+    return conn.reply(
+      m.chat,
+      `💼 Tu trabajo actual: ${activeJob.emoji} *${activeJob.name}*\n✦ Antigüedad: *${tenure} día(s)*\n✦ XP laboral: *${current.jobXp.toLocaleString()}*`,
+      m,
+    )
+  }
+
+  const requested = PICK_WORDS.has(action) ? args.slice(1).join(' ') : args.join(' ')
+  const selectedKey = resolveJobKey(requested)
+  if (!selectedKey) {
+    return conn.reply(m.chat, `✘ Trabajo inválido: *${requested || 'sin dato'}*.\nUsa *${usedPrefix}trabajo lista* para ver opciones disponibles.`, m)
+  }
+
+  const selected = JOBS[selectedKey]
+  if (current.job === selectedKey) return conn.reply(m.chat, `✅ Ya tienes ese trabajo: ${selected.emoji} *${selected.name}*.`, m)
+
+  const patch = {
+    job: selectedKey,
+    jobSince: Date.now(),
+    jobXp: current.jobXp,
+    coin: current.coin,
+  }
+
+  await persistUserPatch(jid, patch)
+  return conn.reply(m.chat, `✅ Trabajo guardado: ${selected.emoji} *${selected.name}*.\n✦ El cambio fue sellado en la base de datos antes de responder.`, m)
+}
+
+handler.help = ['trabajo lista', 'trabajo elegir <trabajo>', 'trabajo <número>', 'trabajo info']
+handler.tags = ['economy']
+handler.command = ['trabajo', 'job', 'empleo']
+handler.group = true
+handler.register = true
+
+export default handler
