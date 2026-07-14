@@ -1,23 +1,17 @@
 import WebSocket from 'ws'
-function decorateAiReply(title, text) {
-const body = String(text || 'Sin respuesta.').trim()
-return `╭─❖ 𓆩 ${title} 𓆪 ❖─╮
-│ 🤖 𝚁𝚞𝚋𝚢 𝙰𝙸 𝚛𝚎𝚜𝚙𝚘𝚗𝚍𝚎:
-├─────────────────────
-${body.split('\n').map(line => `│ ${line}`.trimEnd()).join('\n')}
-├─────────────────────
-│ ✦ 𝙰𝚕𝚒𝚗𝚎𝚊𝚍𝚘 𝚊 𝚕𝚊 𝚒𝚣𝚚𝚞𝚒𝚎𝚛𝚍𝚊
-╰─❖ 𖹭 ─────────────╯`.trim()
-}
-
-async function copilotChat(message, model = 'default') {
+const sessions = {}
+async function copilotChat(message, model = 'default', existingConv = null) {
 const models = { default: 'chat', 'think-deeper': 'reasoning', 'gpt-5': 'smart' }
 if (!models[model]) throw new Error(`Modelos disponibles: ${Object.keys(models).join(', ')}`)
+let conversationId = existingConv
+if (!conversationId) {
 const res = await fetch('https://copilot.microsoft.com/c/api/conversations', { method: 'POST', headers: { origin: 'https://copilot.microsoft.com', 'user-agent': 'Mozilla/5.0 (Linux; Android 15) Chrome/130.0.6723.86 Mobile Safari/537.36' } })
-const { id: conversationId } = await res.json()
+const data = await res.json()
+conversationId = data.id
+}
 return new Promise((resolve, reject) => {
 const ws = new WebSocket('wss://copilot.microsoft.com/c/api/chat?api-version=2&features=-,ncedge,edgepagecontext&setflight=-,ncedge,edgepagecontext&ncedge=1', { headers: { origin: 'https://copilot.microsoft.com', 'user-agent': 'Mozilla/5.0 (Linux; Android 15) Chrome/130.0.6723.86 Mobile Safari/537.36' } })
-const response = { text: '', citations: [] }
+const response = { text: '', citations: [], conversationId }
 ws.on('open', () => {
 ws.send(JSON.stringify({ event: 'setOptions', supportedFeatures: ['partial-generated-images'], supportedCards: ['weather', 'local', 'image', 'sports', 'video', 'ads', 'finance'], ads: { supportedTypes: ['text', 'product', 'multimedia'] } }))
 ws.send(JSON.stringify({ event: 'send', mode: models[model], conversationId, content: [{ type: 'text', text: message }], context: {} }))
@@ -34,24 +28,26 @@ else if (parsed.event === 'error') { reject(new Error(parsed.message)); ws.close
 ws.on('error', reject)
 })
 }
-
-async function handler(m, { text, conn }) {
-if (!text) return m.reply(decorateAiReply('Copilot', 'Por favor, ingresa una petición.\nEjemplo: *.copilot quién eres?*'))
-const processingMsg = await conn.sendMessage(m.chat, { text: decorateAiReply('Copilot', '⏳ Procesando tu petición...') }, { quoted: m })
+async function handler(m, { text, conn, usedPrefix, command }) {
+if (!text) return m.reply(`> ヾ(˶ᵔ ᗜ ᵔ˶) 𝖯𝗈𝗋 𝖿⍺𝗏𝗈𝗋 𝗂𝗇𝗀𝗋𝖾𝗌⍺ 𝗎𝗇⍺ 𝗉𝗋𝖾𝗀𝗎𝗇𝗍⍺ 𝗉⍺𝗋⍺ 𝖢𝗈𝗉𝗂𝗅𝗈𝗍... 🌸\n> 𝖤𝗃𝖾𝗆𝗉𝗅𝗈: *${usedPrefix}${command} ¿𝖰𝗎𝗂𝖾́𝗇 𝖾𝗋𝖾𝗌?*`)
+await m.react('⏳')
+const userId = m.sender || m.chat
+sessions[userId] = sessions[userId] || {}
 try {
-const result = await copilotChat(text)
-await conn.sendMessage(m.chat, { text: decorateAiReply('Copilot', result.text || '❌ Sin respuesta'), edit: processingMsg.key })
+const result = await copilotChat(text, 'default', sessions[userId].conversationId)
+sessions[userId].conversationId = result.conversationId
+await conn.sendMessage(m.chat, { text: result.text || '> (っ- ‸ - ς) 𝖲𝗂𝗇 𝗋𝖾𝗌𝗉𝗎𝖾𝗌𝗍⍺...' }, { quoted: m })
+await m.react('✅')
 } catch (error) {
-console.error('Error en Copilot:', error)
-await conn.sendMessage(m.chat, { text: decorateAiReply('Copilot', '❌ Error al conectar con Copilot'), edit: processingMsg.key })
+console.error('[Ruby Hoshino - Copilot Error]:', error)
+await m.react('💔')
+await m.reply(`> (っ- ‸ - ς) 𝖮𝖼𝗎𝗋𝗋𝗂𝗈́ 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋 𝖼𝗈𝗇 𝖢𝗈𝗉𝗂𝗅𝗈𝗍... ✨\n\n> 💡 *𝖣𝖾𝗍⍺𝗅𝗅𝖾:* \`${error.message}\``)
 }
 }
-
 handler.help = ['copilot']
 handler.tags = ['ai']
 handler.command = ['copilot']
 handler.limit = true
 handler.register = true
 handler.group = true
-
 export default handler
