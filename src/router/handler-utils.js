@@ -16,7 +16,7 @@ return {
 id: participant?.jid || participant?.id,
 jid: participant?.jid || participant?.id,
 lid: participant?.lid,
-admin: participant?.admin || participant?.isAdmin || participant?.role,
+admin: participant?.admin ?? null,
 }
 }
 
@@ -139,7 +139,8 @@ const right = String(decodedTarget || '').split('@')[0]
 return Boolean(left && right && (decodedCandidate === decodedTarget || left === right))
 }
 const userGroup = (m?.isGroup ? participants.find((u) => sameIdentity(u?.jid, sender) || sameIdentity(u?.id, sender) || sameIdentity(u?.lid, sender)) : {}) || {}
-const botGroup = (m?.isGroup ? participants.find((u) => sameIdentity(u?.jid, conn?.user?.jid) || sameIdentity(u?.id, conn?.user?.jid) || sameIdentity(u?.lid, conn?.user?.jid)) : {}) || {}
+const botJids = [conn?.user?.jid, conn?.user?.id, conn?.decodeJid?.(conn?.user?.jid), conn?.decodeJid?.(conn?.user?.id)].filter(Boolean)
+const botGroup = (m?.isGroup ? participants.find((u) => botJids.some((botJid) => sameIdentity(u?.jid, botJid) || sameIdentity(u?.id, botJid) || sameIdentity(u?.lid, botJid))) : {}) || {}
 const isRAdmin = normalizeAdmin(userGroup) === 'superadmin'
 const isAdmin = isRAdmin || normalizeAdmin(userGroup) === 'admin'
 const isBotAdmin = ['admin', 'superadmin'].includes(normalizeAdmin(botGroup))

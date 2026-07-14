@@ -1,4 +1,4 @@
-import { prepareWAMessageMedia, generateWAMessageFromContent } from '@whiskeysockets/baileys';
+import { prepareWAMessageMedia, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
 import moment from 'moment-timezone';
 
 const menuMediaCache = new WeakMap();
@@ -84,18 +84,7 @@ let beforeText = defaultMenu.before.replace(/%name/g, name)
 .replace(/%uptime/g, uptime)
 .replace(/%totalreg/g, totalreg);
 
-const interactiveMessage = {
-header: {
-title: "",
-hasMediaAttachment: true,
-imageMessage: media.imageMessage
-},
-body: {
-text: `${beforeText}\n\n${bodyText}`
-},
-footer: { text: "usa #menumanual si no puedes usar los botones" },
-nativeFlowMessage: {
-buttons: [
+const nativeButtons = [
 {
 name: "quick_reply",
 buttonParamsJson: JSON.stringify({
@@ -110,16 +99,31 @@ title: " ❀⃘⃛͜ ۪۪۪݃𓉘᳟ี ⃞̸͢𑁃 ̚𓉝᳟ี𝐌𝐄𝐍𝐔
 sections: sections
 })
 }
-],
-messageParamsJson: ""
-}
-};
+]
+
+const interactiveMessage = proto.Message.InteractiveMessage.fromObject({
+header: proto.Message.InteractiveMessage.Header.fromObject({
+title: "",
+hasMediaAttachment: true,
+imageMessage: media.imageMessage
+}),
+body: proto.Message.InteractiveMessage.Body.fromObject({
+text: `${beforeText}
+
+${bodyText}`
+}),
+footer: proto.Message.InteractiveMessage.Footer.fromObject({ text: "usa #menumanual si no puedes usar los botones" }),
+nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
+buttons: nativeButtons,
+messageParamsJson: JSON.stringify({ version: 1 })
+})
+})
 
 let msgi = generateWAMessageFromContent(
 m.chat,
-{ viewOnceMessage: { message: { interactiveMessage } } },
+{ viewOnceMessage: { message: { messageContextInfo: { deviceListMetadata: {}, deviceListMetadataVersion: 2 }, interactiveMessage } } },
 { userJid: conn.user.jid, quoted: fkontak || m }
-);
+)
 
 await conn.relayMessage(m.chat, msgi.message, { messageId: msgi.key.id });
 m.react('💞');

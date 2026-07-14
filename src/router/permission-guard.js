@@ -28,7 +28,7 @@ return Boolean(job && !['ninguno', 'none', 'null', 'undefined', 'sin trabajo'].i
 }
 
 export function pluginRequiresGroupParticipants(plugin = {}) {
-return Boolean(plugin.admin || plugin.botAdmin)
+return Boolean(plugin.admin || plugin.botAdmin || plugin.needsParticipants)
 }
 
 export function buildGuardContext({ conn, plugin, name, m, extra, sender, permissionContext, chat, user, isEconomyPremium, fail, isCelestialCommand }) {

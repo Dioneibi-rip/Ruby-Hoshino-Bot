@@ -1,4 +1,5 @@
 import WebSocket from 'ws'
+import { buildAiPromptWithContext, rememberAiExchange } from '../../core/ai-context.js'
 const sessions = {}
 async function copilotChat(message, model = 'default', existingConv = null) {
 const models = { default: 'chat', 'think-deeper': 'reasoning', 'gpt-5': 'smart' }
@@ -34,8 +35,10 @@ await m.react('⏳')
 const userId = m.sender || m.chat
 sessions[userId] = sessions[userId] || {}
 try {
-const result = await copilotChat(text, 'default', sessions[userId].conversationId)
+const prompt = buildAiPromptWithContext('copilot', userId, text, { maxMessages: 8 })
+const result = await copilotChat(prompt, 'default', sessions[userId].conversationId)
 sessions[userId].conversationId = result.conversationId
+rememberAiExchange('copilot', userId, text, result.text, { maxMessages: 8 })
 await conn.sendMessage(m.chat, { text: result.text || '> (っ- ‸ - ς) 𝖲𝗂𝗇 𝗋𝖾𝗌𝗉𝗎𝖾𝗌𝗍⍺...' }, { quoted: m })
 await m.react('✅')
 } catch (error) {
