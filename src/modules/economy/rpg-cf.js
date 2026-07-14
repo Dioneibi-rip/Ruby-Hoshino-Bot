@@ -16,12 +16,8 @@ if (isNaN(cantidad) || cantidad <= 0) {
 return m.reply(`${emoji2} Debes ingresar una cantidad válida mayor que cero.\nEjemplo: *${usedPrefix + command} cara 5000*`);
 }
 
-let user = global.db.getUser(m.sender);
-if (!user || user.coin < cantidad) {
-return m.reply(`${emoji2} No tienes suficientes ${m.moneda} para apostar. Tienes *${user.coin.toLocaleString()} ${m.moneda}*.`);
-}
-
-user.coin -= cantidad;
+const user = global.db.getUser(m.sender);
+user.coin = (Number(user.coin) || 0) - cantidad;
 let resultado = Math.random() < 0.5 ? 'cara' : 'cruz';
 
 if (resultado === eleccion) {

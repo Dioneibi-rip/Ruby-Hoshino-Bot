@@ -1,70 +1,44 @@
-const handler = async (m, {conn, text, command, usedPrefix, args}) => {
-const pp = 'https://telegra.ph/file/c7924bf0e0d839290cc51.jpg';
+const handler = async (m, { conn, text, command, usedPrefix, args }) => {
+const user = global.db.getUser(m.sender);
+const now = Date.now();
+const wait = Number(user.wait) || 0;
+const time = wait + 10000;
 
-const time = global.db.getUser(m.sender).wait + 10000;
-if (new Date - global.db.getUser(m.sender).wait < 10000) throw `${emoji} Tendrás que esperar ${Math.floor((time - new Date()) / 1000)} segundos antes de poder volver a jugar.`;
+if (now - wait < 10000) throw `${emoji} Tendrás que esperar ${Math.floor((time - now) / 1000)} segundos antes de poder volver a jugar.`;
 
 if (!args[0]) return conn.reply(m.chat, `*PIEDRA 🗿, PAPEL 📄 o TIJERA ✂️*\n\n*—◉ Puedes usar éstos comandos:*\n*◉ ${usedPrefix + command} piedra*\n*◉ ${usedPrefix + command} papel*\n*◉ ${usedPrefix + command} tijera*`, m);
 
-let astro = Math.random();
-if (astro < 0.34) {
-astro = 'piedra';
-} else if (astro > 0.34 && astro < 0.67) {
-astro = 'tijera';
-} else {
-astro = 'papel';
+const choices = ['piedra', 'tijera', 'papel'];
+const botChoice = choices[Math.floor(Math.random() * choices.length)];
+const playerChoice = text.toLowerCase().trim();
+
+if (!choices.includes(playerChoice)) {
+return conn.reply(m.chat, `${emoji2} Elige una opción válida: *piedra*, *papel* o *tijera*.`, m);
 }
-const textm = text.toLowerCase();
-if (textm == astro) {
-global.db.getUser(m.sender).exp += 500;
-m.reply(`*${emoji2} Empate!*\n\n*👉🏻 Tu: ${textm}*\n*👉🏻 El Bot: ${astro}*\n*🎁 Premio +500 XP*`);
-} else if (text == 'papel') {
-if (astro == 'piedra') {
-global.db.getUser(m.sender).exp += 1000;
-m.reply(`*${emoji} Tú ganas! 🎉*\n\n*👉🏻 Tu: ${textm}*\n*👉🏻 El Bot: ${astro}*\n*🎁 Premio +1000 XP*`);
-} else {
-global.db.getUser(m.sender).exp -= 300;
-m.reply(`*💀 Tú pierdes! ❌*\n\n*👉🏻 Tu: ${textm}*\n*👉🏻 El Bot: ${astro}*\n*❌ Premio -300 XP*`);
+
+let expDelta = -300;
+let resultText = `*${emoji} Tú pierdes! ❌*`;
+
+if (playerChoice === botChoice) {
+expDelta = 500;
+resultText = `*${emoji2} Empate!*`;
+} else if (
+(playerChoice === 'piedra' && botChoice === 'tijera') ||
+(playerChoice === 'papel' && botChoice === 'piedra') ||
+(playerChoice === 'tijera' && botChoice === 'papel')
+) {
+expDelta = 1000;
+resultText = `*${emoji} Tú ganas! 🎉*`;
 }
-} else if (text == 'tijera') {
-if (astro == 'papel') {
-global.db.getUser(m.sender).exp += 1000;
-m.reply(`*${emoji} Tú ganas! 🎉*\n\n*👉🏻 Tu: ${textm}*\n*👉🏻 El Bot: ${astro}*\n*🎁 Premio +1000 XP*`);
-} else {
-global.db.getUser(m.sender).exp -= 300;
-m.reply(`*☠️ Tú pierdes! ❌*\n\n*👉🏻 Tu: ${textm}*\n*👉🏻 El Bot: ${astro}*\n*❌ Premio -300 XP*`);
-}
-} else if (textm == 'tijera') {
-if (astro == 'papel') {
-global.db.getUser(m.sender).exp += 1000;
-m.reply(`*${emoji} Tú ganas! 🎉*\n\n*👉🏻 Tu: ${textm}*\n*👉🏻 El Bot: ${astro}*\n*🎁 Premio +1000 XP*`);
-} else {
-global.db.getUser(m.sender).exp -= 300;
-m.reply(`*☠️ Tú pierdes! ❌*\n\n*👉🏻 Tu: ${textm}*\n*👉🏻 El Bot: ${astro}*\n*❌ Premio -300 XP*`);
-}
-} else if (textm == 'papel') {
-if (astro == 'piedra') {
-global.db.getUser(m.sender).exp += 1000;
-m.reply(`*${emoji} Tú ganas! 🎉*\n\n*👉🏻 Tu: ${textm}*\n*👉🏻 El Bot: ${astro}*\n*🎁 Premio +1000 XP*`);
-} else {
-global.db.getUser(m.sender).exp -= 300;
-m.reply(`*☠️ Tú pierdes! ❌*\n\n*👉🏻 Tu: ${textm}*\n*👉🏻 El Bot: ${astro}*\n*❌ Premio -300 XP*`);
-}
-} else if (textm == 'piedra') {
-if (astro == 'tijera') {
-global.db.getUser(m.sender).exp += 1000;
-m.reply(`*${emoji} Tú ganas! 🎉*\n\n*👉🏻 Tu: ${textm}*\n*👉🏻 El Bot: ${astro}*\n*🎁 Premio +1000 XP*`);
-} else {
-global.db.getUser(m.sender).exp -= 300;
-m.reply(`*${emoji} Tú pierdes! ❌*\n\n*👉🏻 Tu: ${textm}*\n*👉🏻 El Bot: ${astro}*\n*❌ Premio -300 XP*`);
-}
-}
-global.db.getUser(m.sender).wait = new Date * 1;
+
+user.exp = Math.max(0, (Number(user.exp) || 0) + expDelta);
+user.wait = now;
+
+return m.reply(`${resultText}\n\n*👉🏻 Tu: ${playerChoice}*\n*👉🏻 El Bot: ${botChoice}*\n*${expDelta >= 0 ? '🎁 Premio +' : '❌ Premio '}${expDelta} XP*`);
 };
 handler.help = ['ppt'];
 handler.tags = ['games'];
 handler.command = ['ppt'];
 handler.group = true;
 handler.register = true;
-
 export default handler;

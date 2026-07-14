@@ -1,7 +1,7 @@
 import ws from 'ws'
 let handler = async (m, { conn, usedPrefix, isRowner}) => {
 let _uptime = process.uptime() * 1000;
-let totalreg = Object.keys(global.db.listUsers()).length
+let totalreg = await Promise.resolve(global.db.countUsers?.() ?? 0)
 let totalchats = Object.keys(global.db.getSection('chats')).length
 
 let uptime = clockString(_uptime);

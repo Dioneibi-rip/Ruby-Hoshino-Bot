@@ -1,6 +1,6 @@
 import { ensureJobFields, getJobData } from '../../infra/rpg-jobs.js';
 
-let handler = async (m, { conn, usedPrefix }) => {
+let handler = async (m, { conn, usedPrefix, participants = [] }) => {
 let senderId = m.sender;
 let user = global.db.getUser(senderId);
 ensureJobFields(user);
@@ -11,9 +11,11 @@ await conn.reply(m.chat, `💼 Primero consigue trabajo con *#trabajo lista*. Tu
 return false;
 }
 
-let users = global.db.listUsers();
-let userIds = Object.keys(users).filter(u => u !== senderId && !users[u].banned);
-let targetId = userIds.length > 0 ? userIds[Math.floor(Math.random() * userIds.length)] : senderId;
+const botJid = conn.decodeJid?.(conn.user?.jid || conn.user?.id) || conn.user?.jid || conn.user?.id || '';
+const participantIds = participants
+.map(p => conn.decodeJid?.(p.id || p.jid || p.lid) || p.id || p.jid || p.lid)
+.filter(id => typeof id === 'string' && id.endsWith('@s.whatsapp.net') && id !== senderId && id !== botJid && !id.includes('status@broadcast'));
+let targetId = participantIds.length > 0 ? participantIds[Math.floor(Math.random() * participantIds.length)] : senderId;
 
 let prof = Math.min(0.08, (user.jobXp || 0) / 300000);
 
@@ -44,12 +46,9 @@ return conn.sendMessage(m.chat, { text: texto, contextInfo: { mentionedJid: [tar
 }
 
 let amountLoss = Math.floor((Math.random() * 700 + 300) * job.slutLossMultiplier * slutLossResist);
-let loss = Math.min(Math.floor((user.coin || 0) * 0.30), amountLoss);
-let rest = loss;
-let fromCoin = Math.min(user.coin || 0, rest);
-user.coin = Math.max(0, (user.coin || 0) - fromCoin);
-rest -= fromCoin;
-user.bank = Math.max(0, (user.bank || 0) - rest);
+let loss = amountLoss;
+user.coin = (Number(user.coin) || 0) - loss;
+user.bank = Math.max(0, Number(user.bank) || 0);
 global.db.updateUser(senderId, { coin: user.coin, bank: user.bank });
 
 let phraseList = useGeneric ? frasesSlutGenericas.fail : (frasesSlutPorTrabajo[job.key]?.fail || frasesSlutGenericas.fail);

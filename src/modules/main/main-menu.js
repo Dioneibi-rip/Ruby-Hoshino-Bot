@@ -28,7 +28,7 @@ let coins = user.coin || 0;
 
 let _uptime = process.uptime() * 1000;
 let uptime = clockString(_uptime);
-let totalreg = Object.keys(global.db.listUsers()).length;
+let totalreg = await Promise.resolve(global.db.countUsers?.() ?? 0);
 let totalCommands = Object.values(global.plugins).filter(v => v.help && v.tags).length;
 
 const gifVideosDir = path.join(cwd, 'src', 'menu');

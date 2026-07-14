@@ -39,7 +39,7 @@ setTimeout(resolve, 1000);
 
 let muptime = clockString(_muptime);
 let uptime = clockString(_uptime);
-let totalreg = Object.keys(global.db.listUsers()).length;
+let totalreg = await Promise.resolve(global.db.countUsers?.() ?? 0);
 
 const fkontak = await getMenuQuoted(m);
 const media = await getMenuMedia(conn);

@@ -10,10 +10,9 @@ const date = d.toLocaleDateString(locale, {day: '2-digit', month: '2-digit', yea
 const _uptime = process.uptime() * 1000;
 const uptime = clockString(_uptime);
 const user = global.db.getUser(m.sender);
-const {money, joincount} = global.db.getUser(m.sender);
-const {exp, estrellas, level, role} = global.db.getUser(m.sender);
-const rtotalreg = Object.values(global.db.listUsers()).filter((user) => user.registered == true).length;
-const rtotal = Object.entries(global.db.listUsers()).length || '0'
+const { money, joincount, exp, estrellas, level, role } = user;
+const rtotalreg = await Promise.resolve(global.db.countRegisteredUsers?.() ?? 0);
+const rtotal = await Promise.resolve(global.db.countUsers?.() ?? 0)
 const more = String.fromCharCode(8206);
 const readMore = more.repeat(850);
 const taguser = '@' + m.sender.split('@s.whatsapp.net')[0];

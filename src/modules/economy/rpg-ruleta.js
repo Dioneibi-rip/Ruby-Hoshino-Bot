@@ -1,4 +1,3 @@
-
 const handler = async (m, { conn, text, command, usedPrefix }) => {
 const user = global.db.getUser(m.sender);
 
@@ -30,47 +29,35 @@ return false;
 }
 
 const maxByTier = user.premium ? 150000 : 50000;
-const maxByBalance = Math.max(200, Math.floor((user.coin || 0) * 0.25));
-const maxBet = Math.min(maxByTier, maxByBalance);
-
-if (bet > maxBet) {
-await conn.reply(m.chat, `《✧》Tu apuesta máxima ahora es *${maxBet.toLocaleString()} ${m.moneda}* para mantener la economía estable.`, m);
+if (bet > maxByTier) {
+await conn.reply(m.chat, `《✧》Tu apuesta máxima por tirada es *${maxByTier.toLocaleString()} ${m.moneda}*.`, m);
 return false;
 }
 
-if (bet > user.coin) {
-await conn.reply(m.chat, `《✧》No tienes suficientes *${m.moneda}* para apostar eso.`, m);
-return false;
-}
-
-user.coin -= bet;
-
-await conn.reply(m.chat, `🎲 Apuesta registrada: *¥${bet.toLocaleString()} ${m.moneda}* al color *${color}*.
-⏳ Resolviendo ruleta en 5 segundos...`, m);
-
-setTimeout(() => {
 const resultado = rollRoulette();
 const multipliers = { red: 2, black: 2, green: 14 };
 const gano = resultado === color;
+const premio = gano ? Math.floor(bet * multipliers[color]) : 0;
+user.coin = (Number(user.coin) || 0) - bet + premio;
+
+await conn.reply(m.chat, `🎲 Apuesta registrada: *¥${bet.toLocaleString()} ${m.moneda}* al color *${color}*.
+⏳ Resolviendo ruleta...`, m);
 
 if (gano) {
-const premio = Math.floor(bet * multipliers[color]);
-user.coin += premio;
 return conn.reply(m.chat, `「✿」Resultado: *${resultado}* 🟢
 Ganaste *¥${premio.toLocaleString()} ${m.moneda}* (incluye apuesta).`, m);
 }
 
 return conn.reply(m.chat, `「✿」Resultado: *${resultado}* 🔴
 Perdiste *¥${bet.toLocaleString()} ${m.moneda}*.
-Sigue jugando con control 🧠`, m);
-}, 5000);
+Saldo actual: *¥${(Number(user.coin) || 0).toLocaleString()} ${m.moneda}*`, m);
 };
 
 handler.tags = ['economy'];
 handler.help = ['ruleta <cantidad> <red|black|green>'];
 handler.command = ['ruleta', 'roulette', 'rt'];
 handler.register = true;
-handler.group = true
+handler.group = true;
 handler.cooldown = 30000;
 
 handler.cooldownMessage = (seconds, time, hms) => `⏱ Espera *${hms}* para volver a apostar.`;

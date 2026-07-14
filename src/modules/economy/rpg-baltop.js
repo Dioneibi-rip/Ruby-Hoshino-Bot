@@ -6,16 +6,12 @@ const perPage = 10
 const start = (page - 1) * perPage
 const end = start + perPage
 
-const sorted = Object.entries(global.db.listUsers())
-.filter(([jid]) => groupLocals.has(jidLocal(jid)))
-.map(([jid, user]) => {
-const coin = Number(user.coin) || 0
-const bank = Number(user.bank) || 0
-return { jid, total: coin + bank }
-})
-.sort((a, b) => b.total - a.total)
+const topRows = await Promise.resolve(global.db.getTopUsers?.({ field: 'coin', limit: Math.max(end, perPage), offset: 0 }) || global.db.topUsers?.({ field: 'coin', limit: Math.max(end, perPage), offset: 0 }) || [])
+const sorted = topRows
+.map(row => ({ jid: row.id, total: Number(row.coin) || 0 }))
+.filter(row => groupLocals.has(jidLocal(row.jid)))
 
-const totalPages = Math.ceil(sorted.length / perPage)
+const totalPages = Math.max(1, Math.ceil(sorted.length / perPage))
 const pageUsers = sorted.slice(start, end)
 const iconos = ['👑', '🥈', '🥉']
 let texto = `「✿」Los usuarios con más *${m.moneda}* son:\n\n`
