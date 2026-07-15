@@ -1,12 +1,11 @@
 import { canLevelUp, xpRange } from '../../infra/levelling.js';
 import db from '../../infra/database.js';
 import { ensureUserRole } from '../functions/_roles.js';
+import { resolveInteractionTarget, resolveIdentityName } from '../../core/identity-utils.js';
 
 let handler = async (m, { conn }) => {
-let mentionedUser = m.mentionedJid[0];
-let citedMessage = m.quoted ? m.quoted.sender : null;
-let who = mentionedUser || citedMessage || m.sender;
-let name = await conn.getName(who) || 'Usuario';
+let who = await resolveInteractionTarget(m, conn);
+let name = await resolveIdentityName(conn, who, { fallback: 'Usuario' });
 let user = global.db.getUser(who);
 
 if (!user) {

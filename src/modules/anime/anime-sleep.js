@@ -1,4 +1,4 @@
-import { resolveInteractionTarget } from '../../core/identity-utils.js'
+import { resolveInteractionTarget, resolveIdentityName } from '../../core/identity-utils.js'
 import axios from '../../infra/http.js'
 import fs from 'fs'
 import path from 'path'
@@ -56,8 +56,8 @@ const sleepGifs=[
 ]
 
 let who = await resolveInteractionTarget(m, conn)
-let nameSender=await conn.getName(m.sender)
-let nameTarget=await conn.getName(who)
+let nameSender=await resolveIdentityName(conn, m.sender, { fallback: `@${String(m.sender).split('@')[0]}` })
+let nameTarget=await resolveIdentityName(conn, who, { fallback: `@${String(who).split('@')[0]}` })
 
 let caption=who===m.sender?`\`${nameSender}\` *está tomando una siesta.*`:`\`${nameSender}\` *está durmiendo con* \`${nameTarget}\`.`
 

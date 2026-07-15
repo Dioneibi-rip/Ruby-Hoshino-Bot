@@ -1,3 +1,4 @@
+import { resolveIdentityName } from '../../core/identity-utils.js'
 let handler = async (m, { conn, args, participants }) => {
 const jidLocal = jid => String(jid || '').split('@')[0].split(':')[0]
 const groupLocals = new Set(participants.map(p => jidLocal(p.id || p.jid)).filter(Boolean))
@@ -18,7 +19,7 @@ let texto = `「✿」Los usuarios con más *${m.moneda}* son:\n\n`
 
 for (let i = 0; i < pageUsers.length; i++) {
 const { jid, total } = pageUsers[i]
-const nombre = await conn.getName(jid)
+const nombre = await resolveIdentityName(conn, jid, { fallback: `@${String(jid).split('@')[0]}` })
 const icono = iconos[start + i] || '✰'
 const yenes = `¥${total.toLocaleString()} ${m.moneda}`
 

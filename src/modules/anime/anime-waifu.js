@@ -1,3 +1,4 @@
+import { resolveIdentityName } from '../../core/identity-utils.js'
 const newsletterJid  = '120363335626706839@newsletter';
 const newsletterName = '🌸『 Ruby-Hoshino Waifu Channel 』🌸';
 
@@ -21,7 +22,8 @@ if (!res.ok) throw new Error('No se pudo obtener la waifu.');
 let json = await res.json();
 if (!json.url) throw new Error('Respuesta inválida.');
 
-const caption = `🌸 *Aquí tienes tu waifu, ${conn.getName(m.sender)}-chan~* 〰️\n\n✨ ¿Quieres otra waifu? Solo toca el botón de abajo~`;
+const senderName = await resolveIdentityName(conn, m.sender, { fallback: `@${String(m.sender).split('@')[0]}` });
+const caption = `🌸 *Aquí tienes tu waifu, ${senderName}-chan~* 〰️\n\n✨ ¿Quieres otra waifu? Solo toca el botón de abajo~`;
 
 const buttons = [
 { buttonId: usedPrefix + command, buttonText: { displayText: '🔁 Siguiente waifu' }, type: 1 }

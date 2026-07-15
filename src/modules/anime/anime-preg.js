@@ -1,4 +1,4 @@
-import { resolveInteractionTarget } from '../../core/identity-utils.js'
+import { resolveInteractionTarget, resolveIdentityName } from '../../core/identity-utils.js'
 
 import fs from 'fs';
 import path from 'path';
@@ -10,8 +10,8 @@ if (!global.db.getChat(m.chat).nsfw && m.isGroup) {
 return m.reply(`${emoji} El contenido *NSFW* está desactivado en este grupo.\n> Un administrador puede activarlo con el comando » *#nsfw on*`);
 }
 
-let name = await conn.getName(who);
-let name2 = await conn.getName(m.sender);
+let name = await resolveIdentityName(conn, who, { fallback: `@${String(who).split('@')[0]}` });
+let name2 = await resolveIdentityName(conn, m.sender, { fallback: `@${String(m.sender).split('@')[0]}` });
 m.react('🤰');
 
 let str;

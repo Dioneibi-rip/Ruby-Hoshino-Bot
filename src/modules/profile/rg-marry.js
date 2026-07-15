@@ -1,3 +1,4 @@
+import { buildParticipantsByLid, normalizeIdentityJid, resolveIdentityName } from '../../core/identity-utils.js'
 let proposals = {};
 
 async function loadMarriages() {
@@ -13,19 +14,16 @@ return global.db.getUser(user)?.marry || marriages[user]?.partner || '';
 }
 
 const handler = async (m, { conn, command, participants, usedPrefix }) => {
-const normalizeToJid = (rawJid) => {
-if (!rawJid || typeof rawJid !== 'string') return rawJid;
-if (!rawJid.endsWith('@lid')) return rawJid;
-const pInfo = participants?.find(p => p?.lid === rawJid);
-return pInfo?.id || rawJid;
-};
+const participantsByLid = buildParticipantsByLid(participants);
+const normalizeToJid = (rawJid) => normalizeIdentityJid(conn, rawJid, participantsByLid);
+const identityName = (jid) => resolveIdentityName(conn, jid, { participantsByLid, fallback: `@${String(jid).split('@')[0]}` });
 
 const isPropose = /^marry$/i.test(command);
 const isDivorce = /^divorce$/i.test(command);
 const marriages = await loadMarriages();
 
 try {
-let proposerJid = normalizeToJid(m.sender);
+let proposerJid = await normalizeToJid(m.sender);
 global.db.getUser(proposerJid);
 
 if (isPropose) {
@@ -34,22 +32,22 @@ const rawProposee = m.quoted?.sender || m.mentionedJid?.[0];
 if (!rawProposee) {
 if (isUserMarried(marriages, proposerJid)) {
 let partner = getPartner(marriages, proposerJid);
-let partnerName = conn.getName(partner) || `@${partner.split('@')[0]}`;
+let partnerName = await identityName(partner);
 return await conn.reply(m.chat, `《✧》 Ya estás casado con *${partnerName}*\n> Puedes divorciarte con el comando: *${usedPrefix}divorce*`, m);
 } else {
 throw new Error(`Debes mencionar a alguien para proponer o aceptar matrimonio.\n> Ejemplo » *${usedPrefix + command} @Usuario*`);
 }
 }
 
-let proposeeJid = normalizeToJid(rawProposee);
+let proposeeJid = await normalizeToJid(rawProposee);
 global.db.getUser(proposeeJid);
 
 if (isUserMarried(marriages, proposerJid)) {
 let partner = getPartner(marriages, proposerJid);
-throw new Error(`Ya estás casado con @${partner.split('@')[0]}.`);
+throw new Error(`Ya estás casado con ${await identityName(partner)}.`);
 }
 if (isUserMarried(marriages, proposeeJid)) {
-throw new Error(`@${proposeeJid.split('@')[0]} ya está casado(a).`);
+throw new Error(`${await identityName(proposeeJid)} ya está casado(a).`);
 }
 if (proposerJid === proposeeJid) throw new Error('¡No puedes proponerte matrimonio a ti mismo!');
 
@@ -67,8 +65,8 @@ if (user2) user2.marry = proposerJid;
 }
 await global.db.write?.();
 
-let proposerName = conn.getName(proposerJid) || `@${proposerJid.split('@')[0]}`;
-let proposeeName = conn.getName(proposeeJid) || `@${proposeeJid.split('@')[0]}`;
+let proposerName = await identityName(proposerJid);
+let proposeeName = await identityName(proposeeJid);
 
 return await conn.sendMessage(m.chat, {
 text: `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩\n\n¡Se han Casado! ฅ^•ﻌ•^ฅ*:･ﾟ✧\n\n*•.¸♡ Esposo(a):* ${proposeeName}\n*•.¸♡ Esposo(a):* ${proposerName}\n\n\`Disfruten de su luna de miel\`\n\n✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩`,
@@ -78,8 +76,8 @@ mentions: [proposerJid, proposeeJid]
 } else {
 proposals[proposerJid] = proposeeJid;
 
-let proposerName = conn.getName(proposerJid) || `@${proposerJid.split('@')[0]}`;
-let proposeeName = conn.getName(proposeeJid) || `@${proposeeJid.split('@')[0]}`;
+let proposerName = await identityName(proposerJid);
+let proposeeName = await identityName(proposeeJid);
 
 setTimeout(() => {
 if (proposals[proposerJid] === proposeeJid) {
@@ -108,7 +106,9 @@ if (partnerDb) delete partnerDb.marry;
 }
 await global.db.write?.();
 
-await conn.reply(m.chat, `✐ ${conn.getName(proposerJid)} y ${conn.getName(partner)} se han divorciado.`, m, { mentions: [proposerJid, partner] });
+const proposerName = await identityName(proposerJid);
+const partnerName = await identityName(partner);
+await conn.reply(m.chat, `✐ ${proposerName} y ${partnerName} se han divorciado.`, m, { mentions: [proposerJid, partner] });
 }
 } catch (error) {
 await conn.reply(m.chat, `《✧》 ${error.message}`, m, { mentions: m.mentionedJid || [] });

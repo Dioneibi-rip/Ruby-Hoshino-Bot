@@ -1,5 +1,6 @@
 import{formatJobLine,ensureJobFields}from'../../infra/rpg-jobs.js'
 import{ensureUserRole}from'../functions/_roles.js'
+import{resolveTarget,resolveInteractionTarget,resolveIdentityName}from'../../core/identity-utils.js'
 async function loadMarriages(){
 return global.db?.getSection?.('marriages') || {}
 }
@@ -10,17 +11,14 @@ if(marriages[userId]?.partner)return marriages[userId].partner
 return null
 }
 let handler=async(m,{conn,usedPrefix})=>{
-let userId
-if(m.quoted?.sender)userId=m.quoted.sender
-else if(m.mentionedJid?.[0])userId=m.mentionedJid[0]
-else userId=m.sender
+let userId=await resolveInteractionTarget(m,conn)
 let user=global.db.getUser(userId)
 if(!user)return m.reply('> (っ- ‸ - ς) 𝖤𝗅 𝗎𝗌𝗎⍺𝗋𝗂𝗈 𝗇𝗈 𝖾𝗑𝗂𝗌𝗍𝖾 𝖾𝗇 𝗅⍺ 𝖻⍺𝗌𝖾 𝖽𝖾 𝖽⍺𝗍𝗈𝗌... 🌸')
 ensureJobFields(user)
 try{
 let whatsappName
 try{
-whatsappName=await conn.getName(userId)
+whatsappName=await resolveIdentityName(conn,userId,{fallback:'𖤐 𝖲𝗂𝗇 𝖭𝗈𝗆𝖻𝗋𝖾 𖤐'})
 }catch(e){
 whatsappName='𖤐 𝖲𝗂𝗇 𝖭𝗈𝗆𝖻𝗋𝖾 𖤐'
 }

@@ -1,3 +1,4 @@
+import { resolveIdentityName } from '../../core/identity-utils.js'
 let handler = async (m, { conn, args, participants }) => {
 const page = parseInt(args[0]) || 1;
 const pageSize = 10;
@@ -13,10 +14,14 @@ const totalPages = Math.ceil(sortedLevel.length / pageSize);
 const pageUsers = sortedLevel.slice(startIndex, endIndex);
 let text = `◢✨ Top de usuarios con más experiencia ✨◤\n\n`;
 
-text += pageUsers.map(({ jid, exp, level }, i) => {
-return `✰ ${startIndex + i + 1} » *${participantJids.has(jid) ? `(${conn.getName(jid)}) wa.me/` : '@'}${jid.split`@`[0]}*` +
-`\n\t\t ❖ XP » *${exp}*  ❖ LVL » *${level}*`;
-}).join('\n');
+const rows = [];
+for (let i = 0; i < pageUsers.length; i++) {
+const { jid, exp, level } = pageUsers[i];
+const displayName = await resolveIdentityName(conn, jid, { fallback: `@${String(jid).split('@')[0]}` });
+rows.push(`✰ ${startIndex + i + 1} » *${participantJids.has(jid) ? `(${displayName}) wa.me/` : '@'}${jid.split`@`[0]}*` +
+`\n\t\t ❖ XP » *${exp}*  ❖ LVL » *${level}*`);
+}
+text += rows.join('\n');
 
 text += `\n\n> • Página *${page}* de *${totalPages}*`;
 if (page < totalPages) text += `\n> Para ver la siguiente página » *#lb ${page + 1}*`;

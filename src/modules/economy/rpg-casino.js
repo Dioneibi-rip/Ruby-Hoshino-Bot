@@ -1,4 +1,5 @@
 import db from '../../infra/database.js'
+import { resolveInteractionTarget, resolveIdentityName } from '../../core/identity-utils.js'
 
 let buatall = 1
 
@@ -8,8 +9,8 @@ let win = Math.random() < 0.48
 let Aku = win ? 48 : 52
 let Kamu = win ? 96 : 13
 let count = args[0]
-let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
-let username = conn.getName(who)
+let who = await resolveInteractionTarget(m, conn)
+let username = await resolveIdentityName(conn, who, { fallback: `@${String(who).split('@')[0]}` })
 count = count ? /all/i.test(count) ? Math.max(1, Math.abs(Number(user.coin) || 1)) : parseInt(count) : args[0] ? parseInt(args[0]) : 1
 count = Math.max(1, count)
 if (args.length < 1) {
