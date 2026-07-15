@@ -1,3 +1,6 @@
+//código creado por Felix-Dev 
+//si lo quieres usar deja creditos
+
 import axios from '../../infra/http.js'
 import crypto from 'crypto'
 const sessions = {}
