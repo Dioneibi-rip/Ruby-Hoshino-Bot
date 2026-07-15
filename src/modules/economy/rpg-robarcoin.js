@@ -1,26 +1,21 @@
+import { buildParticipantsByLid, normalizeIdentityJid, resolveTarget, resolveIdentityName } from '../../core/identity-utils.js'
 const handler = async (m, { conn, participants }) => {
 try {
 
-let senderJid = m.sender;
-if (m.sender.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find((p) => p.lid === m.sender);
-if (pInfo?.id) senderJid = pInfo.id;
-}
+const participantsByLid = buildParticipantsByLid(participants);
+let senderJid = await normalizeIdentityJid(conn, m.sender, participantsByLid);
 
 const user = global.db.getUser(senderJid);
 
-let target = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
+let target = await resolveTarget(m, conn, { participantsByLid, errorMessage: '' })
 
 if (!target) {
 await conn.reply(m.chat, `${emoji2} Debes mencionar a alguien para intentar robar.`, m);
 return false;
 }
 
-let targetJid = target;
-if (target.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find((p) => p.lid === target);
-if (pInfo?.id) targetJid = pInfo.id;
-}
+let targetJid = await normalizeIdentityJid(conn, target, participantsByLid);
+const targetName = await resolveIdentityName(conn, targetJid, { participantsByLid, fallback: `@${String(targetJid).split('@')[0]}` });
 
 if (targetJid === senderJid) {
 await conn.reply(m.chat, `${emoji2} No puedes robarte a ti mismo.`, m);
@@ -32,7 +27,7 @@ const targetUser = global.db.getUser(targetJid);
 const minVictimCash = 2500;
 const victimCash = Number(targetUser.coin) || 0;
 if (victimCash < minVictimCash) {
-await conn.reply(m.chat, `${emoji2} @${target.split('@')[0]} no tiene efectivo suficiente (mínimo ${minVictimCash.toLocaleString()} ${m.moneda}).`, m, { mentions: [target] });
+await conn.reply(m.chat, `${emoji2} ${targetName} no tiene efectivo suficiente (mínimo ${minVictimCash.toLocaleString()} ${m.moneda}).`, m, { mentions: [targetJid] });
 return false;
 }
 
@@ -47,9 +42,9 @@ user.coin = (Number(user.coin) || 0) + amount;
 
 return conn.reply(
 m.chat,
-`🕶️ Robo exitoso a @${target.split('@')[0]}\n💸 Te llevaste *¥${amount.toLocaleString()} ${m.moneda}*`,
+`🕶️ Robo exitoso a ${targetName}\n💸 Te llevaste *¥${amount.toLocaleString()} ${m.moneda}*`,
 m,
-{ mentions: [target] },
+{ mentions: [targetJid] },
 );
 }
 
@@ -58,9 +53,9 @@ user.coin = (Number(user.coin) || 0) - multa;
 
 return conn.reply(
 m.chat,
-`🚨 Fallaste el robo a @${target.split('@')[0]} y te multaron.\n💸 Perdiste *¥${multa.toLocaleString()} ${m.moneda}*`,
+`🚨 Fallaste el robo a ${targetName} y te multaron.\n💸 Perdiste *¥${multa.toLocaleString()} ${m.moneda}*`,
 m,
-{ mentions: [target] },
+{ mentions: [targetJid] },
 );
 } catch (err) {
 console.error('Error en comando rob:', err);

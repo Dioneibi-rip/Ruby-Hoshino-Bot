@@ -1,21 +1,19 @@
 import db from '../../infra/database.js'
 import { formatJobLine, ensureJobFields } from '../../infra/rpg-jobs.js'
+import { buildParticipantsByLid, resolveInteractionTarget, normalizeIdentityJid, resolveIdentityName } from '../../core/identity-utils.js'
 
 let handler = async (m, { conn, usedPrefix, participants }) => {
-let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
+let who = await resolveInteractionTarget(m, conn)
 
 if (who === conn.user.jid) return m.react('✖️')
 
-let primaryJid = who
-if (who.endsWith('@lid') && m.isGroup) {
-const p = participants.find(x => x.lid === who)
-if (p?.id) primaryJid = p.id
-}
+const participantsByLid = buildParticipantsByLid(participants)
+let primaryJid = await normalizeIdentityJid(conn, who, participantsByLid)
 
 const user = global.db.getUser(primaryJid)
 
 ensureJobFields(user)
-let nombre = await conn.getName(primaryJid)
+let nombre = await resolveIdentityName(conn, primaryJid, { participantsByLid, fallback: `@${String(primaryJid).split('@')[0]}` })
 const jobLine = formatJobLine(user)
 
 const coin = Number(user.coin || user.coins || 0)

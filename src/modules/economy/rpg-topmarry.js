@@ -1,3 +1,4 @@
+import { resolveIdentityName } from '../../core/identity-utils.js'
 async function loadMarriages() {
 return global.db?.getSection?.('marriages') || {}
 }
@@ -53,8 +54,8 @@ for (let i = start; i < Math.min(end, parejas.length); i++) {
 const p = parejas[i]
 const tiempo = formatTime(Date.now() - p.date)
 const fecha = formatDate(p.date)
-const nombreUser = await conn.getName(p.user)
-const nombrePartner = await conn.getName(p.partner)
+const nombreUser = await resolveIdentityName(conn, p.user, { fallback: `@${String(p.user).split('@')[0]}` })
+const nombrePartner = await resolveIdentityName(conn, p.partner, { fallback: `@${String(p.partner).split('@')[0]}` })
 const icono = iconos[i] || '✰'
 texto += `${icono} ${i + 1} » *${nombreUser}* ｜ *${nombrePartner}*\n\t Tiempo casados → *${tiempo}*\n\t Fecha matrimonio → *${fecha}*\n`
 }

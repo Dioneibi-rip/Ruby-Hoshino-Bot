@@ -39,3 +39,29 @@ return jid || rawTarget
 
 global.resolveTarget = resolveTarget
 global.resolveInteractionTarget = resolveInteractionTarget
+
+
+export async function resolveIdentityName(conn, jid, options = {}) {
+const { participantsByLid = null, fallback = 'Usuario' } = options
+const normalized = await normalizeIdentityJid(conn, jid, participantsByLid)
+const identityJid = normalized || jid || ''
+if (!identityJid) return fallback
+try {
+const name = await conn?.getName?.(identityJid)
+if (typeof name === 'string' && name.trim()) return name.trim()
+} catch {}
+return fallback || `@${String(identityJid).split('@')[0]}`
+}
+
+export function buildParticipantsByLid(participants = []) {
+const map = new Map()
+for (const participant of participants || []) {
+if (participant?.lid) map.set(participant.lid, participant)
+if (participant?.id) map.set(participant.id, participant)
+if (participant?.jid) map.set(participant.jid, participant)
+}
+return map
+}
+
+global.resolveIdentityName = resolveIdentityName
+global.buildParticipantsByLid = buildParticipantsByLid

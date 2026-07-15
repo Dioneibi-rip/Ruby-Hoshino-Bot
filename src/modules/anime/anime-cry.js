@@ -1,4 +1,4 @@
-import { resolveInteractionTarget } from '../../core/identity-utils.js'
+import { resolveInteractionTarget, resolveIdentityName } from '../../core/identity-utils.js'
 
 import fs from 'fs';
 import path from 'path';
@@ -6,8 +6,8 @@ import path from 'path';
 let handler = async (m, { conn, usedPrefix }) => {
 let who = await resolveInteractionTarget(m, conn);
 
-let name = await conn.getName(who);
-let name2 = await conn.getName(m.sender);
+let name = await resolveIdentityName(conn, who, { fallback: `@${String(who).split('@')[0]}` });
+let name2 = await resolveIdentityName(conn, m.sender, { fallback: `@${String(m.sender).split('@')[0]}` });
 m.react('😭');
 
 let str;
