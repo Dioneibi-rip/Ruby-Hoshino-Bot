@@ -1,6 +1,8 @@
 import { areJidsSameUser } from '@whiskeysockets/baileys'
 
 const KICK_DELAY_MS = 3000
+const RANGE_DAYS = 7
+const DAY_MS = 24 * 60 * 60 * 1000
 const emoji = '👻', emoji2 = '📜', emoji3 = '⚰️', advertencia = '⚠️'
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -31,15 +33,23 @@ const botJids = [conn?.user?.jid, conn?.user?.id, conn?.authState?.creds?.me?.ji
 return botJids.some(bot => areJidsSameUser(bot, normalized) || bot === normalized)
 }
 
-const hasMessageStats = statsUser => {
-if (!statsUser?.days || typeof statsUser.days !== 'object') return false
-return Object.values(statsUser.days).some(day => (Number(day?.messages) || 0) > 0)
+const dayTime = day => new Date(`${day}T00:00:00.000Z`).getTime()
+
+const isRecentDay = (day, now = Date.now()) => {
+const time = dayTime(day)
+return Number.isFinite(time) && time >= now - ((RANGE_DAYS - 1) * DAY_MS)
 }
 
-const hasMessages = (chatUsers, statsUsers, keys) => keys.some(key => {
+const hasRecentMessageStats = (statsUser, now = Date.now()) => {
+if (!statsUser?.days || typeof statsUser.days !== 'object') return false
+return Object.entries(statsUser.days).some(([day, bucket]) => isRecentDay(day, now) && (Number(bucket?.messages) || 0) > 0)
+}
+
+const hasRecentMessages = (chatUsers, statsUsers, keys, now = Date.now()) => keys.some(key => {
 const localUser = chatUsers[key]
-if ((Number(localUser?.msgCount) || 0) > 0) return true
-return hasMessageStats(statsUsers[key])
+const lastMsg = Number(localUser?.lastMsg) || 0
+if (lastMsg >= now - (RANGE_DAYS * DAY_MS)) return true
+return hasRecentMessageStats(statsUsers[key], now)
 })
 
 const buildGhostList = async (conn, m, participants) => {
@@ -47,11 +57,12 @@ const currentParticipants = await getCurrentParticipants(conn, m, participants)
 const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat] || {}
 const chatUsers = chat.users && typeof chat.users === 'object' ? chat.users : {}
 const statsUsers = chat.messageStats?.users && typeof chat.messageStats.users === 'object' ? chat.messageStats.users : {}
+const now = Date.now()
 
 return currentParticipants
 .map(participant => ({ participant, jid: getParticipantJid(participant), keys: getIdentityKeys(participant) }))
 .filter(({ participant, jid }) => jid && !isAdmin(participant) && !isBotJid(jid, conn))
-.filter(({ keys }) => !hasMessages(chatUsers, statsUsers, keys))
+.filter(({ keys }) => !hasRecentMessages(chatUsers, statsUsers, keys, now))
 .map(({ jid }) => jid)
 }
 
@@ -60,14 +71,14 @@ const fantasmas = await buildGhostList(conn, m, participants)
 
 if (command === 'fantasmas' || command === 'fantamas') {
 if (!fantasmas.length) {
-return conn.reply(m.chat, `${emoji} *¡No se han detectado fantasmas!* Todos los usuarios no administradores tienen mensajes registrados.`, m)
+return conn.reply(m.chat, `${emoji} *¡No se han detectado fantasmas!* Todos los usuarios no administradores escribieron en los últimos *${RANGE_DAYS}* días.`, m)
 }
 
 const texto = `╭━━━〔 𝔻𝔼𝕋𝔼ℂ𝕋𝔸𝔻𝕆ℝ 👻 〕━━⬣
 ┃ ${emoji2} *Lista de Fantasmas:*
 ${fantasmas.map(u => '┃ ⊳ @' + u.split('@')[0]).join('\n')}
 ┃
-┃ ${advertencia} *Criterio:* usuarios sin mensajes registrados en este grupo.
+┃ ${advertencia} *Criterio:* usuarios sin mensajes en los últimos *${RANGE_DAYS}* días.
 ┃ ${advertencia} *Nota:* Se excluyen admins y bots.
 ╰━━━━━━━━━━━━━━━━━━━━⬣`
 
@@ -76,7 +87,7 @@ return conn.reply(m.chat, texto, m, { mentions: fantasmas })
 
 if (command === 'kickfantasmas') {
 if (!fantasmas.length) {
-return conn.reply(m.chat, `${emoji} *No hay fantasmas que eliminar.* Todos los usuarios no administradores tienen mensajes registrados.`, m)
+return conn.reply(m.chat, `${emoji} *No hay fantasmas que eliminar.* Todos los usuarios no administradores escribieron en los últimos *${RANGE_DAYS}* días.`, m)
 }
 
 const texto = `╭────〔 𝔼𝕃𝕀𝕄𝕀ℕ𝔸ℂ𝕀Óℕ ${emoji3} 〕────⬣
