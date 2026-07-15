@@ -1,19 +1,15 @@
 import { areJidsSameUser } from '@whiskeysockets/baileys'
 
-const DAY_MS = 24 * 60 * 60 * 1000
-const DEFAULT_INACTIVE_DAYS = 7
 const KICK_DELAY_MS = 3000
 const emoji = '👻', emoji2 = '📜', emoji3 = '⚰️', advertencia = '⚠️'
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 const normalizeJid = jid => typeof jid === 'string' ? jid.split(':')[0] : jid
-const getParticipantJid = participant => normalizeJid(participant?.id || participant?.jid)
+const getParticipantJid = participant => normalizeJid(participant?.jid || participant?.id || participant?.lid)
+const getIdentityKeys = participant => [participant?.jid, participant?.id, participant?.lid]
+.map(normalizeJid)
+.filter(Boolean)
 const isAdmin = participant => participant?.admin === 'admin' || participant?.admin === 'superadmin'
-
-const parseInactiveDays = text => {
-const days = Number.parseInt(text, 10)
-return Number.isFinite(days) && days > 0 ? days : DEFAULT_INACTIVE_DAYS
-}
 
 const getCurrentParticipants = async (conn, m, participants = []) => {
 if (Array.isArray(participants) && participants.length) return participants
@@ -28,41 +24,50 @@ return []
 
 const isBotJid = (jid, conn) => {
 const normalized = normalizeJid(jid)
-const botJids = [conn?.user?.jid, conn?.user?.id].map(normalizeJid).filter(Boolean)
-return botJids.some(bot => areJidsSameUser(bot, normalized))
+if (!normalized) return false
+const botJids = [conn?.user?.jid, conn?.user?.id, conn?.authState?.creds?.me?.jid, conn?.authState?.creds?.me?.id]
+.map(value => normalizeJid(conn?.decodeJid?.(value) || value))
+.filter(Boolean)
+return botJids.some(bot => areJidsSameUser(bot, normalized) || bot === normalized)
 }
 
-const buildGhostList = async (conn, m, participants, inactiveDays) => {
+const hasMessageStats = statsUser => {
+if (!statsUser?.days || typeof statsUser.days !== 'object') return false
+return Object.values(statsUser.days).some(day => (Number(day?.messages) || 0) > 0)
+}
+
+const hasMessages = (chatUsers, statsUsers, keys) => keys.some(key => {
+const localUser = chatUsers[key]
+if ((Number(localUser?.msgCount) || 0) > 0) return true
+return hasMessageStats(statsUsers[key])
+})
+
+const buildGhostList = async (conn, m, participants) => {
 const currentParticipants = await getCurrentParticipants(conn, m, participants)
 const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat] || {}
 const chatUsers = chat.users && typeof chat.users === 'object' ? chat.users : {}
-const inactiveSince = Date.now() - (inactiveDays * DAY_MS)
+const statsUsers = chat.messageStats?.users && typeof chat.messageStats.users === 'object' ? chat.messageStats.users : {}
 
 return currentParticipants
-.map(participant => ({ participant, jid: getParticipantJid(participant) }))
+.map(participant => ({ participant, jid: getParticipantJid(participant), keys: getIdentityKeys(participant) }))
 .filter(({ participant, jid }) => jid && !isAdmin(participant) && !isBotJid(jid, conn))
-.filter(({ jid }) => {
-const localUser = chatUsers[jid]
-const lastMsg = Number(localUser?.lastMsg) || 0
-return !localUser || lastMsg <= 0 || lastMsg < inactiveSince
-})
+.filter(({ keys }) => !hasMessages(chatUsers, statsUsers, keys))
 .map(({ jid }) => jid)
 }
 
-const handler = async (m, { conn, participants, command, text }) => {
-const inactiveDays = parseInactiveDays(text)
-const fantasmas = await buildGhostList(conn, m, participants, inactiveDays)
+const handler = async (m, { conn, participants, command }) => {
+const fantasmas = await buildGhostList(conn, m, participants)
 
-if (command === 'fantasmas') {
+if (command === 'fantasmas' || command === 'fantamas') {
 if (!fantasmas.length) {
-return conn.reply(m.chat, `${emoji} *¡No se han detectado fantasmas!* Umbral: *${inactiveDays} días*.`, m)
+return conn.reply(m.chat, `${emoji} *¡No se han detectado fantasmas!* Todos los usuarios no administradores tienen mensajes registrados.`, m)
 }
 
 const texto = `╭━━━〔 𝔻𝔼𝕋𝔼ℂ𝕋𝔸𝔻𝕆ℝ 👻 〕━━⬣
 ┃ ${emoji2} *Lista de Fantasmas:*
 ${fantasmas.map(u => '┃ ⊳ @' + u.split('@')[0]).join('\n')}
 ┃
-┃ ${advertencia} *Criterio:* sin registro local o sin mensajes en los últimos *${inactiveDays} días*.
+┃ ${advertencia} *Criterio:* usuarios sin mensajes registrados en este grupo.
 ┃ ${advertencia} *Nota:* Se excluyen admins y bots.
 ╰━━━━━━━━━━━━━━━━━━━━⬣`
 
@@ -71,7 +76,7 @@ return conn.reply(m.chat, texto, m, { mentions: fantasmas })
 
 if (command === 'kickfantasmas') {
 if (!fantasmas.length) {
-return conn.reply(m.chat, `${emoji} *No hay fantasmas que eliminar*, el grupo está activo con el umbral de *${inactiveDays} días*.`, m)
+return conn.reply(m.chat, `${emoji} *No hay fantasmas que eliminar.* Todos los usuarios no administradores tienen mensajes registrados.`, m)
 }
 
 const texto = `╭────〔 𝔼𝕃𝕀𝕄𝕀ℕ𝔸ℂ𝕀Óℕ ${emoji3} 〕────⬣
@@ -102,7 +107,7 @@ return conn.reply(m.chat, `${emoji3} *Proceso terminado.* ${eliminados} eliminad
 }
 }
 
-handler.command = ['fantasmas', 'kickfantasmas']
+handler.command = ['fantasmas', 'fantamas', 'kickfantasmas']
 handler.tags = ['grupo']
 handler.group = true
 handler.admin = true
