@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { existsSync } from 'fs'
 import { readFile } from 'fs/promises'
 import path from 'path'
+import { normalizeJid } from '../core/identity-utils.js'
 
 const DEFAULT_MONGO_OPTIONS = {
   maxPoolSize: Number(process.env.MONGODB_POOL_SIZE || 50),
@@ -327,38 +328,52 @@ export class MongoDatabase {
   async write() { if (this.batchFlushTimer) { clearTimeout(this.batchFlushTimer); this.batchFlushTimer = null }; await this._flushBatches(); await Promise.allSettled([...this.pendingWrites]) }
   async save() { return this.write() }
   async flush() { return this.write() }
-  async close() { await this.write(); globalThis[MONGO_INSTANCE_SET_KEY]?.delete(this); try { await mongoose.connection.close(false) } catch (error) { console.error('[mongodb] error cerrando conexión', error) } }
+  async forceSave() { return this.write() }
+  async close() { await this.forceSave(); globalThis[MONGO_INSTANCE_SET_KEY]?.delete(this); try { await mongoose.connection.close(false) } catch (error) { console.error('[mongodb] error cerrando conexión', error) } }
 
   getUser(id) {
-    if (!id || typeof id !== 'string') throw new TypeError('getUser requiere un id de usuario válido')
-    if (!this.userCache.has(id)) {
-      this.userCache.set(id, normalizeUser(id))
-      this._queueUserWrite(id, {})
-    }
-    return this._userProxy(id)
+    const userId = normalizeJid(id)
+    if (!userId) throw new TypeError('getUser requiere un id de usuario válido')
+    if (!this.userCache.has(userId)) this.userCache.set(userId, normalizeUser(userId))
+    return this._userProxy(userId)
   }
-  async getUserAsync(id) { await this.ready; if (!this.userCache.has(id)) await this.updateUser(id, {}); return this.getUser(id) }
+  async getUserAsync(id) { await this.ready; const userId = normalizeJid(id); if (!userId) throw new TypeError('getUserAsync requiere un id de usuario válido'); if (!this.userCache.has(userId)) { const doc = await this.User.findById(userId).lean(); this.userCache.set(userId, normalizeUser(userId, doc || {})); if (!doc) await this.updateUser(userId, {}) } return this.getUser(userId) }
 
   updateUser(id, patch = {}) {
-    if (!id || typeof id !== 'string') throw new TypeError('updateUser requiere un id de usuario válido')
-    const next = applyPatchToUser(id, this.userCache.get(id), patch)
-    this.userCache.set(id, next)
-    this._markUserDirty(id, patch)
-    this._bumpUserVersion(id)
-    return this._queueUserWrite(id, patch)
+    const userId = normalizeJid(id)
+    if (!userId) throw new TypeError('updateUser requiere un id de usuario válido')
+    const safePatch = patch || {}
+    const next = applyPatchToUser(userId, this.userCache.get(userId), safePatch)
+    this.userCache.set(userId, next)
+    this._bumpUserVersion(userId)
+    const $set = splitUserPatch(safePatch)
+    const write = this.ready.then(() => this.User.findOneAndUpdate(
+      { _id: userId },
+      { $setOnInsert: normalizeUserForInsert(userId, $set), $set },
+      { upsert: true, new: true, lean: true }
+    )).then(doc => { if (doc) this.userCache.set(userId, normalizeUser(userId, doc)); return this._userProxy(userId) })
+    return this._trackWrite(write)
   }
 
   incrementUserField(id, field, delta) {
+    const userId = normalizeJid(id)
+    if (!userId) throw new TypeError('incrementUserField requiere un id de usuario válido')
     const amount = Number(delta) || 0
-    const user = this.getUser(id)
-    const current = Number(user[field]) || 0
-    user[field] = current + amount
-    return user
+    if (!Object.prototype.hasOwnProperty.call(USER_DEFAULTS, field) || !NUMERIC_FIELDS.has(field)) return this.updateUser(userId, { [field]: (Number(this.getUser(userId)[field]) || 0) + amount })
+    const cached = applyPatchToUser(userId, this.userCache.get(userId), { [field]: (Number(this.getUser(userId)[field]) || 0) + amount })
+    this.userCache.set(userId, cached)
+    const write = this.ready.then(() => this.User.findOneAndUpdate(
+      { _id: userId },
+      { $setOnInsert: normalizeUserForInsert(userId, {}), $inc: { [field]: amount }, $set: { updatedAt: new Date() } },
+      { upsert: true, new: true, lean: true }
+    )).then(doc => { if (doc) this.userCache.set(userId, normalizeUser(userId, doc)); return this._userProxy(userId) })
+    this._trackWrite(write)
+    return this.getUser(userId)
   }
   addMoney(id, amount, field = 'coin') { return this.incrementUserField(id, field, amount) }
   addEconomy(id, fieldOrAmount, maybeAmount) { return typeof fieldOrAmount === 'string' ? this.addMoney(id, maybeAmount, fieldOrAmount) : this.addMoney(id, fieldOrAmount, maybeAmount || 'coin') }
   setEconomy(id, field, value) { return this.updateUser(id, { [field]: value }) }
-  async userExists(id) { await this.ready; return this.userCache.has(id) || Boolean(await this.User.exists({ _id: id })) }
+  async userExists(id) { await this.ready; const userId = normalizeJid(id); return Boolean(userId && (this.userCache.has(userId) || await this.User.exists({ _id: userId }))) }
   listUsers() { return Object.fromEntries([...this.userCache.entries()].map(([id, user]) => [id, normalizeUser(id, user)])) }
   listUserRows() { return Object.entries(this.listUsers()).map(([id, user]) => ({ ...user, id })) }
   async topUsers({ field = 'coin', limit = 10, offset = 0 } = {}) {

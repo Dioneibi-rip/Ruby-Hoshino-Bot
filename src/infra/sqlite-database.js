@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3'
 import { existsSync, mkdirSync, readFileSync } from 'fs'
 import path from 'path'
+import { normalizeJid } from '../core/identity-utils.js'
 
 const USER_COLUMNS = {
 id: { type: 'TEXT', defaultSql: null, primary: true },
@@ -385,10 +386,10 @@ return user
 }
 _rawUser(id) { return this.userCache.get(id) || this._rowToUser(this.sqlite.prepare('SELECT * FROM users WHERE id=?').get(id)) }
 _createUser(id) { this.sqlite.prepare('INSERT OR IGNORE INTO users(id) VALUES(?)').run(id); const user = this._rowToUser(this.sqlite.prepare('SELECT * FROM users WHERE id=?').get(id)); if (user) this.userCache.set(id, user); return user }
-userExists(id) { return Boolean(id && typeof id === 'string' && (this.userCache.has(id) || this.sqlite.prepare('SELECT 1 FROM users WHERE id=?').get(id))) }
+userExists(id) { const userId = normalizeJid(id); return Boolean(userId && (this.userCache.has(userId) || this.sqlite.prepare('SELECT 1 FROM users WHERE id=?').get(userId))) }
 listUserRows() { return this.sqlite.prepare('SELECT * FROM users').all().map(row => { const user = this._rowToUser(row); if (user) this.userCache.set(user.id, user); return user }) }
 listUsers() { const out = {}; for (const user of this.listUserRows()) out[user.id] = this.getUser(user.id); return out }
-getUser(id) { if (!id || typeof id !== 'string') throw new TypeError('getUser requiere un id de usuario válido'); if (!this.userCache.has(id)) { const row = this._rowToUser(this.sqlite.prepare('SELECT * FROM users WHERE id=?').get(id)) || this._createUser(id); if (row) this.userCache.set(id, row) } return this.userCache.has(id) ? this._userProxy(id) : {} }
+getUser(id) { const userId = normalizeJid(id); if (!userId) throw new TypeError('getUser requiere un id de usuario válido'); if (!this.userCache.has(userId)) { const row = this._rowToUser(this.sqlite.prepare('SELECT * FROM users WHERE id=?').get(userId)) || this._createUser(userId); if (row) this.userCache.set(userId, row) } return this.userCache.has(userId) ? this._userProxy(userId) : {} }
 _userProxy(id) {
 if (this.userProxyCache.has(id)) return this.userProxyCache.get(id)
 const proxy = new Proxy({}, {
@@ -439,8 +440,9 @@ const assignments = Object.keys(values).map(key => `${q(key)} = @${key}`).join('
 this.sqlite.prepare(`UPDATE users SET ${assignments}, updated_at = unixepoch() WHERE id = @id`).run({ id, ...values })
 }
 updateUser(id, patch = {}) {
-if (!id || typeof id !== 'string') throw new TypeError('updateUser requiere un id de usuario válido')
-const current = this._hydrateUser(this.userCache.get(id) || this._rawUser(id) || this._createUser(id) || { id, extras: {} })
+const userId = normalizeJid(id)
+if (!userId) throw new TypeError('updateUser requiere un id de usuario válido')
+const current = this._hydrateUser(this.userCache.get(userId) || this._rawUser(userId) || this._createUser(userId) || { id: userId, extras: {} })
 const next = this._hydrateUser({ ...current, extras: { ...(current?.extras || {}) } })
 const safePatch = patch || {}
 const patchExtras = safePatch.extras || {}
@@ -450,20 +452,22 @@ if (key === 'extras') next.extras = { ...next.extras, ...(typeof patchExtras ===
 else if (key in USER_COLUMNS) next[key] = publicValue(key, normalizeValue(key, value))
 else next.extras[key] = value instanceof Date ? value.getTime() : value
 }
-this.userCache.set(id, next)
-this._markUserDirty(id)
-return this.getUser(id)
+this.userCache.set(userId, next)
+this._writeUserRow(userId, next)
+return this.getUser(userId)
 }
 addMoney(id, amount, field = 'coin') { return this.incrementUserField(id, field, amount) }
 addEconomy(id, fieldOrAmount, maybeAmount) { return typeof fieldOrAmount === 'string' ? this.addMoney(id, maybeAmount, fieldOrAmount) : this.addMoney(id, fieldOrAmount, maybeAmount || 'coin') }
 incrementUserField(id, field, delta) {
-if (!(field in USER_COLUMNS) || !NUMERIC_FIELDS.has(field)) return this.updateUser(id, { [field]: (Number(this.getUser(id)[field]) || 0) + (Number(delta) || 0) })
-if (!this.userCache.has(id)) this._createUser(id)
-const user = this.userCache.get(id) || this._rawUser(id) || this._createUser(id)
-user[field] = (Number(user[field]) || 0) + (Number(delta) || 0)
-this.userCache.set(id, user)
-this._markUserDirty(id)
-return this.getUser(id)
+const userId = normalizeJid(id)
+if (!userId) throw new TypeError('incrementUserField requiere un id de usuario válido')
+const amount = Number(delta) || 0
+if (!(field in USER_COLUMNS) || !NUMERIC_FIELDS.has(field)) return this.updateUser(userId, { [field]: (Number(this.getUser(userId)[field]) || 0) + amount })
+this._createUser(userId)
+this.sqlite.prepare(`UPDATE users SET ${q(field)} = COALESCE(${q(field)}, 0) + ?, updated_at = unixepoch() WHERE id = ?`).run(amount, userId)
+const user = this._rowToUser(this.sqlite.prepare('SELECT * FROM users WHERE id=?').get(userId))
+if (user) this.userCache.set(userId, user)
+return this.getUser(userId)
 }
 setEconomy(id, field, value) { return this.updateUser(id, { [field]: value }) }
 topUsers({ field = 'coin', limit = 10, offset = 0 } = {}) {
@@ -634,6 +638,7 @@ tx(ids.map(id => [id, this.userCache.get(id)]).filter(([, user]) => user))
 for (const id of ids) this.dirtyUsers.delete(id)
 }
 }
+forceSave() { return this.write() }
 close() { if (this.flushTimerHandle) clearTimeout(this.flushTimerHandle); this.flush(); if (this.flushTimer) clearInterval(this.flushTimer); this.sqlite.pragma('wal_checkpoint(PASSIVE)'); this.sqlite.close() } snapshot() { return { users: this.getSection('users'), marriages: this.getSection('marriages'), harem: this.getSection('harem'), gacha_market: this.getSection('gacha_market'), claim_config: this.getSection('claim_config'), character_favorites: this.getSection('character_favorites') } }
 }
 export { SQLiteDatabase as DbManager }

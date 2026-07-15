@@ -138,7 +138,8 @@ return global.db.data
 global.saveDatabase = async function saveDatabase() {
 if (!global.db) return false
 if (global.db.READ) await global.loadDatabase()
-if (typeof global.db.write === 'function') await global.db.write()
+if (typeof global.db.forceSave === 'function') await global.db.forceSave()
+else if (typeof global.db.write === 'function') await global.db.write()
 else if (typeof global.db.flush === 'function') await global.db.flush()
 return true
 }
@@ -326,7 +327,7 @@ await global.reloadHandler(true).catch(console.error)
 reconnectTimer.unref?.()
 }
 }
-process.once('uncaughtException', error => shutdownDatabaseAndExit(1, error))
+process.once('uncaughtException', error => shutdownDatabaseAndExit(0, error))
 process.once('unhandledRejection', error => shutdownDatabaseAndExit(1, error))
 let isInit = true;
 let handler = await import('../router/handler.js')

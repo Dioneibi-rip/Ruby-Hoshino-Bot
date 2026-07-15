@@ -1,5 +1,23 @@
 import { jidNormalizedUser } from '@whiskeysockets/baileys'
 
+export function normalizeJid(jid) {
+if (!jid || typeof jid !== 'string') return ''
+const raw = String(jid).trim()
+if (!raw) return ''
+const normalizedByBaileys = jidNormalizedUser(raw) || raw
+const lower = String(normalizedByBaileys).trim().toLowerCase()
+const match = lower.match(/^([^@]+)@([^@]+)$/)
+if (!match) return lower.replace(/:\d+(?=@|$)/, '')
+let user = match[1].replace(/:\d+$/, '')
+let server = match[2]
+if (server === 'c.us') server = 's.whatsapp.net'
+const digits = user.replace(/\D/g, '')
+if (digits && ['s.whatsapp.net', 'lid', 'hosted.lid'].includes(server)) return `${digits}@s.whatsapp.net`
+return `${user}@${server}`
+}
+
+global.normalizeJid = normalizeJid
+
 export async function normalizeIdentityJid(conn, jid, participantsByLid = null) {
 if (!jid || typeof jid !== 'string') return ''
 let normalized = jidNormalizedUser(jid) || jid
