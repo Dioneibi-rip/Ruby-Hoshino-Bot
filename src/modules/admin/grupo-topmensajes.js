@@ -7,39 +7,40 @@ const number = Number.parseInt(value, 10)
 return Number.isFinite(number) && number > 0 ? number : null
 }
 
+const getParticipantJid = participant => normalizeJid(participant?.id || participant?.jid)
+
+const getCurrentParticipants = async (conn, m, participants = []) => {
+if (Array.isArray(participants) && participants.length) return participants
+try {
+const metadata = await conn.groupMetadata(m.chat)
+return Array.isArray(metadata?.participants) ? metadata.participants : []
+} catch (error) {
+console.error('[topmensajes] no se pudo obtener metadata del grupo', error)
+return []
+}
+}
+
 let handler = async (m, { conn, args, usedPrefix, participants }) => {
 const page = Math.max(parsePositiveInt(args[0]) || 1, 1)
-const participantIds = new Set((participants || []).map(p => normalizeJid(p.id || p.jid)).filter(Boolean))
+const currentParticipants = await getCurrentParticipants(conn, m, participants)
+const participantIds = currentParticipants.map(getParticipantJid).filter(Boolean)
+const participantSet = new Set(participantIds)
 const offset = (page - 1) * PER_PAGE
 
-let rows = []
-if (typeof global.db?.write === 'function') {
-try { await global.db.write() } catch {}
-}
-if (typeof global.db?.topUsers === 'function') {
-rows = await global.db.topUsers({ field: 'msg_count', limit: PER_PAGE * 3, offset })
-} else {
-const users = typeof global.db?.listUserRows === 'function'
-? global.db.listUserRows()
-: Object.entries(global.db?.listUsers?.() || global.db?.getSection?.('users') || global.db?.data?.users || {})
-.map(([id, user]) => ({ id: user?.id || id, ...user }))
-rows = users
-.filter(user => Number(user?.msg_count) > 0)
-.sort((a, b) => Number(b.msg_count) - Number(a.msg_count))
-.slice(offset, offset + (PER_PAGE * 3))
-.map(user => ({ id: user.id, msg_count: user.msg_count }))
-}
+const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat] || {}
+const chatUsers = chat.users && typeof chat.users === 'object' ? chat.users : {}
 
-const ranking = rows
-.map(row => ({ jid: normalizeJid(row.id), messages: Number(row.msg_count) || 0 }))
-.filter(user => user.messages > 0 && (!participantIds.size || participantIds.has(user.jid)))
-.slice(0, PER_PAGE)
+const ranking = participantIds
+.map(jid => ({ jid, messages: Number(chatUsers[jid]?.msgCount) || 0 }))
+.filter(user => user.messages > 0 && participantSet.has(user.jid))
+.sort((a, b) => b.messages - a.messages)
+.slice(offset, offset + PER_PAGE)
 
 if (!ranking.length) {
-return m.reply(`❀ Aún no tengo mensajes registrados.\n\n> Escribe un poco más y vuelve a usar *${usedPrefix}topmensajes*.`)
+return m.reply(`❀ Aún no tengo mensajes registrados en este grupo.\n\n> Escribe un poco más y vuelve a usar *${usedPrefix}topmensajes*.`)
 }
 
-const lines = [`❀ Top de mensajes registrados`, '']
+const lines = [`❀ Top de mensajes registrados en este grupo`, '']
 for (const [index, user] of ranking.entries()) {
 let name = user.jid.split('@')[0]
 try { name = await conn.getName(user.jid) || name } catch {}
