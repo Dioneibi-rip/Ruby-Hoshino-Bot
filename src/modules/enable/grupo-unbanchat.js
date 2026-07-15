@@ -27,7 +27,7 @@ if (chat.botSettings[botJid]) chat.botSettings[botJid].isBanned = false
 }
 }
 global.db.updateChat(m.chat, chat)
-global.db.scheduleFlush?.()
+await global.db.write?.()
 await m.react(ok ? '✅' : '❌')
 }
 handler.help = ['unbanchat']

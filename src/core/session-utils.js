@@ -57,9 +57,16 @@ const value = chat?.primaryBot || chat?.botPrimario || ''
 return normalizeSessionJid(value)
 }
 
+export function getPrimaryAliases(chat = {}) {
+const aliases = chat?.primaryBotAliases
+if (Array.isArray(aliases)) return aliases.filter(Boolean)
+if (aliases && typeof aliases === 'object') return Object.values(aliases).filter(Boolean)
+return []
+}
+
 export function getPrimaryBotJids(chat = {}) {
 const primary = getPrimaryBotJid(chat)
-const aliases = Array.isArray(chat?.primaryBotAliases) ? chat.primaryBotAliases : []
+const aliases = getPrimaryAliases(chat)
 return [...new Set([primary, ...aliases.map(alias => normalizeSessionJid(alias))].filter(Boolean))]
 }
 

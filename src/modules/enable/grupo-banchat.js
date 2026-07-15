@@ -21,7 +21,7 @@ const botJids = getConnectionJids(conn)
 let ok = false
 for (const botJid of botJids) ok = setChatBannedForBot(chat, botJid, true) || ok
 global.db.updateChat(m.chat, chat)
-global.db.scheduleFlush?.()
+await global.db.write?.()
 await m.react(ok ? '✅' : '❌')
 }
 handler.help = ['banchat']
