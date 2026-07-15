@@ -57,10 +57,19 @@ user.lastSeen = now
 bucket.messages += 1
 if (isCommandMessage(m.text, this)) bucket.commands += 1
 
+chat.users = chat.users && typeof chat.users === 'object' ? chat.users : {}
+const localUser = chat.users[sender] && typeof chat.users[sender] === 'object' ? chat.users[sender] : {}
+chat.users[sender] = {
+...localUser,
+name: user.name,
+msgCount: (Number(localUser.msgCount) || 0) + 1,
+lastMsg: now,
+}
+
 chat.messageStats.updatedAt = now
 chat.messageStats.keepDays = MAX_DAYS_TO_KEEP
 pruneOldDays(users, now)
-global.db.updateChat(m.chat, { messageStats: chat.messageStats })
+global.db.updateChat(m.chat, { messageStats: chat.messageStats, users: chat.users })
 
 return false
 }
