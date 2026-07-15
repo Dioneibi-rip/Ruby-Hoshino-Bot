@@ -183,6 +183,10 @@ const text = getRawMessageText(message) || getStickerCommandText(getRawStickerHa
 return isCelestialCommandText(text)
 }
 
+function canBypassSilencedChat(message = {}) {
+return isCelestialCommandMessage(message)
+}
+
 async function forceResetBotState(conn, m, sender, participantsByLid = null) {
 let normalizedSender = sender
 if (m?.isGroup && participantsByLid) normalizedSender = normalizeLidReferences(m, normalizedSender, participantsByLid)
@@ -244,6 +248,7 @@ return true
 function shouldProcessRawGroupMessage(conn, message = {}) {
 const chat = conn?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
 if (!chat?.endsWith?.('@g.us')) return true
+if (canBypassSilencedChat(message)) return true
 const chatData = getFreshChatRecord(chat)
 if (shouldBlockForPrimaryBot(conn, chat)) return false
 const hasActiveAntiLink = Boolean(chatData?.antiLink || chatData?.antilink)
@@ -424,7 +429,7 @@ if (global.db && global.db.data == null) await global.loadDatabase?.()
 const fastMessages = []
 for (const message of messages) {
 const rawChat = this?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
-if (rawChat?.endsWith?.('@g.us') && shouldBlockForPrimaryBot(this, rawChat)) continue
+if (rawChat?.endsWith?.('@g.us') && shouldBlockForPrimaryBot(this, rawChat) && !canBypassSilencedChat(message)) continue
 const fastPath = getRawFastPath(this, message)
 if (!fastPath) continue
 message.__rubyFastPath = fastPath

@@ -1,6 +1,6 @@
 import { jidNormalizedUser } from '@whiskeysockets/baileys'
 import { normalizeIdentityJid } from '../../core/identity-utils.js'
-import { normalizeSessionJid } from '../../core/session-utils.js'
+import { getPrimaryAliases, normalizeSessionJid } from '../../core/session-utils.js'
 import { createParticipantIndex, normalizeParticipantList } from '../../router/handler-utils.js'
 
 function normalizePlainJid(value = '') {
@@ -16,12 +16,6 @@ return normalized
 
 function uniqueJids(values = []) {
 return [...new Set((Array.isArray(values) ? values : [values]).map(normalizePlainJid).filter(Boolean))]
-}
-
-function getPrimaryAliases(chat = {}) {
-if (Array.isArray(chat.primaryBotAliases)) return chat.primaryBotAliases
-if (chat.primaryBotAliases && typeof chat.primaryBotAliases === 'object') return Object.values(chat.primaryBotAliases)
-return []
 }
 
 async function resolvePrimaryBotJid(conn, rawTarget = '', participants = []) {
@@ -100,7 +94,6 @@ await conn.sendMessage(m.chat, { text: response, mentions: [primaryJid, ...alias
 handler.help = ['setprimary <número/mención>']
 handler.tags = ['owner', 'group']
 handler.command = ['setprimary', 'setbot']
-handler.admin = true
 handler.group = true
 
 export default handler
