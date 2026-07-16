@@ -1,26 +1,32 @@
 let handler = async (m, { args }) => {
-let user = global.db.getUser(m.sender)
-let emoji = '🏦', emoji2 = '❌'
+const emoji = '🏦', emoji2 = '❌'
+const input = String(args?.[0] || '').trim().toLowerCase()
 
-if (!args[0]) return m.reply(`${emoji} Ingresa la cantidad de *${m.moneda}* que deseas depositar.`)
+if (!input) return m.reply(`${emoji} Ingresa la cantidad de *${m.moneda}* que deseas depositar.`)
 
-if (args[0] === 'all') {
-let total = user.coin || 0
-if (total === 0) return m.reply(`${emoji2} No tienes nada en tu cartera para depositar.`)
-await global.db.updateUser(m.sender, { coin: 0, bank: (user.bank || 0) + total })
-return m.reply(`✿ Depositaste *¥${total.toLocaleString()} ${m.moneda}* en el banco, ya no podrán robártelo.`)
+const user = typeof global.db.getUserAsync === 'function'
+? await global.db.getUserAsync(m.sender)
+: global.db.getUser(m.sender)
+const wallet = Math.max(0, Math.trunc(Number(user.coin) || 0))
+
+const amount = input === 'all' ? wallet : Math.trunc(Number(input))
+if (input === 'all' && amount === 0) return m.reply(`${emoji2} No tienes nada en tu cartera para depositar.`)
+if (!Number.isSafeInteger(amount) || amount <= 0) {
+return m.reply(`${emoji2} Debes ingresar una cantidad válida para depositar.
+
+> Ejemplo 1: *#d 25000*
+> Ejemplo 2: *#d all*`)
+}
+if (wallet < amount) return m.reply(`${emoji2} Solo tienes *¥${wallet.toLocaleString()} ${m.moneda}* en tu cartera.`)
+
+if (typeof global.db.transferUserEconomy === 'function') {
+const updated = await global.db.transferUserEconomy(m.sender, { from: 'coin', to: 'bank', amount })
+if (!updated) return m.reply(`${emoji2} Tu saldo cambió antes de completar el depósito. Vuelve a intentarlo.`)
+} else {
+await global.db.updateUser(m.sender, { coin: wallet - amount, bank: (Number(user.bank) || 0) + amount })
 }
 
-if (isNaN(args[0]) || parseInt(args[0]) <= 0)
-return m.reply(`${emoji2} Debes ingresar una cantidad válida para depositar.\n\n> Ejemplo 1: *#d 25000*\n> Ejemplo 2: *#d all*`)
-
-let cantidad = parseInt(args[0])
-if ((user.coin || 0) < cantidad)
-return m.reply(`${emoji2} Solo tienes *¥${(user.coin || 0).toLocaleString()} ${m.moneda}* en tu cartera.`)
-
-await global.db.updateUser(m.sender, { coin: (user.coin || 0) - cantidad, bank: (user.bank || 0) + cantidad })
-
-return m.reply(`✿ Depositaste *¥${cantidad.toLocaleString()} ${m.moneda}* en el banco, ya no podrán robártelo.`)
+return m.reply(`✿ Depositaste *¥${amount.toLocaleString()} ${m.moneda}* en el banco, ya no podrán robártelo.`)
 }
 
 handler.help = ['depositar']

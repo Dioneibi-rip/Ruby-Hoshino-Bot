@@ -309,7 +309,8 @@ return
 }
 const shouldReconnect = RECONNECT_REASONS.has(statusCode) || update.shouldReconnect !== false
 if (!shouldReconnect) {
-show(chalk.red, `❓ Error desconocido: ${statusCode}`, '💀')
+show(chalk.red, `❓ Error desconocido: ${statusCode}. Cerrando proceso para evitar socket zombie.`, '💀')
+await shutdownDatabaseAndExit(1, lastDisconnect?.error || new Error(`Baileys close sin reconexión: ${statusCode}`))
 return
 }
 if (reconnectTimer) return

@@ -574,6 +574,7 @@ stat.lastSuccess = now
 }
 
 export async function handler(chatUpdate) {
+try {
 installTimelockGuard(this)
 attachSessionState(this)
 runMaintenance(this)
@@ -582,6 +583,7 @@ if (!messages.length) return
 if (global.db && global.db.data == null) await global.loadDatabase?.()
 const fastMessages = []
 for (const message of messages) {
+try {
 const rawChat = this?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
 if (rawChat?.endsWith?.('@g.us') && shouldBlockForPrimaryBot(this, rawChat) && !canBypassSilencedChat(message)) continue
 const fastPath = getRawFastPath(this, message)
@@ -591,15 +593,23 @@ continue
 }
 message.__rubyFastPath = fastPath
 fastMessages.push(message)
+} catch (error) {
+console.error('[messages.upsert] error preparando mensaje', error)
+}
 }
 if (!fastMessages.length) return
-const liveMessages = fastMessages.filter((message) => shouldProcessRawGroupMessage(this, message))
+const liveMessages = fastMessages.filter((message) => {
+try { return shouldProcessRawGroupMessage(this, message) } catch (error) { console.error('[messages.upsert] filtro fallido', error); return false }
+})
 if (!liveMessages.length) return
-this.pushMessage?.(liveMessages).catch(console.error)
+this.pushMessage?.(liveMessages).catch(error => console.error('[messages.upsert] pushMessage falló', error))
 for (const rawMessage of liveMessages) {
 const key = getQueueKey(rawMessage)
 const priority = getMessageQueuePriority(rawMessage)
 messageQueue.enqueue(key, () => processMessage.call(this, chatUpdate, rawMessage), { chatKey: getQueueChatKey(rawMessage), priority })
+}
+} catch (error) {
+console.error('[messages.upsert] error no controlado; el listener sigue activo', error)
 }
 }
 
