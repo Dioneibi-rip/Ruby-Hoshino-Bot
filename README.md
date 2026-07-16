@@ -106,35 +106,30 @@ npm start
 
 ---
 
-## 💾 Sistema de Base de Datos Híbrida
+## 💾 Sistema de Base de Datos SQLite
 
-Ruby Hoshino Bot incluye un gestor híbrido pensado para que cualquier persona pueda iniciar el proyecto sin fricción y, al mismo tiempo, escalarlo en producción.
+Ruby Hoshino Bot usa **SQLite local** como único motor de persistencia. No necesitas cuentas externas, clústeres ni credenciales: al ejecutar `npm start`, el bot crea y usa automáticamente los archivos locales de base de datos en `src/database/`.
 
-### 🟡 Modo Local (Por defecto)
+### ⚡ Modo local listo para producción
 
-- No necesitas crear una cuenta ni configurar credenciales.
-- Si clonas el repositorio y ejecutas `npm start` sin archivo `.env`, el bot usa **SQLite local automáticamente**.
-- Este modo es lo decente, ideal para desarrollo, Termux, Cloud Shell.
+- Persistencia 100% local con `better-sqlite3`.
+- Arranque rápido con `npm start` sin configurar credenciales de base de datos.
+- SQLite se inicializa con WAL, `synchronous=NORMAL`, `busy_timeout`, caché en memoria y tablas temporales en RAM para mejorar concurrencia y latencia.
+- Economía, niveles, estadísticas, chats y sesiones de Baileys quedan guardados en SQLite.
 
-### 🟢 Modo Producción (MongoDB)
+### 🧩 Configuración opcional
 
-Usa MongoDB cuando quieras mantener datos persistentes en la nube o alojar muchos Sub-Bots.
-
-1. Crea un clúster en [MongoDB Atlas](https://www.mongodb.com/atlas/database).
-2. Copia la plantilla de entorno:
+Copia la plantilla si quieres ajustar límites del store de Baileys o tiempos internos:
 
 ```bash
 cp .env.example .env
 ```
 
-3. Abre `.env` y pega tu conexión en `MONGODB_URI=`.
-4. Inicia el bot normalmente:
+Después inicia el bot normalmente:
 
 ```bash
 npm start
 ```
-
-> Si `MONGODB_URI` queda vacío o MongoDB no responde, Ruby Hoshino Bot vuelve a SQLite automáticamente para evitar que el arranque falle.
 
 ---
 

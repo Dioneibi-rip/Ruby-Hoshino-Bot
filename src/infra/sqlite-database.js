@@ -112,7 +112,7 @@ this.sqlite.pragma('synchronous = NORMAL')
 this.sqlite.pragma('cache_size = -20000')
 this.sqlite.pragma('temp_store = MEMORY')
 this.sqlite.pragma('mmap_size = 3000000000')
-this.sqlite.pragma('busy_timeout = 10000')
+this.sqlite.pragma('busy_timeout = 5000')
 this.sqlite.pragma('foreign_keys = ON')
 this.userCache = new Map()
 this.userProxyCache = new Map()
@@ -366,13 +366,24 @@ _prepareStatements() {
 this.statements = {
 getJson: this.sqlite.prepare('SELECT value FROM json_records WHERE section=? AND id=?'),
 allJson: this.sqlite.prepare('SELECT id,value FROM json_records WHERE section=?'),
-upsertJson: this.sqlite.prepare('INSERT INTO json_records(section,id,value,updated_at) VALUES(?,?,?,unixepoch()) ON CONFLICT(section,id) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at')
+upsertJson: this.sqlite.prepare('INSERT INTO json_records(section,id,value,updated_at) VALUES(?,?,?,unixepoch()) ON CONFLICT(section,id) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at'),
+getUserById: this.sqlite.prepare('SELECT * FROM users WHERE id=?'),
+insertUser: this.sqlite.prepare('INSERT OR IGNORE INTO users(id) VALUES(?)'),
+userExists: this.sqlite.prepare('SELECT 1 FROM users WHERE id=?'),
+listUsers: this.sqlite.prepare('SELECT * FROM users'),
+updateNumericUserField: new Map(),
+transferEconomy: new Map(),
+transferBetweenUsersDebit: new Map(),
+transferBetweenUsersCredit: new Map(),
+settleUserBet: new Map(),
+updateUserRow: this.sqlite.prepare(`UPDATE users SET ${Object.keys(USER_COLUMNS).filter(key => key !== 'id' && key !== 'updated_at').map(key => `${q(key)} = @${key}`).join(', ')}, updated_at = unixepoch() WHERE id = @id`),
+addUserActivity: this.sqlite.prepare('UPDATE users SET exp = COALESCE(exp, 0) + @exp, coin = COALESCE(coin, 0) + @coin, msg_count = COALESCE(msg_count, 0) + @messages, updated_at = unixepoch() WHERE id = @id')
 }
 }
 
 
 _bindPublicApi() {
-for (const name of ['topUsers', 'getTopUsers', 'countUsers', 'countRegisteredUsers', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
+for (const name of ['topUsers', 'getTopUsers', 'countUsers', 'countRegisteredUsers', 'getUserAsync', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'incrementUserActivity', 'transferBetweenUsers', 'settleUserBet', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
 this[name] = this[name].bind(this)
 }
 }
@@ -391,12 +402,13 @@ if (!user.extras || typeof user.extras !== 'object' || Array.isArray(user.extras
 if (typeof user.registered === 'undefined') user.registered = true
 return user
 }
-_rawUser(id) { return this.userCache.get(id) || this._rowToUser(this.sqlite.prepare('SELECT * FROM users WHERE id=?').get(id)) }
-_createUser(id) { this.sqlite.prepare('INSERT OR IGNORE INTO users(id) VALUES(?)').run(id); const user = this._rowToUser(this.sqlite.prepare('SELECT * FROM users WHERE id=?').get(id)); if (user) this.userCache.set(id, user); return user }
-userExists(id) { const userId = normalizeJid(id); return Boolean(userId && (this.userCache.has(userId) || this.sqlite.prepare('SELECT 1 FROM users WHERE id=?').get(userId))) }
-listUserRows() { return this.sqlite.prepare('SELECT * FROM users').all().map(row => { const user = this._rowToUser(row); if (user) this.userCache.set(user.id, user); return user }) }
+_rawUser(id) { return this.userCache.get(id) || this._rowToUser(this.statements.getUserById.get(id)) }
+_createUser(id) { this.statements.insertUser.run(id); const user = this._rowToUser(this.statements.getUserById.get(id)); if (user) this.userCache.set(id, user); return user }
+userExists(id) { const userId = normalizeJid(id); return Boolean(userId && (this.userCache.has(userId) || this.statements.userExists.get(userId))) }
+listUserRows() { return this.statements.listUsers.all().map(row => { const user = this._rowToUser(row); if (user) this.userCache.set(user.id, user); return user }) }
 listUsers() { const out = {}; for (const user of this.listUserRows()) out[user.id] = this.getUser(user.id); return out }
-getUser(id) { const userId = normalizeJid(id); if (!userId) throw new TypeError('getUser requiere un id de usuario válido'); if (!this.userCache.has(userId)) { const row = this._rowToUser(this.sqlite.prepare('SELECT * FROM users WHERE id=?').get(userId)) || this._createUser(userId); if (row) this.userCache.set(userId, row) } return this.userCache.has(userId) ? this._userProxy(userId) : {} }
+getUser(id) { const userId = normalizeJid(id); if (!userId) throw new TypeError('getUser requiere un id de usuario válido'); if (!this.userCache.has(userId)) { const row = this._rowToUser(this.statements.getUserById.get(userId)) || this._createUser(userId); if (row) this.userCache.set(userId, row) } return this.userCache.has(userId) ? this._userProxy(userId) : {} }
+async getUserAsync(id) { return this.getUser(id) }
 _userProxy(id) {
 if (this.userProxyCache.has(id)) return this.userProxyCache.get(id)
 const proxy = new Proxy({}, {
@@ -443,8 +455,7 @@ _writeUserRow(id, user) {
 const values = {}
 for (const key of Object.keys(USER_COLUMNS)) if (key !== 'id' && key !== 'updated_at') values[key] = normalizeValue(key, user?.[key])
 values.extras = stringify(user?.extras || {})
-const assignments = Object.keys(values).map(key => `${q(key)} = @${key}`).join(', ')
-this.sqlite.prepare(`UPDATE users SET ${assignments}, updated_at = unixepoch() WHERE id = @id`).run({ id, ...values })
+this.statements.updateUserRow.run({ id, ...values })
 }
 updateUser(id, patch = {}) {
 const userId = normalizeJid(id)
@@ -474,14 +485,77 @@ if (!(field in USER_COLUMNS) || !NUMERIC_FIELDS.has(field)) throw new Error(`Cam
 }
 this._createUser(userId)
 const tx = this.sqlite.transaction(() => {
-const result = this.sqlite.prepare(`UPDATE users SET ${q(from)} = COALESCE(${q(from)}, 0) - @amount, ${q(to)} = COALESCE(${q(to)}, 0) + @amount, updated_at = unixepoch() WHERE id = @id AND COALESCE(${q(from)}, 0) >= @amount`).run({ id: userId, amount: safeAmount })
+const key = `${from}:${to}`
+let statement = this.statements.transferEconomy.get(key)
+if (!statement) {
+statement = this.sqlite.prepare(`UPDATE users SET ${q(from)} = COALESCE(${q(from)}, 0) - @amount, ${q(to)} = COALESCE(${q(to)}, 0) + @amount, updated_at = unixepoch() WHERE id = @id AND COALESCE(${q(from)}, 0) >= @amount`)
+this.statements.transferEconomy.set(key, statement)
+}
+const result = statement.run({ id: userId, amount: safeAmount })
 if (!result.changes) return null
-const user = this._rowToUser(this.sqlite.prepare('SELECT * FROM users WHERE id=?').get(userId))
+const user = this._rowToUser(this.statements.getUserById.get(userId))
 if (user) this.userCache.set(userId, user)
 return this.getUser(userId)
 })
 return tx()
 }
+
+transferBetweenUsers(fromId, toId, { debitField = 'bank', creditField = 'coin', amount, creditAmount = amount } = {}) {
+const senderId = normalizeJid(fromId)
+const targetId = normalizeJid(toId)
+if (!senderId || !targetId) throw new TypeError('transferBetweenUsers requiere usuarios válidos')
+if (senderId === targetId) throw new Error('No se puede transferir al mismo usuario')
+const debit = Math.trunc(Number(amount) || 0)
+const credit = Math.trunc(Number(creditAmount) || 0)
+if (debit <= 0 || credit < 0) throw new TypeError('transferBetweenUsers requiere cantidades válidas')
+for (const field of [debitField, creditField]) if (!(field in USER_COLUMNS) || !NUMERIC_FIELDS.has(field)) throw new Error(`Campo de economía no permitido: ${field}`)
+this._createUser(senderId)
+if (!this.userExists(targetId)) return null
+const tx = this.sqlite.transaction(() => {
+let debitStatement = this.statements.transferBetweenUsersDebit.get(debitField)
+if (!debitStatement) {
+debitStatement = this.sqlite.prepare(`UPDATE users SET ${q(debitField)} = COALESCE(${q(debitField)}, 0) - @debit, updated_at = unixepoch() WHERE id = @id AND COALESCE(${q(debitField)}, 0) >= @debit`)
+this.statements.transferBetweenUsersDebit.set(debitField, debitStatement)
+}
+let creditStatement = this.statements.transferBetweenUsersCredit.get(creditField)
+if (!creditStatement) {
+creditStatement = this.sqlite.prepare(`UPDATE users SET ${q(creditField)} = COALESCE(${q(creditField)}, 0) + @credit, updated_at = unixepoch() WHERE id = @id`)
+this.statements.transferBetweenUsersCredit.set(creditField, creditStatement)
+}
+const debitResult = debitStatement.run({ id: senderId, debit })
+if (!debitResult.changes) return null
+creditStatement.run({ id: targetId, credit })
+const sender = this._rowToUser(this.statements.getUserById.get(senderId))
+const target = this._rowToUser(this.statements.getUserById.get(targetId))
+if (sender) this.userCache.set(senderId, sender)
+if (target) this.userCache.set(targetId, target)
+return { sender: this.getUser(senderId), target: this.getUser(targetId) }
+})
+return tx()
+}
+settleUserBet(id, { field = 'coin', bet, payout = 0 } = {}) {
+const userId = normalizeJid(id)
+if (!userId) throw new TypeError('settleUserBet requiere un id de usuario válido')
+const safeBet = Math.trunc(Number(bet) || 0)
+const safePayout = Math.trunc(Number(payout) || 0)
+if (safeBet <= 0 || safePayout < 0) throw new TypeError('settleUserBet requiere cantidades válidas')
+if (!(field in USER_COLUMNS) || !NUMERIC_FIELDS.has(field)) throw new Error(`Campo de economía no permitido: ${field}`)
+this._createUser(userId)
+const tx = this.sqlite.transaction(() => {
+let statement = this.statements.settleUserBet.get(field)
+if (!statement) {
+statement = this.sqlite.prepare(`UPDATE users SET ${q(field)} = COALESCE(${q(field)}, 0) - @bet + @payout, updated_at = unixepoch() WHERE id = @id AND COALESCE(${q(field)}, 0) >= @bet`)
+this.statements.settleUserBet.set(field, statement)
+}
+const result = statement.run({ id: userId, bet: safeBet, payout: safePayout })
+if (!result.changes) return null
+const user = this._rowToUser(this.statements.getUserById.get(userId))
+if (user) this.userCache.set(userId, user)
+return this.getUser(userId)
+})
+return tx()
+}
+
 addMoney(id, amount, field = 'coin') { return this.incrementUserField(id, field, amount) }
 addEconomy(id, fieldOrAmount, maybeAmount) { return typeof fieldOrAmount === 'string' ? this.addMoney(id, maybeAmount, fieldOrAmount) : this.addMoney(id, fieldOrAmount, maybeAmount || 'coin') }
 incrementUserField(id, field, delta) {
@@ -490,12 +564,28 @@ if (!userId) throw new TypeError('incrementUserField requiere un id de usuario v
 const amount = Number(delta) || 0
 if (!(field in USER_COLUMNS) || !NUMERIC_FIELDS.has(field)) return this.updateUser(userId, { [field]: (Number(this.getUser(userId)[field]) || 0) + amount })
 this._createUser(userId)
-this.sqlite.prepare(`UPDATE users SET ${q(field)} = COALESCE(${q(field)}, 0) + ?, updated_at = unixepoch() WHERE id = ?`).run(amount, userId)
-const user = this._rowToUser(this.sqlite.prepare('SELECT * FROM users WHERE id=?').get(userId))
+let statement = this.statements.updateNumericUserField.get(field)
+if (!statement) {
+statement = this.sqlite.prepare(`UPDATE users SET ${q(field)} = COALESCE(${q(field)}, 0) + ?, updated_at = unixepoch() WHERE id = ?`)
+this.statements.updateNumericUserField.set(field, statement)
+}
+statement.run(amount, userId)
+const user = this._rowToUser(this.statements.getUserById.get(userId))
 if (user) this.userCache.set(userId, user)
 return this.getUser(userId)
 }
 setEconomy(id, field, value) { return this.updateUser(id, { [field]: value }) }
+
+incrementUserActivity(id, { exp = 0, coin = 0, messages = 1 } = {}) {
+const userId = normalizeJid(id)
+if (!userId) throw new TypeError('incrementUserActivity requiere un id de usuario válido')
+this._createUser(userId)
+this.statements.addUserActivity.run({ id: userId, exp: Number(exp) || 0, coin: Number(coin) || 0, messages: Math.trunc(Number(messages) || 0) })
+const user = this._rowToUser(this.statements.getUserById.get(userId))
+if (user) this.userCache.set(userId, user)
+return this.getUser(userId)
+}
+
 topUsers({ field = 'coin', limit = 10, offset = 0 } = {}) {
 const safeField = String(field || '').trim()
 if (!(safeField in USER_COLUMNS) || !NUMERIC_FIELDS.has(safeField)) throw new Error(`Campo de ranking no permitido: ${safeField}`)

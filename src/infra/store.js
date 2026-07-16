@@ -18,10 +18,6 @@ const PRUNE_INTERVAL_MS = Number.parseInt(process.env.BAILEYS_STORE_PRUNE_INTERV
 const DEFAULT_BAILEYS_SQLITE_FILE = './src/database/baileys-store.sqlite'
 const LEGACY_MEMORY_STORE_FILES = ['./baileys_store_multi.json', './baileys_store.json']
 
-function hasMongoUri() {
-  return typeof process.env.MONGODB_URI === 'string' && process.env.MONGODB_URI.trim().length > 0
-}
-
 function ensureParentDir(filename) {
   const dir = path.dirname(filename)
   if (dir && dir !== '.' && !existsSync(dir)) mkdirSync(dir, { recursive: true })
@@ -89,13 +85,14 @@ function createOwnedBaileysSqlite(filename = process.env.BAILEYS_STORE_SQLITE ||
   const sqlite = new Database(filename)
   sqlite.pragma('journal_mode = WAL')
   sqlite.pragma('synchronous = NORMAL')
-  sqlite.pragma('busy_timeout = 10000')
+  sqlite.pragma('busy_timeout = 5000')
+  sqlite.pragma('temp_store = MEMORY')
+  sqlite.pragma('cache_size = -20000')
   sqlite.pragma('foreign_keys = ON')
   return sqlite
 }
 
 function resolveBaileysSqlite() {
-  if (hasMongoUri()) return null
   if (!ownedSqlite) {
     console.warn('🟡 Baileys Store usará SQLite dedicado con una instancia cruda de better-sqlite3.')
     ownedSqlite = createOwnedBaileysSqlite()
@@ -104,7 +101,7 @@ function resolveBaileysSqlite() {
 }
 
 function getStore() {
-  if (!instance) instance = hasMongoUri() ? createMemoryStore() : createSQLiteStore(resolveBaileysSqlite())
+  if (!instance) instance = createSQLiteStore(resolveBaileysSqlite())
   return instance
 }
 function bind(conn) {

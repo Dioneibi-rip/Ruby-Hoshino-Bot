@@ -34,11 +34,20 @@ await conn.reply(m.chat, `《✧》Tu apuesta máxima por tirada es *${maxByTier
 return false;
 }
 
+if ((Number(user.coin) || 0) < bet) {
+await conn.reply(m.chat, `《✧》No tienes suficientes ${m.moneda} para apostar.`, m);
+return false;
+}
+
 const resultado = rollRoulette();
 const multipliers = { red: 2, black: 2, green: 14 };
 const gano = resultado === color;
 const premio = gano ? Math.floor(bet * multipliers[color]) : 0;
-user.coin = (Number(user.coin) || 0) - bet + premio;
+const updated = global.db.settleUserBet(m.sender, { field: 'coin', bet, payout: premio });
+if (!updated) {
+await conn.reply(m.chat, `《✧》Tu saldo cambió antes de completar la apuesta. Vuelve a intentarlo.`, m);
+return false;
+}
 
 await conn.reply(m.chat, `🎲 Apuesta registrada: *¥${bet.toLocaleString()} ${m.moneda}* al color *${color}*.
 ⏳ Resolviendo ruleta...`, m);
@@ -50,7 +59,7 @@ Ganaste *¥${premio.toLocaleString()} ${m.moneda}* (incluye apuesta).`, m);
 
 return conn.reply(m.chat, `「✿」Resultado: *${resultado}* 🔴
 Perdiste *¥${bet.toLocaleString()} ${m.moneda}*.
-Saldo actual: *¥${(Number(user.coin) || 0).toLocaleString()} ${m.moneda}*`, m);
+Saldo actual: *¥${(Number(updated.coin) || 0).toLocaleString()} ${m.moneda}*`, m);
 };
 
 handler.tags = ['economy'];

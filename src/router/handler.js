@@ -548,6 +548,12 @@ const deletePayload = getMessageDeletePayload(m, sender)
 if (deletePayload) conn.sendMessage?.(m.chat, { delete: deletePayload }).catch(() => {})
 }
 if (sender) {
+if (typeof global.db?.incrementUserActivity === 'function') global.db.incrementUserActivity(sender, {
+exp: m.exp || 0,
+coin: -((m.coin || 0) * 1),
+messages: 1
+})
+else {
 const current = global.db?.getUser?.(sender)
 const nextMsgCount = (Number(current?.msg_count) || 0) + 1
 if (current) global.db.updateUser(sender, {
@@ -555,6 +561,7 @@ exp: (Number(current.exp) || 0) + (m.exp || 0),
 coin: (Number(current.coin) || 0) - ((m.coin || 0) * 1),
 msg_count: nextMsgCount
 })
+}
 global.db?.scheduleFlush?.()
 }
 if (!m.plugin) return
