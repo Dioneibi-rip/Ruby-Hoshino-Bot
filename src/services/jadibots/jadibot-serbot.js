@@ -14,7 +14,7 @@ prepareWAMessageMedia,
 generateWAMessageFromContent,
 proto,
 } = (await import("@whiskeysockets/baileys"));
-import { useSQLiteAuthState, createManagerDatabase } from '../../infra/sqliteAuthState.js'
+import { useOptimizedAuthState, createManagerDatabase } from '../../infra/sqliteAuthState.js'
 import qrcode from "qrcode"
 import fs from "fs"
 import path from "path"
@@ -349,7 +349,7 @@ const subSocketCfg = global.baileysSocketConfig || {}
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = createMessageRetryCache()
 const liteMsgStore = createBoundedSubBotMessageStore(SUBBOT_MSG_STORE_LIMIT)
-const { state, saveCreds } = useSQLiteAuthState(pathRubyJadiBot, { dbName: 'auth.db', cleanOldFiles: true })
+const { state, saveCreds } = await useOptimizedAuthState(pathRubyJadiBot, { dbName: 'auth.db', cleanOldFiles: true, sessionId: requestedSubBotId || path.basename(pathRubyJadiBot) })
 const debouncedSaveCreds = createDebouncedSaveCreds(() => saveCreds.call(sock, true))
 global.authCredsFlushers ||= new Set()
 global.authCredsFlushers.add(debouncedSaveCreds.flush)

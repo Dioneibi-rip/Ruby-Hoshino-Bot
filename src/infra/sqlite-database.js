@@ -124,6 +124,9 @@ this.flushScheduled = false
 this.flushTimerHandle = null
 this.flushTimer = setInterval(() => this.flush(), this.flushIntervalMs)
 this.flushTimer.unref?.()
+this.tempCleanupIntervalMs = Number(process.env.SQLITE_TEMP_CLEANUP_INTERVAL_MS || 60 * 60 * 1000)
+this.tempCleanupTimer = setInterval(() => this.cleanupExpiredTemporaryStates(), this.tempCleanupIntervalMs)
+this.tempCleanupTimer.unref?.()
 this._prepareSchema()
 this._prepareStatements()
 this._migrateJsonSectionsToTables()
@@ -155,6 +158,7 @@ CREATE TABLE IF NOT EXISTS settings (id TEXT PRIMARY KEY, value TEXT NOT NULL DE
 CREATE TABLE IF NOT EXISTS json_records (section TEXT NOT NULL, id TEXT NOT NULL, value TEXT NOT NULL DEFAULT '{}', updated_at INTEGER NOT NULL DEFAULT (unixepoch()), PRIMARY KEY(section,id));
 CREATE TABLE IF NOT EXISTS sticker_cmds (hash TEXT PRIMARY KEY, value TEXT NOT NULL DEFAULT '{}', updated_at INTEGER NOT NULL DEFAULT (unixepoch()));
 CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS temporary_states (scope TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL DEFAULT '{}', expire_at INTEGER NOT NULL, updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000), PRIMARY KEY(scope, key));
 CREATE INDEX IF NOT EXISTS idx_users_jid ON users(id);
 CREATE INDEX IF NOT EXISTS idx_users_level ON users(level);
 CREATE INDEX IF NOT EXISTS idx_users_coin ON users(coin);
@@ -166,6 +170,7 @@ CREATE INDEX IF NOT EXISTS idx_chats_updated_at ON chats(updated_at);
 CREATE INDEX IF NOT EXISTS idx_settings_updated_at ON settings(updated_at);
 CREATE INDEX IF NOT EXISTS idx_json_records_section_updated_at ON json_records(section, updated_at);
 CREATE INDEX IF NOT EXISTS idx_sticker_cmds_updated_at ON sticker_cmds(updated_at);
+CREATE INDEX IF NOT EXISTS idx_temporary_states_expire_at ON temporary_states(expire_at);
 CREATE INDEX IF NOT EXISTS idx_marriages_partner ON marriages(group_id, partner_id);
 CREATE INDEX IF NOT EXISTS idx_harem_user ON harem(group_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_waifus_venta_seller ON waifus_venta(group_id, vendedor);
@@ -619,6 +624,24 @@ this.set(section, id, value)
 }
 return this._recordProxy(section, id, value)
 }
+
+setTemporaryState(scope, key, value = {}, ttlMs = 60 * 60 * 1000) {
+const safeScope = String(scope || '').trim()
+const safeKey = String(key || '').trim()
+if (!safeScope || !safeKey) throw new TypeError('setTemporaryState requiere scope y key válidos')
+const expireAt = Date.now() + Math.max(Number(ttlMs) || 0, 1000)
+this.sqlite.prepare('INSERT INTO temporary_states(scope,key,value,expire_at,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(scope,key) DO UPDATE SET value=excluded.value, expire_at=excluded.expire_at, updated_at=excluded.updated_at').run(safeScope, safeKey, stringify(value), expireAt, now())
+return { scope: safeScope, key: safeKey, value, expireAt }
+}
+getTemporaryState(scope, key) {
+const row = this.sqlite.prepare('SELECT value, expire_at FROM temporary_states WHERE scope=? AND key=?').get(String(scope || ''), String(key || ''))
+if (!row) return undefined
+if (Number(row.expire_at) <= Date.now()) { this.deleteTemporaryState(scope, key); return undefined }
+return parseJSON(row.value, undefined)
+}
+deleteTemporaryState(scope, key) { return this.sqlite.prepare('DELETE FROM temporary_states WHERE scope=? AND key=?').run(String(scope || ''), String(key || '')) }
+cleanupExpiredTemporaryStates() { return this.sqlite.prepare('DELETE FROM temporary_states WHERE expire_at <= ?').run(Date.now()) }
+
 getRecord(section, id) { if (section === 'users') return this.getUser(id); if (section === 'sticker') return this.getStickerCommand(id); if (section === 'groups') return this.getGroup(id); if (section === 'claim_config') return this.sqlite.prepare('SELECT message FROM claim_config WHERE user_id=?').get(id)?.message; if (section === 'character_favorites') return this.sqlite.prepare('SELECT character_id FROM character_favorites WHERE user_id=?').get(id)?.character_id; if (section === 'chats') return this.getChat(id); if (section === 'settings') { const row = this.sqlite.prepare('SELECT value FROM settings WHERE id=?').get(id); return parseJSON(row?.value, undefined) } const row = this.statements.getJson.get(section, id); return parseJSON(row?.value, undefined) }
 setRecord(section, id, value) { return this.set(section, id, value) }
 countSection(section, filter = {}) { if (section === 'users') return this.sqlite.prepare('SELECT COUNT(*) AS total FROM users').get().total; if (section === 'chats' || section === 'settings') return this.sqlite.prepare(`SELECT COUNT(*) AS total FROM ${section}`).get().total; if (section === 'groups') return this.sqlite.prepare('SELECT COUNT(*) AS total FROM groups').get().total; if (section === 'claim_config') return this.sqlite.prepare('SELECT COUNT(*) AS total FROM claim_config').get().total; if (section === 'character_favorites') return this.sqlite.prepare('SELECT COUNT(*) AS total FROM character_favorites').get().total; return this.sqlite.prepare('SELECT COUNT(*) AS total FROM json_records WHERE section=?').get(section).total }
@@ -639,7 +662,7 @@ for (const id of ids) this.dirtyUsers.delete(id)
 }
 }
 forceSave() { return this.write() }
-close() { if (this.flushTimerHandle) clearTimeout(this.flushTimerHandle); this.flush(); if (this.flushTimer) clearInterval(this.flushTimer); this.sqlite.pragma('wal_checkpoint(PASSIVE)'); this.sqlite.close() } snapshot() { return { users: this.getSection('users'), marriages: this.getSection('marriages'), harem: this.getSection('harem'), gacha_market: this.getSection('gacha_market'), claim_config: this.getSection('claim_config'), character_favorites: this.getSection('character_favorites') } }
+close() { if (this.flushTimerHandle) clearTimeout(this.flushTimerHandle); this.flush(); if (this.flushTimer) clearInterval(this.flushTimer); if (this.tempCleanupTimer) clearInterval(this.tempCleanupTimer); this.sqlite.pragma('wal_checkpoint(PASSIVE)'); this.sqlite.close() } snapshot() { return { users: this.getSection('users'), marriages: this.getSection('marriages'), harem: this.getSection('harem'), gacha_market: this.getSection('gacha_market'), claim_config: this.getSection('claim_config'), character_favorites: this.getSection('character_favorites') } }
 }
 export { SQLiteDatabase as DbManager }
 export default SQLiteDatabase

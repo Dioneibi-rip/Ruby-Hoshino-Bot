@@ -17,7 +17,7 @@ import 'dotenv/config';
 import pino from 'pino'
 import { Boom } from '@hapi/boom'
 import { makeWASocket, protoType, serialize } from '../infra/simple.js'
-import { useSQLiteAuthState, createManagerDatabase } from '../infra/sqliteAuthState.js'
+import { useOptimizedAuthState, createManagerDatabase } from '../infra/sqliteAuthState.js'
 import { initializeDatabase } from '../infra/database.js'
 import store from '../infra/store.js'
 import readline, { createInterface } from 'readline'
@@ -174,7 +174,7 @@ process.once('SIGTERM', () => shutdownDatabaseAndExit(0))
 process.once('SIGHUP', () => shutdownDatabaseAndExit(0))
 protoType()
 serialize()
-const { state, saveCreds } = useSQLiteAuthState(`./${global.Rubysessions}`, { dbName: 'auth.db', cleanOldFiles: true })
+const { state, saveCreds } = await useOptimizedAuthState(`./${global.Rubysessions}`, { dbName: 'auth.db', cleanOldFiles: true, sessionId: 'main' })
 const debouncedSaveCreds = createDebouncedSaveCreds(() => saveCreds.call(global.conn, true))
 global.authCredsFlushers.add(debouncedSaveCreds.flush)
 global.authManagerDb = createManagerDatabase({ dbPath: `./${global.Rubysessions}/system.db`, tableName: 'bot_registry' })
