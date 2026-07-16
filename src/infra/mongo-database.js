@@ -93,7 +93,7 @@ class TTLMap {
 const MONGO_CACHE_TTL_MS = Number(process.env.MONGODB_CACHE_TTL_MS || 30 * 60 * 1000)
 const MONGO_USER_CACHE_MAX = Number(process.env.MONGODB_USER_CACHE_MAX || 50_000)
 const MONGO_RECORD_CACHE_MAX = Number(process.env.MONGODB_RECORD_CACHE_MAX || 75_000)
-const MONGO_BATCH_DELAY_MS = Number(process.env.MONGODB_BATCH_DELAY_MS || 5_000)
+const MONGO_BATCH_DELAY_MS = Number(process.env.MONGODB_BATCH_DELAY_MS || 30_000)
 const CHARACTER_SEARCH_CACHE_TTL_MS = Number(process.env.CHARACTER_SEARCH_CACHE_TTL_MS || 10 * 60 * 1000)
 const MONGO_LISTENER_KEY = Symbol.for('ruby-hoshino.mongo.listeners')
 const MONGO_INSTANCE_SET_KEY = Symbol.for('ruby-hoshino.mongo.instances')
@@ -217,6 +217,7 @@ export class MongoDatabase {
     this.pendingRecordDeletes = new Map()
     this.batchFlushTimer = null
     this.batchDelayMs = MONGO_BATCH_DELAY_MS
+    this.writeBehindTimer = null
     this.characterSearchCache = { file: '', loadedAt: 0, rows: [], promise: null }
     this.User = mongoose.models.User || mongoose.model('User', userSchema, 'users')
     this.Record = mongoose.models.DbRecord || mongoose.model('DbRecord', recordSchema, 'records')
@@ -229,6 +230,16 @@ export class MongoDatabase {
     this.data = this._createDataFacade()
     globalThis[MONGO_INSTANCE_SET_KEY] ||= new Set()
     globalThis[MONGO_INSTANCE_SET_KEY].add(this)
+    this._startWriteBehindWorker()
+  }
+
+
+  _startWriteBehindWorker() {
+    if (this.writeBehindTimer) return
+    this.writeBehindTimer = setInterval(() => {
+      this._flushBatches().catch(error => console.error('[mongodb] write-behind worker falló', error))
+    }, this.batchDelayMs)
+    this.writeBehindTimer.unref?.()
   }
 
   _ensureConnectionListeners() {
@@ -416,27 +427,33 @@ export class MongoDatabase {
       return
     }
     const userEntries = [...this.pendingUserPatches.entries()]
-    const recordWrites = [...this.pendingRecordWrites.values()]
-    const recordDeletes = [...this.pendingRecordDeletes.values()]
+    const recordWrites = [...this.pendingRecordWrites.entries()]
+    const recordDeletes = [...this.pendingRecordDeletes.entries()]
     if (!userEntries.length && !recordWrites.length && !recordDeletes.length) return
-    this.pendingUserPatches.clear()
-    this.pendingRecordWrites.clear()
-    this.pendingRecordDeletes.clear()
-    const operations = []
-    if (userEntries.length) {
-      operations.push(this.User.bulkWrite(userEntries.map(([id, patch]) => {
-        const atomicUpdate = splitUserPatch(patch)
-        return { updateOne: { filter: { _id: id }, update: { $setOnInsert: normalizeUserForInsert(id, atomicUpdate), ...atomicUpdate }, upsert: true } }
-      }), { ordered: false }))
-      for (const [id] of userEntries) this.userDirtyFields.delete(id)
+    const result = await withMongoTimeout(async () => {
+      const operations = []
+      if (userEntries.length) {
+        operations.push(this.User.bulkWrite(userEntries.map(([id, patch]) => {
+          const atomicUpdate = splitUserPatch(patch)
+          return { updateOne: { filter: { _id: id }, update: { $setOnInsert: normalizeUserForInsert(id, atomicUpdate), ...atomicUpdate }, upsert: true } }
+        }), { ordered: false }))
+      }
+      if (recordWrites.length) {
+        operations.push(this.Record.bulkWrite(recordWrites.map(([, { section, id, value }]) => ({ updateOne: { filter: { section, key: id }, update: { $set: { value } }, upsert: true } })), { ordered: false }))
+      }
+      if (recordDeletes.length) {
+        operations.push(this.Record.bulkWrite(recordDeletes.map(([, { section, id }]) => ({ deleteOne: { filter: { section, key: id } } })), { ordered: false }))
+      }
+      await Promise.all(operations)
+      return true
+    }, { label: 'flush batch', swallow: true, fallback: false })
+    if (!result) return
+    for (const [id, patch] of userEntries) {
+      if (this.pendingUserPatches.get(id) === patch) this.pendingUserPatches.delete(id)
+      this.userDirtyFields.delete(id)
     }
-    if (recordWrites.length) {
-      operations.push(this.Record.bulkWrite(recordWrites.map(({ section, id, value }) => ({ updateOne: { filter: { section, key: id }, update: { $set: { value } }, upsert: true } })), { ordered: false }))
-    }
-    if (recordDeletes.length) {
-      operations.push(this.Record.bulkWrite(recordDeletes.map(({ section, id }) => ({ deleteOne: { filter: { section, key: id } } })), { ordered: false }))
-    }
-    await withMongoTimeout(() => Promise.all(operations.map(operation => this._trackWrite(operation))), { label: 'flush batch', swallow: true, fallback: null })
+    for (const [cacheKey, entry] of recordWrites) if (this.pendingRecordWrites.get(cacheKey) === entry) this.pendingRecordWrites.delete(cacheKey)
+    for (const [cacheKey, entry] of recordDeletes) if (this.pendingRecordDeletes.get(cacheKey) === entry) this.pendingRecordDeletes.delete(cacheKey)
   }
 
   async read() {
@@ -455,7 +472,7 @@ export class MongoDatabase {
   async save() { return this.write() }
   async flush() { return this.write() }
   async forceSave() { return this.write() }
-  async close() { await this.forceSave(); globalThis[MONGO_INSTANCE_SET_KEY]?.delete(this); try { await mongoose.connection.close(false) } catch (error) { console.error('[mongodb] error cerrando conexión', error) } }
+  async close() { if (this.writeBehindTimer) clearInterval(this.writeBehindTimer); await this.forceSave(); globalThis[MONGO_INSTANCE_SET_KEY]?.delete(this); try { await mongoose.connection.close(false) } catch (error) { console.error('[mongodb] error cerrando conexión', error) } }
 
   getUser(id) {
     const userId = normalizeJid(id)
@@ -472,13 +489,8 @@ export class MongoDatabase {
     const next = applyPatchToUser(userId, this.userCache.get(userId), safePatch)
     this.userCache.set(userId, next)
     this._bumpUserVersion(userId)
-    const atomicUpdate = splitUserPatch(safePatch)
-    const write = this.ready.then(() => isMongoConnected() ? withMongoTimeout(() => this.User.findOneAndUpdate(
-      { _id: userId },
-      { $setOnInsert: normalizeUserForInsert(userId, atomicUpdate), ...atomicUpdate },
-      { upsert: true, new: true, lean: true }
-    ), { label: 'updateUser', swallow: true, fallback: null }) : null).then(doc => { if (doc) this.userCache.set(userId, normalizeUser(userId, doc)); return this._userProxy(userId) })
-    return this._trackWrite(write)
+    this._queueUserWrite(userId, safePatch)
+    return Promise.resolve(this._userProxy(userId))
   }
 
   incrementUserField(id, field, delta) {
@@ -488,12 +500,7 @@ export class MongoDatabase {
     if (!Object.prototype.hasOwnProperty.call(USER_DEFAULTS, field) || !NUMERIC_FIELDS.has(field)) return this.updateUser(userId, { [field]: (Number(this.getUser(userId)[field]) || 0) + amount })
     const current = normalizeUser(userId, this.userCache.get(userId))
     this.userCache.set(userId, normalizeUser(userId, { ...current, [field]: (Number(current[field]) || 0) + amount }))
-    const write = this.ready.then(() => isMongoConnected() ? withMongoTimeout(() => this.User.findOneAndUpdate(
-      { _id: userId },
-      { $setOnInsert: normalizeUserForInsert(userId, { $inc: { [field]: amount }, $set: { updatedAt: new Date() } }), $inc: { [field]: amount }, $set: { updatedAt: new Date() } },
-      { upsert: true, new: true, lean: true }
-    ), { label: 'incrementUserField', swallow: true, fallback: null }) : null).then(doc => { if (doc) this.userCache.set(userId, normalizeUser(userId, doc)); return this._userProxy(userId) })
-    this._trackWrite(write)
+    this._queueUserWrite(userId, { [field]: current[field] + amount })
     return this.getUser(userId)
   }
 
@@ -547,6 +554,23 @@ export class MongoDatabase {
     return rows.map(row => ({ id: row.id, [safeField]: Number(row[safeField]) || 0 }))
   }
   getTopUsers(options = {}) { return this.topUsers(options) }
+
+  addMessageStat(plugin, { success = true, now: timestamp = now() } = {}) {
+    const key = String(plugin || '').trim()
+    if (!key) return null
+    const stat = this.get('stats', key) || { total: 0, success: 0, last: timestamp, lastSuccess: 0 }
+    stat.total = (Number(stat.total) || 0) + 1
+    stat.last = timestamp
+    if (success) {
+      stat.success = (Number(stat.success) || 0) + 1
+      stat.lastSuccess = timestamp
+    } else {
+      stat.success = Number(stat.success) || 0
+      stat.lastSuccess = Number(stat.lastSuccess) || 0
+    }
+    this.set('stats', key, stat)
+    return stat
+  }
   async countUsers() { await this.ready; return this.User.estimatedDocumentCount() }
   async countRegisteredUsers() { await this.ready; return this.User.countDocuments({ registered: true }) }
   async listUsersAsync() { await this.ready; const rows = await this.User.find({}).lean(); for (const row of rows) this.userCache.set(row._id, normalizeUser(row._id, row)); return this.listUsers() }

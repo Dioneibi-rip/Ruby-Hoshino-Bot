@@ -7,6 +7,8 @@ const DEFAULT_CLEANUP_INTERVAL_MS = Number(process.env.MONGO_AUTH_CLEANUP_INTERV
 const DEFAULT_MAX_PRE_KEYS = Number(process.env.MONGO_AUTH_MAX_PRE_KEYS || 300)
 const DEFAULT_MAX_SENDER_KEYS = Number(process.env.MONGO_AUTH_MAX_SENDER_KEYS || 500)
 const DEFAULT_MAX_SESSIONS = Number(process.env.MONGO_AUTH_MAX_SESSIONS || 1500)
+const AUTH_CACHE_TTL_MS = Number(process.env.MONGO_AUTH_CACHE_TTL_MS || 15 * 60 * 1000)
+const AUTH_FLUSH_INTERVAL_MS = Number(process.env.MONGO_AUTH_FLUSH_INTERVAL_MS || 30_000)
 const VOLATILE_CATEGORIES = new Set(['pre-key', 'sender-key', 'session'])
 const cleanupTimers = new Map()
 const CRITICAL_BAILEYS_KEY_TYPES = new Set(['contacts-tc-token', 'lid-mapping'])
@@ -48,6 +50,32 @@ function ensureMongoConnectionListeners() {
   mongoose.connection[MONGO_AUTH_LISTENER_KEY] = true
 }
 
+class AuthMemoryCache {
+  constructor(ttlMs = AUTH_CACHE_TTL_MS) {
+    this.ttlMs = ttlMs
+    this.rows = new Map()
+  }
+  _key(sessionId, category, keyId) { return `${sessionId}:${category}:${keyId}` }
+  _evict(now = Date.now()) {
+    for (const [key, row] of this.rows) if (row.lastAccessAt + this.ttlMs <= now) this.rows.delete(key)
+  }
+  get(sessionId, category, keyId) {
+    this._evict()
+    const key = this._key(sessionId, category, keyId)
+    const row = this.rows.get(key)
+    if (!row) return undefined
+    row.lastAccessAt = Date.now()
+    this.rows.delete(key)
+    this.rows.set(key, row)
+    return row.value
+  }
+  set(sessionId, category, keyId, value) {
+    this._evict()
+    this.rows.set(this._key(sessionId, category, keyId), { value, lastAccessAt: Date.now() })
+  }
+  delete(sessionId, category, keyId) { this.rows.delete(this._key(sessionId, category, keyId)) }
+  clearSession(sessionId) { for (const key of this.rows.keys()) if (key.startsWith(`${sessionId}:`)) this.rows.delete(key) }
+}
 
 function stringify(value) { return JSON.stringify(value, BufferJSON.replacer) }
 function parse(value) { return value ? JSON.parse(value, BufferJSON.reviver) : null }
@@ -118,7 +146,7 @@ async function cleanupVolatileKeys(Model, sessionId, options = {}) {
 }
 
 function startCleanupTimer(Model, sessionId, options = {}) {
-  const timerKey = `${Model.collection.name}:${sessionId}`
+  const timerKey = `${Model.collection.name}:${sessionId}:cleanup`
   if (cleanupTimers.has(timerKey)) return cleanupTimers.get(timerKey)
   const intervalMs = Number(options.cleanupIntervalMs) || DEFAULT_CLEANUP_INTERVAL_MS
   const run = () => cleanupVolatileKeys(Model, sessionId, options).catch(error => console.error('[mongo-auth] limpieza fallida:', error))
@@ -135,26 +163,58 @@ function volatileExpiresAt(category, options = {}) {
   return new Date(Date.now() + retentionMs)
 }
 
+function startAuthFlushWorker(Model, sessionId, pendingWrites, options = {}) {
+  const timerKey = `${Model.collection.name}:${sessionId}:write-behind`
+  if (cleanupTimers.has(timerKey)) return cleanupTimers.get(timerKey)
+  const flush = async () => {
+    if (!pendingWrites.size || !isMongoConnected()) return
+    const entries = [...pendingWrites.entries()]
+    const now = new Date()
+    const operations = entries.map(([, entry]) => entry.value
+      ? { updateOne: { filter: { sessionId, category: entry.category, keyId: entry.keyId }, update: { $set: { value: stringify(entry.value), lastAccessAt: now, expiresAt: volatileExpiresAt(entry.category, options) } }, upsert: true } }
+      : { deleteOne: { filter: { sessionId, category: entry.category, keyId: entry.keyId } } })
+    const result = await withMongoTimeout(() => Model.bulkWrite(operations, { ordered: false }), { label: 'flush auth write-behind', fallback: null })
+    if (result) for (const [key] of entries) pendingWrites.delete(key)
+  }
+  const timer = setInterval(() => flush().catch(error => console.error('[mongo-auth] write-behind falló:', error)), Number(options.flushIntervalMs) || AUTH_FLUSH_INTERVAL_MS)
+  timer.unref?.()
+  cleanupTimers.set(timerKey, timer)
+  return { timer, flush }
+}
+
 export async function useMongoAuthState(sessionId = 'default', options = {}) {
   const normalizedSessionId = safeId(sessionId || 'default')
   await ensureMongoConnection(options)
   const Model = authModel()
   const writeLock = createMutex()
+  const keyCache = new AuthMemoryCache(Number(options.cacheTtlMs) || AUTH_CACHE_TTL_MS)
+  const pendingWrites = new Map()
   const credsRow = await withMongoTimeout(() => Model.findOne({ sessionId: normalizedSessionId, category: 'creds', keyId: 'creds' }).lean(), { label: 'lectura de credenciales', fallback: null })
   const creds = parse(credsRow?.value) || initAuthCreds()
+  keyCache.set(normalizedSessionId, 'creds', 'creds', creds)
   startCleanupTimer(Model, normalizedSessionId, options)
+  const writeBehind = startAuthFlushWorker(Model, normalizedSessionId, pendingWrites, options)
+  const pendingKey = (category, keyId) => `${category}:${keyId}`
 
-  const saveCreds = () => writeLock(() => withMongoTimeout(() => Model.updateOne(
-    { sessionId: normalizedSessionId, category: 'creds', keyId: 'creds' },
-    { $set: { value: stringify(creds), lastAccessAt: new Date(), expiresAt: null } },
-    { upsert: true }
-  ), { label: 'guardado de credenciales', fallback: null }))
+  const queueAuthWrite = (category, keyId, value) => {
+    if (value) keyCache.set(normalizedSessionId, category, keyId, value)
+    else keyCache.delete(normalizedSessionId, category, keyId)
+    pendingWrites.set(pendingKey(category, keyId), { category, keyId, value })
+  }
+
+  const saveCreds = () => writeLock(() => {
+    queueAuthWrite('creds', 'creds', creds)
+    return Promise.resolve()
+  })
 
   const close = () => {
-    const timerKey = `${Model.collection.name}:${normalizedSessionId}`
-    const timer = cleanupTimers.get(timerKey)
-    if (timer) clearInterval(timer)
-    cleanupTimers.delete(timerKey)
+    for (const suffix of ['cleanup', 'write-behind']) {
+      const timerKey = `${Model.collection.name}:${normalizedSessionId}:${suffix}`
+      const timer = cleanupTimers.get(timerKey)
+      if (timer?.timer) clearInterval(timer.timer)
+      else if (timer) clearInterval(timer)
+      cleanupTimers.delete(timerKey)
+    }
   }
 
   return {
@@ -163,38 +223,43 @@ export async function useMongoAuthState(sessionId = 'default', options = {}) {
       keys: {
         get: async (type, ids = []) => {
           const category = authCategory(type)
-          const keyIds = ids.map(id => safeId(id))
-          if (!isMongoConnected()) return Object.fromEntries(ids.map(id => [id, null]))
-          const rows = await withMongoTimeout(() => Model.find({ sessionId: normalizedSessionId, category, keyId: { $in: keyIds } }).lean(), { label: `lectura keys ${category}`, fallback: [] })
-          const byKey = new Map(rows.map(row => [row.keyId, row]))
-          if (keyIds.length) await withMongoTimeout(() => Model.updateMany({ sessionId: normalizedSessionId, category, keyId: { $in: keyIds } }, { $set: { lastAccessAt: new Date() } }), { label: `touch keys ${category}`, fallback: null })
           const output = {}
-          for (const id of ids) output[id] = normalizeValue(type, parse(byKey.get(safeId(id))?.value))
+          const missing = []
+          for (const id of ids) {
+            const cached = keyCache.get(normalizedSessionId, category, safeId(id))
+            if (typeof cached === 'undefined') missing.push(id)
+            else output[id] = normalizeValue(type, cached)
+          }
+          if (missing.length && isMongoConnected()) {
+            const keyIds = missing.map(id => safeId(id))
+            const rows = await withMongoTimeout(() => Model.find({ sessionId: normalizedSessionId, category, keyId: { $in: keyIds } }).lean(), { label: `lectura keys ${category}`, fallback: [] })
+            const byKey = new Map(rows.map(row => [row.keyId, row]))
+            for (const id of missing) {
+              const keyId = safeId(id)
+              const value = parse(byKey.get(keyId)?.value)
+              if (typeof value !== 'undefined' && value !== null) keyCache.set(normalizedSessionId, category, keyId, value)
+              output[id] = normalizeValue(type, value)
+            }
+          } else {
+            for (const id of missing) output[id] = null
+          }
           return output
         },
         set: async data => writeLock(async () => {
-          const now = new Date()
-          const operations = []
           for (const category of Object.keys(data || {})) {
-            for (const id of Object.keys(data[category] || {})) {
-              const keyId = safeId(id)
-              const value = data[category][id]
-              if (value) {
-                operations.push({ updateOne: { filter: { sessionId: normalizedSessionId, category, keyId }, update: { $set: { value: stringify(value), lastAccessAt: now, expiresAt: volatileExpiresAt(category, options) } }, upsert: true } })
-              } else {
-                operations.push({ deleteOne: { filter: { sessionId: normalizedSessionId, category, keyId } } })
-              }
-            }
+            for (const id of Object.keys(data[category] || {})) queueAuthWrite(category, safeId(id), data[category][id] || null)
           }
-          if (!isMongoConnected()) return
-          if (operations.length) await withMongoTimeout(() => Model.bulkWrite(operations, { ordered: false }), { label: 'escritura de keys', fallback: null })
-          await cleanupVolatileKeys(Model, normalizedSessionId, options)
         })
       }
     },
     saveCreds,
-    removeCreds: async () => writeLock(() => withMongoTimeout(() => Model.deleteOne({ sessionId: normalizedSessionId, category: 'creds', keyId: 'creds' }), { label: 'borrado de credenciales', fallback: null })),
-    clearDb: async () => writeLock(() => withMongoTimeout(() => Model.deleteMany({ sessionId: normalizedSessionId }), { label: 'limpieza de auth state', fallback: null })),
+    removeCreds: async () => writeLock(() => { queueAuthWrite('creds', 'creds', null); return Promise.resolve() }),
+    clearDb: async () => writeLock(() => {
+      keyCache.clearSession(normalizedSessionId)
+      pendingWrites.clear()
+      return withMongoTimeout(() => Model.deleteMany({ sessionId: normalizedSessionId }), { label: 'limpieza de auth state', fallback: null })
+    }),
+    flushDb: () => writeBehind.flush(),
     closeDb: close,
     close
   }
