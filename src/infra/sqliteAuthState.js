@@ -136,7 +136,6 @@ if (now - last < intervalMs) return
 const cutoff = now - retentionMs
 const result = statements.cleanup.run(cutoff)
 statements.setMeta.run('last_cleanup_at', stringify(now), now, now, now)
-if (result.changes) console.log(`[sqlite-auth] limpieza silenciosa: ${result.changes} llaves Signal antiguas eliminadas`)
 } catch (error) {
 console.error('[sqlite-auth] error en limpieza diaria:', error)
 }
