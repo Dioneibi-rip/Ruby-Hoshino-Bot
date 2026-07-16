@@ -4,14 +4,25 @@ import { readFile } from 'fs/promises'
 import path from 'path'
 import { normalizeJid } from '../core/identity-utils.js'
 
+mongoose.set('bufferCommands', false)
+mongoose.set('bufferTimeoutMS', 0)
+
 const DEFAULT_MONGO_OPTIONS = {
-  maxPoolSize: Number(process.env.MONGODB_POOL_SIZE || 50),
-  minPoolSize: Number(process.env.MONGODB_MIN_POOL_SIZE || 2),
-  serverSelectionTimeoutMS: Number(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS || 10_000),
+  maxPoolSize: Number(process.env.MONGODB_POOL_SIZE || 10),
+  minPoolSize: Number(process.env.MONGODB_MIN_POOL_SIZE || 0),
+  serverSelectionTimeoutMS: Number(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS || 5_000),
   socketTimeoutMS: Number(process.env.MONGODB_SOCKET_TIMEOUT_MS || 45_000),
+  connectTimeoutMS: Number(process.env.MONGODB_CONNECT_TIMEOUT_MS || 5_000),
+  heartbeatFrequencyMS: Number(process.env.MONGODB_HEARTBEAT_FREQUENCY_MS || 10_000),
+  waitQueueTimeoutMS: Number(process.env.MONGODB_WAIT_QUEUE_TIMEOUT_MS || 5_000),
+  maxConnecting: Number(process.env.MONGODB_MAX_CONNECTING || 2),
   retryWrites: true,
   autoIndex: process.env.NODE_ENV !== 'production'
+  // MongoDB Node.js Driver 6+ mantiene TCP keepAlive activo por defecto y rechaza la opción keepAlive heredada.
 }
+const MONGO_OPERATION_TIMEOUT_MS = Number(process.env.MONGODB_OPERATION_TIMEOUT_MS || 5_000)
+const MONGO_CIRCUIT_BREAKER_MS = Number(process.env.MONGODB_CIRCUIT_BREAKER_MS || 15_000)
+let mongoUnavailableUntil = 0
 
 const USER_DEFAULTS = {
   coin: 0, bank: 0, exp: 0, level: 0, role: '*Chibi Aventurero/a V*🐙', limit: 0, health: 100, warn: 0,
@@ -34,6 +45,29 @@ function now() { return Date.now() }
 function normalizeSearchText(text = '') { return String(text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim() }
 function findCharactersFile() { return [path.resolve('./src/database/characters.json'), path.resolve('./database/characters.json')].find(candidate => existsSync(candidate)) }
 function keyFor(section, id) { return `${section}:${id}` }
+
+function markMongoUnavailable(error) {
+  mongoUnavailableUntil = Date.now() + MONGO_CIRCUIT_BREAKER_MS
+  if (error) console.error('[mongodb] circuito abierto temporalmente; se evita I/O de red', error)
+}
+function isMongoConnected() { return mongoose.connection.readyState === 1 && Date.now() >= mongoUnavailableUntil }
+function withMongoTimeout(operation, { timeoutMs = MONGO_OPERATION_TIMEOUT_MS, label = 'operación MongoDB', fallback, swallow = false } = {}) {
+  let timer
+  const timeout = new Promise((resolve, reject) => {
+    timer = setTimeout(() => {
+      const error = new Error(`[mongodb] ${label} excedió ${timeoutMs}ms; se omite para no bloquear Baileys`)
+      error.code = 'MONGO_OPERATION_TIMEOUT'
+      ;(swallow ? resolve : reject)(typeof fallback === 'function' ? fallback(error) : fallback)
+    }, Math.max(Number(timeoutMs) || 1, 1))
+    timer.unref?.()
+  })
+  return Promise.race([Promise.resolve().then(operation), timeout]).catch(error => {
+    if (!swallow) throw error
+    markMongoUnavailable(error)
+    console.error(`[mongodb] ${label} falló; se continúa sin bloquear el bot`, error)
+    return typeof fallback === 'function' ? fallback(error) : fallback
+  }).finally(() => clearTimeout(timer))
+}
 
 class TTLMap {
   constructor(ttlMs = 30 * 60 * 1000, maxSize = 25_000) {
@@ -73,7 +107,7 @@ class TTLMap {
 const MONGO_CACHE_TTL_MS = Number(process.env.MONGODB_CACHE_TTL_MS || 30 * 60 * 1000)
 const MONGO_USER_CACHE_MAX = Number(process.env.MONGODB_USER_CACHE_MAX || 50_000)
 const MONGO_RECORD_CACHE_MAX = Number(process.env.MONGODB_RECORD_CACHE_MAX || 75_000)
-const MONGO_BATCH_DELAY_MS = Number(process.env.MONGODB_BATCH_DELAY_MS || 5_000)
+const MONGO_BATCH_DELAY_MS = Number(process.env.MONGODB_BATCH_DELAY_MS || 30_000)
 const CHARACTER_SEARCH_CACHE_TTL_MS = Number(process.env.CHARACTER_SEARCH_CACHE_TTL_MS || 10 * 60 * 1000)
 const MONGO_LISTENER_KEY = Symbol.for('ruby-hoshino.mongo.listeners')
 const MONGO_INSTANCE_SET_KEY = Symbol.for('ruby-hoshino.mongo.instances')
@@ -165,7 +199,7 @@ function applyPatchToUser(id, current, patch = {}) {
 const userSchema = new mongoose.Schema({
   _id: { type: String, alias: 'id' },
   ...Object.fromEntries(Object.entries(USER_DEFAULTS).map(([key, value]) => [key, { type: mongoose.Schema.Types.Mixed, default: clone(value) }]))
-}, { strict: false, timestamps: true, minimize: false, versionKey: false })
+}, { strict: false, timestamps: true, minimize: false, versionKey: false, bufferCommands: false, autoCreate: false })
 userSchema.index({ level: -1 })
 userSchema.index({ coin: -1 })
 userSchema.index({ bank: -1 })
@@ -176,7 +210,7 @@ const recordSchema = new mongoose.Schema({
   section: { type: String, required: true, index: true },
   key: { type: String, required: true },
   value: { type: mongoose.Schema.Types.Mixed, default: {} }
-}, { strict: false, timestamps: true, minimize: false, versionKey: false })
+}, { strict: false, timestamps: true, minimize: false, versionKey: false, bufferCommands: false, autoCreate: false })
 recordSchema.index({ section: 1, key: 1 }, { unique: true })
 
 export class MongoDatabase {
@@ -197,37 +231,66 @@ export class MongoDatabase {
     this.pendingRecordDeletes = new Map()
     this.batchFlushTimer = null
     this.batchDelayMs = MONGO_BATCH_DELAY_MS
+    this.writeBehindTimer = null
     this.characterSearchCache = { file: '', loadedAt: 0, rows: [], promise: null }
     this.User = mongoose.models.User || mongoose.model('User', userSchema, 'users')
     this.Record = mongoose.models.DbRecord || mongoose.model('DbRecord', recordSchema, 'records')
     this.sqlite = createMongoSqliteCompatibility(this)
-    this.ready = this.connect()
+    this.ready = this.connect().catch(error => {
+      this.connected = false
+      console.error('[mongodb] conexión inicial fallida; se usará caché en memoria y reconexión de mongoose en segundo plano', error)
+      return null
+    })
     this.data = this._createDataFacade()
     globalThis[MONGO_INSTANCE_SET_KEY] ||= new Set()
     globalThis[MONGO_INSTANCE_SET_KEY].add(this)
+    this._startWriteBehindWorker()
+  }
+
+
+  _startWriteBehindWorker() {
+    if (this.writeBehindTimer) return
+    this.writeBehindTimer = setInterval(() => {
+      this._flushBatches().catch(error => console.error('[mongodb] write-behind worker falló', error))
+    }, this.batchDelayMs)
+    this.writeBehindTimer.unref?.()
   }
 
   _ensureConnectionListeners() {
     if (mongoose.connection[MONGO_LISTENER_KEY]) return
     const onDisconnected = () => {
+      markMongoUnavailable()
       for (const instance of globalThis[MONGO_INSTANCE_SET_KEY] || []) instance.connected = false
-      console.error('[mongodb] conexión perdida; mongoose intentará reconectar')
+      console.error('[mongodb] conexión perdida; se abre circuito y se evita I/O hasta reconectar')
+    }
+    const onConnected = () => {
+      mongoUnavailableUntil = 0
+      for (const instance of globalThis[MONGO_INSTANCE_SET_KEY] || []) instance.connected = true
+      console.info('[mongodb] conexión establecida')
+    }
+    const onError = error => {
+      markMongoUnavailable(error)
+      for (const instance of globalThis[MONGO_INSTANCE_SET_KEY] || []) instance.connected = false
+      console.error('[mongodb] error de red/controlado; el bot continuará operativo', error)
     }
     const onReconnected = () => {
+      mongoUnavailableUntil = 0
       for (const instance of globalThis[MONGO_INSTANCE_SET_KEY] || []) instance.connected = true
       console.info('[mongodb] conexión restaurada')
     }
+    mongoose.connection.on('connected', onConnected)
     mongoose.connection.on('disconnected', onDisconnected)
     mongoose.connection.on('reconnected', onReconnected)
-    mongoose.connection[MONGO_LISTENER_KEY] = { onDisconnected, onReconnected }
+    mongoose.connection.on('error', onError)
+    mongoose.connection[MONGO_LISTENER_KEY] = { onConnected, onDisconnected, onReconnected, onError }
   }
 
   async connect() {
     try {
-      if (mongoose.connection.readyState === 0) await mongoose.connect(this.uri, { ...DEFAULT_MONGO_OPTIONS, dbName: this.dbName })
-      await this._ensureIndexes()
-      this.connected = true
       this._ensureConnectionListeners()
+      if (mongoose.connection.readyState === 0) await withMongoTimeout(() => mongoose.connect(this.uri, { ...DEFAULT_MONGO_OPTIONS, dbName: this.dbName }), { label: 'conexión inicial' })
+      await withMongoTimeout(() => this._ensureIndexes(), { label: 'creación de índices', swallow: true, fallback: null })
+      this.connected = true
       return mongoose.connection
     } catch (error) {
       this.connected = false
@@ -257,54 +320,60 @@ export class MongoDatabase {
 
 
   async setTemporaryState(scope, key, value = {}, ttlMs = 60 * 60 * 1000) {
-    await this.ready
+    await withMongoTimeout(() => this.ready, { label: 'espera de conexión temporal state', swallow: true, fallback: null })
+    if (!isMongoConnected()) return null
     const safeScope = String(scope || '').trim()
     const safeKey = String(key || '').trim()
     if (!safeScope || !safeKey) throw new TypeError('setTemporaryState requiere scope y key válidos')
     const expireAt = new Date(Date.now() + Math.max(Number(ttlMs) || 0, 1000))
-    await mongoose.connection.db.collection('temporary_states').updateOne(
+    await withMongoTimeout(() => mongoose.connection.db.collection('temporary_states').updateOne(
       { scope: safeScope, key: safeKey },
       { $set: { value: clone(value), expireAt, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
       { upsert: true }
-    )
+    ), { label: 'guardado temporary state', swallow: true, fallback: null })
     return { scope: safeScope, key: safeKey, value, expireAt }
   }
 
   async getTemporaryState(scope, key) {
-    await this.ready
-    const row = await mongoose.connection.db.collection('temporary_states').findOne({ scope: String(scope || ''), key: String(key || '') })
+    await withMongoTimeout(() => this.ready, { label: 'espera de conexión get temporary state', swallow: true, fallback: null })
+    if (!isMongoConnected()) return undefined
+    const row = await withMongoTimeout(() => mongoose.connection.db.collection('temporary_states').findOne({ scope: String(scope || ''), key: String(key || '') }), { label: 'lectura temporary state', swallow: true, fallback: null })
     if (!row || (row.expireAt && row.expireAt.getTime() <= Date.now())) return undefined
     return clone(row.value)
   }
 
   async deleteTemporaryState(scope, key) {
-    await this.ready
-    return mongoose.connection.db.collection('temporary_states').deleteOne({ scope: String(scope || ''), key: String(key || '') })
+    await withMongoTimeout(() => this.ready, { label: 'espera de conexión delete temporary state', swallow: true, fallback: null })
+    if (!isMongoConnected()) return null
+    return withMongoTimeout(() => mongoose.connection.db.collection('temporary_states').deleteOne({ scope: String(scope || ''), key: String(key || '') }), { label: 'borrado temporary state', swallow: true, fallback: null })
   }
 
   async setTimelockCooldown(jid, value = {}, ttlMs = 24 * 60 * 60 * 1000) {
-    await this.ready
+    await withMongoTimeout(() => this.ready, { label: 'espera de conexión set timelock', swallow: true, fallback: null })
+    if (!isMongoConnected()) return null
     const safeJid = String(jid || '').trim()
     if (!safeJid) throw new TypeError('setTimelockCooldown requiere un jid válido')
     const expiresAt = new Date(Date.now() + Math.max(Number(ttlMs) || 0, 1000))
-    await mongoose.connection.db.collection('timelock_cooldown').updateOne(
+    await withMongoTimeout(() => mongoose.connection.db.collection('timelock_cooldown').updateOne(
       { jid: safeJid },
       { $set: { value: clone(value), expiresAt, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
       { upsert: true }
-    )
+    ), { label: 'guardado timelock', swallow: true, fallback: null })
     return { jid: safeJid, value, expiresAt }
   }
 
   async getTimelockCooldown(jid) {
-    await this.ready
-    const row = await mongoose.connection.db.collection('timelock_cooldown').findOne({ jid: String(jid || '') })
+    await withMongoTimeout(() => this.ready, { label: 'espera de conexión get timelock', swallow: true, fallback: null })
+    if (!isMongoConnected()) return undefined
+    const row = await withMongoTimeout(() => mongoose.connection.db.collection('timelock_cooldown').findOne({ jid: String(jid || '') }), { label: 'lectura timelock', swallow: true, fallback: null })
     if (!row || (row.expiresAt && row.expiresAt.getTime() <= Date.now())) return undefined
     return clone(row.value)
   }
 
   async deleteTimelockCooldown(jid) {
-    await this.ready
-    return mongoose.connection.db.collection('timelock_cooldown').deleteOne({ jid: String(jid || '') })
+    await withMongoTimeout(() => this.ready, { label: 'espera de conexión delete timelock', swallow: true, fallback: null })
+    if (!isMongoConnected()) return null
+    return withMongoTimeout(() => mongoose.connection.db.collection('timelock_cooldown').deleteOne({ jid: String(jid || '') }), { label: 'borrado timelock', swallow: true, fallback: null })
   }
 
   _userVersion(id) { return this.userCacheVersions.get(id) || 0 }
@@ -370,37 +439,49 @@ export class MongoDatabase {
   }
 
   async _flushBatches() {
-    await this.ready
+    await withMongoTimeout(() => this.ready, { label: 'espera de conexión flush batch', swallow: true, fallback: null })
+    if (!isMongoConnected()) {
+      this._scheduleBatchFlush()
+      return
+    }
     const userEntries = [...this.pendingUserPatches.entries()]
-    const recordWrites = [...this.pendingRecordWrites.values()]
-    const recordDeletes = [...this.pendingRecordDeletes.values()]
+    const recordWrites = [...this.pendingRecordWrites.entries()]
+    const recordDeletes = [...this.pendingRecordDeletes.entries()]
     if (!userEntries.length && !recordWrites.length && !recordDeletes.length) return
-    this.pendingUserPatches.clear()
-    this.pendingRecordWrites.clear()
-    this.pendingRecordDeletes.clear()
-    const operations = []
-    if (userEntries.length) {
-      operations.push(this.User.bulkWrite(userEntries.map(([id, patch]) => {
-        const atomicUpdate = splitUserPatch(patch)
-        return { updateOne: { filter: { _id: id }, update: { $setOnInsert: normalizeUserForInsert(id, atomicUpdate), ...atomicUpdate }, upsert: true } }
-      }), { ordered: false }))
-      for (const [id] of userEntries) this.userDirtyFields.delete(id)
+    const result = await withMongoTimeout(async () => {
+      const operations = []
+      if (userEntries.length) {
+        operations.push(this.User.bulkWrite(userEntries.map(([id, patch]) => {
+          const atomicUpdate = splitUserPatch(patch)
+          return { updateOne: { filter: { _id: id }, update: { $setOnInsert: normalizeUserForInsert(id, atomicUpdate), ...atomicUpdate }, upsert: true } }
+        }), { ordered: false }))
+      }
+      if (recordWrites.length) {
+        operations.push(this.Record.bulkWrite(recordWrites.map(([, { section, id, value }]) => ({ updateOne: { filter: { section, key: id }, update: { $set: { value } }, upsert: true } })), { ordered: false }))
+      }
+      if (recordDeletes.length) {
+        operations.push(this.Record.bulkWrite(recordDeletes.map(([, { section, id }]) => ({ deleteOne: { filter: { section, key: id } } })), { ordered: false }))
+      }
+      await Promise.all(operations)
+      return true
+    }, { label: 'flush batch', swallow: true, fallback: false })
+    if (!result) return
+    for (const [id, patch] of userEntries) {
+      if (this.pendingUserPatches.get(id) === patch) this.pendingUserPatches.delete(id)
+      this.userDirtyFields.delete(id)
     }
-    if (recordWrites.length) {
-      operations.push(this.Record.bulkWrite(recordWrites.map(({ section, id, value }) => ({ updateOne: { filter: { section, key: id }, update: { $set: { value } }, upsert: true } })), { ordered: false }))
-    }
-    if (recordDeletes.length) {
-      operations.push(this.Record.bulkWrite(recordDeletes.map(({ section, id }) => ({ deleteOne: { filter: { section, key: id } } })), { ordered: false }))
-    }
-    await Promise.all(operations.map(operation => this._trackWrite(operation)))
+    for (const [cacheKey, entry] of recordWrites) if (this.pendingRecordWrites.get(cacheKey) === entry) this.pendingRecordWrites.delete(cacheKey)
+    for (const [cacheKey, entry] of recordDeletes) if (this.pendingRecordDeletes.get(cacheKey) === entry) this.pendingRecordDeletes.delete(cacheKey)
   }
 
   async read() {
-    await this.ready
-    const [users, records] = await Promise.all([
+    if (process.env.MONGODB_EAGER_LOAD !== 'true') return this.data
+    await withMongoTimeout(() => this.ready, { label: 'espera de conexión read inicial', swallow: true, fallback: null })
+    if (!isMongoConnected()) return this.data
+    const [users, records] = await withMongoTimeout(() => Promise.all([
       this.User.find({}).lean(),
       this.Record.find({ section: { $in: SECTION_COLLECTIONS } }).lean()
-    ])
+    ]), { label: 'read inicial', swallow: true, fallback: [[], []] })
     for (const row of users) this.userCache.set(row._id, normalizeUser(row._id, row))
     for (const row of records) this.sectionCache.set(keyFor(row.section, row.key), clone(row.value))
     return this.data
@@ -410,7 +491,7 @@ export class MongoDatabase {
   async save() { return this.write() }
   async flush() { return this.write() }
   async forceSave() { return this.write() }
-  async close() { await this.forceSave(); globalThis[MONGO_INSTANCE_SET_KEY]?.delete(this); try { await mongoose.connection.close(false) } catch (error) { console.error('[mongodb] error cerrando conexión', error) } }
+  async close() { if (this.writeBehindTimer) clearInterval(this.writeBehindTimer); await this.forceSave(); globalThis[MONGO_INSTANCE_SET_KEY]?.delete(this); try { await mongoose.connection.close(false) } catch (error) { console.error('[mongodb] error cerrando conexión', error) } }
 
   getUser(id) {
     const userId = normalizeJid(id)
@@ -418,7 +499,7 @@ export class MongoDatabase {
     if (!this.userCache.has(userId)) this.userCache.set(userId, normalizeUser(userId))
     return this._userProxy(userId)
   }
-  async getUserAsync(id) { await this.ready; const userId = normalizeJid(id); if (!userId) throw new TypeError('getUserAsync requiere un id de usuario válido'); if (!this.userCache.has(userId)) { const doc = await this.User.findById(userId).lean(); this.userCache.set(userId, normalizeUser(userId, doc || {})); if (!doc) await this.updateUser(userId, {}) } return this.getUser(userId) }
+  async getUserAsync(id) { await withMongoTimeout(() => this.ready, { label: 'espera de conexión getUserAsync', swallow: true, fallback: null }); const userId = normalizeJid(id); if (!userId) throw new TypeError('getUserAsync requiere un id de usuario válido'); if (!this.userCache.has(userId)) { const doc = isMongoConnected() ? await withMongoTimeout(() => this.User.findById(userId).lean(), { label: 'lectura getUserAsync', swallow: true, fallback: null }) : null; this.userCache.set(userId, normalizeUser(userId, doc || {})); if (!doc && isMongoConnected()) await this.updateUser(userId, {}) } return this.getUser(userId) }
 
   updateUser(id, patch = {}) {
     const userId = normalizeJid(id)
@@ -427,13 +508,8 @@ export class MongoDatabase {
     const next = applyPatchToUser(userId, this.userCache.get(userId), safePatch)
     this.userCache.set(userId, next)
     this._bumpUserVersion(userId)
-    const atomicUpdate = splitUserPatch(safePatch)
-    const write = this.ready.then(() => this.User.findOneAndUpdate(
-      { _id: userId },
-      { $setOnInsert: normalizeUserForInsert(userId, atomicUpdate), ...atomicUpdate },
-      { upsert: true, new: true, lean: true }
-    )).then(doc => { if (doc) this.userCache.set(userId, normalizeUser(userId, doc)); return this._userProxy(userId) })
-    return this._trackWrite(write)
+    this._queueUserWrite(userId, safePatch)
+    return Promise.resolve(this._userProxy(userId))
   }
 
   incrementUserField(id, field, delta) {
@@ -443,12 +519,7 @@ export class MongoDatabase {
     if (!Object.prototype.hasOwnProperty.call(USER_DEFAULTS, field) || !NUMERIC_FIELDS.has(field)) return this.updateUser(userId, { [field]: (Number(this.getUser(userId)[field]) || 0) + amount })
     const current = normalizeUser(userId, this.userCache.get(userId))
     this.userCache.set(userId, normalizeUser(userId, { ...current, [field]: (Number(current[field]) || 0) + amount }))
-    const write = this.ready.then(() => this.User.findOneAndUpdate(
-      { _id: userId },
-      { $setOnInsert: normalizeUserForInsert(userId, { $inc: { [field]: amount }, $set: { updatedAt: new Date() } }), $inc: { [field]: amount }, $set: { updatedAt: new Date() } },
-      { upsert: true, new: true, lean: true }
-    )).then(doc => { if (doc) this.userCache.set(userId, normalizeUser(userId, doc)); return this._userProxy(userId) })
-    this._trackWrite(write)
+    this._queueUserWrite(userId, { [field]: current[field] + amount })
     return this.getUser(userId)
   }
 
@@ -479,7 +550,7 @@ export class MongoDatabase {
   addMoney(id, amount, field = 'coin') { return this.incrementUserField(id, field, amount) }
   addEconomy(id, fieldOrAmount, maybeAmount) { return typeof fieldOrAmount === 'string' ? this.addMoney(id, maybeAmount, fieldOrAmount) : this.addMoney(id, fieldOrAmount, maybeAmount || 'coin') }
   setEconomy(id, field, value) { return this.updateUser(id, { [field]: value }) }
-  async userExists(id) { await this.ready; const userId = normalizeJid(id); return Boolean(userId && (this.userCache.has(userId) || await this.User.exists({ _id: userId }))) }
+  async userExists(id) { await withMongoTimeout(() => this.ready, { label: 'espera de conexión userExists', swallow: true, fallback: null }); const userId = normalizeJid(id); return Boolean(userId && (this.userCache.has(userId) || (isMongoConnected() && await withMongoTimeout(() => this.User.exists({ _id: userId }), { label: 'userExists', swallow: true, fallback: null })))) }
   listUsers() { return Object.fromEntries([...this.userCache.entries()].map(([id, user]) => [id, normalizeUser(id, user)])) }
   listUserRows() { return Object.entries(this.listUsers()).map(([id, user]) => ({ ...user, id })) }
   async topUsers({ field = 'coin', limit = 10, offset = 0 } = {}) {
@@ -502,6 +573,23 @@ export class MongoDatabase {
     return rows.map(row => ({ id: row.id, [safeField]: Number(row[safeField]) || 0 }))
   }
   getTopUsers(options = {}) { return this.topUsers(options) }
+
+  addMessageStat(plugin, { success = true, now: timestamp = now() } = {}) {
+    const key = String(plugin || '').trim()
+    if (!key) return null
+    const stat = this.get('stats', key) || { total: 0, success: 0, last: timestamp, lastSuccess: 0 }
+    stat.total = (Number(stat.total) || 0) + 1
+    stat.last = timestamp
+    if (success) {
+      stat.success = (Number(stat.success) || 0) + 1
+      stat.lastSuccess = timestamp
+    } else {
+      stat.success = Number(stat.success) || 0
+      stat.lastSuccess = Number(stat.lastSuccess) || 0
+    }
+    this.set('stats', key, stat)
+    return stat
+  }
   async countUsers() { await this.ready; return this.User.estimatedDocumentCount() }
   async countRegisteredUsers() { await this.ready; return this.User.countDocuments({ registered: true }) }
   async listUsersAsync() { await this.ready; const rows = await this.User.find({}).lean(); for (const row of rows) this.userCache.set(row._id, normalizeUser(row._id, row)); return this.listUsers() }
@@ -606,8 +694,9 @@ if (!chat.botSettings || typeof chat.botSettings !== 'object' || Array.isArray(c
     const cacheKey = keyFor(section, id)
     let value = bypassCache ? undefined : this.sectionCache.get(cacheKey)
     if (typeof value === 'undefined') {
-      await this.ready
-      const row = await this.Record.findOne({ section, key: id }).lean()
+      await withMongoTimeout(() => this.ready, { label: `espera de conexión getRecord ${section}`, swallow: true, fallback: null })
+      if (!isMongoConnected()) return this._recordProxy(section, id, value)
+      const row = await withMongoTimeout(() => this.Record.findOne({ section, key: id }).lean(), { label: `getRecord ${section}`, swallow: true, fallback: null })
       value = row ? clone(row.value) : undefined
       if (typeof value !== 'undefined') this.sectionCache.set(cacheKey, value)
     }
@@ -678,7 +767,7 @@ if (!chat.botSettings || typeof chat.botSettings !== 'object' || Array.isArray(c
     this.sectionCache.set(keyFor(section, id), stored)
     return this._queueRecordWrite(section, id, stored)
   }
-  async has(section, id) { if (section === 'users') return this.userExists(id); if (this.sectionCache.has(keyFor(section, id))) return true; await this.ready; return Boolean(await this.Record.exists({ section, key: id })) }
+  async has(section, id) { if (section === 'users') return this.userExists(id); if (this.sectionCache.has(keyFor(section, id))) return true; await withMongoTimeout(() => this.ready, { label: `espera de conexión has ${section}`, swallow: true, fallback: null }); return Boolean(isMongoConnected() && await withMongoTimeout(() => this.Record.exists({ section, key: id }), { label: `has ${section}`, swallow: true, fallback: null })) }
   delete(section, id) {
     if (section === 'users') {
       this.userCache.delete(id)
