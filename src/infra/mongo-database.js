@@ -4,16 +4,25 @@ import { readFile } from 'fs/promises'
 import path from 'path'
 import { normalizeJid } from '../core/identity-utils.js'
 
+mongoose.set('bufferCommands', false)
+mongoose.set('bufferTimeoutMS', 0)
+
 const DEFAULT_MONGO_OPTIONS = {
   maxPoolSize: Number(process.env.MONGODB_POOL_SIZE || 10),
   minPoolSize: Number(process.env.MONGODB_MIN_POOL_SIZE || 0),
   serverSelectionTimeoutMS: Number(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS || 5_000),
   socketTimeoutMS: Number(process.env.MONGODB_SOCKET_TIMEOUT_MS || 45_000),
+  connectTimeoutMS: Number(process.env.MONGODB_CONNECT_TIMEOUT_MS || 5_000),
+  heartbeatFrequencyMS: Number(process.env.MONGODB_HEARTBEAT_FREQUENCY_MS || 10_000),
+  waitQueueTimeoutMS: Number(process.env.MONGODB_WAIT_QUEUE_TIMEOUT_MS || 5_000),
+  maxConnecting: Number(process.env.MONGODB_MAX_CONNECTING || 2),
   retryWrites: true,
   autoIndex: process.env.NODE_ENV !== 'production'
   // MongoDB Node.js Driver 6+ mantiene TCP keepAlive activo por defecto y rechaza la opción keepAlive heredada.
 }
 const MONGO_OPERATION_TIMEOUT_MS = Number(process.env.MONGODB_OPERATION_TIMEOUT_MS || 5_000)
+const MONGO_CIRCUIT_BREAKER_MS = Number(process.env.MONGODB_CIRCUIT_BREAKER_MS || 15_000)
+let mongoUnavailableUntil = 0
 
 const USER_DEFAULTS = {
   coin: 0, bank: 0, exp: 0, level: 0, role: '*Chibi Aventurero/a V*🐙', limit: 0, health: 100, warn: 0,
@@ -37,7 +46,11 @@ function normalizeSearchText(text = '') { return String(text || '').toLowerCase(
 function findCharactersFile() { return [path.resolve('./src/database/characters.json'), path.resolve('./database/characters.json')].find(candidate => existsSync(candidate)) }
 function keyFor(section, id) { return `${section}:${id}` }
 
-function isMongoConnected() { return mongoose.connection.readyState === 1 }
+function markMongoUnavailable(error) {
+  mongoUnavailableUntil = Date.now() + MONGO_CIRCUIT_BREAKER_MS
+  if (error) console.error('[mongodb] circuito abierto temporalmente; se evita I/O de red', error)
+}
+function isMongoConnected() { return mongoose.connection.readyState === 1 && Date.now() >= mongoUnavailableUntil }
 function withMongoTimeout(operation, { timeoutMs = MONGO_OPERATION_TIMEOUT_MS, label = 'operación MongoDB', fallback, swallow = false } = {}) {
   let timer
   const timeout = new Promise((resolve, reject) => {
@@ -50,6 +63,7 @@ function withMongoTimeout(operation, { timeoutMs = MONGO_OPERATION_TIMEOUT_MS, l
   })
   return Promise.race([Promise.resolve().then(operation), timeout]).catch(error => {
     if (!swallow) throw error
+    markMongoUnavailable(error)
     console.error(`[mongodb] ${label} falló; se continúa sin bloquear el bot`, error)
     return typeof fallback === 'function' ? fallback(error) : fallback
   }).finally(() => clearTimeout(timer))
@@ -185,7 +199,7 @@ function applyPatchToUser(id, current, patch = {}) {
 const userSchema = new mongoose.Schema({
   _id: { type: String, alias: 'id' },
   ...Object.fromEntries(Object.entries(USER_DEFAULTS).map(([key, value]) => [key, { type: mongoose.Schema.Types.Mixed, default: clone(value) }]))
-}, { strict: false, timestamps: true, minimize: false, versionKey: false })
+}, { strict: false, timestamps: true, minimize: false, versionKey: false, bufferCommands: false, autoCreate: false })
 userSchema.index({ level: -1 })
 userSchema.index({ coin: -1 })
 userSchema.index({ bank: -1 })
@@ -196,7 +210,7 @@ const recordSchema = new mongoose.Schema({
   section: { type: String, required: true, index: true },
   key: { type: String, required: true },
   value: { type: mongoose.Schema.Types.Mixed, default: {} }
-}, { strict: false, timestamps: true, minimize: false, versionKey: false })
+}, { strict: false, timestamps: true, minimize: false, versionKey: false, bufferCommands: false, autoCreate: false })
 recordSchema.index({ section: 1, key: 1 }, { unique: true })
 
 export class MongoDatabase {
@@ -245,18 +259,22 @@ export class MongoDatabase {
   _ensureConnectionListeners() {
     if (mongoose.connection[MONGO_LISTENER_KEY]) return
     const onDisconnected = () => {
+      markMongoUnavailable()
       for (const instance of globalThis[MONGO_INSTANCE_SET_KEY] || []) instance.connected = false
-      console.error('[mongodb] conexión perdida; mongoose reconectará en segundo plano sin bloquear Baileys')
+      console.error('[mongodb] conexión perdida; se abre circuito y se evita I/O hasta reconectar')
     }
     const onConnected = () => {
+      mongoUnavailableUntil = 0
       for (const instance of globalThis[MONGO_INSTANCE_SET_KEY] || []) instance.connected = true
       console.info('[mongodb] conexión establecida')
     }
     const onError = error => {
+      markMongoUnavailable(error)
       for (const instance of globalThis[MONGO_INSTANCE_SET_KEY] || []) instance.connected = false
       console.error('[mongodb] error de red/controlado; el bot continuará operativo', error)
     }
     const onReconnected = () => {
+      mongoUnavailableUntil = 0
       for (const instance of globalThis[MONGO_INSTANCE_SET_KEY] || []) instance.connected = true
       console.info('[mongodb] conexión restaurada')
     }
@@ -457,6 +475,7 @@ export class MongoDatabase {
   }
 
   async read() {
+    if (process.env.MONGODB_EAGER_LOAD !== 'true') return this.data
     await withMongoTimeout(() => this.ready, { label: 'espera de conexión read inicial', swallow: true, fallback: null })
     if (!isMongoConnected()) return this.data
     const [users, records] = await withMongoTimeout(() => Promise.all([

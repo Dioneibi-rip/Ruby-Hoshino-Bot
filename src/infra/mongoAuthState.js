@@ -1,6 +1,9 @@
 import mongoose from 'mongoose'
 import { BufferJSON, initAuthCreds, proto } from '@whiskeysockets/baileys'
 
+mongoose.set('bufferCommands', false)
+mongoose.set('bufferTimeoutMS', 0)
+
 const DAY_MS = 24 * 60 * 60 * 1000
 const DEFAULT_VOLATILE_RETENTION_MS = Number(process.env.MONGO_AUTH_VOLATILE_RETENTION_MS || 7 * DAY_MS)
 const DEFAULT_CLEANUP_INTERVAL_MS = Number(process.env.MONGO_AUTH_CLEANUP_INTERVAL_MS || 6 * 60 * 60 * 1000)
@@ -17,13 +20,23 @@ const MONGO_AUTH_OPTIONS = {
   maxPoolSize: Number(process.env.MONGODB_AUTH_POOL_SIZE || process.env.MONGODB_POOL_SIZE || 10),
   serverSelectionTimeoutMS: Number(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS || 5_000),
   socketTimeoutMS: Number(process.env.MONGODB_SOCKET_TIMEOUT_MS || 45_000),
+  connectTimeoutMS: Number(process.env.MONGODB_CONNECT_TIMEOUT_MS || 5_000),
+  heartbeatFrequencyMS: Number(process.env.MONGODB_HEARTBEAT_FREQUENCY_MS || 10_000),
+  waitQueueTimeoutMS: Number(process.env.MONGODB_WAIT_QUEUE_TIMEOUT_MS || 5_000),
+  maxConnecting: Number(process.env.MONGODB_MAX_CONNECTING || 2),
   retryWrites: true
   // MongoDB Node.js Driver 6+ mantiene TCP keepAlive activo por defecto y rechaza la opción keepAlive heredada.
 }
 const MONGO_AUTH_OPERATION_TIMEOUT_MS = Number(process.env.MONGODB_AUTH_OPERATION_TIMEOUT_MS || process.env.MONGODB_OPERATION_TIMEOUT_MS || 5_000)
+const MONGO_AUTH_CIRCUIT_BREAKER_MS = Number(process.env.MONGODB_AUTH_CIRCUIT_BREAKER_MS || process.env.MONGODB_CIRCUIT_BREAKER_MS || 15_000)
 const MONGO_AUTH_LISTENER_KEY = Symbol.for('ruby-hoshino.mongo-auth.listeners')
 
-function isMongoConnected() { return mongoose.connection.readyState === 1 }
+let mongoAuthUnavailableUntil = 0
+function markMongoAuthUnavailable(error) {
+  mongoAuthUnavailableUntil = Date.now() + MONGO_AUTH_CIRCUIT_BREAKER_MS
+  if (error) console.error('[mongo-auth] circuito abierto temporalmente; se evita I/O de red', error)
+}
+function isMongoConnected() { return mongoose.connection.readyState === 1 && Date.now() >= mongoAuthUnavailableUntil }
 function withMongoTimeout(operation, { timeoutMs = MONGO_AUTH_OPERATION_TIMEOUT_MS, label = 'operación mongo-auth', fallback, swallow = true } = {}) {
   let timer
   const timeout = new Promise((resolve, reject) => {
@@ -36,6 +49,7 @@ function withMongoTimeout(operation, { timeoutMs = MONGO_AUTH_OPERATION_TIMEOUT_
   })
   return Promise.race([Promise.resolve().then(operation), timeout]).catch(error => {
     if (!swallow) throw error
+    markMongoAuthUnavailable(error)
     console.error(`[mongo-auth] ${label} falló; Baileys continuará sin esperar MongoDB`, error)
     return typeof fallback === 'function' ? fallback(error) : fallback
   }).finally(() => clearTimeout(timer))
@@ -43,10 +57,10 @@ function withMongoTimeout(operation, { timeoutMs = MONGO_AUTH_OPERATION_TIMEOUT_
 
 function ensureMongoConnectionListeners() {
   if (mongoose.connection[MONGO_AUTH_LISTENER_KEY]) return
-  mongoose.connection.on('connected', () => console.info('[mongo-auth] conexión establecida'))
-  mongoose.connection.on('disconnected', () => console.error('[mongo-auth] conexión perdida; reconexión en segundo plano'))
-  mongoose.connection.on('reconnected', () => console.info('[mongo-auth] conexión restaurada'))
-  mongoose.connection.on('error', error => console.error('[mongo-auth] error controlado de MongoDB; no se detiene Baileys', error))
+  mongoose.connection.on('connected', () => { mongoAuthUnavailableUntil = 0; console.info('[mongo-auth] conexión establecida') })
+  mongoose.connection.on('disconnected', () => { markMongoAuthUnavailable(); console.error('[mongo-auth] conexión perdida; circuito abierto y reconexión en segundo plano') })
+  mongoose.connection.on('reconnected', () => { mongoAuthUnavailableUntil = 0; console.info('[mongo-auth] conexión restaurada') })
+  mongoose.connection.on('error', error => { markMongoAuthUnavailable(error); console.error('[mongo-auth] error controlado de MongoDB; no se detiene Baileys', error) })
   mongoose.connection[MONGO_AUTH_LISTENER_KEY] = true
 }
 
@@ -102,7 +116,7 @@ const authStateSchema = new mongoose.Schema({
   value: { type: String, default: '' },
   expiresAt: { type: Date, default: null },
   lastAccessAt: { type: Date, default: Date.now }
-}, { collection: 'auth_states', strict: true, timestamps: true, versionKey: false })
+}, { collection: 'auth_states', strict: true, timestamps: true, versionKey: false, bufferCommands: false, autoCreate: false })
 authStateSchema.index({ sessionId: 1, category: 1, keyId: 1 }, { unique: true })
 authStateSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 authStateSchema.index({ sessionId: 1, category: 1, lastAccessAt: 1 })
