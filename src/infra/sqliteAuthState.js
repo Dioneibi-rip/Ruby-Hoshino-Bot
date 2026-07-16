@@ -108,7 +108,7 @@ upsert: sqlite.prepare(`INSERT INTO auth_state(category,id,value,created_at,upda
 VALUES(?,?,?,?,?,?)
 ON CONFLICT(category,id) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at, last_access_at=excluded.last_access_at`),
 remove: sqlite.prepare('DELETE FROM auth_state WHERE category = ? AND id = ?'),
-cleanup: sqlite.prepare("DELETE FROM auth_state WHERE category IN ('pre-key','session') AND last_access_at < ?"),
+cleanup: sqlite.prepare("DELETE FROM auth_state WHERE category IN ('pre-key','sender-key','session') AND last_access_at < ?"),
 getMeta: sqlite.prepare('SELECT value FROM auth_state WHERE category = ? AND id = ?'),
 setMeta: sqlite.prepare(`INSERT INTO auth_state(category,id,value,created_at,updated_at,last_access_at)
 VALUES('meta',?,?,?,?,?)
@@ -214,3 +214,11 @@ return sqlite
 }
 
 export default useSQLiteAuthState
+
+export async function useOptimizedAuthState(sessionDir, options = {}) {
+const useMongo = Boolean(options.mongo || (process.env.MONGODB_URI && process.env.AUTH_STATE_DRIVER !== 'sqlite'))
+if (!useMongo) return useSQLiteAuthState(sessionDir, options)
+const { useMongoAuthState } = await import('./mongoAuthState.js')
+const sessionId = options.sessionId || path.basename(path.resolve(sessionDir || 'default'))
+return useMongoAuthState(sessionId, options)
+}

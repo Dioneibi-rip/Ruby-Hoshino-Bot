@@ -86,28 +86,38 @@ function normalizeUser(id, value = {}) {
   for (const field of BOOLEAN_FIELDS) source[field] = Boolean(source[field])
   return source
 }
-function normalizeUserForInsert(id, setPatch = {}) {
+function normalizeUserForInsert(id, atomicPatch = {}) {
   const insertData = normalizeUser(id)
+  insertData.jid = id
   delete insertData.extras
-  for (const path of Object.keys(setPatch || {})) {
-    const root = path.split('.')[0]
-    if (root) delete insertData[root]
+  for (const operatorPatch of Object.values(atomicPatch || {})) {
+    if (!operatorPatch || typeof operatorPatch !== 'object') continue
+    for (const path of Object.keys(operatorPatch)) {
+      const root = path.split('.')[0]
+      if (root) delete insertData[root]
+    }
   }
   return insertData
 }
+function mongoValue(value) { return value instanceof Date ? value.getTime() : value }
 function splitUserPatch(patch = {}) {
+  const $inc = {}
   const $set = { updatedAt: new Date() }
   for (const [key, value] of Object.entries(patch || {})) {
-    if (key === 'id' || key === '_id' || key === 'createdAt' || key === 'updatedAt') continue
+    if (key === 'id' || key === '_id' || key === 'jid' || key === 'createdAt' || key === 'updatedAt') continue
     if (key === 'extras' && value && typeof value === 'object' && !Array.isArray(value)) {
-      for (const [extraKey, extraValue] of Object.entries(value)) $set[`extras.${extraKey}`] = extraValue
+      for (const [extraKey, extraValue] of Object.entries(value)) $set[`extras.${extraKey}`] = mongoValue(extraValue)
     } else if (key in USER_DEFAULTS) {
-      $set[key] = value instanceof Date ? value.getTime() : value
+      if (NUMERIC_FIELDS.has(key) && typeof value === 'number' && Number.isFinite(value)) $inc[key] = value
+      else $set[key] = mongoValue(value)
     } else {
-      $set[`extras.${key}`] = value instanceof Date ? value.getTime() : value
+      $set[`extras.${key}`] = mongoValue(value)
     }
   }
-  return $set
+  const update = {}
+  if (Object.keys($inc).length) update.$inc = $inc
+  if (Object.keys($set).length) update.$set = $set
+  return update
 }
 
 function createMongoSqliteCompatibility(db) {
@@ -147,6 +157,7 @@ function applyPatchToUser(id, current, patch = {}) {
   for (const [key, value] of Object.entries(patch || {})) {
     if (key === 'id' || key === '_id') continue
     if (key === 'extras' && value && typeof value === 'object' && !Array.isArray(value)) next.extras = { ...next.extras, ...value }
+    else if (key in USER_DEFAULTS && NUMERIC_FIELDS.has(key) && typeof value === 'number' && Number.isFinite(value)) next[key] = (Number(next[key]) || 0) + value
     else if (key in USER_DEFAULTS) next[key] = value instanceof Date ? value.getTime() : value
     else next.extras[key] = value instanceof Date ? value.getTime() : value
   }
@@ -216,6 +227,7 @@ export class MongoDatabase {
   async connect() {
     try {
       if (mongoose.connection.readyState === 0) await mongoose.connect(this.uri, { ...DEFAULT_MONGO_OPTIONS, dbName: this.dbName })
+      await this._ensureIndexes()
       this.connected = true
       this._ensureConnectionListeners()
       return mongoose.connection
@@ -224,6 +236,50 @@ export class MongoDatabase {
       console.error('[mongodb] no se pudo conectar a MongoDB', error)
       throw error
     }
+  }
+
+  async _ensureIndexes() {
+    const db = mongoose.connection.db
+    if (!db) return
+    await db.collection('users').updateMany({ jid: { $exists: false } }, [{ $set: { jid: '$_id' } }])
+    await Promise.all([
+      db.collection('users').createIndex({ jid: 1 }, { unique: true }),
+      db.collection('users').createIndex({ coin: -1 }),
+      db.collection('users').createIndex({ bank: -1 }),
+      db.collection('users').createIndex({ level: -1 }),
+      db.collection('records').createIndex({ section: 1, key: 1 }, { unique: true }),
+      db.collection('records').createIndex({ section: 1, key: 1 }, { unique: true, partialFilterExpression: { section: 'chats' }, name: 'chats_section_key_unique' }),
+      db.collection('chats').createIndex({ jid: 1 }, { unique: true }),
+      db.collection('temporary_states').createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 }),
+      db.collection('temporary_states').createIndex({ scope: 1, key: 1 }, { unique: true })
+    ])
+  }
+
+
+  async setTemporaryState(scope, key, value = {}, ttlMs = 60 * 60 * 1000) {
+    await this.ready
+    const safeScope = String(scope || '').trim()
+    const safeKey = String(key || '').trim()
+    if (!safeScope || !safeKey) throw new TypeError('setTemporaryState requiere scope y key válidos')
+    const expireAt = new Date(Date.now() + Math.max(Number(ttlMs) || 0, 1000))
+    await mongoose.connection.db.collection('temporary_states').updateOne(
+      { scope: safeScope, key: safeKey },
+      { $set: { value: clone(value), expireAt, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
+      { upsert: true }
+    )
+    return { scope: safeScope, key: safeKey, value, expireAt }
+  }
+
+  async getTemporaryState(scope, key) {
+    await this.ready
+    const row = await mongoose.connection.db.collection('temporary_states').findOne({ scope: String(scope || ''), key: String(key || '') })
+    if (!row || (row.expireAt && row.expireAt.getTime() <= Date.now())) return undefined
+    return clone(row.value)
+  }
+
+  async deleteTemporaryState(scope, key) {
+    await this.ready
+    return mongoose.connection.db.collection('temporary_states').deleteOne({ scope: String(scope || ''), key: String(key || '') })
   }
 
   _userVersion(id) { return this.userCacheVersions.get(id) || 0 }
@@ -300,8 +356,8 @@ export class MongoDatabase {
     const operations = []
     if (userEntries.length) {
       operations.push(this.User.bulkWrite(userEntries.map(([id, patch]) => {
-        const $set = splitUserPatch(patch)
-        return { updateOne: { filter: { _id: id }, update: { $setOnInsert: normalizeUserForInsert(id, $set), $set }, upsert: true } }
+        const atomicUpdate = splitUserPatch(patch)
+        return { updateOne: { filter: { _id: id }, update: { $setOnInsert: normalizeUserForInsert(id, atomicUpdate), ...atomicUpdate }, upsert: true } }
       }), { ordered: false }))
       for (const [id] of userEntries) this.userDirtyFields.delete(id)
     }
@@ -346,10 +402,10 @@ export class MongoDatabase {
     const next = applyPatchToUser(userId, this.userCache.get(userId), safePatch)
     this.userCache.set(userId, next)
     this._bumpUserVersion(userId)
-    const $set = splitUserPatch(safePatch)
+    const atomicUpdate = splitUserPatch(safePatch)
     const write = this.ready.then(() => this.User.findOneAndUpdate(
       { _id: userId },
-      { $setOnInsert: normalizeUserForInsert(userId, $set), $set },
+      { $setOnInsert: normalizeUserForInsert(userId, atomicUpdate), ...atomicUpdate },
       { upsert: true, new: true, lean: true }
     )).then(doc => { if (doc) this.userCache.set(userId, normalizeUser(userId, doc)); return this._userProxy(userId) })
     return this._trackWrite(write)
@@ -364,7 +420,7 @@ export class MongoDatabase {
     this.userCache.set(userId, cached)
     const write = this.ready.then(() => this.User.findOneAndUpdate(
       { _id: userId },
-      { $setOnInsert: normalizeUserForInsert(userId, {}), $inc: { [field]: amount }, $set: { updatedAt: new Date() } },
+      { $setOnInsert: normalizeUserForInsert(userId, { $inc: { [field]: amount }, $set: { updatedAt: new Date() } }), $inc: { [field]: amount }, $set: { updatedAt: new Date() } },
       { upsert: true, new: true, lean: true }
     )).then(doc => { if (doc) this.userCache.set(userId, normalizeUser(userId, doc)); return this._userProxy(userId) })
     this._trackWrite(write)
@@ -382,12 +438,18 @@ export class MongoDatabase {
     if (!Object.prototype.hasOwnProperty.call(USER_DEFAULTS, safeField) || !NUMERIC_FIELDS.has(safeField)) throw new Error(`Campo de ranking no permitido: ${safeField}`)
     const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100)
     const safeOffset = Math.max(Number(offset) || 0, 0)
-    const rows = await this.User.find({}, { _id: 1, [safeField]: 1 }).sort({ [safeField]: -1, _id: 1 }).skip(safeOffset).limit(safeLimit).lean()
+    const pipeline = [
+      { $sort: { [safeField]: -1, _id: 1 } },
+      ...(safeOffset > 0 ? [{ $skip: safeOffset }] : []),
+      { $limit: safeLimit },
+      { $project: { _id: 0, id: '$_id', [safeField]: { $ifNull: [`$${safeField}`, 0] } } }
+    ]
+    const rows = await this.User.aggregate(pipeline).allowDiskUse(false).exec()
     for (const row of rows) {
-      const cached = this.userCache.get(row._id) || {}
-      this.userCache.set(row._id, normalizeUser(row._id, { ...cached, [safeField]: row[safeField] }))
+      const cached = this.userCache.get(row.id) || {}
+      this.userCache.set(row.id, normalizeUser(row.id, { ...cached, [safeField]: row[safeField] }))
     }
-    return rows.map(row => ({ id: row._id, [safeField]: Number(row[safeField]) || 0 }))
+    return rows.map(row => ({ id: row.id, [safeField]: Number(row[safeField]) || 0 }))
   }
   getTopUsers(options = {}) { return this.topUsers(options) }
   async countUsers() { await this.ready; return this.User.estimatedDocumentCount() }
