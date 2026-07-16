@@ -39,6 +39,7 @@ const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js', 'enable/grupo-unbanchat.js', 
 const CELESTIAL_COMMANDS = new Set(['resetbot', 'unbanchat', 'desbanearchat'])
 const REALTIME_EVENT_GRACE_MS = 15_000
 const REALTIME_EVENT_MAX_AGE_MS = 60_000
+const READ_MESSAGE_MIN_INTERVAL_MS = 1_500
 const PRIMARY_BOT_CACHE = global.__rubyPrimaryBotCache ||= new Map()
 const PRIMARY_BOT_EMPTY = ''
 
@@ -186,8 +187,12 @@ return message?.key?.participant || message?.participant || message?.sender || '
 }
 
 function trackLocalGroupActivity(conn, mOrRaw = {}, sender = '', { isCommand = false, countMessage = true } = {}) {
-const chatId = conn?.decodeJid?.(mOrRaw?.chat || mOrRaw?.key?.remoteJid || getRawMessageChat(mOrRaw)) || mOrRaw?.chat || mOrRaw?.key?.remoteJid || getRawMessageChat(mOrRaw)
-if (!chatId?.endsWith?.('@g.us')) return null
+try {
+if (!conn || !mOrRaw || typeof mOrRaw !== 'object') return null
+if (mOrRaw.isGroup === false) return null
+const rawChat = mOrRaw?.chat || mOrRaw?.key?.remoteJid || getRawMessageChat(mOrRaw)
+const chatId = conn?.decodeJid?.(rawChat) || rawChat
+if (typeof chatId !== 'string' || !chatId.endsWith('@g.us')) return null
 const rawSender = sender || mOrRaw?.sender || mOrRaw?.key?.participant || getActivitySenderFromRaw(mOrRaw)
 const jid = normalizeJid(conn?.decodeJid?.(rawSender) || rawSender)
 if (!jid || jid.endsWith('@g.us')) return null
@@ -207,6 +212,34 @@ chat.users[jid] = next
 chat.activityUpdatedAt = now
 global.db?.updateChat?.(chatId, { users: chat.users, activityUpdatedAt: chat.activityUpdatedAt })
 return next
+} catch (error) {
+console.error('[local-activity-tracker]', error?.message || error)
+return null
+}
+}
+
+function shouldReadCommandMessage(conn, m, commandEntry) {
+if (!commandEntry || !m?.key || typeof conn?.readMessages !== 'function') return false
+const { id, remoteJid } = m.key
+if (typeof id !== 'string' || !id || typeof remoteJid !== 'string' || !remoteJid) return false
+conn.__rubyReadMessagesLast ||= new Map()
+const rateKey = `${remoteJid}:${id}`
+const now = Date.now()
+const lastRead = Number(conn.__rubyReadMessagesLast.get(rateKey) || 0)
+if (now - lastRead < READ_MESSAGE_MIN_INTERVAL_MS) return false
+conn.__rubyReadMessagesLast.set(rateKey, now)
+return true
+}
+
+async function readCommandMessageSafely(conn, m, commandEntry) {
+if (!shouldReadCommandMessage(conn, m, commandEntry)) return false
+try {
+await conn.readMessages([m.key])
+return true
+} catch (error) {
+console.error('[read-command-message]', error?.message || error)
+return false
+}
 }
 
 function isCelestialCommandMessage(message = {}) {
@@ -623,7 +656,7 @@ const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJi
 const isBotSecurityManager = canManageBotSecurity(sender, this)
 if (!isOwner && !isROwner && !isBotSender(this, m, sender) && isBotBannedInThisChat && !isCelestialCommand && !isBotSecurityManager) return
 const __filename = join(pluginDir, name)
-await this.readMessages?.([m.key]).catch(() => {})
+await readCommandMessageSafely(this, m, commandEntry)
 trackLocalGroupActivity(this, m, sender, { countMessage: false, isCommand: true })
 const extra = buildPluginContext(this, { match, usedPrefix, ...commandParsed, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename })
 await executePlugin(this, plugin, name, m, extra, permissionContext, sender, { chat: chatData, user: global.db?.data?.users?.[sender], isCelestialCommand })

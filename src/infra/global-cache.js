@@ -65,18 +65,19 @@ export function getGlobalCacheKey(scope, id) {
 }
 
 export async function getGroupMetadataOnDemand(sock, jid, { requireParticipants = false, force = false } = {}) {
-  if (!sock || !jid) return {}
-  const key = jid
+  const decodedJid = sock?.decodeJid?.(jid) || jid
+  if (!sock || typeof decodedJid !== 'string' || !decodedJid.endsWith('@g.us')) return {}
+  const key = decodedJid
   const cached = !force ? groupMetadataCache.get(key) : null
   if (cached?.id && (!requireParticipants || cached.participants?.length)) return cached
   const fetchGroupMetadata = sock.__rawGroupMetadata || sock.groupMetadata?.bind(sock)
   if (typeof fetchGroupMetadata !== 'function') return cached || {}
   try {
-    const metadata = await fetchGroupMetadata(jid)
+    const metadata = await fetchGroupMetadata(decodedJid)
     if (metadata?.id) {
       metadata.__cachedAt = Date.now()
       groupMetadataCache.set(key, metadata)
-      global.db?.upsertGroupMetadata?.(jid, metadata)
+      global.db?.upsertGroupMetadata?.(decodedJid, metadata)
       return metadata
     }
   } catch (error) {
