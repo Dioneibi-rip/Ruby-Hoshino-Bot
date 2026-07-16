@@ -159,6 +159,7 @@ CREATE TABLE IF NOT EXISTS json_records (section TEXT NOT NULL, id TEXT NOT NULL
 CREATE TABLE IF NOT EXISTS sticker_cmds (hash TEXT PRIMARY KEY, value TEXT NOT NULL DEFAULT '{}', updated_at INTEGER NOT NULL DEFAULT (unixepoch()));
 CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS temporary_states (scope TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL DEFAULT '{}', expire_at INTEGER NOT NULL, updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000), PRIMARY KEY(scope, key));
+CREATE TABLE IF NOT EXISTS timelock_cooldown (jid TEXT PRIMARY KEY, expires_at INTEGER NOT NULL, value TEXT NOT NULL DEFAULT '{}', updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000));
 CREATE INDEX IF NOT EXISTS idx_users_jid ON users(id);
 CREATE INDEX IF NOT EXISTS idx_users_level ON users(level);
 CREATE INDEX IF NOT EXISTS idx_users_coin ON users(coin);
@@ -171,6 +172,7 @@ CREATE INDEX IF NOT EXISTS idx_settings_updated_at ON settings(updated_at);
 CREATE INDEX IF NOT EXISTS idx_json_records_section_updated_at ON json_records(section, updated_at);
 CREATE INDEX IF NOT EXISTS idx_sticker_cmds_updated_at ON sticker_cmds(updated_at);
 CREATE INDEX IF NOT EXISTS idx_temporary_states_expire_at ON temporary_states(expire_at);
+CREATE INDEX IF NOT EXISTS idx_timelock_cooldown_expires_at ON timelock_cooldown(expires_at);
 CREATE INDEX IF NOT EXISTS idx_marriages_partner ON marriages(group_id, partner_id);
 CREATE INDEX IF NOT EXISTS idx_harem_user ON harem(group_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_waifus_venta_seller ON waifus_venta(group_id, vendedor);
@@ -640,7 +642,26 @@ if (Number(row.expire_at) <= Date.now()) { this.deleteTemporaryState(scope, key)
 return parseJSON(row.value, undefined)
 }
 deleteTemporaryState(scope, key) { return this.sqlite.prepare('DELETE FROM temporary_states WHERE scope=? AND key=?').run(String(scope || ''), String(key || '')) }
-cleanupExpiredTemporaryStates() { return this.sqlite.prepare('DELETE FROM temporary_states WHERE expire_at <= ?').run(Date.now()) }
+setTimelockCooldown(jid, value = {}, ttlMs = 24 * 60 * 60 * 1000) {
+const safeJid = String(jid || '').trim()
+if (!safeJid) throw new TypeError('setTimelockCooldown requiere un jid válido')
+const expiresAt = Date.now() + Math.max(Number(ttlMs) || 0, 1000)
+this.sqlite.prepare('INSERT INTO timelock_cooldown(jid,expires_at,value,updated_at) VALUES(?,?,?,?) ON CONFLICT(jid) DO UPDATE SET expires_at=excluded.expires_at, value=excluded.value, updated_at=excluded.updated_at').run(safeJid, expiresAt, stringify(value), now())
+return { jid: safeJid, value, expiresAt }
+}
+getTimelockCooldown(jid) {
+const safeJid = String(jid || '').trim()
+const row = this.sqlite.prepare('SELECT value, expires_at FROM timelock_cooldown WHERE jid=?').get(safeJid)
+if (!row) return undefined
+if (Number(row.expires_at) <= Date.now()) { this.deleteTimelockCooldown(safeJid); return undefined }
+return parseJSON(row.value, undefined)
+}
+deleteTimelockCooldown(jid) { return this.sqlite.prepare('DELETE FROM timelock_cooldown WHERE jid=?').run(String(jid || '')) }
+cleanupExpiredTemporaryStates() {
+const cutoff = Date.now()
+this.sqlite.prepare('DELETE FROM timelock_cooldown WHERE expires_at <= ?').run(cutoff)
+return this.sqlite.prepare('DELETE FROM temporary_states WHERE expire_at <= ?').run(cutoff)
+}
 
 getRecord(section, id) { if (section === 'users') return this.getUser(id); if (section === 'sticker') return this.getStickerCommand(id); if (section === 'groups') return this.getGroup(id); if (section === 'claim_config') return this.sqlite.prepare('SELECT message FROM claim_config WHERE user_id=?').get(id)?.message; if (section === 'character_favorites') return this.sqlite.prepare('SELECT character_id FROM character_favorites WHERE user_id=?').get(id)?.character_id; if (section === 'chats') return this.getChat(id); if (section === 'settings') { const row = this.sqlite.prepare('SELECT value FROM settings WHERE id=?').get(id); return parseJSON(row?.value, undefined) } const row = this.statements.getJson.get(section, id); return parseJSON(row?.value, undefined) }
 setRecord(section, id, value) { return this.set(section, id, value) }

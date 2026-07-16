@@ -7,6 +7,8 @@ const DAY_MS = 24 * 60 * 60 * 1000
 const DEFAULT_CLEANUP_INTERVAL_MS = DAY_MS
 const DEFAULT_RETENTION_MS = 30 * DAY_MS
 const cleanupTimers = new Map()
+const CRITICAL_BAILEYS_KEY_TYPES = new Set(['contacts-tc-token', 'lid-mapping'])
+
 
 function stringify(value) {
 return JSON.stringify(value, BufferJSON.replacer)
@@ -51,6 +53,11 @@ return run
 }
 }
 
+function authCategory(type = '') {
+// Baileys puede emitir familias nuevas; los tokens críticos deben persistirse sin filtrado.
+return CRITICAL_BAILEYS_KEY_TYPES.has(type) ? type : String(type || '')
+}
+
 function normalizeValue(type, value) {
 if (type === 'app-state-sync-key' && value) return proto.Message.AppStateSyncKeyData.fromObject(value)
 return value
@@ -60,7 +67,7 @@ function legacyKeyFromFile(file) {
 if (file === 'creds.json') return ['creds', 'creds']
 if (!file.endsWith('.json')) return null
 const name = file.slice(0, -5)
-for (const category of ['app-state-sync-key', 'sender-key', 'pre-key', 'session']) {
+for (const category of ['app-state-sync-key', 'sender-key', 'pre-key', 'session', ...CRITICAL_BAILEYS_KEY_TYPES]) {
 const prefix = `${category}-`
 if (name.startsWith(prefix)) return [category, safeFilePart(name.slice(prefix.length))]
 }
@@ -178,8 +185,9 @@ const now = Date.now()
 const data = {}
 for (const id of ids || []) {
 const keyId = safeFilePart(id)
-const row = statements.get.get(type, keyId)
-if (row) statements.touch.run(now, type, keyId)
+const category = authCategory(type)
+const row = statements.get.get(category, keyId)
+if (row) statements.touch.run(now, category, keyId)
 data[id] = normalizeValue(type, parse(row?.value))
 }
 return data

@@ -9,10 +9,17 @@ const DEFAULT_MAX_SENDER_KEYS = Number(process.env.MONGO_AUTH_MAX_SENDER_KEYS ||
 const DEFAULT_MAX_SESSIONS = Number(process.env.MONGO_AUTH_MAX_SESSIONS || 1500)
 const VOLATILE_CATEGORIES = new Set(['pre-key', 'sender-key', 'session'])
 const cleanupTimers = new Map()
+const CRITICAL_BAILEYS_KEY_TYPES = new Set(['contacts-tc-token', 'lid-mapping'])
+
 
 function stringify(value) { return JSON.stringify(value, BufferJSON.replacer) }
 function parse(value) { return value ? JSON.parse(value, BufferJSON.reviver) : null }
 function safeId(value = '') { return String(value).replace(/[$.]/g, '_') }
+function authCategory(type = '') {
+// Baileys puede emitir familias nuevas; los tokens críticos deben persistirse sin filtrado.
+return CRITICAL_BAILEYS_KEY_TYPES.has(type) ? type : String(type || '')
+}
+
 function normalizeValue(type, value) { return type === 'app-state-sync-key' && value ? proto.Message.AppStateSyncKeyData.fromObject(value) : value }
 function createMutex() {
   let tail = Promise.resolve()
@@ -117,10 +124,11 @@ export async function useMongoAuthState(sessionId = 'default', options = {}) {
       creds,
       keys: {
         get: async (type, ids = []) => {
+          const category = authCategory(type)
           const keyIds = ids.map(id => safeId(id))
-          const rows = await Model.find({ sessionId: normalizedSessionId, category: type, keyId: { $in: keyIds } }).lean()
+          const rows = await Model.find({ sessionId: normalizedSessionId, category, keyId: { $in: keyIds } }).lean()
           const byKey = new Map(rows.map(row => [row.keyId, row]))
-          if (keyIds.length) await Model.updateMany({ sessionId: normalizedSessionId, category: type, keyId: { $in: keyIds } }, { $set: { lastAccessAt: new Date() } })
+          if (keyIds.length) await Model.updateMany({ sessionId: normalizedSessionId, category, keyId: { $in: keyIds } }, { $set: { lastAccessAt: new Date() } })
           const output = {}
           for (const id of ids) output[id] = normalizeValue(type, parse(byKey.get(safeId(id))?.value))
           return output
