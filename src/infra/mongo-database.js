@@ -251,7 +251,9 @@ export class MongoDatabase {
       db.collection('records').createIndex({ section: 1, key: 1 }, { unique: true, partialFilterExpression: { section: 'chats' }, name: 'chats_section_key_unique' }),
       db.collection('chats').createIndex({ jid: 1 }, { unique: true }),
       db.collection('temporary_states').createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 }),
-      db.collection('temporary_states').createIndex({ scope: 1, key: 1 }, { unique: true })
+      db.collection('temporary_states').createIndex({ scope: 1, key: 1 }, { unique: true }),
+      db.collection('timelock_cooldown').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+      db.collection('timelock_cooldown').createIndex({ jid: 1 }, { unique: true })
     ])
   }
 
@@ -280,6 +282,31 @@ export class MongoDatabase {
   async deleteTemporaryState(scope, key) {
     await this.ready
     return mongoose.connection.db.collection('temporary_states').deleteOne({ scope: String(scope || ''), key: String(key || '') })
+  }
+
+  async setTimelockCooldown(jid, value = {}, ttlMs = 24 * 60 * 60 * 1000) {
+    await this.ready
+    const safeJid = String(jid || '').trim()
+    if (!safeJid) throw new TypeError('setTimelockCooldown requiere un jid válido')
+    const expiresAt = new Date(Date.now() + Math.max(Number(ttlMs) || 0, 1000))
+    await mongoose.connection.db.collection('timelock_cooldown').updateOne(
+      { jid: safeJid },
+      { $set: { value: clone(value), expiresAt, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
+      { upsert: true }
+    )
+    return { jid: safeJid, value, expiresAt }
+  }
+
+  async getTimelockCooldown(jid) {
+    await this.ready
+    const row = await mongoose.connection.db.collection('timelock_cooldown').findOne({ jid: String(jid || '') })
+    if (!row || (row.expiresAt && row.expiresAt.getTime() <= Date.now())) return undefined
+    return clone(row.value)
+  }
+
+  async deleteTimelockCooldown(jid) {
+    await this.ready
+    return mongoose.connection.db.collection('timelock_cooldown').deleteOne({ jid: String(jid || '') })
   }
 
   _userVersion(id) { return this.userCacheVersions.get(id) || 0 }

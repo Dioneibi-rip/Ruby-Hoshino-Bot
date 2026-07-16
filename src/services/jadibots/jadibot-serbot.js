@@ -468,6 +468,7 @@ upsertSubBotAuthRegistry(subBotId, sock, 'reconnecting', { path: pathRubyJadiBot
 }
 if (!isInit) {
 sock.ev.off("messages.upsert", sock.handler)
+sock.ev.off("messages.update", sock.messagesUpdate)
 sock.ev.off("group-participants.update", sock.participantsUpdate)
 sock.ev.off("groups.update", sock.groupsUpdate)
 sock.ev.off("connection.update", sock.connectionUpdate)
@@ -481,12 +482,14 @@ return handlerModule.handler.call(sock, update)
 }
 sock.participantsUpdate = handlerModule.participantsUpdate.bind(sock)
 sock.groupsUpdate = handlerModule.groupsUpdate.bind(sock)
+sock.messagesUpdate = handlerModule.messagesUpdate.bind(sock)
 sock.connectionUpdate = update => connectionUpdate(update).catch(async error => {
 console.error(`Error crítico en connection.update del Sub-Bot ${subBotId}:`, error)
 if (sock?.ws?.socket?.readyState !== ws.OPEN) await scheduleSafeReconnect(error?.output?.statusCode || error?.data?.statusCode || error?.statusCode || 'connection-update-error')
 })
 sock.credsUpdate = debouncedSaveCreds
 sock.ev.on("messages.upsert", sock.handler)
+sock.ev.on("messages.update", sock.messagesUpdate)
 sock.ev.on("group-participants.update", sock.participantsUpdate)
 sock.ev.on("groups.update", sock.groupsUpdate)
 sock.ev.on("connection.update", sock.connectionUpdate)

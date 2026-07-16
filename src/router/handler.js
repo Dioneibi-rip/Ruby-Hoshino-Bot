@@ -43,6 +43,95 @@ const READ_MESSAGE_MIN_INTERVAL_MS = 1_500
 const PRIMARY_BOT_CACHE = global.__rubyPrimaryBotCache ||= new Map()
 const PRIMARY_BOT_EMPTY = ''
 
+const TIMELOCK_COOLDOWN_SCOPE = 'timelock_cooldown'
+const TIMELOCK_COOLDOWN_MS = 24 * 60 * 60 * 1000
+const TIMELOCK_GUARD_PATCH = Symbol.for('ruby.timelockGuard.sendMessagePatch')
+
+function extractErrorCode(value, seen = new WeakSet()) {
+if (value == null) return ''
+if (typeof value === 'number' || typeof value === 'string') {
+const text = String(value)
+return text.includes('463') ? '463' : ''
+}
+if (typeof value !== 'object') return ''
+if (seen.has(value)) return ''
+seen.add(value)
+const direct = [value?.code, value?.status, value?.statusCode, value?.output?.statusCode, value?.data?.code, value?.error?.code]
+if (direct.some((item) => String(item ?? '').includes('463'))) return '463'
+const text = [value?.message, value?.stack, value?.name, value?.reason].filter(Boolean).join(' ')
+if (text.includes('463') || /reachout\s+timelock/i.test(text)) return '463'
+return ''
+}
+
+function normalizeTimelockJid(conn, jid = '') {
+const decoded = conn?.decodeJid?.(jid) || jid
+return normalizeJid(decoded) || String(decoded || '').trim()
+}
+
+async function setTimelockCooldown(conn, jid = '', source = {}) {
+const normalizedJid = normalizeTimelockJid(conn, jid)
+if (!normalizedJid || normalizedJid.endsWith('@g.us') || normalizedJid.endsWith('@broadcast')) return false
+const payload = { jid: normalizedJid, reason: 'reachout_timelock_463', source: String(source?.source || 'sendMessage'), createdAt: Date.now() }
+try {
+if (typeof global.db?.setTimelockCooldown === 'function') await global.db.setTimelockCooldown(normalizedJid, payload, TIMELOCK_COOLDOWN_MS)
+else await global.db?.setTemporaryState?.(TIMELOCK_COOLDOWN_SCOPE, normalizedJid, payload, TIMELOCK_COOLDOWN_MS)
+return true
+} catch (error) {
+console.error('[TIMELOCK GUARD] No se pudo persistir cooldown:', error?.message || error)
+return false
+}
+}
+
+async function isTimelockBlocked(conn, jid = '') {
+const normalizedJid = normalizeTimelockJid(conn, jid)
+if (!normalizedJid || normalizedJid.endsWith('@g.us') || normalizedJid.endsWith('@broadcast')) return false
+try {
+if (typeof global.db?.getTimelockCooldown === 'function') return Boolean(await global.db.getTimelockCooldown(normalizedJid))
+return Boolean(await global.db?.getTemporaryState?.(TIMELOCK_COOLDOWN_SCOPE, normalizedJid))
+} catch (error) {
+console.error('[TIMELOCK GUARD] No se pudo consultar cooldown:', error?.message || error)
+return false
+}
+}
+
+function installTimelockGuard(conn) {
+if (!conn?.sendMessage || conn[TIMELOCK_GUARD_PATCH]) return
+const originalSendMessage = conn.sendMessage.bind(conn)
+conn.sendMessage = async (jid, content, options = {}) => {
+const normalizedJid = normalizeTimelockJid(conn, jid)
+if (await isTimelockBlocked(conn, normalizedJid)) {
+console.warn(`[TIMELOCK GUARD] Abortando envío a ${normalizedJid} para prevenir baneo (Error 463).`)
+return null
+}
+try {
+return await originalSendMessage(jid, content, options)
+} catch (error) {
+if (extractErrorCode(error) === '463') {
+await setTimelockCooldown(conn, normalizedJid, { source: 'sendMessage' })
+console.warn(`[TIMELOCK GUARD] Abortando envío a ${normalizedJid} para prevenir baneo (Error 463).`)
+}
+throw error
+}
+}
+conn[TIMELOCK_GUARD_PATCH] = true
+}
+
+export async function messagesUpdate(updates = []) {
+const list = Array.isArray(updates) ? updates : [updates]
+for (const update of list) {
+try {
+const status = update?.update?.status || update?.status
+const error = update?.update?.error || update?.error || update?.update?.messageStubParameters || update
+if (extractErrorCode(error) !== '463') continue
+const jid = update?.key?.remoteJid || update?.remoteJid || update?.jid || update?.chat
+if (status != null && !String(status).toLowerCase().includes('error') && !String(status).includes('5')) continue
+await setTimelockCooldown(this, jid, { source: 'messages.update' })
+} catch (error) {
+console.error('[TIMELOCK GUARD] Error procesando messages.update:', error?.message || error)
+}
+}
+}
+
 
 
 export function segundosAHMS(totalSeconds = 0) {
@@ -485,6 +574,7 @@ stat.lastSuccess = now
 }
 
 export async function handler(chatUpdate) {
+installTimelockGuard(this)
 attachSessionState(this)
 runMaintenance(this)
 const messages = getIncomingMessages(chatUpdate)

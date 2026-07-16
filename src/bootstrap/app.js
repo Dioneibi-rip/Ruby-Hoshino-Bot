@@ -344,15 +344,17 @@ attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.
 conn = global.conn
 isInit = true
 }
-if (!isInit) { conn.ev.off('messages.upsert', conn.handler); conn.ev.off('group-participants.update', conn.participantsUpdate); conn.ev.off('groups.update', conn.groupsUpdate); conn.ev.off('connection.update', conn.connectionUpdate); conn.ev.off('creds.update', conn.credsUpdate); }
+if (!isInit) { conn.ev.off('messages.upsert', conn.handler); conn.ev.off('messages.update', conn.messagesUpdate); conn.ev.off('group-participants.update', conn.participantsUpdate); conn.ev.off('groups.update', conn.groupsUpdate); conn.ev.off('connection.update', conn.connectionUpdate); conn.ev.off('creds.update', conn.credsUpdate); }
 global.conn.__groupEventStartedAt = Date.now()
 global.conn.__groupEventReadyAt = global.conn.__groupEventStartedAt + 15_000
 conn.handler = handler.handler.bind(global.conn)
 conn.participantsUpdate = handler.participantsUpdate.bind(global.conn)
 conn.groupsUpdate = handler.groupsUpdate.bind(global.conn)
+conn.messagesUpdate = handler.messagesUpdate.bind(global.conn)
 conn.connectionUpdate = connectionUpdate.bind(global.conn)
 conn.credsUpdate = debouncedSaveCreds
 conn.ev.on('messages.upsert', conn.handler)
+conn.ev.on('messages.update', conn.messagesUpdate)
 conn.ev.on('group-participants.update', conn.participantsUpdate)
 conn.ev.on('groups.update', conn.groupsUpdate)
 conn.ev.on('connection.update', conn.connectionUpdate)
