@@ -24,10 +24,10 @@ runMaintenance,
 import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
 import { attachSessionState, cleanupSessionState } from '../core/session-manager.js'
 import messageQueue from '../core/message-queue.js'
-import { normalizeIdentityJid } from '../core/identity-utils.js'
+import { normalizeIdentityJid, normalizeJid } from '../core/identity-utils.js'
 import { getMessageDeletePayload, isUserMutedInChat, messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
 import { getGroupMetadataOnDemand } from '../infra/global-cache.js'
-import { getInteractiveResponseText, getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash, unwrapMessageContent } from './raw-filter.js'
+import { getInteractiveResponseText, getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash, isFreshRawMessage, unwrapMessageContent } from './raw-filter.js'
 import { executePlugin } from './plugin-executor.js'
 import { isBotSender, pluginRequiresGroupParticipants } from './permission-guard.js'
 
@@ -176,6 +176,37 @@ const message = `(,,•᷄‎ࡇ•᷅ ,,)? ᥱᥣ ᥴ᥆mᥲᥒძ᥆ *${comman
 » *${usedPrefix}help*`
 await (m.reply?.(message) || conn.reply?.(m.chat, message, m))
 return true
+}
+
+
+function getActivitySenderFromRaw(message = {}) {
+const chat = getRawMessageChat(message)
+if (!chat?.endsWith?.('@g.us')) return ''
+return message?.key?.participant || message?.participant || message?.sender || ''
+}
+
+function trackLocalGroupActivity(conn, mOrRaw = {}, sender = '', { isCommand = false, countMessage = true } = {}) {
+const chatId = conn?.decodeJid?.(mOrRaw?.chat || mOrRaw?.key?.remoteJid || getRawMessageChat(mOrRaw)) || mOrRaw?.chat || mOrRaw?.key?.remoteJid || getRawMessageChat(mOrRaw)
+if (!chatId?.endsWith?.('@g.us')) return null
+const rawSender = sender || mOrRaw?.sender || mOrRaw?.key?.participant || getActivitySenderFromRaw(mOrRaw)
+const jid = normalizeJid(conn?.decodeJid?.(rawSender) || rawSender)
+if (!jid || jid.endsWith('@g.us')) return null
+const chat = global.db?.getChat?.(chatId) || global.db?.data?.chats?.[chatId] || {}
+chat.users = chat.users && typeof chat.users === 'object' ? chat.users : {}
+const previous = chat.users[jid] && typeof chat.users[jid] === 'object' ? chat.users[jid] : {}
+const now = Date.now()
+const next = { ...previous }
+const displayName = String(mOrRaw?.pushName || mOrRaw?.name || previous.name || '').trim()
+if (displayName) next.name = displayName
+if (countMessage) next.msgCount = (Number(next.msgCount) || 0) + 1
+if (mOrRaw && typeof mOrRaw === 'object') mOrRaw._messageStatsCounted = true
+if (isCommand) next.cmdCount = (Number(next.cmdCount) || 0) + 1
+next.lastMessageTime = now
+next.lastMsg = now
+chat.users[jid] = next
+chat.activityUpdatedAt = now
+global.db?.updateChat?.(chatId, { users: chat.users, activityUpdatedAt: chat.activityUpdatedAt })
+return next
 }
 
 function isCelestialCommandMessage(message = {}) {
@@ -431,7 +462,10 @@ for (const message of messages) {
 const rawChat = this?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
 if (rawChat?.endsWith?.('@g.us') && shouldBlockForPrimaryBot(this, rawChat) && !canBypassSilencedChat(message)) continue
 const fastPath = getRawFastPath(this, message)
-if (!fastPath) continue
+if (!fastPath) {
+if (isFreshRawMessage(message, SYSTEM_MESSAGE_MAX_AGE_MS)) trackLocalGroupActivity(this, message, getActivitySenderFromRaw(message), { countMessage: true, isCommand: false })
+continue
+}
 message.__rubyFastPath = fastPath
 fastMessages.push(message)
 }
@@ -459,6 +493,7 @@ const plainText = pickPlainMessageText(rawMessage, fastPath.text)
 if (typeof m.text !== 'string') m.text = ''
 if (!m.text && plainText) m.text = plainText
 if (!m.body && plainText) m.body = plainText
+trackLocalGroupActivity(this, m, m.isGroup ? (m.key?.participant || m.sender) : '', { countMessage: true, isCommand: false })
 
 const rawCommand = fastPath.rawCommand || getRawCommandName(m.text)
 if (rawCommand === 'resetbot') {
@@ -588,6 +623,8 @@ const isBotBannedInThisChat = isChatBannedForBot(chatData, normalizeConnectionJi
 const isBotSecurityManager = canManageBotSecurity(sender, this)
 if (!isOwner && !isROwner && !isBotSender(this, m, sender) && isBotBannedInThisChat && !isCelestialCommand && !isBotSecurityManager) return
 const __filename = join(pluginDir, name)
+await this.readMessages?.([m.key]).catch(() => {})
+trackLocalGroupActivity(this, m, sender, { countMessage: false, isCommand: true })
 const extra = buildPluginContext(this, { match, usedPrefix, ...commandParsed, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename })
 await executePlugin(this, plugin, name, m, extra, permissionContext, sender, { chat: chatData, user: global.db?.data?.users?.[sender], isCelestialCommand })
 } catch (error) {
