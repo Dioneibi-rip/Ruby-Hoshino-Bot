@@ -108,8 +108,7 @@ function splitUserPatch(patch = {}) {
     if (key === 'extras' && value && typeof value === 'object' && !Array.isArray(value)) {
       for (const [extraKey, extraValue] of Object.entries(value)) $set[`extras.${extraKey}`] = mongoValue(extraValue)
     } else if (key in USER_DEFAULTS) {
-      if (NUMERIC_FIELDS.has(key) && typeof value === 'number' && Number.isFinite(value)) $inc[key] = value
-      else $set[key] = mongoValue(value)
+      $set[key] = mongoValue(value)
     } else {
       $set[`extras.${key}`] = mongoValue(value)
     }
@@ -157,7 +156,6 @@ function applyPatchToUser(id, current, patch = {}) {
   for (const [key, value] of Object.entries(patch || {})) {
     if (key === 'id' || key === '_id') continue
     if (key === 'extras' && value && typeof value === 'object' && !Array.isArray(value)) next.extras = { ...next.extras, ...value }
-    else if (key in USER_DEFAULTS && NUMERIC_FIELDS.has(key) && typeof value === 'number' && Number.isFinite(value)) next[key] = (Number(next[key]) || 0) + value
     else if (key in USER_DEFAULTS) next[key] = value instanceof Date ? value.getTime() : value
     else next.extras[key] = value instanceof Date ? value.getTime() : value
   }
@@ -443,8 +441,8 @@ export class MongoDatabase {
     if (!userId) throw new TypeError('incrementUserField requiere un id de usuario válido')
     const amount = Number(delta) || 0
     if (!Object.prototype.hasOwnProperty.call(USER_DEFAULTS, field) || !NUMERIC_FIELDS.has(field)) return this.updateUser(userId, { [field]: (Number(this.getUser(userId)[field]) || 0) + amount })
-    const cached = applyPatchToUser(userId, this.userCache.get(userId), { [field]: (Number(this.getUser(userId)[field]) || 0) + amount })
-    this.userCache.set(userId, cached)
+    const current = normalizeUser(userId, this.userCache.get(userId))
+    this.userCache.set(userId, normalizeUser(userId, { ...current, [field]: (Number(current[field]) || 0) + amount }))
     const write = this.ready.then(() => this.User.findOneAndUpdate(
       { _id: userId },
       { $setOnInsert: normalizeUserForInsert(userId, { $inc: { [field]: amount }, $set: { updatedAt: new Date() } }), $inc: { [field]: amount }, $set: { updatedAt: new Date() } },
@@ -452,6 +450,31 @@ export class MongoDatabase {
     )).then(doc => { if (doc) this.userCache.set(userId, normalizeUser(userId, doc)); return this._userProxy(userId) })
     this._trackWrite(write)
     return this.getUser(userId)
+  }
+
+  async transferUserEconomy(id, { from = 'coin', to = 'bank', amount } = {}) {
+    await this.ready
+    const userId = normalizeJid(id)
+    if (!userId) throw new TypeError('transferUserEconomy requiere un id de usuario válido')
+    const safeAmount = Math.trunc(Number(amount) || 0)
+    if (!safeAmount || safeAmount <= 0) throw new TypeError('transferUserEconomy requiere una cantidad positiva')
+    for (const field of [from, to]) {
+      if (!Object.prototype.hasOwnProperty.call(USER_DEFAULTS, field) || !NUMERIC_FIELDS.has(field)) throw new Error(`Campo de economía no permitido: ${field}`)
+    }
+    const atomicUpdate = { $inc: { [from]: -safeAmount, [to]: safeAmount }, $set: { updatedAt: new Date() } }
+    const doc = await this.User.findOneAndUpdate(
+      { _id: userId, [from]: { $gte: safeAmount } },
+      { $setOnInsert: normalizeUserForInsert(userId, atomicUpdate), ...atomicUpdate },
+      { upsert: false, new: true, lean: true }
+    )
+    if (!doc) {
+      const current = await this.User.findById(userId).lean()
+      if (current) this.userCache.set(userId, normalizeUser(userId, current))
+      return null
+    }
+    this.userCache.set(userId, normalizeUser(userId, doc))
+    this._bumpUserVersion(userId)
+    return this._userProxy(userId)
   }
   addMoney(id, amount, field = 'coin') { return this.incrementUserField(id, field, amount) }
   addEconomy(id, fieldOrAmount, maybeAmount) { return typeof fieldOrAmount === 'string' ? this.addMoney(id, maybeAmount, fieldOrAmount) : this.addMoney(id, fieldOrAmount, maybeAmount || 'coin') }

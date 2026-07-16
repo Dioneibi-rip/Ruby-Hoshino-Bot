@@ -463,6 +463,25 @@ this.userCache.set(userId, next)
 this._writeUserRow(userId, next)
 return this.getUser(userId)
 }
+
+transferUserEconomy(id, { from = 'coin', to = 'bank', amount } = {}) {
+const userId = normalizeJid(id)
+if (!userId) throw new TypeError('transferUserEconomy requiere un id de usuario válido')
+const safeAmount = Math.trunc(Number(amount) || 0)
+if (!safeAmount || safeAmount <= 0) throw new TypeError('transferUserEconomy requiere una cantidad positiva')
+for (const field of [from, to]) {
+if (!(field in USER_COLUMNS) || !NUMERIC_FIELDS.has(field)) throw new Error(`Campo de economía no permitido: ${field}`)
+}
+this._createUser(userId)
+const tx = this.sqlite.transaction(() => {
+const result = this.sqlite.prepare(`UPDATE users SET ${q(from)} = COALESCE(${q(from)}, 0) - @amount, ${q(to)} = COALESCE(${q(to)}, 0) + @amount, updated_at = unixepoch() WHERE id = @id AND COALESCE(${q(from)}, 0) >= @amount`).run({ id: userId, amount: safeAmount })
+if (!result.changes) return null
+const user = this._rowToUser(this.sqlite.prepare('SELECT * FROM users WHERE id=?').get(userId))
+if (user) this.userCache.set(userId, user)
+return this.getUser(userId)
+})
+return tx()
+}
 addMoney(id, amount, field = 'coin') { return this.incrementUserField(id, field, amount) }
 addEconomy(id, fieldOrAmount, maybeAmount) { return typeof fieldOrAmount === 'string' ? this.addMoney(id, maybeAmount, fieldOrAmount) : this.addMoney(id, fieldOrAmount, maybeAmount || 'coin') }
 incrementUserField(id, field, delta) {
