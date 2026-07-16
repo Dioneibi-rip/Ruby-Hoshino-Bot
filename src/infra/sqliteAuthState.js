@@ -26,8 +26,9 @@ function openDatabase(dbPath) {
 const sqlite = new Database(dbPath)
 sqlite.pragma('journal_mode = WAL')
 sqlite.pragma('synchronous = NORMAL')
+sqlite.pragma('busy_timeout = 5000')
 sqlite.pragma('temp_store = MEMORY')
-sqlite.pragma('busy_timeout = 10000')
+sqlite.pragma('cache_size = -20000')
 sqlite.exec(`
 CREATE TABLE IF NOT EXISTS auth_state (
   category TEXT NOT NULL,
@@ -210,7 +211,9 @@ if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
 const sqlite = new Database(dbPath)
 sqlite.pragma('journal_mode = WAL')
 sqlite.pragma('synchronous = NORMAL')
-sqlite.pragma('busy_timeout = 10000')
+sqlite.pragma('busy_timeout = 5000')
+sqlite.pragma('temp_store = MEMORY')
+sqlite.pragma('cache_size = -20000')
 sqlite.exec(`CREATE TABLE IF NOT EXISTS ${tableName} (
   id TEXT PRIMARY KEY,
   jid TEXT NOT NULL DEFAULT '',
@@ -224,9 +227,5 @@ return sqlite
 export default useSQLiteAuthState
 
 export async function useOptimizedAuthState(sessionDir, options = {}) {
-const useMongo = Boolean(options.mongo || (process.env.MONGODB_URI && process.env.AUTH_STATE_DRIVER !== 'sqlite'))
-if (!useMongo) return useSQLiteAuthState(sessionDir, options)
-const { useMongoAuthState } = await import('./mongoAuthState.js')
-const sessionId = options.sessionId || path.basename(path.resolve(sessionDir || 'default'))
-return useMongoAuthState(sessionId, options)
+return useSQLiteAuthState(sessionDir, options)
 }

@@ -1,5 +1,5 @@
 const randomToken = () => `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`
-const engineName = () => global.db?.constructor?.name?.toLowerCase?.().includes('mongo') || global.db?.connected ? 'MongoDB' : global.db?.sqlite ? 'SQLite' : 'Desconocido'
+const engineName = () => global.db?.sqlite ? 'SQLite' : 'Desconocido'
 
 let handler = async (m, { conn }) => {
 const db = global.db

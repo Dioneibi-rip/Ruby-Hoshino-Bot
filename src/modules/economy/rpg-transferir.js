@@ -10,18 +10,14 @@ if(!amountText)return m.reply(`(๑•̌ . •̑๑)ˀ̣ˀ̣  ძᥱᑲᥱs ᥱ
 const count=Math.min(Number.MAX_SAFE_INTEGER,Math.max(1,parseInt(amountText)))
 const tax=Math.floor(count*0.10)
 const received=count-tax
-const user=global.db.getUser(senderJid)
 const type='coin'
 const bankType='bank'
-if(user[bankType]<count)return m.reply(`⚠️ ᥒ᥆ 𝗍іᥱᥒᥱs sᥙ𝖿іᥴіᥱᥒ𝗍ᥱs ${m.moneda} ᥱᥒ ᥱᥣ ᑲᥲᥒᥴ᥆ ⍴ᥲrᥲ rᥱᥲᥣіzᥲr ᥣᥲ transferenciᥲ.`)
 if(!global.db.userExists(targetJid))return m.reply(`❌ ᥱᥣ ᥙsᥙᥲrі᥆ ᥒ᥆ sᥱ ᥱᥒᥴᥙᥱᥒ𝗍rᥲ ᥱᥒ mі ᑲᥲsᥱ ძᥱ datos.`)
 if(targetJid===senderJid)return m.reply(`❌ ᥒ᥆ ⍴ᥙᥱძᥱs 𝗍rᥲᥒs𝖿ᥱrіr𝗍ᥱ ძіᥒᥱr᥆ ᥲ 𝗍і mіsm᥆.`)
-user[bankType]-=count
-const target=global.db.getUser(targetJid)
-target[type]=(target[type]||0)+received
+const transfer=global.db.transferBetweenUsers(senderJid,targetJid,{debitField:bankType,creditField:type,amount:count,creditAmount:received})
+if(!transfer)return m.reply(`⚠️ ᥒ᥆ 𝗍іᥱᥒᥱs sᥙ𝖿іᥴіᥱᥒ𝗍ᥱs ${m.moneda} ᥱᥒ ᥱᥣ ᑲᥲᥒᥴ᥆ ⍴ᥲrᥲ rᥱᥲᥣіzᥲr ᥣᥲ transferenciᥲ.`)
+const user=transfer.sender
 const mentionText=await resolveIdentityName(conn,targetJid,{participantsByLid,fallback:`@${String(targetJid).split('@')[0]}`})
-global.db.updateUser(senderJid,{[bankType]:user[bankType]})
-global.db.updateUser(targetJid,{[type]:target[type]})
 m.reply(`✅ ¡𝗍rᥲᥒsFᥱrᥱᥒᥴіᥲ ᥱ᥊і𝗍᥆sᥲ!\n\n› һᥲs ᥱᥒ᥎іᥲძ᥆ *${count.toLocaleString()} ${m.moneda}* ᥲ ${mentionText}.\n› Impuesto comercial 10%: *${tax.toLocaleString()} ${m.moneda}*.\n› ${mentionText} recibió *${received.toLocaleString()} ${m.moneda}*.\n› 𝗍ᥱ 𝗊ᥙᥱძᥲᥒ *${user[bankType].toLocaleString()} ${m.moneda}* en el banco.`,null,{mentions:[targetJid]})
 }
 handler.help=['pay <cantidad> @usuario']

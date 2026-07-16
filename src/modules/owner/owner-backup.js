@@ -16,7 +16,7 @@ stats: global.db.getSection?.('stats') || global.db.data?.stats || {},
 }
 return sanitizeSnapshot({
 createdAt: new Date().toISOString(),
-engine: global.db.uri ? 'mongodb' : global.db.filename ? 'sqlite' : 'unknown',
+engine: global.db.filename ? 'sqlite' : 'unknown',
 filename: global.db.filename || null,
 dbName: global.db.dbName || null,
 snapshot,

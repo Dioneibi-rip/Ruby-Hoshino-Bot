@@ -1,4 +1,3 @@
-import db from '../../infra/database.js'
 import { resolveInteractionTarget, resolveIdentityName } from '../../core/identity-utils.js'
 
 let buatall = 1
@@ -17,14 +16,14 @@ if (args.length < 1) {
 await conn.reply(m.chat, `${emoji} Ingresa la cantidad de ` + `💸 *${m.moneda}*` + ' que deseas aportar contra' + ` *${botname}*` + `\n\n` + '`Ejemplo:`\n' + `> *${usedPrefix + command}* 100`, m);
 return false;
 }
-user.coin = (Number(user.coin) || 0) - (count * 1)
+if ((Number(user.coin) || 0) < count) return m.reply(`${emoji2} No tienes suficientes ${m.moneda} para apostar.`)
+const updated = global.db.settleUserBet(m.sender, { field: 'coin', bet: count, payout: win ? count * 2 : 0 })
+if (!updated) return m.reply(`${emoji2} Tu saldo cambió antes de completar la apuesta. Vuelve a intentarlo.`)
 if (!win) {
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *PERDISTE* ${formatNumber(count)} 💸 ${m.moneda}.`.trim(), m)
 } else if (win) {
-user.coin += count * 2
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *GANASTE* ${formatNumber(count * 2)} 💸 ${m.moneda}.`.trim(), m)
 } else {
-user.coin += count * 1
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username} obtienes ${formatNumber(count * 1)} 💸 ${m.moneda}.`.trim(), m)}
 }
 
