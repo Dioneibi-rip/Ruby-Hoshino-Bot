@@ -1,5 +1,4 @@
 import { canLevelUp, xpRange } from '../../infra/levelling.js';
-import db from '../../infra/database.js';
 import { ensureUserRole } from '../functions/_roles.js';
 import { resolveInteractionTarget, resolveIdentityName } from '../../core/identity-utils.js';
 
@@ -39,19 +38,15 @@ await conn.sendFile(m.chat, apiURL, 'levelup.jpg', `
 > *Sigue interactuando para subir más nivel.*
 `.trim(), m, false, { mentions: [who] });
 } else {
-let users = Object.entries(global.db.listUsers()).map(([key, value]) => {
-return { ...value, jid: key };
-});
-
-let sortedLevel = users.sort((a, b) => (b.level || 0) - (a.level || 0));
-let rank = sortedLevel.findIndex(u => u.jid === who) + 1;
+let rank = global.db.userRank?.(who, { field: 'level' }) || 0;
+let totalUsers = global.db.countUsers?.() || 0;
 
 let txt = `*「✿」Usuario* ◢ ${name} ◤\n\n`;
 txt += `✦ Nivel » *${user.level}*\n`;
 txt += `✰ Experiencia » *${user.exp}*\n`;
 txt += `❖ Rango » ${role}\n`;
 txt += `➨ Progreso » *${user.exp - min} => ${xp}* _(${Math.floor(((user.exp - min) / xp) * 100)}%)_\n`;
-txt += `# Puesto » *${rank}* de *${sortedLevel.length}*\n`;
+txt += `# Puesto » *${rank || '—'}* de *${totalUsers}*\n`;
 txt += `❒ Comandos totales » *${user.commands || 0}*`;
 
 await conn.sendMessage(m.chat, { text: txt }, { quoted: m });

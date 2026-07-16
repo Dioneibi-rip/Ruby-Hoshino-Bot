@@ -1,25 +1,18 @@
-import { xpRange } from '../../infra/levelling.js'
-
 let handler = async (m, { conn, args }) => {
-let users = Object.entries(global.db.listUsers())
-.filter(([_, u]) => u.exp > 0 && u.level >= 0)
-.map(([jid, u]) => ({ ...u, jid }));
-
-users.sort((a, b) => b.exp - a.exp);
-
 const page = args[0] && !isNaN(args[0]) ? parseInt(args[0]) : 1;
 const usersPerPage = 10;
-const totalPages = Math.ceil(users.length / usersPerPage);
 const startIndex = (page - 1) * usersPerPage;
-const endIndex = Math.min(startIndex + usersPerPage, users.length);
-const rankOffset = startIndex + 1;
+const totalUsers = global.db.countUsers?.() || 0;
+const totalPages = Math.max(1, Math.ceil(totalUsers / usersPerPage));
+let users = global.db.getTopUsers?.({ field: 'exp', limit: usersPerPage, offset: startIndex }) || global.db.topUsers?.({ field: 'exp', limit: usersPerPage, offset: startIndex }) || [];
+users = users.filter(u => Number(u.exp) > 0 && Number(u.level) >= 0).map(u => ({ ...u, jid: u.id || u.jid }));
 
 let text = `◢✿ *Top de usuarios con más experiencia* ✿◤\n\n`;
 
-for (let i = startIndex; i < endIndex; i++) {
+for (let i = 0; i < users.length; i++) {
 let u = users[i];
 let name = await conn.getName(u.jid) || 'Desconocido';
-text += `✰ ${i + 1} » *${name}*\n`;
+text += `✰ ${startIndex + i + 1} » *${name}*\n`;
 text += `  ❖ XP » *${u.exp.toLocaleString()}*  ❖ LVL » *${u.level}*\n`;
 }
 
@@ -27,7 +20,7 @@ text += `\n> • Página *${page}* de *${totalPages}*`;
 if (page < totalPages) text += `\n> Para ver la siguiente página » *#leaderboard ${page + 1}*`;
 
 await conn.reply(m.chat, text, m, {
-mentions: users.slice(startIndex, endIndex).map(u => u.jid),
+mentions: users.map(u => u.jid),
 });
 };
 

@@ -5,13 +5,10 @@ const pageSize = 10;
 const startIndex = (page - 1) * pageSize;
 const endIndex = startIndex + pageSize;
 const participantJids = new Set(participants.map(p => p.jid || p.id).filter(Boolean));
-const sortedLevel = Object.entries(global.db.listUsers()).map(([jid, user]) => ({
-jid,
-exp: Number(user.exp) || 0,
-level: Number(user.level) || 0
-})).sort((a, b) => b.exp - a.exp);
-const totalPages = Math.ceil(sortedLevel.length / pageSize);
-const pageUsers = sortedLevel.slice(startIndex, endIndex);
+const totalUsers = global.db.countUsers?.() || 0;
+const totalPages = Math.max(1, Math.ceil(totalUsers / pageSize));
+const pageUsers = (global.db.getTopUsers?.({ field: 'exp', limit: pageSize, offset: startIndex }) || global.db.topUsers?.({ field: 'exp', limit: pageSize, offset: startIndex }) || [])
+.map(row => ({ jid: row.id, exp: Number(row.exp) || 0, level: Number(row.level) || 0 }));
 let text = `◢✨ Top de usuarios con más experiencia ✨◤\n\n`;
 
 const rows = [];

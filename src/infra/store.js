@@ -94,7 +94,6 @@ function createOwnedBaileysSqlite(filename = process.env.BAILEYS_STORE_SQLITE ||
 
 function resolveBaileysSqlite() {
   if (!ownedSqlite) {
-    console.warn('🟡 Baileys Store usará SQLite dedicado con una instancia cruda de better-sqlite3.')
     ownedSqlite = createOwnedBaileysSqlite()
   }
   return ownedSqlite

@@ -164,6 +164,10 @@ CREATE INDEX IF NOT EXISTS idx_users_jid ON users(id);
 CREATE INDEX IF NOT EXISTS idx_users_level ON users(level);
 CREATE INDEX IF NOT EXISTS idx_users_coin ON users(coin);
 CREATE INDEX IF NOT EXISTS idx_users_bank ON users(bank);
+CREATE INDEX IF NOT EXISTS idx_users_exp_rank ON users(exp DESC, level DESC, id ASC);
+CREATE INDEX IF NOT EXISTS idx_users_level_rank ON users(level DESC, exp DESC, id ASC);
+CREATE INDEX IF NOT EXISTS idx_users_coin_rank ON users(coin DESC, id ASC);
+CREATE INDEX IF NOT EXISTS idx_users_bank_rank ON users(bank DESC, id ASC);
 CREATE INDEX IF NOT EXISTS idx_users_premium_time ON users(premiumTime);
 CREATE INDEX IF NOT EXISTS idx_users_marry ON users(marry);
 CREATE INDEX IF NOT EXISTS idx_groups_owner ON groups(owner);
@@ -177,6 +181,7 @@ CREATE INDEX IF NOT EXISTS idx_marriages_partner ON marriages(group_id, partner_
 CREATE INDEX IF NOT EXISTS idx_harem_user ON harem(group_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_waifus_venta_seller ON waifus_venta(group_id, vendedor);
 CREATE INDEX IF NOT EXISTS idx_gacha_market_seller ON gacha_market(group_id, seller_jid);
+CREATE INDEX IF NOT EXISTS idx_gacha_market_group_sale ON gacha_market(group_id, id_sale);
 INSERT INTO metadata(key,value) VALUES('schema_version','4-relational-users-expanded') ON CONFLICT(key) DO UPDATE SET value=excluded.value;
 `)
 try {
@@ -372,6 +377,8 @@ insertUser: this.sqlite.prepare('INSERT OR IGNORE INTO users(id) VALUES(?)'),
 userExists: this.sqlite.prepare('SELECT 1 FROM users WHERE id=?'),
 listUsers: this.sqlite.prepare('SELECT * FROM users'),
 updateNumericUserField: new Map(),
+topUsers: new Map(),
+userRank: new Map(),
 transferEconomy: new Map(),
 transferBetweenUsersDebit: new Map(),
 transferBetweenUsersCredit: new Map(),
@@ -383,7 +390,7 @@ addUserActivity: this.sqlite.prepare('UPDATE users SET exp = COALESCE(exp, 0) + 
 
 
 _bindPublicApi() {
-for (const name of ['topUsers', 'getTopUsers', 'countUsers', 'countRegisteredUsers', 'getUserAsync', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'incrementUserActivity', 'transferBetweenUsers', 'settleUserBet', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
+for (const name of ['topUsers', 'getTopUsers', 'userRank', 'countUsers', 'countRegisteredUsers', 'getUserAsync', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'incrementUserActivity', 'transferBetweenUsers', 'settleUserBet', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
 this[name] = this[name].bind(this)
 }
 }
@@ -591,11 +598,29 @@ const safeField = String(field || '').trim()
 if (!(safeField in USER_COLUMNS) || !NUMERIC_FIELDS.has(safeField)) throw new Error(`Campo de ranking no permitido: ${safeField}`)
 const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100)
 const safeOffset = Math.max(Number(offset) || 0, 0)
-return this.sqlite.prepare(`SELECT id, ${q(safeField)} AS ${q(safeField)} FROM users ORDER BY ${q(safeField)} DESC, id ASC LIMIT ? OFFSET ?`).all(safeLimit, safeOffset)
+let statement = this.statements.topUsers.get(safeField)
+if (!statement) {
+statement = this.sqlite.prepare(`SELECT id, exp, level, coin, bank, ${q(safeField)} AS ${q(safeField)} FROM users ORDER BY ${q(safeField)} DESC, id ASC LIMIT ? OFFSET ?`)
+this.statements.topUsers.set(safeField, statement)
+}
+return statement.all(safeLimit, safeOffset)
 }
 getTopUsers(options = {}) { return this.topUsers(options) }
 countUsers() { return Number(this.sqlite.prepare('SELECT COUNT(*) AS total FROM users').get()?.total) || 0 }
 countRegisteredUsers() { return Number(this.sqlite.prepare('SELECT COUNT(*) AS total FROM users WHERE registered = 1').get()?.total) || 0 }
+userRank(id, { field = 'level' } = {}) {
+const userId = normalizeJid(id)
+const safeField = String(field || '').trim()
+if (!userId || !(safeField in USER_COLUMNS) || !NUMERIC_FIELDS.has(safeField)) return 0
+const user = this.statements.getUserById.get(userId)
+if (!user) return 0
+let statement = this.statements.userRank.get(safeField)
+if (!statement) {
+statement = this.sqlite.prepare(`SELECT COUNT(*) + 1 AS rank FROM users WHERE ${q(safeField)} > ?`)
+this.statements.userRank.set(safeField, statement)
+}
+return Number(statement.get(Number(user[safeField]) || 0)?.rank) || 0
+}
 
 
 _syncCharactersFtsFromJson() {

@@ -65,6 +65,8 @@ constructor(sqlite) {
 this.sqlite = resolveSQLiteDatabase(sqlite)
 this.conn = null
 this.statements = {}
+this.boundConn = null
+this.boundHandlers = []
 this._prepareSchema()
 this._prepareStatements()
 this.chats = this._createChatsProxy()
@@ -97,6 +99,8 @@ raw_json TEXT NOT NULL DEFAULT '{}',
 updated_at INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_baileys_chats_is_chats ON baileys_chats(is_chats);
+CREATE INDEX IF NOT EXISTS idx_baileys_chats_updated_at ON baileys_chats(updated_at);
+CREATE INDEX IF NOT EXISTS idx_baileys_contacts_updated_at ON baileys_contacts(updated_at);
 `)
 }
 _prepareStatements() {
@@ -110,20 +114,33 @@ this.statements.deleteChat = this.sqlite.prepare('DELETE FROM baileys_chats WHER
 this.statements.countChats = this.sqlite.prepare('SELECT COUNT(*) AS total FROM baileys_chats WHERE is_chats = 1')
 }
 bind(conn) {
+this.unbind()
 this.conn = conn
+this.boundConn = conn
 conn.baileysStore = this
 conn.chats = this.chats
-conn.ev.on('contacts.update', contacts => this.saveContacts(contacts))
-conn.ev.on('contacts.upsert', contacts => this.saveContacts(contacts))
-conn.ev.on('contacts.set', payload => this.saveContacts(payload?.contacts || payload))
-conn.ev.on('chats.update', chats => this.saveChats(chats))
-conn.ev.on('chats.upsert', chats => this.saveChats(chats))
-conn.ev.on('chats.set', payload => this.saveChats(payload?.chats || payload))
-conn.ev.on('groups.update', groups => this.saveChats(groups))
-conn.ev.on('group-participants.update', update => this.refreshGroup(update?.id))
-conn.ev.on('presence.update', update => this.savePresence(update))
-conn.ev.on('messages.upsert', payload => this.saveMessagesMetadata(payload?.messages || []))
+this._on(conn, 'contacts.update', contacts => this.saveContacts(contacts))
+this._on(conn, 'contacts.upsert', contacts => this.saveContacts(contacts))
+this._on(conn, 'contacts.set', payload => this.saveContacts(payload?.contacts || payload))
+this._on(conn, 'chats.update', chats => this.saveChats(chats))
+this._on(conn, 'chats.upsert', chats => this.saveChats(chats))
+this._on(conn, 'chats.set', payload => this.saveChats(payload?.chats || payload))
+this._on(conn, 'groups.update', groups => this.saveChats(groups))
+this._on(conn, 'group-participants.update', update => this.refreshGroup(update?.id))
+this._on(conn, 'presence.update', update => this.savePresence(update))
+this._on(conn, 'messages.upsert', payload => this.saveMessagesMetadata(payload?.messages || []))
 return this
+}
+_on(conn, event, listener) {
+conn.ev.off?.(event, listener)
+conn.ev.on(event, listener)
+this.boundHandlers.push({ event, listener })
+}
+unbind() {
+if (!this.boundConn?.ev || !this.boundHandlers.length) return
+for (const { event, listener } of this.boundHandlers) this.boundConn.ev.off?.(event, listener)
+this.boundHandlers = []
+this.boundConn = null
 }
 saveContacts(input) {
 const contacts = Array.isArray(input) ? input : input ? [input] : []
