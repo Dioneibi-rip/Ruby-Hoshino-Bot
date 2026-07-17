@@ -410,7 +410,8 @@ console.log(chalk.bold.cyan(`✨ Cargando sub-Bots...`))
 }
 const subBotPaths = limpiarSubBots()
 if (subBotPaths.length > 0) {
-const batchSize = Math.max(1, Number(global.subBotLoadBatch || 3))
+const batchSize = Math.max(1, Number(global.subBotLoadBatch || process.env.SUBBOT_LOAD_BATCH || 1))
+const loadDelayMs = Math.max(250, Number(global.subBotLoadDelayMs || process.env.SUBBOT_LOAD_DELAY_MS || 2500))
 for (let i = 0; i < subBotPaths.length; i += batchSize) {
 const batch = subBotPaths.slice(i, i + batchSize)
 await Promise.all(batch.map(async (botPath) => {
@@ -420,7 +421,7 @@ await RubyJadiBot({ pathRubyJadiBot: botPath, m: null, conn, args: '', usedPrefi
 console.log(chalk.red('Error cargando subbot:'), e)
 }
 }))
-if (i + batchSize < subBotPaths.length) await new Promise(resolve => setTimeout(resolve, 500))
+if (i + batchSize < subBotPaths.length) await new Promise(resolve => setTimeout(resolve, loadDelayMs + Math.floor(Math.random() * 750)))
 }
 }
 }
