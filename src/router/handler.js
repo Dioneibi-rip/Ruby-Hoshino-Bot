@@ -487,14 +487,20 @@ return chat
 }
 
 function shouldBlockForPrimaryBot(conn, chatId = '') {
-return !isCurrentBotPrimaryForCachedChat(conn, chatId)
+if (!chatId) return false
+const chat = getFreshChatRecord(chatId)
+const primaryBot = getPrimaryBotJid(chat)
+if (!primaryBot) return false
+PRIMARY_BOT_CACHE.set(chatId, primaryBot)
+return normalizeConnectionJid(conn) !== primaryBot
 }
 
 function enforcePrimaryBotMiddleware(conn, m = {}) {
 if (!m?.isGroup || isCelestialCommandText(m?.text || '')) return false
-const primaryBot = getCachedPrimaryBot(m.chat)
-if (!primaryBot) return false
 const chat = getFreshChatRecord(m.chat)
+const primaryBot = getPrimaryBotJid(chat)
+if (!primaryBot) return false
+PRIMARY_BOT_CACHE.set(m.chat, primaryBot)
 const currentBot = normalizeConnectionJid(conn)
 if (!currentBot || currentBot !== primaryBot) return true
 if (chat && typeof chat === 'object') {

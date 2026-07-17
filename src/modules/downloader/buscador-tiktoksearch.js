@@ -37,12 +37,12 @@ const selectedResults = searchResults.slice(0, 5)
 const cards = []
 for (const result of selectedResults) {
 try {
-cards.push({
+cards.push(proto.Message.InteractiveMessage.CarouselMessage.Card.fromObject({
+header: proto.Message.InteractiveMessage.Header.fromObject({ hasMediaAttachment: true, videoMessage: await createVideoMessage(result.play) }),
 body: proto.Message.InteractiveMessage.Body.fromObject({ text: toFancy(result.title.length > 70 ? result.title.slice(0, 70) + '...' : result.title) }),
 footer: proto.Message.InteractiveMessage.Footer.fromObject({ text: `👤 Aᥙ𝗍᥆r: ${result.author}` }),
-header: proto.Message.InteractiveMessage.Header.fromObject({ title: '✦ TіkT᥆k Vіძᥱ᥆ ✦', hasMediaAttachment: true, videoMessage: await createVideoMessage(result.play) }),
 nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({ buttons: [{ name: 'cta_url', buttonParamsJson: JSON.stringify({ display_text: '🔗 Vᥱr ᥱᥒ TіkT᥆k', url: result.url, merchant_url: result.url }) }, { name: 'cta_copy', buttonParamsJson: JSON.stringify({ display_text: '📋 C᥆ρіᥲr Eᥒᥣᥲᥴᥱ', copy_code: result.url }) }] })
-})
+}))
 } catch (e) {
 console.error('Error creando tarjeta:', e)
 }
@@ -50,7 +50,7 @@ console.error('Error creando tarjeta:', e)
 if (!cards.length) {
 return conn.reply(m.chat, '❌ *N᥆ sᥱ ρᥙძіᥱr᥆ᥒ gᥱᥒᥱrᥲr ᥣ᥆s rᥱsᥙᥣ𝗍ᥲძ᥆s.* (╥﹏╥)', m)
 }
-const msg = generateWAMessageFromContent(m.chat, { viewOnceMessage: { message: { messageContextInfo: { deviceListMetadata: {}, deviceListMetadataVersion: 2 }, interactiveMessage: proto.Message.InteractiveMessage.fromObject({ body: proto.Message.InteractiveMessage.Body.create({ text: `✦ Rᥱsᥙᥣ𝗍ᥲძ᥆s ძᥱ: ${text} ✨\n\n_Dᥱsᥣіzᥲ ρᥲrᥲ ᥎ᥱr mᥲ́s ᥎і́ძᥱ᥆s 👉_` }), footer: proto.Message.InteractiveMessage.Footer.create({ text: '🔎 TіkT᥆k Sᥱᥲrᥴһ' }), header: proto.Message.InteractiveMessage.Header.create({ hasMediaAttachment: false }), carouselMessage: proto.Message.InteractiveMessage.CarouselMessage.fromObject({ cards }) }) } } }, { quoted: m })
+const msg = generateWAMessageFromContent(m.chat, { viewOnceMessage: { message: { messageContextInfo: { deviceListMetadata: {}, deviceListMetadataVersion: 2 }, interactiveMessage: proto.Message.InteractiveMessage.fromObject({ header: proto.Message.InteractiveMessage.Header.fromObject({ title: '🔎 TіkT᥆k Sᥱᥲrᥴһ', hasMediaAttachment: false }), body: proto.Message.InteractiveMessage.Body.fromObject({ text: `✦ Rᥱsᥙᥣ𝗍ᥲძ᥆s ძᥱ: ${text} ✨\n\n_Dᥱsᥣіzᥲ ρᥲrᥲ ᥎ᥱr mᥲ́s ᥎і́ძᥱ᥆s 👉_` }), footer: proto.Message.InteractiveMessage.Footer.fromObject({ text: '🔎 TіkT᥆k Sᥱᥲrᥴһ' }), carouselMessage: proto.Message.InteractiveMessage.CarouselMessage.fromObject({ cards }) }) } } }, { quoted: m })
 await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id })
 await m.react('✅')
 } catch (error) {
