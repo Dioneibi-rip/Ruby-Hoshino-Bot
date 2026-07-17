@@ -61,7 +61,9 @@
     "url-regex-safe": "^3.0.0",
     "ws": "^8.18.0",
     "yargs": "^17.3.1",
-    "yt-search": "^2.10.3"
+    "yt-search": "^2.10.3",
+    "got-scraping": "^4.1.2",
+    "tough-cookie": "^5.1.2"
   },
   "optionalDependencies": {
     "moment-timezone": "^0.5.37",

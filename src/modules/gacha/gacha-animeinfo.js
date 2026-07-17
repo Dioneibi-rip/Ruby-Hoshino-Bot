@@ -58,7 +58,6 @@ message += `✧ Personajes: *${totalChars}*\n`
 message += `✧ Reclamados: *${claimedCount}/${totalChars} (${percentage}%)*\n\n`
 message += `✦ *LISTA DE PERSONAJES:*\n`
 const listSlice = animeChars.sort((a, b) => parseInt(b.value || 0) - parseInt(a.value || 0)).slice(startIndex, endIndex)
-const mentionSet = new Set()
 for (const char of listSlice) {
 const claim = harem.find(e => e.groupId === groupId && e.characterId === char.id)
 let status = 'Libre'
@@ -67,20 +66,17 @@ try {
 const name = await conn.getName(claim.userId)
 status = `Reclamado por ${name}`
 } catch (e) {
-status = `Reclamado por @${String(claim.userId).split('@')[0]}`
-return false;
+status = `Reclamado por ${String(claim.userId).split('@')[0]}`
 }
-mentionSet.add(claim.userId)
 }
 message += `» *${char.name}* (${char.value || 0}) • ${status}\n`
 }
 message += `\n> ⚝ Página *${page}* de *${totalPages}*`
-const mentions = Array.from(mentionSet)
 const imageUrl = await getSeriesImage(displayTitle)
 if (imageUrl) {
-await conn.sendMessage(m.chat, { image: { url: imageUrl }, caption: message, mentions }, { quoted: m })
+await conn.sendMessage(m.chat, { image: { url: imageUrl }, caption: message }, { quoted: m })
 } else {
-await conn.sendMessage(m.chat, { text: message, mentions }, { quoted: m })
+await conn.sendMessage(m.chat, { text: message }, { quoted: m })
 }
 } catch (error) {
 console.error(error)
