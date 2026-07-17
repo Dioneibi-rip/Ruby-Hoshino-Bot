@@ -26,7 +26,6 @@ const targetParticipant = groupParticipants.find(p => isSameJid(participantJid(p
 const ownerGroup = groupInfo.owner || `${m.chat.split`-`[0]}@s.whatsapp.net`
 const ownerBot = `${global.owner?.[0]?.[0] || ''}@s.whatsapp.net`
 
-if (!isAdminParticipant(botParticipant)) return conn.reply(m.chat, `✦ Necesito ser administrador para expulsar usuarios.`, m)
 if (!targetParticipant) return conn.reply(m.chat, `✦ El usuario no está en el grupo.`, m)
 if (isSameJid(user, botJid)) return conn.reply(m.chat, ` No puedo eliminar el bot del grupo.`, m)
 if (isSameJid(user, ownerGroup)) return conn.reply(m.chat, ` No puedo eliminar al propietario del grupo.`, m)
