@@ -60,8 +60,7 @@ const kissGifs=[
 'https://media.tenor.com/WeRg5GfJ54IAAAAM/kiss-anime-anime-kiss.gif',
 'https://media.tenor.com/f7zzuRSaIXoAAAAM/anime-kiss-ranma.gif',
 'https://media.tenor.com/YHxJ9NvLYKsAAAAM/anime-kiss.gif',
-'https://media.tenor.com/vByy30BRy6EAAAAM/kiss-gif-kiss-gif-couple.gif',
-'https://media.tenor.com/6o7pJb2d2fUAAAAC/anime-kiss.gif'
+'https://media.tenor.com/vByy30BRy6EAAAAM/kiss-gif-kiss-gif-couple.gif'
 ]
 
 let who = await resolveInteractionTarget(m, conn)
