@@ -116,29 +116,43 @@ if (!chatId || isPrimaryBotControlEgress(content)) return true
 return !shouldBlockForPrimaryBot(conn, chatId)
 }
 
+function canPatchConnectionMethod(conn, name) {
+if (!conn || typeof conn[name] !== 'function') return false
+let target = conn
+while (target) {
+const descriptor = Object.getOwnPropertyDescriptor(target, name)
+if (descriptor) return descriptor.writable !== false || typeof descriptor.set === 'function'
+target = Object.getPrototypeOf(target)
+}
+return true
+}
+
+function patchConnectionMethod(conn, name, wrapper) {
+if (!canPatchConnectionMethod(conn, name)) return false
+try {
+const original = conn[name].bind(conn)
+conn[name] = wrapper(original)
+return true
+} catch (error) {
+console.error(`[primary-bot] no se pudo blindar ${name}`, error?.message || error)
+return false
+}
+}
+
 function installPrimaryBotEgressGuard(conn) {
 if (!conn || conn[PRIMARY_BOT_EGRESS_GUARD_PATCH]) return
-if (typeof conn.sendMessage === 'function') {
-const originalSendMessage = conn.sendMessage.bind(conn)
-conn.sendMessage = async (jid, content, options = {}) => {
+patchConnectionMethod(conn, 'sendMessage', original => async (jid, content, options = {}) => {
 if (!canUsePrimaryBotEgress(conn, jid, content)) return null
-return originalSendMessage(jid, content, options)
-}
-}
-if (typeof conn.relayMessage === 'function') {
-const originalRelayMessage = conn.relayMessage.bind(conn)
-conn.relayMessage = async (jid, message, options = {}) => {
+return original(jid, content, options)
+})
+patchConnectionMethod(conn, 'relayMessage', original => async (jid, message, options = {}) => {
 if (!canUsePrimaryBotEgress(conn, jid, message)) return null
-return originalRelayMessage(jid, message, options)
-}
-}
-if (typeof conn.sendFile === 'function') {
-const originalSendFile = conn.sendFile.bind(conn)
-conn.sendFile = async (jid, ...args) => {
+return original(jid, message, options)
+})
+patchConnectionMethod(conn, 'sendFile', original => async (jid, ...args) => {
 if (!canUsePrimaryBotEgress(conn, jid, args[3])) return null
-return originalSendFile(jid, ...args)
-}
-}
+return original(jid, ...args)
+})
 conn[PRIMARY_BOT_EGRESS_GUARD_PATCH] = true
 }
 
