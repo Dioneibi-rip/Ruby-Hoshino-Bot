@@ -21,7 +21,7 @@ isNumber,
 normalizeLidReferences,
 runMaintenance,
 } from './handler-utils.js'
-import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
+import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, isPrimaryBotForChat, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
 import { attachSessionState, cleanupSessionState } from '../core/session-manager.js'
 import messageQueue from '../core/message-queue.js'
 import { normalizeIdentityJid, normalizeJid } from '../core/identity-utils.js'
@@ -46,6 +46,7 @@ const PRIMARY_BOT_EMPTY = ''
 const TIMELOCK_COOLDOWN_SCOPE = 'timelock_cooldown'
 const TIMELOCK_COOLDOWN_MS = 24 * 60 * 60 * 1000
 const TIMELOCK_GUARD_PATCH = Symbol.for('ruby.timelockGuard.sendMessagePatch')
+const PRIMARY_BOT_EGRESS_GUARD_PATCH = Symbol.for('ruby.primaryBot.egressGuardPatch')
 
 function extractErrorCode(value, seen = new WeakSet()) {
 if (value == null) return ''
@@ -92,6 +93,67 @@ return Boolean(await global.db?.getTemporaryState?.(TIMELOCK_COOLDOWN_SCOPE, nor
 console.error('[TIMELOCK GUARD] No se pudo consultar cooldown:', error?.message || error)
 return false
 }
+}
+
+function getGuardedGroupChat(conn, jid = '') {
+const chat = conn?.decodeJid?.(jid) || jid
+return typeof chat === 'string' && chat.endsWith('@g.us') ? chat : ''
+}
+
+function getEgressText(content = {}) {
+if (typeof content === 'string') return content
+return String(content?.text || content?.caption || content?.extendedTextMessage?.text || content?.conversation || '')
+}
+
+function isPrimaryBotControlEgress(content = {}) {
+const text = getEgressText(content)
+return /Estado de bots restablecido|Bot primario actualizado/i.test(text)
+}
+
+function canUsePrimaryBotEgress(conn, jid = '', content = {}) {
+const chatId = getGuardedGroupChat(conn, jid)
+if (!chatId || isPrimaryBotControlEgress(content)) return true
+return !shouldBlockForPrimaryBot(conn, chatId)
+}
+
+function canPatchConnectionMethod(conn, name) {
+if (!conn || typeof conn[name] !== 'function') return false
+let target = conn
+while (target) {
+const descriptor = Object.getOwnPropertyDescriptor(target, name)
+if (descriptor) return descriptor.writable !== false || typeof descriptor.set === 'function'
+target = Object.getPrototypeOf(target)
+}
+return true
+}
+
+function patchConnectionMethod(conn, name, wrapper) {
+if (!canPatchConnectionMethod(conn, name)) return false
+try {
+const original = conn[name].bind(conn)
+conn[name] = wrapper(original)
+return true
+} catch (error) {
+console.error(`[primary-bot] no se pudo blindar ${name}`, error?.message || error)
+return false
+}
+}
+
+function installPrimaryBotEgressGuard(conn) {
+if (!conn || conn[PRIMARY_BOT_EGRESS_GUARD_PATCH]) return
+patchConnectionMethod(conn, 'sendMessage', original => async (jid, content, options = {}) => {
+if (!canUsePrimaryBotEgress(conn, jid, content)) return null
+return original(jid, content, options)
+})
+patchConnectionMethod(conn, 'relayMessage', original => async (jid, message, options = {}) => {
+if (!canUsePrimaryBotEgress(conn, jid, message)) return null
+return original(jid, message, options)
+})
+patchConnectionMethod(conn, 'sendFile', original => async (jid, ...args) => {
+if (!canUsePrimaryBotEgress(conn, jid, args[3])) return null
+return original(jid, ...args)
+})
+conn[PRIMARY_BOT_EGRESS_GUARD_PATCH] = true
 }
 
 function installTimelockGuard(conn) {
@@ -443,7 +505,7 @@ return IGNORED_BAILEYS_IDS.some((pattern) => pattern.test(id))
 }
 
 function normalizeConnectionJid(conn) {
-return normalizeSessionJid(conn?.user?.jid || conn?.user?.id || conn)
+return normalizeSessionJid(conn?.subBotJid || conn?.authState?.creds?.me?.jid || conn?.authState?.creds?.me?.id || conn?.user?.jid || conn?.user?.id || conn?.session?.id || conn)
 }
 
 function rememberPrimaryBot(chatId = '', chat = null) {
@@ -487,16 +549,22 @@ return chat
 }
 
 function shouldBlockForPrimaryBot(conn, chatId = '') {
-return !isCurrentBotPrimaryForCachedChat(conn, chatId)
+if (!chatId) return false
+const chat = getFreshChatRecord(chatId)
+const primaryBot = getPrimaryBotJid(chat)
+if (!primaryBot) return false
+PRIMARY_BOT_CACHE.set(chatId, primaryBot)
+return !isPrimaryBotForChat(chat, normalizeConnectionJid(conn))
 }
 
 function enforcePrimaryBotMiddleware(conn, m = {}) {
 if (!m?.isGroup || isCelestialCommandText(m?.text || '')) return false
-const primaryBot = getCachedPrimaryBot(m.chat)
-if (!primaryBot) return false
 const chat = getFreshChatRecord(m.chat)
+const primaryBot = getPrimaryBotJid(chat)
+if (!primaryBot) return false
+PRIMARY_BOT_CACHE.set(m.chat, primaryBot)
 const currentBot = normalizeConnectionJid(conn)
-if (!currentBot || currentBot !== primaryBot) return true
+if (!currentBot || !isPrimaryBotForChat(chat, currentBot)) return true
 if (chat && typeof chat === 'object') {
 if (chat.primaryBot !== primaryBot) chat.primaryBot = primaryBot
 if (chat.botPrimario !== primaryBot) chat.botPrimario = primaryBot
@@ -582,6 +650,7 @@ stat.lastSuccess = now
 
 export async function handler(chatUpdate) {
 try {
+installPrimaryBotEgressGuard(this)
 installTimelockGuard(this)
 attachSessionState(this)
 runMaintenance(this)
