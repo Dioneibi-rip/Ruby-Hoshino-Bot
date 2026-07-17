@@ -1,4 +1,5 @@
-export function before(m, { conn }) {
+import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js'
+export async function before(m, { conn, participants = [] }) {
 if (m.fromMe) return true;
 
 const user = global.db.getUser(m.sender);
@@ -28,7 +29,10 @@ user.afk = -1;
 user.afkReason = '';
 }
 
-const jids = [...new Set([...(m.mentionedJid || []), ...(m.quoted ? [m.quoted.sender] : [])])];
+const participantsByLid = buildParticipantsByLid(participants);
+const rawJids = [...new Set([...(m.mentionedJid || []), ...(m.quoted ? [m.quoted.sender] : [])])];
+const jids = [];
+for (const jid of rawJids) jids.push(await normalizeIdentityJid(conn, jid, participantsByLid));
 
 for (const jid of jids) {
 if (jid === conn.user.jid) continue;

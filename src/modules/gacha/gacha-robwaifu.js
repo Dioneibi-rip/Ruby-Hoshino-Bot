@@ -2,6 +2,7 @@ import { loadHarem, saveHarem, isSameUserId } from '../../infra/gacha-group.js'
 import { loadCharacters, findCharacterById } from '../../infra/gacha-characters.js'
 import { isProtectionActive, getUserFunds, spendUserFunds, resetProtectionOnTransfer } from '../../infra/gacha-protection.js'
 import { canUserClaimCharacter } from '../../infra/gacha-restrictions.js'
+import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js'
 
 const CLAIM_GRACE_MS = 2 * 60 * 1000
 const ROB_ATTEMPT_COST = 700
@@ -16,15 +17,16 @@ if (victimOwnedCount >= 8) chance += 0.05
 return Math.min(0.62, Math.max(0.25, chance))
 }
 
-let handler = async (m, { conn, participants }) => {
-let userId = m.sender
+let handler = async (m, { conn, participants = [] }) => {
+const participantsByLid = buildParticipantsByLid(participants)
+let userId = await normalizeIdentityJid(conn, m.sender, participantsByLid)
 const groupId = m.chat
 const now = Date.now()
 const moneda = m.moneda || 'Coins'
 
 let victimJid
 if (m.isGroup) {
-victimJid = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : false
+victimJid = m.mentionedJid?.[0] || m.quoted?.sender || false
 } else {
 victimJid = m.chat
 }
@@ -34,18 +36,7 @@ await conn.reply(m.chat, '✘ Menciona a un usuario o cita su mensaje: *#robwaif
 return false;
 }
 
-try {
-if (m.isGroup) {
-if (userId.endsWith('@lid')) {
-const tUser = participants.find(u => u.lid === userId)
-if (tUser) userId = tUser.id
-}
-if (victimJid.endsWith('@lid')) {
-const vUser = participants.find(u => u.lid === victimJid)
-if (vUser) victimJid = vUser.id
-}
-}
-} catch (e) {}
+victimJid = await normalizeIdentityJid(conn, victimJid, participantsByLid)
 
 if (isSameUserId(victimJid, userId)) {
 await conn.reply(m.chat, '✘ No puedes robarte a ti mismo.', m);

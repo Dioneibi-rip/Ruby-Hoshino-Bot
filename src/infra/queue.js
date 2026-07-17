@@ -60,7 +60,7 @@ while (queue.length && !closed) {
 const job = queue.shift()
 try {
 const handler = global.queueHandlers?.get(job.name)
-if (handler) await handler(job.data)
+if (handler) await handler(job.data, { conn: job.options?.conn || activeConn || global.mediaQueueConn || global.conn, job })
 } catch (error) {
 console.error('[mediaQueue] worker failed', job?.id, error?.message || error)
 }

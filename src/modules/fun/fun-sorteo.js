@@ -5,7 +5,8 @@ async function handler(m, { groupMetadata, command, conn, text, usedPrefix}) {
 
 let user = a => '@' + a.split('@')[0]
 if (!text) return conn.reply(m.chat, `${emoji} Por favor ingresa lo que deseas sortear.`, m)
-let ps = groupMetadata.participants.map(v => v.id)
+let ps = (groupMetadata?.participants || []).map(v => v.id).filter(Boolean)
+if (!ps.length) return conn.reply(m.chat, `${emoji} No pude obtener participantes para el sorteo.`, m)
 let a = ps.getRandom()
 let k = Math.floor(Math.random() * 70)
 let vn = `https://hansxd.nasihosting.com/sound/sound${k}.mp3`

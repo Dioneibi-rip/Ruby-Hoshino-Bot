@@ -1,6 +1,7 @@
 let toM = a => '@' + a.split('@')[0]
 function handler(m, { groupMetadata }) {
-let ps = groupMetadata.participants.map(v => v.id)
+let ps = (groupMetadata?.participants || []).map(v => v.id).filter(Boolean)
+if (ps.length < 2) return m.reply(`${emoji} Necesito al menos 2 participantes.`)
 let a = ps.getRandom()
 let b
 do b = ps.getRandom()

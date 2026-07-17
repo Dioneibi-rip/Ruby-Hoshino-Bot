@@ -5,6 +5,7 @@ saveHarem,
 isSameUserId
 } from '../../infra/gacha-group.js';
 import { resetProtectionOnTransfer } from '../../infra/gacha-protection.js';
+import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js';
 
 const CONFIRMATION_TTL_MS = 60_000
 const confirmaciones = globalThis.confirmacionesGiveAllHarem || new Map()
@@ -26,16 +27,10 @@ confirmaciones.delete(key)
 return data
 }
 
-let handler = async (m, { conn, participants }) => {
-const normalizeToJid = (rawJid) => {
-if (!rawJid || typeof rawJid !== 'string') return rawJid;
-if (!rawJid.endsWith('@lid')) return rawJid;
-const pInfo = participants.find(p => p?.lid === rawJid);
-return pInfo?.id || rawJid;
-};
-
-let senderJid = normalizeToJid(m.sender);
-let mentionedJid = normalizeToJid(m.mentionedJid?.[0] || m.quoted?.sender);
+let handler = async (m, { conn, participants = [] }) => {
+const participantsByLid = buildParticipantsByLid(participants);
+let senderJid = await normalizeIdentityJid(conn, m.sender, participantsByLid);
+let mentionedJid = await normalizeIdentityJid(conn, m.mentionedJid?.[0] || m.quoted?.sender, participantsByLid);
 
 if (!mentionedJid) return m.reply('✿ Debes mencionar o responder a un mensaje del usuario para regalarle todas tus waifus en este grupo.');
 if (mentionedJid === senderJid) return m.reply('✿ No puedes regalarte tus propias waifus.');
@@ -74,15 +69,9 @@ mentions: [senderJid, mentionedJid]
 }, { quoted: m });
 };
 
-handler.before = async function (m, { conn, participants }) {
-const normalizeToJid = (rawJid) => {
-if (!rawJid || typeof rawJid !== 'string') return rawJid;
-if (!rawJid.endsWith('@lid')) return rawJid;
-const pInfo = participants.find(p => p?.lid === rawJid);
-return pInfo?.id || rawJid;
-};
-
-let senderJid = normalizeToJid(m.sender);
+handler.before = async function (m, { conn, participants = [] }) {
+const participantsByLid = buildParticipantsByLid(participants);
+let senderJid = await normalizeIdentityJid(conn, m.sender, participantsByLid);
 
 const key = `${m.chat}:${senderJid}`;
 if (m.text?.trim().toLowerCase() !== 'aceptar') return;

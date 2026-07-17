@@ -1,5 +1,6 @@
 import { getUserClaims, loadHarem } from '../../infra/gacha-group.js';
 import { loadCharacters, findCharacterById } from '../../infra/gacha-characters.js';
+import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js';
 
 function formatProtectionStatus(character) {
 if (!character.protection || !character.protection.protected) {
@@ -19,13 +20,6 @@ const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
 if (days > 0) return ` 🔒 ${days}d ${hours}h`;
 if (hours > 0) return ` 🔒 ${hours}h ${minutes}m`;
 return ` 🔒 ${Math.max(1, minutes)}m`;
-}
-
-function normalizeToJid(rawJid, participants = []) {
-if (!rawJid || typeof rawJid !== 'string') return rawJid;
-if (!rawJid.endsWith('@lid')) return rawJid;
-const pInfo = participants.find(p => p?.lid === rawJid);
-return pInfo?.id || rawJid;
 }
 
 function getNumberTarget(args = []) {
@@ -49,13 +43,13 @@ let rawUserId;
 const numberTarget = getNumberTarget(args);
 if (m.quoted && m.quoted.sender) {
 rawUserId = m.quoted.sender;
-} else if (m.mentionedJid && m.mentionedJid[0]) {
+} else if (m.mentionedJid?.[0]) {
 rawUserId = m.mentionedJid[0];
 } else {
 rawUserId = numberTarget || m.sender;
 }
 
-let userId = normalizeToJid(rawUserId, participants);
+let userId = await normalizeIdentityJid(conn, rawUserId, buildParticipantsByLid(participants));
 
 const groupId = m.chat;
 

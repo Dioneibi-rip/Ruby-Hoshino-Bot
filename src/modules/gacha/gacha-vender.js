@@ -1,12 +1,6 @@
 import { loadHarem, saveHarem, removeClaim, isSameUserId, addOrUpdateVenta } from '../../infra/gacha-group.js'
 import { loadCharacters, findCharacterById, findCharacterByName, extractCharacterIdFromText } from '../../infra/gacha-characters.js'
-
-function normalizeToJid(rawJid, participants = []) {
-if (!rawJid || typeof rawJid !== 'string') return rawJid
-if (!rawJid.endsWith('@lid')) return rawJid
-const pInfo = participants.find(p => p?.lid === rawJid)
-return pInfo?.id || pInfo?.jid || rawJid
-}
+import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js'
 
 function getUserCharacterList(user) {
 if (!user.extras || typeof user.extras !== 'object' || Array.isArray(user.extras)) user.extras = {}
@@ -42,8 +36,8 @@ const character = findCharacterByName(characters, query) || findCharacterById(ch
 return character ? { character, priceInput } : { error: `✧ Personaje *"${query}"* no encontrado.` }
 }
 
-let handler = async (m, { args, conn, participants }) => {
-const userId = normalizeToJid(m.sender, participants)
+let handler = async (m, { args, conn, participants = [] }) => {
+const userId = await normalizeIdentityJid(conn, m.sender, buildParticipantsByLid(participants))
 const groupId = m.chat
 const { character, priceInput, error } = await resolveCharacter(m, args)
 if (error) return m.reply(error)

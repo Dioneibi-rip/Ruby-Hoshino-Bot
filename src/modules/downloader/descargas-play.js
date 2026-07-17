@@ -64,8 +64,8 @@ function execFile(command) {
 }
 
 global.queueHandlers ||= new Map()
-global.queueHandlers.set('youtube', async (data) => {
-  const conn = getMediaQueueConnection()
+global.queueHandlers.set('youtube', async (data, ctx = {}) => {
+  const conn = ctx.conn || getMediaQueueConnection()
   const m = data.message
   try {
     let searchResult = null
