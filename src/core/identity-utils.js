@@ -33,6 +33,18 @@ return normalized
 }
 
 
+export async function resolveIdentityJids(conn, jids = [], participantsByLid = null) {
+const list = Array.isArray(jids) ? jids : []
+const out = []
+for (const jid of list) {
+const normalized = await normalizeIdentityJid(conn, jid, participantsByLid)
+if (normalized) out.push(normalized)
+}
+return [...new Set(out)]
+}
+
+global.resolveIdentityJids = resolveIdentityJids
+
 export async function resolveInteractionTarget(m, conn = null, options = {}) {
 const { participantsByLid = null } = options
 const rawTarget = Array.isArray(m?.mentionedJid) && m.mentionedJid[0]

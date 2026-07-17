@@ -1,5 +1,6 @@
 import { loadVentas, saveVentas, removeVenta } from '../../infra/gacha-group.js';
 import { loadCharacters, findCharacterById } from '../../infra/gacha-characters.js';
+import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js';
 
 async function loadVentasFile() {
 return await loadVentas();
@@ -9,12 +10,8 @@ async function saveVentasFile(data) {
 return await saveVentas(data);
 }
 
-let handler = async (m, { conn, args, participants }) => {
-let userId = m.sender;
-if (userId.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find(p => p.lid === userId);
-if (pInfo && pInfo.id) userId = pInfo.id;
-}
+let handler = async (m, { conn, args, participants = [] }) => {
+let userId = await normalizeIdentityJid(conn, m.sender, buildParticipantsByLid(participants));
 
 if (!args[0]) {
 return m.reply('✿ Usa: *#removerwaifu <nombre del personaje>*');

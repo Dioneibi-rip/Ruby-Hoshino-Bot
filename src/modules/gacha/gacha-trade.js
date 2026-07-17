@@ -9,6 +9,7 @@ loadCharacters,
 findCharacterByName,
 findCharacterById
 } from '../../infra/gacha-characters.js';
+import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js';
 
 const TRADE_TTL_MS = 60 * 1000;
 const ACCEPT_WORDS = new Set(['aceptar', 'acepto', 'accept', 'confirmar', 'confirmo']);
@@ -78,7 +79,7 @@ async function acceptTrade(m, { conn, participants = [] }) {
 const trade = getTradeByMessage(m.quoted?.id, m.chat);
 if (!trade) return false;
 
-const accepter = normalizeToJid(m.sender, participants);
+const accepter = await normalizeIdentityJid(conn, m.sender, buildParticipantsByLid(participants));
 if (!isSameUserId(accepter, trade.targetId)) {
 await conn.reply(m.chat, `《✧》Solo ${mentionTag(trade.targetId)} puede aceptar este intercambio.`, m, { mentions: [trade.targetId] });
 return true;
@@ -133,14 +134,15 @@ await conn.reply(m.chat, finalText, m, { mentions: [trade.requesterId, trade.tar
 return true;
 }
 
-let handler = async (m, { conn, text, usedPrefix, participants }) => {
+let handler = async (m, { conn, text, usedPrefix, participants = [] }) => {
+const participantsByLid = buildParticipantsByLid(participants);
 const parsed = parseTradeText(text);
 if (!parsed) {
 await conn.reply(m.chat, usage(usedPrefix), m);
 return false;
 }
 
-const requesterId = normalizeToJid(m.sender, participants);
+const requesterId = await normalizeIdentityJid(conn, m.sender, participantsByLid);
 const groupId = m.chat;
 
 try {
@@ -174,7 +176,7 @@ await conn.reply(m.chat, `《✧》*${requestedCharacter.name}* no está reclama
 return false;
 }
 
-const targetId = normalizeToJid(requestedClaim.userId, participants);
+const targetId = await normalizeIdentityJid(conn, requestedClaim.userId, participantsByLid);
 if (!targetId || isSameUserId(targetId, requesterId)) {
 await conn.reply(m.chat, '《✧》No puedes intercambiar contigo mismo. El segundo personaje debe pertenecer a otro usuario.', m);
 return false;

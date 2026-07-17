@@ -1,14 +1,16 @@
-import { normalizeIdentityJid } from '../../core/identity-utils.js'
+import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js'
 
-var handler = async (m, { conn, args, participants }) => {
+var handler = async (m, { conn, args, participants = [] }) => {
+const participantsByLid = buildParticipantsByLid(participants)
+const mentioned = Array.isArray(m.mentionedJid) ? m.mentionedJid : []
 let user1, user2;
 
-if (m.mentionedJid.length === 2) {
-user1 = await normalizeIdentityJid(conn, m.mentionedJid[0]);
-user2 = await normalizeIdentityJid(conn, m.mentionedJid[1]);
-} else if (m.mentionedJid.length === 1) {
-user1 = await normalizeIdentityJid(conn, m.sender);
-user2 = await normalizeIdentityJid(conn, m.mentionedJid[0]);
+if (mentioned.length === 2) {
+user1 = await normalizeIdentityJid(conn, mentioned[0], participantsByLid);
+user2 = await normalizeIdentityJid(conn, mentioned[1], participantsByLid);
+} else if (mentioned.length === 1) {
+user1 = await normalizeIdentityJid(conn, m.sender, participantsByLid);
+user2 = await normalizeIdentityJid(conn, mentioned[0], participantsByLid);
 } else {
 return conn.reply(m.chat, `❤️ Menciona a una o dos personas para shippearlas.\n\nEjemplo:\n.ship @usuario1 @usuario2`, m);
 }

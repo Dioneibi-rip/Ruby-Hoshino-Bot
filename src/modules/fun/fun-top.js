@@ -3,7 +3,8 @@ import path from 'path'
 let user = a => '@' + a.split('@')[0]
 function handler(m, { groupMetadata, command, conn, text, usedPrefix}) {
 if (!text) return conn.reply(m.chat, `${emoji} Por favor, ingrese un texto para hacer un Top 10 *texto*.`, m)
-let ps = groupMetadata.participants.map(v => v.id)
+let ps = (groupMetadata?.participants || []).map(v => v.id).filter(Boolean)
+if (!ps.length) return conn.reply(m.chat, `${emoji} No pude obtener participantes.`, m)
 let a = ps.getRandom()
 let b = ps.getRandom()
 let c = ps.getRandom()

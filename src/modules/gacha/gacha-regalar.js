@@ -8,17 +8,12 @@ isSameUserId
 } from '../../infra/gacha-group.js';
 import { resetProtectionOnTransfer } from '../../infra/gacha-protection.js';
 import { loadCharacters, findCharacterByName } from '../../infra/gacha-characters.js';
+import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js';
 
 
-let handler = async (m, { conn, args, participants }) => {
-const normalizeToJid = (rawJid) => {
-if (!rawJid || typeof rawJid !== 'string') return rawJid;
-if (!rawJid.endsWith('@lid')) return rawJid;
-const pInfo = participants.find(p => p?.lid === rawJid);
-return pInfo?.id || rawJid;
-};
-
-let userId = normalizeToJid(m.sender);
+let handler = async (m, { conn, args, participants = [] }) => {
+const participantsByLid = buildParticipantsByLid(participants);
+let userId = await normalizeIdentityJid(conn, m.sender, participantsByLid);
 const groupId = m.chat;
 
 if (args.length < 1) {
@@ -53,7 +48,7 @@ await conn.reply(m.chat, 'Debes mencionar o responder a un mensaje del usuario a
 return false;
 }
 
-let who = normalizeToJid(rawWho);
+let who = await normalizeIdentityJid(conn, rawWho, participantsByLid);
 if (!who || who === userId) {
 await conn.reply(m.chat, 'Debes elegir un usuario válido y distinto de ti para regalar.', m);
 return false;

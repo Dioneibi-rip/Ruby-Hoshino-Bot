@@ -4,6 +4,7 @@ saveHarem,
 addOrUpdateClaim
 } from '../../infra/gacha-group.js';
 import { loadCharacters, findCharacterByName, findCharacterById } from '../../infra/gacha-characters.js';
+import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js';
 
 function extractNamesFromList(text) {
 const names = [];
@@ -25,26 +26,11 @@ if (nm) names.push(nm);
 return [...new Set(names)];
 }
 
-let handler = async (m, { conn, args, participants }) => {
+let handler = async (m, { conn, args, participants = [] }) => {
 try {
-let targetJid = m.mentionedJid?.[0];
-if (targetJid && targetJid.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find(p => p.lid === targetJid);
-if (pInfo && pInfo.id) targetJid = pInfo.id;
-}
-if (!targetJid && m.quoted && m.quoted.sender) {
-targetJid = m.quoted.sender;
-if (targetJid.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find(p => p.lid === targetJid);
-if (pInfo && pInfo.id) targetJid = pInfo.id;
-}
-}
-let senderJid = m.sender;
-if (senderJid.endsWith('@lid') && m.isGroup) {
-const pInfo = participants.find(p => p.lid === senderJid);
-if (pInfo && pInfo.id) senderJid = pInfo.id;
-}
-if (!targetJid) targetJid = senderJid;
+const participantsByLid = buildParticipantsByLid(participants);
+let senderJid = await normalizeIdentityJid(conn, m.sender, participantsByLid);
+let targetJid = await normalizeIdentityJid(conn, m.mentionedJid?.[0] || m.quoted?.sender || senderJid, participantsByLid);
 
 const groupId = m.chat;
 
