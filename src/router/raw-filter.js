@@ -89,8 +89,9 @@ const commandEntry = rawCommand ? commandsMap.get(rawCommand) : null
 const hasPrefix = Boolean(usedPrefix || COMMAND_PREFIX_FALLBACK.test(trimmed))
 const isCommandLike = Boolean(commandEntry || hasPrefix)
 const needsModeration = chat.endsWith('@g.us') && messageHasModeratedLink(message)
-if (!isCommandLike && !needsModeration) return null
-return { chat, text: trimmed, usedPrefix, parsed, rawCommand, commandEntry, isCommandLike, needsModeration }
+const isInteractive = Boolean(getInteractiveResponseText(unwrapMessageContent(message?.message || message)))
+const isPassive = !isCommandLike && !needsModeration && !isInteractive
+return { chat, text: trimmed, usedPrefix, parsed, rawCommand, commandEntry, isCommandLike, needsModeration, isInteractive, isPassive }
 }
 
 export function parseRawCommand(text, usedPrefix) {

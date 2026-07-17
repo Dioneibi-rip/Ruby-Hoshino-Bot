@@ -27,7 +27,7 @@ import messageQueue from '../core/message-queue.js'
 import { normalizeIdentityJid, normalizeJid } from '../core/identity-utils.js'
 import { getMessageDeletePayload, isUserMutedInChat, messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
 import { getGroupMetadataOnDemand } from '../infra/global-cache.js'
-import { getInteractiveResponseText, getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash, isFreshRawMessage, unwrapMessageContent } from './raw-filter.js'
+import { getInteractiveResponseText, getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash, unwrapMessageContent } from './raw-filter.js'
 import { executePlugin } from './plugin-executor.js'
 import { isBotSender, pluginRequiresGroupParticipants } from './permission-guard.js'
 
@@ -594,10 +594,7 @@ try {
 const rawChat = this?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
 if (rawChat?.endsWith?.('@g.us') && shouldBlockForPrimaryBot(this, rawChat) && !canBypassSilencedChat(message)) continue
 const fastPath = getRawFastPath(this, message)
-if (!fastPath) {
-if (isFreshRawMessage(message, SYSTEM_MESSAGE_MAX_AGE_MS)) trackLocalGroupActivity(this, message, getActivitySenderFromRaw(message), { countMessage: true, isCommand: false })
-continue
-}
+if (!fastPath) continue
 message.__rubyFastPath = fastPath
 fastMessages.push(message)
 } catch (error) {
@@ -649,19 +646,10 @@ return
 const prefixMatch = fastPath.usedPrefix ? [[fastPath.usedPrefix], null] : getPrefixMatch(this, {}, m.text)
 const parsed = fastPath.parsed || (prefixMatch?.[0]?.[0] ? parseCommand(m.text, prefixMatch[0][0]) : null)
 const commandEntry = fastPath.commandEntry || (parsed?.command ? commandsMap.get(parsed.command) : null)
-const requiresPersistence = Boolean(commandEntry || fastPath.needsModeration || rawCommand === 'resetbot')
-if (!requiresPersistence) {
-if (parsed?.command && prefixMatch?.[0]?.[0]) {
-m.__skipStats = true
-await runInvalidCommandNotice(this, m, parsed, prefixMatch[0][0])
-}
-return
-}
-
 sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
 if (!sender) return
 m.__deleteKey = m.key ? { ...m.key } : null
-const needsParticipants = Boolean(m.isGroup && (fastPath.needsModeration || pluginRequiresGroupParticipants(commandEntry?.plugin)))
+const needsParticipants = Boolean(m.isGroup && (fastPath.needsModeration || pluginRequiresGroupParticipants(commandEntry?.plugin) || (global.beforeHooks || beforeHooks || []).some(({ plugin } = {}) => typeof plugin?.before === 'function')))
 const requiresFreshAdminMetadata = Boolean(commandEntry?.plugin?.admin || commandEntry?.plugin?.botAdmin || commandEntry?.plugin?.needsParticipants)
 let groupMetadata = needsParticipants ? await getGroupMetadataOnDemand(this, m.chat, { requireParticipants: true, force: requiresFreshAdminMetadata }) : {}
 let participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
@@ -708,8 +696,6 @@ return
 }
 m.moneda = settings?.moneda || 'Coins'
 m.exp += Math.ceil(Math.random() * 10)
-
-if (!commandEntry && !parsed?.command) return
 
 const pluginDir = getPluginDirectory()
 for (const hook of global.allHooks || allHooks || []) {
