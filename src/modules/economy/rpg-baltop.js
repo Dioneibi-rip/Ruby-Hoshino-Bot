@@ -1,42 +1,26 @@
-import { resolveIdentityName } from '../../core/identity-utils.js'
-let handler = async (m, { conn, args, participants }) => {
-const jidLocal = jid => String(jid || '').split('@')[0].split(':')[0]
-const groupLocals = new Set(participants.map(p => jidLocal(p.id || p.jid)).filter(Boolean))
-const page = args[0] && !isNaN(args[0]) ? parseInt(args[0]) : 1
-const perPage = 10
-const start = (page - 1) * perPage
-const end = start + perPage
-
-const topRows = await Promise.resolve(global.db.getTopUsers?.({ field: 'coin', limit: Math.max(end, perPage), offset: 0 }) || global.db.topUsers?.({ field: 'coin', limit: Math.max(end, perPage), offset: 0 }) || [])
-const sorted = topRows
-.map(row => ({ jid: row.id, total: Number(row.coin) || 0 }))
-.filter(row => groupLocals.has(jidLocal(row.jid)))
-
-const totalPages = Math.max(1, Math.ceil(sorted.length / perPage))
-const pageUsers = sorted.slice(start, end)
-const iconos = ['👑', '🥈', '🥉']
-let texto = `「✿」Los usuarios con más *${m.moneda}* son:\n\n`
-
-for (let i = 0; i < pageUsers.length; i++) {
-const { jid, total } = pageUsers[i]
-const nombre = await resolveIdentityName(conn, jid, { fallback: `@${String(jid).split('@')[0]}` })
-const icono = iconos[start + i] || '✰'
-const yenes = `¥${total.toLocaleString()} ${m.moneda}`
-
-texto += `${icono} ${start + i + 1} » *${nombre}:*\n`
-texto += `\t\t Total→ *${yenes}*\n`
+import { normalizeJid, resolveIdentityName } from '../../core/identity-utils.js'
+let handler=async(m,{conn,args,groupMetadata})=>{
+const participantIds=[...new Set((groupMetadata?.participants||[]).flatMap(participant=>[participant?.id,participant?.jid]).map(normalizeJid).filter(Boolean))]
+const requestedPage=Number.parseInt(args[0],10)
+const perPage=10
+const rows=global.db.topUsersByIds?.(participantIds,{field:'coin'})||[]
+const totalPages=Math.max(1,Math.ceil(rows.length/perPage))
+const page=Math.min(Math.max(Number.isInteger(requestedPage)&&requestedPage>0?requestedPage:1,1),totalPages)
+const start=(page-1)*perPage
+const icons=['👑','🥈','🥉']
+let text=`「✿」Los usuarios con más *${m.moneda}* son:\n\n`
+for(const[rowIndex,row]of rows.slice(start,start+perPage).entries()){
+const fallback=String(row.id).split('@')[0]
+const name=(await resolveIdentityName(conn,row.id,{fallback})).replace(/@/g,'')||fallback
+text+=`${icons[start+rowIndex]||'✰'} ${start+rowIndex+1} » *${name}:*\n\t\tTotal→ *¥${Number(row.coin||0).toLocaleString()} ${m.moneda}*\n`
 }
-
-texto += `\n> • Pagina *${page}* de *${totalPages}*`
-
-await conn.reply(m.chat, texto.trim(), m)
+if(!rows.length)text+='✰ Aún no hay balances de participantes registrados.\n'
+await conn.reply(m.chat,`${text}\n> • Pagina *${page}* de *${totalPages}*`.trim(),m)
 }
-
-handler.help = ['baltop']
-handler.tags = ['rpg']
-handler.command = ['baltop', 'eboard']
-handler.group = true
-handler.register = true
-handler.exp = 0
-
+handler.help=['baltop']
+handler.tags=['rpg']
+handler.command=['baltop','eboard']
+handler.group=true
+handler.register=true
+handler.exp=0
 export default handler

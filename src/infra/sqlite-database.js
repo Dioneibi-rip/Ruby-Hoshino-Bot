@@ -606,6 +606,18 @@ this.statements.topUsers.set(safeField, statement)
 return statement.all(safeLimit, safeOffset)
 }
 getTopUsers(options = {}) { return this.topUsers(options) }
+topUsersByIds(ids = [], { field = 'coin' } = {}) {
+const safeField = String(field || '').trim()
+if (!(safeField in USER_COLUMNS) || !NUMERIC_FIELDS.has(safeField)) throw new Error(`Campo de ranking no permitido: ${safeField}`)
+const userIds = [...new Set((Array.isArray(ids) ? ids : []).map(normalizeJid).filter(Boolean))]
+if (!userIds.length) return []
+const rows = []
+for (let index = 0; index < userIds.length; index += 999) {
+const batch = userIds.slice(index, index + 999)
+rows.push(...this.sqlite.prepare(`SELECT id, exp, level, coin, bank, ${q(safeField)} AS ${q(safeField)} FROM users WHERE id IN (${batch.map(() => '?').join(',')})`).all(...batch))
+}
+return rows.sort((a, b) => Number(b[safeField] || 0) - Number(a[safeField] || 0) || String(a.id).localeCompare(String(b.id)))
+}
 countUsers() { return Number(this.sqlite.prepare('SELECT COUNT(*) AS total FROM users').get()?.total) || 0 }
 countRegisteredUsers() { return Number(this.sqlite.prepare('SELECT COUNT(*) AS total FROM users WHERE registered = 1').get()?.total) || 0 }
 userRank(id, { field = 'level' } = {}) {
