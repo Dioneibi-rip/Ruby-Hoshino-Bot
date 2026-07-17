@@ -51,7 +51,7 @@ lines.push(`*#${index + 1} » ${name}*`)
 lines.push(`  » Mensajes: \`${user.messages}\`, Comandos: \`${user.commands}\``)
 }
 
-await conn.sendMessage(m.chat, { text: lines.join('\n'), mentions: ranking.map(user => user.jid) }, { quoted: m })
+await conn.sendMessage(m.chat, { text: lines.join('\n') }, { quoted: m })
 }
 
 handler.help = ['topmensajes']

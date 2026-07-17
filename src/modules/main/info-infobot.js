@@ -27,7 +27,7 @@ info += `⚘˚₊· ͟͟͞͞➳❥ *Free-RAM* : ${format(freemem())}\n\n`
 info += `❒ *NodeJS Uso de memoria* :\n`
 info += `${'```' + Object.keys(process.memoryUsage()).map((key) => `${key}: ${format(process.memoryUsage()[key])}`).join('\n') + '```'}`
 
-await conn.reply(m.chat, info, m, { contextInfo: { mentionedJid: [owner[0][0] + '@s.whatsapp.net'] } })
+await conn.reply(m.chat, info, m)
 }
 
 handler.help = ['botinfo']

@@ -1,4 +1,5 @@
 import { loadHarem, isSameUserId } from '../../infra/gacha-group.js';
+import { normalizeIdentityJid, buildParticipantsByLid, resolveIdentityName } from '../../core/identity-utils.js';
 import { loadCharacters } from '../../infra/gacha-characters.js';
 import { getCooldownKey, isRedisReady, redis } from '../../infra/redis.js';
 
@@ -38,13 +39,15 @@ if (userId.endsWith('@lid')) return `${userId.split('@')[0]}@s.whatsapp.net`;
 return userId;
 }
 
-let handler = async (m, { conn }) => {
-const userId = normalizeUserId(m.sender);
+let handler = async (m, { conn, participants = [] }) => {
+const participantsByLid = buildParticipantsByLid(participants);
+const rawTarget = m.mentionedJid?.[0] || m.quoted?.sender || m.quoted?.participant || m.quoted?.key?.participant || m.sender;
+const userId = normalizeUserId(await normalizeIdentityJid(conn, rawTarget, participantsByLid) || rawTarget);
 const groupId = m.chat;
 let userName;
 
 try {
-userName = await conn.getName(userId);
+userName = await resolveIdentityName(conn, userId, { participantsByLid, fallback: userId });
 } catch (e) {
 userName = userId;
 return false;
