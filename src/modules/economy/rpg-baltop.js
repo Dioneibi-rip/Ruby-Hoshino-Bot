@@ -1,6 +1,7 @@
 import { normalizeJid, resolveIdentityName } from '../../core/identity-utils.js'
 let handler=async(m,{conn,args,groupMetadata})=>{
-const participantIds=[...new Set((groupMetadata?.participants||[]).flatMap(participant=>[participant?.id,participant?.jid]).map(normalizeJid).filter(Boolean))]
+const metadata=await conn.groupMetadata(m.chat).catch(()=>groupMetadata||{})
+const participantIds=[...new Set((metadata?.participants||[]).flatMap(participant=>[participant?.id,participant?.jid,participant?.lid]).map(normalizeJid).filter(Boolean))]
 const requestedPage=Number.parseInt(args[0],10)
 const perPage=10
 const rows=global.db.topUsersByIds?.(participantIds,{field:'coin'})||[]

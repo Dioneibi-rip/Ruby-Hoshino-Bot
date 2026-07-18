@@ -3,7 +3,7 @@ let handler = async (m, { conn }) => {
 const texto = `
 📥⊹ 𝐌𝐄𝐍𝐔 𝐃𝐄 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐒 ⊹📂
 
-꒰☕꒱ *#play • #play2*
+꒰☕꒱ *#play • #playdoc • #play2 • #play2doc*
 > ✦ Descarga música/video de YouTube por búsqueda.
 ꒰☕꒱ *#ytmp3 • #ytmp4*
 > ✦ Descarga audio/video de YouTube por enlace.
@@ -17,7 +17,7 @@ const texto = `
 > ✦ Descargar archivos de MediaFire.
 ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#mega • #mg* + [enlace]
 > ✦ Descargar archivos de MEGA.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#play • #play2*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#play • #playdoc • #play2 • #play2doc*
 > ✦ Descargar música/video de YouTube.
 ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ytmp3 • #ytmp4*
 > ✦ Descarga directa por url de YouTube.
