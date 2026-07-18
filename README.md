@@ -144,7 +144,7 @@ pm2 logs ruby-hoshino
 
 ---
 
-### Instalación en Linux / VPS Ubuntu-Debian
+## <img src="https://media.tenor.com/F53lyarrQu0AAAAi/miku-cute.gif" alt="Instalacion" width="40" height="40"> Linux / VPS Ubuntu-Debian
 
 <details>
 <summary><b>🐧 VER LOS PASOS DE INSTALACIÓN</b></summary>
