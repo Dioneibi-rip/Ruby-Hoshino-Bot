@@ -23,9 +23,9 @@
 
 ---
 
-## ⚠️ Aviso importante
-
-Ruby Hoshino Bot **no está afiliado con WhatsApp Inc.** El uso indebido, automatización agresiva o spam puede causar la suspensión de tu cuenta. Úsalo bajo tu propia responsabilidad y respeta las normas de tus comunidades.
+> [!WARNING]
+> **AVISO IMPORTANTE** > Este bot no está afiliado con `WhatsApp Inc.`. El uso indebido (spam, etc.) podría resultar en la `suspensión` de tu cuenta de WhatsApp.  
+> **Úsalo bajo tu propio riesgo y responsabilidad.** ¡Sé un usuario amable! 💖
 
 > Ruby Hoshino Bot es una versión personalizada y editada de [Yuki Wa Bot](https://github.com/The-King-Destroy/YukiBot-MD), mantenida por [Dioneibi-rip](https://github.com/Dioneibi-rip).
 
