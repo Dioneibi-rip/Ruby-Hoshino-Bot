@@ -200,6 +200,7 @@ pm2 logs ruby-hoshino
 <details>
 <summary><b>🧊 VER EL APARTADO Y INSTALACIÓN EN WINDOWS</b></summary>
 
+
 1. Descarga e instala **Node.js LTS** desde <https://nodejs.org/>.
 2. Descarga e instala **Git for Windows** desde <https://git-scm.com/download/win>.
 3. Durante la instalación de Node.js, si aparece la opción **Tools for Native Modules**, actívala. Esto instala Python y herramientas C++ necesarias para paquetes nativos.
