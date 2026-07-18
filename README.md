@@ -195,7 +195,7 @@ pm2 logs ruby-hoshino
 
 ---
 
-### 3) Windows
+## <img src="https://media.tenor.com/CDo9rXaH6GYAAAAi/windows-logo.gif" alt="Instalacion" width="40" height="40"> Windows
 
 1. Descarga e instala **Node.js LTS** desde <https://nodejs.org/>.
 2. Descarga e instala **Git for Windows** desde <https://git-scm.com/download/win>.
