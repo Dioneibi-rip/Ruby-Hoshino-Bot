@@ -31,6 +31,14 @@
 
 ---
 
+### <img src="https://i.pinimg.com/originals/19/80/6e/19806e91932e6054965fc83b85241270.gif" alt="Prueba La Bot Aqui" width="42" height="42"> ¡Prueba el Bot en Acción!
+
+> ¿Quieres ver la magia de Ruby antes de instalar? ¡Únete a la comunidad y pruébalo! 💖
+
+[**Únete al Grupo Oficial**](https://chat.whatsapp.com/D070oCPt4it7M2MohvYoOn)
+
+-----
+
 ## ✨ Características principales
 
 | Pilar | Qué aporta |
