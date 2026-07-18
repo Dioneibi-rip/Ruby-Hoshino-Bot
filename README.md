@@ -83,6 +83,10 @@ Antes de instalar, confirma que tienes:
 Esta es la forma más segura para Android. El script `termux-install.sh` actualiza Termux, instala el kit pesado de compilación, limpia la caché de npm y ejecuta `npm install` con las dependencias correctas para evitar errores de `node-gyp`, `better-sqlite3` y módulos incompletos como `ws`.
 
 ```bash
+termux-setup-storage
+```
+
+```bash
 pkg install git -y
 ```
 
