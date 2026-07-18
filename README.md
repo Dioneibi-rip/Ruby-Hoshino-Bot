@@ -1,9 +1,9 @@
 <div align="center">
+  <img src="https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Ruby_Generated_Image_vdcokcvdcokcvdco.png" alt="Banner Ruby Hoshino Bot" width="100%">
+</div>
 
-<!-- Recomendado: reemplaza este bloque por un banner propio de 1280x420 px en /assets/banner.png -->
-<img src="https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/Ruby_Generated_Image_vdcokcvdcokcvdco.png" alt="Ruby Hoshino Bot Banner" width="100%" />
-
-# 💎 Ruby Hoshino Bot
+<div align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=E91E63&center=true&vCenter=true&width=435&lines=BIENVENIDO+AL+REPOSITORIO;RUBY+HOSHINO+BOT;LA+IDOL+DEFINITIVA+EN+WHATSAPP;CREADO+CON+%E2%9D%A4%EF%B8%8F+POR+DIONEIBI;%C2%A1LA+BOT+MAS+LINDA!+%F0%9F%92%96" alt="Typing SVG">
 
 **Bot de WhatsApp Multi Device con SQLite local, alto rendimiento y soporte multi-instancia.**
 
