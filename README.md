@@ -365,7 +365,27 @@ Si el problema continúa, elimina solo la carpeta de sesión afectada y conserva
 
 ---
 
-## ☁️ Despliegue en la nube
+## 🍉︎ **`HOSTINGS RECOMENDADOS`**
+
+Si deseas que Ruby esté activa 24/7 sin depender de tu celular, te recomendamos estos servicios:
+
+### **`AKIRAX HOST`**
+
+* **Dashboard:** [`dash.akirax.net`](https://home.akirax.net)
+* **Panel:** [`panel.akirax.net`](https://console.akirax.net)
+* **Canal Oficial:** [`Únete Aquí`](https://whatsapp.com/channel/0029VbBCchVDJ6H6prNYfz2z)
+* **Grupo de Soporte:** [`Únete Aquí`](https://chat.whatsapp.com/JxSZTFJN9J20TnsH7KsKTA)
+
+### **`౨ৎ SWALLOX HOST ౨ৎ`**
+
+* **Dashboard:** [`dash.swallox.com`](https://dash.swallox.com)
+* **Panel:** [`panel.swallox.com`](https://panel.swallox.com)
+* **Canal Oficial:** [`Únete Aquí`](https://whatsapp.com/channel/0029Vb6I6zTEQIanas9U0N2I)
+* **Grupo de Soporte:** [`Únete Aquí`](https://chat.whatsapp.com/Bzo7jcdivDGJc3thZrSyEC)
+
+---
+
+## ☁️ **`DESPLIEGUE RÁPIDO EN LA NUBE`**
 
 <p align="center">
   <a href="https://heroku.com/deploy?template=https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot"><img src="https://img.shields.io/badge/Deploy%20en%20Heroku-6762A6?style=for-the-badge&logo=heroku&logoColor=white" alt="Deploy Heroku"></a>
@@ -377,24 +397,14 @@ Si el problema continúa, elimina solo la carpeta de sesión afectada y conserva
 
 ---
 
-## 💬 Comunidad y soporte
+## 💬 **`CONTACTO Y SOPORTE`**
 
-- Grupo oficial: <https://chat.whatsapp.com/D070oCPt4it7M2MohvYoOn>
-- Canal oficial: <https://whatsapp.com/channel/0029VakLbM76mYPPFL0IFI3P>
-- Soporte directo: <https://api.whatsapp.com/send/?phone=18093519169&text=Hola,+vengo+de+GitHub+y+necesito+soporte+con+Ruby+Bot&type=phone_number&app_absent=0>
+¿Tienes dudas o quieres estar al día con las novedades? ¡Únete a nuestros canales! 💫
 
 ---
 
-## 👥 Créditos
+### `🍋‍🟩 DESARROLLADORES`
 
-<a href="https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Dioneibi-rip/Ruby-Hoshino-Bot" alt="Contributors" />
-</a>
+### `🪷 CREADOR OFICIAL`
 
-**Creador oficial:** [Dioneibi-rip](https://github.com/Dioneibi-rip)
-
-<div align="center">
-
-### Gracias por usar Ruby Hoshino Bot 💖
-
-</div>
+**`¡GRACIAS POR PREFERIR RUBY HOSHINO BOT! 🫧`**
