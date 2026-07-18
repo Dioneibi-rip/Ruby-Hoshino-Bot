@@ -76,7 +76,7 @@ Antes de instalar, confirma que tienes:
 > Recomendación: instala Termux desde F-Droid. Algunas ROMs o arquitecturas pueden requerir más tiempo para compilar dependencias nativas.
 
 <details>
-<summary><b>🪼 PASOS DE INSTALACION</b></summary>
+<summary><b>🪼 PASOS DE INSTALACION EN TERMUX</b></summary>
 
 ```bash
 termux-setup-storage
