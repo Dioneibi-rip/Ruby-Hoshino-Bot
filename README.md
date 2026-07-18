@@ -229,6 +229,8 @@ npm install
 npm start
 ```
 
+</details>
+
 ---
 
 ## 🔐 Primer inicio y vinculación con WhatsApp
@@ -261,8 +263,6 @@ Remove-Item -Recurse -Force RubySessions
 ```bash
 npm start
 ```
-
-</details>
 
 ---
 
