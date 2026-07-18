@@ -1,6 +1,3 @@
-import util from 'util'
-import path from 'path'
-
 async function handler(m,{groupMetadata,command,conn,text,usedPrefix}){
 let user=a=>'@'+a.split('@')[0]
 if(!text)return conn.reply(m.chat,`${emoji} Por favor ingresa lo que deseas sortear.`,m)
@@ -8,8 +5,6 @@ const metadata=await conn.groupMetadata(m.chat).catch(()=>groupMetadata||{})
 let ps=[...new Set((metadata?.participants||[]).flatMap(v=>[v?.id,v?.jid]).filter(Boolean))]
 if(!ps.length)return conn.reply(m.chat,`${emoji} No pude obtener participantes para el sorteo.`,m)
 let a=ps.getRandom()
-let k=Math.floor(Math.random()*70)
-let vn=`https://hansxd.nasihosting.com/sound/sound${k}.mp3`
 let top=`*[🥳 \`ＦＥＬＩＣＩＤＡＤＥＳ\` 🥳]*\n\n${user(a)} 🥳\nAcaba de ganar el sorteo felicitaciones 🎉`
 let txt=''
 let count=0
@@ -31,6 +26,3 @@ handler.group=true
 handler.register=true
 
 export default handler
-
-function pickRandom(list){
-return list[Math.floor(Math.random()*list.length)]}

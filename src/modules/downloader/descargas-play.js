@@ -2,7 +2,7 @@ import { enqueueMediaJob, getMediaQueueConnection } from '../../infra/queue.js'
 import { ytmp3, ytmp4 } from '../../infra/youtubedl.js'
 import yts from 'yt-search'
 import fs from 'fs'
-import { exec } from 'child_process'
+import { execFile as execFileCb } from 'child_process'
 import { join } from 'path'
 
 async function pathExists(file) {
@@ -54,9 +54,9 @@ function formatViews(views) {
   return views.toString()
 }
 
-function execFile(command) {
+function execFile(command, args) {
   return new Promise((resolve, reject) => {
-    exec(command, (err) => {
+    execFileCb(command, args, (err) => {
       if (err) reject(err)
       else resolve()
     })
@@ -181,7 +181,7 @@ global.queueHandlers.set('youtube', async (data, ctx = {}) => {
 
         const fileName = join(tmpDir, `${Date.now()}.mp4`)
 
-        await execFile(`ffmpeg -i "${videoUrl}" -c:v copy -c:a aac -movflags +faststart "${fileName}"`)
+        await execFile('ffmpeg', ['-i', videoUrl, '-c:v', 'copy', '-c:a', 'aac', '-movflags', '+faststart', fileName])
 
         if (!await pathExists(fileName)) throw new Error('Error en FFmpeg')
 
