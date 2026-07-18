@@ -108,6 +108,8 @@ npm start
 
 ---
 
+# 🍃 Instalación Manual en Termux
+
 ```bash
 termux-setup-storage
 ```
