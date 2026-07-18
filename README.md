@@ -76,7 +76,7 @@ Antes de instalar, confirma que tienes:
 > Recomendación: instala Termux desde F-Droid. Algunas ROMs o arquitecturas pueden requerir más tiempo para compilar dependencias nativas.
 
 <details>
-<summary><b>🪼 PASOS DE INSTALACION EN TERMUX</b></summary>
+<summary><b>🪼 VER EL APARTADO Y INSTALACION EN TERMUX</b></summary>
 
 ```bash
 termux-setup-storage
@@ -147,7 +147,7 @@ pm2 logs ruby-hoshino
 ## <img src="https://media.tenor.com/F53lyarrQu0AAAAi/miku-cute.gif" alt="Instalacion" width="40" height="40"> Linux / VPS Ubuntu-Debian
 
 <details>
-<summary><b>🐧 VER LOS PASOS DE INSTALACIÓN</b></summary>
+<summary><b>🐧 VER EL APARTADO Y INSTALACIÓN</b></summary>
 
 ```bash
 sudo apt update
