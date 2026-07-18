@@ -123,7 +123,16 @@ console.log(chalk.bold.hex('#9900ff')('୨୧ㅤ۫ Proyecto iniciado con Exito. 
 }
 showBanner()
 global.loadDatabase = async function loadDatabase() {
-if (global.db.READ) { return new Promise((resolve) => setInterval(async function() { if (!global.db.READ) { clearInterval(this); resolve(global.db.data == null ? global.loadDatabase() : global.db.data); } }, 1 * 1000)) }
+if (global.db.READ) return new Promise((resolve,reject)=>{
+const startedAt=Date.now()
+const poll=()=>{
+if(!global.db.READ)return resolve(global.db.data==null?global.loadDatabase():global.db.data)
+if(Date.now()-startedAt>30000)return reject(new Error('Timeout esperando lectura de base de datos'))
+const timer=setTimeout(poll,1000)
+timer.unref?.()
+}
+poll()
+})
 if (global.db.data !== null) {
   global.db.chain ||= global.db.data
   return global.db.data
