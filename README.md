@@ -78,6 +78,36 @@ Antes de instalar, confirma que tienes:
 <details>
 <summary><b>🪼 VER EL APARTADO Y INSTALACION EN TERMUX</b></summary>
 
+# 💨 Instalación Automática en Termux — Recomendada
+
+Esta es la forma más segura para Android. El script `termux-install.sh` actualiza Termux, instala el kit pesado de compilación, limpia la caché de npm y ejecuta `npm install` con las dependencias correctas para evitar errores de `node-gyp`, `better-sqlite3` y módulos incompletos como `ws`.
+
+```bash
+pkg install git -y
+```
+
+```bash
+git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git
+```
+
+```bash
+cd Ruby-Hoshino-Bot
+```
+
+```bash
+bash termux-install.sh
+```
+
+Cuando termine, inicia Ruby:
+
+```bash
+npm start
+```
+
+> Si Termux pregunta algo como `(Y/I/N/O/D/Z) [default=N]`, escribe `y` y presiona **Enter**.
+
+---
+
 ```bash
 termux-setup-storage
 ```
