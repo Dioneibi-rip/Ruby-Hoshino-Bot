@@ -39,8 +39,8 @@ const handler = async (m, { conn, text, command }) => {
   }
 }
 
-handler.command = ['play', 'yta', 'ytmp3', 'play2', 'ytv', 'ytmp4', 'playaudio', 'mp4']
-handler.help = ['play', 'yta', 'ytmp3', 'play2', 'ytv', 'ytmp4', 'playaudio', 'mp4']
+handler.command = ['play', 'yta', 'ytmp3', 'playdoc', 'play2', 'ytv', 'ytmp4', 'play2doc', 'playaudio', 'mp4']
+handler.help = ['play', 'yta', 'ytmp3', 'playdoc', 'play2', 'ytv', 'ytmp4', 'play2doc', 'playaudio', 'mp4']
 handler.tags = ['descargas']
 
 export default handler
@@ -143,17 +143,26 @@ global.queueHandlers.set('youtube', async (data, ctx = {}) => {
       { quoted: m }
     )
 
-    if (['play', 'yta', 'ytmp3', 'playaudio'].includes(data.command)) {
+    if (['play', 'yta', 'ytmp3', 'playaudio', 'playdoc'].includes(data.command)) {
       try {
         const r = await ytmp3(url, title)
         if (!r?.download?.url) throw new Error('Link caído')
 
-        await conn.sendMessage(data.chat, {
-          audio: { url: r.download.url },
-          fileName: `${r.metadata.title}.mp3`,
-          mimetype: 'audio/mpeg',
-          ptt: false
-        }, { quoted: m })
+        if (data.command === 'playdoc') {
+          const file = await conn.getFile(r.download.url)
+          await conn.sendMessage(data.chat, {
+            document: file.data,
+            fileName: `${r.metadata.title}.mp3`,
+            mimetype: 'audio/mpeg'
+          }, { quoted: m })
+        } else {
+          await conn.sendMessage(data.chat, {
+            audio: { url: r.download.url },
+            fileName: `${r.metadata.title}.mp3`,
+            mimetype: 'audio/mpeg',
+            ptt: false
+          }, { quoted: m })
+        }
 
         await conn.sendMessage(data.chat, { react: { text: '✅', key: m.key } })
       } catch (e) {
@@ -161,7 +170,7 @@ global.queueHandlers.set('youtube', async (data, ctx = {}) => {
         await conn.sendMessage(data.chat, { react: { text: '❌', key: m.key } })
         return conn.reply(data.chat, 'Error al descargar audio.', m)
       }
-    } else if (['play2', 'ytv', 'ytmp4', 'mp4'].includes(data.command)) {
+    } else if (['play2', 'ytv', 'ytmp4', 'mp4', 'play2doc'].includes(data.command)) {
       try {
         const r = await ytmp4(url, title)
         if (!r?.download?.url) throw new Error('Link caído')
@@ -176,12 +185,21 @@ global.queueHandlers.set('youtube', async (data, ctx = {}) => {
 
         if (!await pathExists(fileName)) throw new Error('Error en FFmpeg')
 
-        await conn.sendMessage(data.chat, {
-          video: await fs.promises.readFile(fileName),
-          fileName: `${title}.mp4`,
-          caption: `${title}`,
-          mimetype: 'video/mp4'
-        }, { quoted: m })
+        const videoBuffer = await fs.promises.readFile(fileName)
+        if (data.command === 'play2doc') {
+          await conn.sendMessage(data.chat, {
+            document: videoBuffer,
+            fileName: `${title}.mp4`,
+            mimetype: 'video/mp4'
+          }, { quoted: m })
+        } else {
+          await conn.sendMessage(data.chat, {
+            video: videoBuffer,
+            fileName: `${title}.mp4`,
+            caption: `${title}`,
+            mimetype: 'video/mp4'
+          }, { quoted: m })
+        }
 
         await fs.promises.unlink(fileName)
         await conn.sendMessage(data.chat, { react: { text: '✅', key: m.key } })

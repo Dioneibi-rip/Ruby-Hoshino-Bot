@@ -19,6 +19,8 @@ if (settings && typeof settings === 'object') settings.isBanned = false
 global.db.updateChat(m.chat, chat)
 await global.db.write?.()
 cleanupSessionState(conn)
+if(Array.isArray(global.conns))for(const sub of global.conns)cleanupSessionState(sub)
+global.__rubyPrimaryBotCache?.set?.(m.chat,'')
 await conn.reply(m.chat, '✅ Estado de bots restablecido: sin bot primario y con todos los sub-bots habilitados en este grupo.', m)
 }
 handler.help = ['resetbot']

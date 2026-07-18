@@ -423,6 +423,8 @@ rememberPrimaryBot(m.chat, chat)
 global.db?.updateChat?.(m.chat, chat)
 await global.db?.write?.()
 cleanupSessionState(conn)
+if(Array.isArray(global.conns))for(const sub of global.conns)cleanupSessionState(sub)
+global.__rubyPrimaryBotCache?.set?.(m.chat,'')
 await conn.reply?.(m.chat, '✅ Estado de bots restablecido: sin bot primario y con todos los sub-bots habilitados en este grupo.', m)
 return true
 }
@@ -495,6 +497,35 @@ const eventTime = getEventTime(update)
 if (!eventTime) return true
 if (eventTime < startedAt) return false
 if (now - eventTime > REALTIME_EVENT_MAX_AGE_MS) return false
+return true
+}
+
+
+function clockString(ms){
+const h=Math.floor(ms/3600000)
+const m=Math.floor(ms/60000)%60
+const s=Math.floor(ms/1000)%60
+return [h,m,s].map(v=>v.toString().padStart(2,'0')).join(':')
+}
+
+async function clearAfkBeforePrefix(conn,m,sender){
+if(!m||m.fromMe||!sender||!global.db?.getUser)return false
+const user=global.db.getUser(sender)
+if(!user||!(user.afk>-1))return false
+const timeAfk=clockString(Date.now()-user.afk)
+const reasonText=user.afkReason?`
+         🧇̫͠ ꒰  *𝖬𝗈𝗍𝗂𝗏𝗈:* ${user.afkReason}`:''
+const text=`> 🍰 𝖣𝖾𝗃𝖺𝗌𝗍𝖾     𝖽𝖾     𝖾𝗌𝗍𝖺𝗋     𝗂𝗇𝖺𝖼𝗍𝗂𝗏𝗈     !
+
+୨ㅤ࣪ㅤ︶︶︶︶ ㅤ꒰ 🎀 ꒱ㅤ︶︶︶︶ㅤ࣪ㅤ୧
+
+🍪̮͡ 〣  *𝖳𝗂𝖾𝗆𝗉𝗈     𝖨𝗇𝖺𝖼𝗍𝗂𝗏𝗈:* ${timeAfk}${reasonText}
+
+> \`𝖡𝗂𝖾𝗇𝗏𝖾𝗇𝗂𝖽𝗈     𝖽𝖾     𝗏𝗎𝖾𝗅𝗍𝖺     ♡\``
+user.afk=-1
+user.afkReason=''
+global.db?.scheduleFlush?.()
+await conn.reply?.(m.chat,text,m)
 return true
 }
 
@@ -740,6 +771,7 @@ sender = await normalizeMessageIdentifiers(this, m, sender, participantsByLid)
 m.exp = 0
 m.coin = false
 const { user: _user, settings } = hydrateDatabaseForMessage(this, m, sender)
+await clearAfkBeforePrefix(this,m,sender)
 if (enforcePrimaryBotMiddleware(this, m)) return
 
 await global.updateMessageGlobals?.(m, this)
