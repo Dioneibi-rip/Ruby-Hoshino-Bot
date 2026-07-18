@@ -397,14 +397,29 @@ Si deseas que Ruby esté activa 24/7 sin depender de tu celular, te recomendamos
 
 ---
 
-## 💬 **`CONTACTO Y SOPORTE`**
+## 💬 **`COMUNIDAD Y CANALES OFICIALES`**
 
-¿Tienes dudas o quieres estar al día con las novedades? ¡Únete a nuestros canales! 💫
+¿Tienes dudas o quieres estar al día con las novedades? ¡Únete a nuestros canales oficiales! 💫
+
+<p align="center">
+  <a href="https://whatsapp.com/channel/0029VakLbM76mYPPFL0IFI3P">
+    <img src="https://img.shields.io/badge/Canal%20Oficial-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Canal Oficial">
+  </a>
+  <a href="https://api.whatsapp.com/send/?phone=18093519169&text=Hola,+vengo+de+GitHub+y+necesito+soporte+con+Ruby+Bot&type=phone_number&app_absent=0">
+    <img src="https://img.shields.io/badge/Contacto%20de%20Soporte-FF5722?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Support Contact">
+  </a>
+</p>
 
 ---
 
-### `🍋‍🟩 DESARROLLADORES`
+### `🍋‍🟩 𝘿𝙀𝙎𝘼𝙍𝙍𝙊𝙇𝙇𝘼𝘿𝙊𝙍𝙀𝙎`
+<a href="https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot/graphs/contributors">
+<img src="https://contrib.rocks/image?repo=Dioneibi-rip/Ruby-Hoshino-Bot" /> 
+</a>
 
-### `🪷 CREADOR OFICIAL`
+### `🪷 𝘾𝙍𝙀𝘼𝘿𝙊𝙍 𝙊𝙁𝙄𝘾𝙄𝘼𝙇`
+<a
+href="https://github.com/Dioneibi-rip"><img src="https://github.com/Dioneibi-rip.png" width="130" height="130" alt="David"/></a>
 
-**`¡GRACIAS POR PREFERIR RUBY HOSHINO BOT! 🫧`**
+
+**`¡GRACIAS POR PREFERIRNOS!` 🫧**
