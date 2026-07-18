@@ -144,7 +144,7 @@ pm2 logs ruby-hoshino
 
 ---
 
-## <img src="https://files.catbox.moe/rs536w.gif" alt="Instalacion" width="40" height="40"> Instalación en Linux / VPS Ubuntu-Debian
+#### Instalación en Linux / VPS Ubuntu-Debian
 
 <details>
 <summary><b>🐧 VER LOS PASOS DE INSTALACIÓN</b></summary>
