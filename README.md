@@ -146,6 +146,9 @@ pm2 logs ruby-hoshino
 
 ### 2) Linux / VPS Ubuntu-Debian
 
+<details>
+<summary><b>🐧 VER LOS PASOS DE INSTALACIÓN EN Linux / VPS Ubuntu-Debian</b></summary>
+
 ```bash
 sudo apt update
 ```
@@ -187,6 +190,8 @@ pm2 save
 ```bash
 pm2 logs ruby-hoshino
 ```
+
+</details>
 
 ---
 
