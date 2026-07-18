@@ -142,7 +142,7 @@ pm2 save
 pm2 logs ruby-hoshino
 ```
 
-<details>
+</details>
 
 ---
 
