@@ -144,7 +144,7 @@ pm2 logs ruby-hoshino
 
 ---
 
-#### Instalación en Linux / VPS Ubuntu-Debian
+### Instalación en Linux / VPS Ubuntu-Debian
 
 <details>
 <summary><b>🐧 VER LOS PASOS DE INSTALACIÓN</b></summary>
