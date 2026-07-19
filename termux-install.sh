@@ -24,6 +24,27 @@ fi
 
 cd "$PROJECT_DIR"
 
+print_step "Desinfectando variables tóxicas del sistema..."
+# Borramos las líneas malas que Codex metió en tu .bashrc
+if [ -f "$HOME/.bashrc" ]; then
+  sed -i '/npm_config_/d' "$HOME/.bashrc"
+  sed -i '/SHARP_FORCE_GLOBAL_LIBVIPS/d' "$HOME/.bashrc"
+fi
+
+# Las borramos de la memoria activa de esta sesión por si acaso
+unset npm_config_python || true
+unset npm_config_build_from_source || true
+unset npm_config_platform || true
+unset npm_config_target_platform || true
+unset npm_config_arch || true
+unset npm_config_target_arch || true
+unset npm_config_sharp_libvips_global || true
+unset SHARP_FORCE_GLOBAL_LIBVIPS || true
+
+# Borramos archivos de configuración residuales
+rm -f "$HOME/.npmrc"
+rm -f "$PROJECT_DIR/.npmrc"
+
 print_step "Actualizando repositorios de Termux"
 pkg update -y && pkg upgrade -y
 
@@ -36,25 +57,13 @@ pkg install -y nodejs-lts git python make clang binutils pkg-config cmake
 print_step "Instalando SQLite, imágenes/stickers y multimedia"
 pkg install -y libsqlite libvips libwebp ffmpeg imagemagick
 
-print_step "Limpiando configuraciones tóxicas antiguas de NPM..."
-# Esto borra las configuraciones que Codex guardó por error
-npm config delete build-from-source || true
-npm config delete python || true
-npm config delete platform || true
-npm config delete target_platform || true
-npm config delete target_arch || true
-npm config delete arch || true
-npm config delete sharp-libvips-global || true
-# Y destruimos el archivo oculto por si acaso
-rm -f "$HOME/.npmrc"
-rm -f "$PROJECT_DIR/.npmrc"
-
 print_step "Configurando entorno Android/ARM64 limpio"
 export CC="${PREFIX_DIR}/bin/clang"
 export CXX="${PREFIX_DIR}/bin/clang++"
 export PKG_CONFIG_PATH="${PREFIX_DIR}/lib/pkgconfig:${PREFIX_DIR}/share/pkgconfig:${PKG_CONFIG_PATH:-}"
 export GYP_DEFINES="android_ndk_path= host_os=linux OS=android"
 
+# Guardamos solo las variables buenas en el .bashrc
 touch "$HOME/.bashrc"
 grep -qxF "export CC=\"${PREFIX_DIR}/bin/clang\"" "$HOME/.bashrc" || echo "export CC=\"${PREFIX_DIR}/bin/clang\"" >> "$HOME/.bashrc"
 grep -qxF "export CXX=\"${PREFIX_DIR}/bin/clang++\"" "$HOME/.bashrc" || echo "export CXX=\"${PREFIX_DIR}/bin/clang++\"" >> "$HOME/.bashrc"
