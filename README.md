@@ -107,87 +107,44 @@ npm start
 # 🍃 Instalación Manual en Termux
 
 
-1. **Otorgar permisos de almacenamiento:**
 ```bash
+# 1. Otorgar permisos de almacenamiento
 termux-setup-storage
-
 ```
 
-
-2. **Actualizar repositorios del sistema:**
 ```bash
-pkg update -y && pkg upgrade -y
-
+# 2. Actualizar el sistema e instalar todas las dependencias
+pkg update -y && pkg upgrade -y && \
+pkg install -y nodejs-lts git python make clang binutils pkg-config cmake ninja patchelf \
+libsqlite libvips libwebp ffmpeg imagemagick \
+cairo pango pixman freetype fontconfig libjpeg-turbo giflib librsvg
 ```
 
-
-3. **Instalar dependencias nativas y multimedia:**
 ```bash
-pkg install nodejs-lts git python make clang binutils pkg-config cmake ninja patchelf libsqlite libvips libwebp ffmpeg imagemagick -y
-
-```
-
-
-4. **Instalar librerías gráficas:**
-```bash
-pkg install cairo pango pixman freetype fontconfig libjpeg-turbo giflib librsvg -y
-
-```
-
-
-5. **Clonar el repositorio y entrar al directorio:**
-```bash
-git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git
+# 3. Clonar el repositorio y entrar al directorio
+git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git && \
 cd Ruby-Hoshino-Bot
-
 ```
 
-
-6. **Configurar variables de entorno limpias:** Incluye NODE_PATH para que Git encuentre node-addon-api.
 ```bash
-export CC="$PREFIX/bin/clang"
-export CXX="$PREFIX/bin/clang++"
-export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig:$PKG_CONFIG_PATH"
-export GYP_DEFINES="android_ndk_path= host_os=linux OS=android"
+# 4. Configurar variables de entorno
+export CC="$PREFIX/bin/clang" && \
+export CXX="$PREFIX/bin/clang++" && \
+export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig:$PKG_CONFIG_PATH" && \
+export GYP_DEFINES="android_ndk_path= host_os=linux OS=android" && \
 export NODE_PATH="$PREFIX/lib/node_modules:$NODE_PATH"
+``
 
-```
-
-
-7. **Limpiar caché de NPM:**
-```bash
-npm cache clean --force
-
-```
-
-
-8. **Instalar compiladores globales:** Versión 8.3.0 anclada para Sharp 0.34.5.
-```bash
-npm install -g node-gyp node-addon-api@8.3.0 prebuild-install node-pre-gyp --no-audit --no-fund
-
-```
-
-
-9. **Inyectar dependencias locales de compilación:**
-```bash
-npm install --no-save node-addon-api@8.3.0 --no-audit --no-fund
-
-```
-
-
-10. **Instalar dependencias del bot:**
-```bash
+# 5. Limpiar caché e instalar dependencias
+npm cache clean --force && \
+npm install -g node-gyp node-addon-api@8.3.0 prebuild-install node-pre-gyp --no-audit --no-fund && \
+npm install --no-save node-addon-api@8.3.0 --no-audit --no-fund && \
 npm install --no-audit --no-fund --foreground-scripts
 
-```
-
-
-Cuando termine todo el proceso sin errores en rojo, simplemente inicia a Ruby:
-
-```bash
+# 6. Iniciar el bot
 npm start
-
 ```
+
 
 ### Mantener Ruby 24/7 con PM2 en Termux
 
