@@ -117,88 +117,104 @@ npm start
 
 # 🍃 Instalación Manual en Termux
 
+
+1. **Otorgar permisos de almacenamiento:**
 ```bash
 termux-setup-storage
 
 ```
 
+
+2. **Actualizar repositorios del sistema:**
 ```bash
 pkg update -y && pkg upgrade -y
 
 ```
 
+
+3. **Instalar dependencias nativas y multimedia:**
 ```bash
 pkg install nodejs-lts git python make clang binutils pkg-config cmake ninja patchelf libsqlite libvips libwebp ffmpeg imagemagick -y
 
 ```
 
+
+4. **Instalar librerías gráficas:**
 ```bash
 pkg install cairo pango pixman freetype fontconfig libjpeg-turbo giflib librsvg -y
 
 ```
 
+
+5. **Clonar el repositorio y entrar al directorio:**
 ```bash
 git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git
-
-```
-
-```bash
 cd Ruby-Hoshino-Bot
 
 ```
 
+
+6. **Limpiar configuraciones tóxicas previas:** Elimina rastros de intentos anteriores.
+```bash
+sed -i '/npm_config_/d' ~/.bashrc
+sed -i '/SHARP_FORCE_GLOBAL_LIBVIPS/d' ~/.bashrc
+rm -f ~/.npmrc .npmrc
+
+```
+
+
+7. **Configurar variables de entorno limpias:** Incluye NODE_PATH para que Git encuentre node-addon-api.
 ```bash
 export CC="$PREFIX/bin/clang"
 export CXX="$PREFIX/bin/clang++"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig:$PKG_CONFIG_PATH"
-export npm_config_python="$PREFIX/bin/python"
-export npm_config_build_from_source=true
-export npm_config_platform=android
-export npm_config_target_platform=android
-export npm_config_sharp_libvips_global=true
-export SHARP_FORCE_GLOBAL_LIBVIPS=1
 export GYP_DEFINES="android_ndk_path= host_os=linux OS=android"
+export NODE_PATH="$PREFIX/lib/node_modules:$NODE_PATH"
 
 ```
 
+
+8. **Limpiar caché de NPM:**
 ```bash
-npm config set python "$PREFIX/bin/python" && npm cache verify
+npm cache clean --force
 
 ```
 
+
+9. **Instalar compiladores globales:** Versión 8.3.0 anclada para Sharp 0.34.5.
 ```bash
-npm install -g node-gyp node-addon-api prebuild-install node-pre-gyp --no-audit --no-fund
+npm install -g node-gyp node-addon-api@8.3.0 prebuild-install node-pre-gyp --no-audit --no-fund
 
 ```
 
+
+10. **Inyectar dependencias locales de compilación:**
 ```bash
-npm install --no-save node-addon-api --no-audit --no-fund
+npm install --no-save node-addon-api@8.3.0 --no-audit --no-fund
 
 ```
 
+
+11. **Instalar dependencias del bot:**
 ```bash
 npm install --no-audit --no-fund --foreground-scripts
 
 ```
 
-Cuando termine, inicia Ruby:
+
+12. **Aprobar y forzar compilación de scripts:** Soluciona la advertencia 'allow-scripts'.
+```bash
+npm install-scripts approve
+npm rebuild
+
+```
+
+
+Cuando termine todo el proceso sin errores en rojo, simplemente inicia a Ruby:
 
 ```bash
 npm start
 
-```
-
-> Si Termux pregunta algo como `(Y/I/N/O/D/Z) [default=N]`, escribe `y` y presiona **Enter**.
-
-
-### Reactivar en Termux si el bot se detuvo
-
-```bash
-cd ~/Ruby-Hoshino-Bot
-```
-
-```bash
-npm start
 ```
 
 ### Mantener Ruby 24/7 con PM2 en Termux
