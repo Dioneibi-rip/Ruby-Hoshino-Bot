@@ -70,7 +70,14 @@ this.boundHandlers = []
 this._prepareSchema()
 this._prepareStatements()
 this.chats = this._createChatsProxy()
+this.writeQueue = []
+this.flushTimer = null
+this.flushMaxTimer = null
+this.flushPromise = Promise.resolve()
+this.flushDelayMs = Number.parseInt(process.env.BAILEYS_STORE_FLUSH_DELAY_MS || '300', 10)
+this.flushMaxDelayMs = Number.parseInt(process.env.BAILEYS_STORE_MAX_FLUSH_DELAY_MS || '1500', 10)
 }
+
 _prepareSchema() {
 this.sqlite.exec(`
 CREATE TABLE IF NOT EXISTS baileys_contacts (
@@ -119,16 +126,16 @@ this.conn = conn
 this.boundConn = conn
 conn.baileysStore = this
 conn.chats = this.chats
-this._on(conn, 'contacts.update', contacts => this.saveContacts(contacts))
-this._on(conn, 'contacts.upsert', contacts => this.saveContacts(contacts))
-this._on(conn, 'contacts.set', payload => this.saveContacts(payload?.contacts || payload))
-this._on(conn, 'chats.update', chats => this.saveChats(chats))
-this._on(conn, 'chats.upsert', chats => this.saveChats(chats))
-this._on(conn, 'chats.set', payload => this.saveChats(payload?.chats || payload))
-this._on(conn, 'groups.update', groups => this.saveChats(groups))
-this._on(conn, 'group-participants.update', update => this.refreshGroup(update?.id))
-this._on(conn, 'presence.update', update => this.savePresence(update))
-this._on(conn, 'messages.upsert', payload => this.saveMessagesMetadata(payload?.messages || []))
+this._on(conn, 'contacts.update', contacts => this.queueContacts(contacts))
+this._on(conn, 'contacts.upsert', contacts => this.queueContacts(contacts))
+this._on(conn, 'contacts.set', payload => this.queueContacts(payload?.contacts || payload))
+this._on(conn, 'chats.update', chats => this.queueChats(chats))
+this._on(conn, 'chats.upsert', chats => this.queueChats(chats))
+this._on(conn, 'chats.set', payload => this.queueChats(payload?.chats || payload))
+this._on(conn, 'groups.update', groups => this.queueChats(groups))
+this._on(conn, 'group-participants.update', update => setTimeout(() => this.refreshGroup(update?.id), 2500).unref?.())
+this._on(conn, 'presence.update', update => this.queuePresence(update))
+this._on(conn, 'messages.upsert', payload => { if (payload?.type !== 'append') this.queueMessagesMetadata(payload?.messages || []) })
 return this
 }
 _on(conn, event, listener) {
@@ -137,10 +144,57 @@ conn.ev.on(event, listener)
 this.boundHandlers.push({ event, listener })
 }
 unbind() {
+this.flush()
 if (!this.boundConn?.ev || !this.boundHandlers.length) return
 for (const { event, listener } of this.boundHandlers) this.boundConn.ev.off?.(event, listener)
 this.boundHandlers = []
 this.boundConn = null
+}
+
+queueContacts(input) {
+const contacts = Array.isArray(input) ? input : input ? [input] : []
+if (contacts.length) this._enqueue({ type: 'contacts', items: contacts })
+}
+queueChats(input) {
+const chats = Array.isArray(input) ? input : input ? [input] : []
+if (chats.length) this._enqueue({ type: 'chats', items: chats })
+}
+queuePresence(update = {}) {
+if (update?.id) this._enqueue({ type: 'presence', item: update })
+}
+queueMessagesMetadata(messages = []) {
+if (messages.length) this._enqueue({ type: 'messages', items: messages })
+}
+_enqueue(job) {
+this.writeQueue.push(job)
+if (this.flushTimer) clearTimeout(this.flushTimer)
+this.flushTimer = setTimeout(() => this.flush(), this.flushDelayMs)
+this.flushTimer.unref?.()
+if (!this.flushMaxTimer) {
+this.flushMaxTimer = setTimeout(() => this.flush(), this.flushMaxDelayMs)
+this.flushMaxTimer.unref?.()
+}
+return this.flushPromise
+}
+flush() {
+if (this.flushTimer) clearTimeout(this.flushTimer)
+if (this.flushMaxTimer) clearTimeout(this.flushMaxTimer)
+this.flushTimer = null
+this.flushMaxTimer = null
+const jobs = this.writeQueue.splice(0)
+if (!jobs.length) return this.flushPromise
+this.flushPromise = this.flushPromise.then(() => {
+const tx = this.sqlite.transaction(batch => {
+for (const job of batch) {
+if (job.type === 'contacts') for (const contact of job.items) this.saveContact(contact)
+else if (job.type === 'chats') for (const chat of job.items) this.saveChat(chat)
+else if (job.type === 'presence') this.savePresence(job.item)
+else if (job.type === 'messages') this.saveMessagesMetadata(job.items)
+}
+})
+tx(jobs)
+}).catch(error => console.error('[baileys-store] error guardando lote:', error))
+return this.flushPromise
 }
 saveContacts(input) {
 const contacts = Array.isArray(input) ? input : input ? [input] : []

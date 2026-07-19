@@ -7,6 +7,20 @@ import { promises as fs } from 'fs'
 import { spawn } from 'child_process'
 
 const MAX_INPUT_BYTES = 8 * 1024 * 1024
+const MAX_CONCURRENT_STICKERS = Math.max(1, Number.parseInt(process.env.STICKER_CONCURRENCY || '1', 10))
+let activeStickerJobs = 0
+const stickerWaiters = []
+
+async function runStickerJob(task) {
+if (activeStickerJobs >= MAX_CONCURRENT_STICKERS) await new Promise(resolve => stickerWaiters.push(resolve))
+activeStickerJobs += 1
+try {
+return await task()
+} finally {
+activeStickerJobs -= 1
+stickerWaiters.shift()?.()
+}
+}
 
 async function readInput(img, url) {
 if (url && !img) {
@@ -58,6 +72,7 @@ return await st.toBuffer()
 }
 
 async function sticker(img, url, packname = '', author = '', categories = ['']) {
+return runStickerJob(async () => {
 const input = await readInput(img, url)
 const type = await assertMedia(input)
 let webp
@@ -69,6 +84,7 @@ webp = await convertWithFormatter(input, packname, author, categories)
 }
 if (!Buffer.isBuffer(webp) || webp.length < 256) throw new Error('No se pudo generar el sticker')
 return webp
+})
 }
 
 async function addExif(buffer, packname = '', author = '', categories = ['']) {
