@@ -1,5 +1,6 @@
 import { enqueueMediaJob, getMediaQueueConnection } from '../../infra/queue.js'
 import { ytmp3, ytmp4 } from '../../infra/youtubedl.js'
+import { assertRemoteFileSize, replyIfMediaTooLarge } from '../../infra/media-size.js'
 import yts from 'yt-search'
 import fs from 'fs'
 import { execFile as execFileCb } from 'child_process'
@@ -147,6 +148,7 @@ global.queueHandlers.set('youtube', async (data, ctx = {}) => {
       try {
         const r = await ytmp3(url, title)
         if (!r?.download?.url) throw new Error('Link caído')
+        await assertRemoteFileSize(r.download.url, { label: 'audio' })
 
         if (data.command === 'playdoc') {
           const file = await conn.getFile(r.download.url)
@@ -168,12 +170,14 @@ global.queueHandlers.set('youtube', async (data, ctx = {}) => {
       } catch (e) {
         console.error(e)
         await conn.sendMessage(data.chat, { react: { text: '❌', key: m.key } })
+        if (await replyIfMediaTooLarge(conn, data.chat, e, m, { label: 'audio' })) return
         return conn.reply(data.chat, 'Error al descargar audio.', m)
       }
     } else if (['play2', 'ytv', 'ytmp4', 'mp4', 'play2doc'].includes(data.command)) {
       try {
         const r = await ytmp4(url, title)
         if (!r?.download?.url) throw new Error('Link caído')
+        await assertRemoteFileSize(r.download.url, { label: 'video' })
 
         const videoUrl = r.download.url
         const tmpDir = join(process.cwd(), 'tmp')
@@ -206,6 +210,7 @@ global.queueHandlers.set('youtube', async (data, ctx = {}) => {
       } catch (e) {
         console.error(e)
         await conn.sendMessage(data.chat, { react: { text: '❌', key: m.key } })
+        if (await replyIfMediaTooLarge(conn, data.chat, e, m, { label: 'video' })) return
         return conn.reply(data.chat, '✦ No se pudo procesar el video. Intenta más tarde.', m)
       }
     }

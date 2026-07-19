@@ -21,7 +21,7 @@ isNumber,
 normalizeLidReferences,
 runMaintenance,
 } from './handler-utils.js'
-import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, isPrimaryBotForChat, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
+import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, isPrimaryBotForChat, normalizeSessionJid, resetChatBotRouting, shouldSilenceChatForBot } from '../core/session-utils.js'
 import { attachSessionState, cleanupSessionState } from '../core/session-manager.js'
 import messageQueue from '../core/message-queue.js'
 import { normalizeIdentityJid, normalizeJid } from '../core/identity-utils.js'
@@ -409,16 +409,8 @@ normalizedSender = await normalizeMessageIdentifiers(conn, m, normalizedSender, 
 if (!isAuthorizedOwner(normalizedSender)) return true
 const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
 if (!chat) return true
-chat.primaryBot = null
-chat.botPrimario = null
+resetChatBotRouting(chat)
 forgetPrimaryBot(m.chat)
-chat.isBanned = {}
-chat.bannedBots = []
-if (chat.botSettings && typeof chat.botSettings === 'object') {
-for (const settings of Object.values(chat.botSettings)) {
-if (settings && typeof settings === 'object') settings.isBanned = false
-}
-}
 rememberPrimaryBot(m.chat, chat)
 global.db?.updateChat?.(m.chat, chat)
 await global.db?.write?.()

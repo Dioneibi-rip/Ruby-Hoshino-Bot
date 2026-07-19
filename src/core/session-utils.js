@@ -93,3 +93,17 @@ return Boolean(sender && normalizeSessionJid(sender) === normalizeSessionJid(con
 export function canManageBotSecurity(sender = '', connOrJid = '') {
 return isGlobalOwner(sender) || isBotCreator(sender, connOrJid)
 }
+
+export function resetChatBotRouting(chat = {}) {
+if (!chat || typeof chat !== 'object') return chat
+chat.primaryBot = null
+chat.botPrimario = null
+chat.primaryBotAliases = []
+chat.isBanned = {}
+chat.bannedBots = []
+if (!chat.botSettings || typeof chat.botSettings !== 'object' || Array.isArray(chat.botSettings)) chat.botSettings = {}
+for (const settings of Object.values(chat.botSettings)) {
+if (settings && typeof settings === 'object') settings.isBanned = false
+}
+return chat
+}

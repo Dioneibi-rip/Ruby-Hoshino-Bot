@@ -1,5 +1,6 @@
 import { igdl } from 'ruhend-scraper'
 import { enqueueMediaJob, getMediaQueueConnection } from '../../infra/queue.js'
+import { assertRemoteFileSize, replyIfMediaTooLarge } from '../../infra/media-size.js'
 
 var handler = async (m, { conn, args, command, text }) => {
 const isCmd = /^(ig|instagram|instadl|igdl)$/i.test(command)
@@ -54,10 +55,12 @@ const isVideo = /(\.mp4|video)/i.test(mediaUrl)
 const ext = isVideo ? 'mp4' : 'jpg'
 const prettyCaption = '🌹̫ᩙ᮫〫𝆬  𝙘𝙤𝙣𝙩𝙚𝙣𝙞𝙙𝙤 𝙙𝙚 𝙞𝙣𝙨𝙩𝙖𝙜𝙧𝙖𝙢 𝙡𝙞𝙨𝙩𝙤'
 
+await assertRemoteFileSize(mediaUrl, { label: isVideo ? 'video de Instagram' : 'imagen de Instagram' })
 await conn.sendFile(data.chat, mediaUrl, `instagram.${ext}`, prettyCaption, m)
 await new Promise(r => setTimeout(r, 800))
 }
 } catch (e) {
+if (await replyIfMediaTooLarge(conn, data.chat, e, m, { label: 'contenido de Instagram' })) return
 reportError(e)
 }
 })
