@@ -84,31 +84,40 @@ Esta es la forma más segura para Android. El script `termux-install.sh` actuali
 
 ```bash
 termux-setup-storage
+
+```
+
+```bash
+pkg update -y && pkg upgrade -y
+
 ```
 
 ```bash
 pkg install git -y
+
 ```
 
 ```bash
 git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git
+
 ```
 
 ```bash
 cd Ruby-Hoshino-Bot
+
 ```
 
 ```bash
 bash termux-install.sh
+
 ```
 
 Cuando termine, inicia Ruby:
 
 ```bash
 npm start
-```
 
-> Si Termux pregunta algo como `(Y/I/N/O/D/Z) [default=N]`, escribe `y` y presiona **Enter**.
+```
 
 ---
 
@@ -145,6 +154,9 @@ npm install
 ```bash
 npm start
 ```
+
+> Si Termux pregunta algo como `(Y/I/N/O/D/Z) [default=N]`, escribe `y` y presiona **Enter**.
+
 
 ### Reactivar en Termux si el bot se detuvo
 
