@@ -34,7 +34,7 @@ try_pkg_install() {
   shift
   print_step "Intentando instalar paquetes opcionales: ${label}"
   if ! pkg install -y "$@"; then
-    warn "Algunos paquetes opcionales no están disponibles en este repositorio de Termux. Continuando..."
+    warn "Algunos paquetes opcionales no están disponibles. Continuando..."
   fi
 }
 
@@ -95,32 +95,23 @@ persist_line "export npm_config_sharp_libvips_global=\"true\""
 persist_line "export SHARP_FORCE_GLOBAL_LIBVIPS=\"1\""
 persist_line "export GYP_DEFINES=\"android_ndk_path= host_os=linux OS=android\""
 
-print_step "Normalizando configuración de npm"
-npm config set python "$npm_config_python"
-npm config set build-from-source true
-npm config set platform android
-npm config set target_platform android
-npm config set arch "$npm_config_arch"
-npm config set target_arch "$npm_config_arch"
-npm config set fetch-retries 5
-npm config set fetch-retry-mintimeout 20000
-npm config set fetch-retry-maxtimeout 120000
+print_step "Limpiando caché de npm"
 npm cache verify || npm cache clean --force
 
-print_step "Instalando herramientas globales usadas por módulos nativos y dependencias GitHub"
+print_step "Instalando herramientas globales usadas por módulos nativos"
 npm install -g node-gyp node-addon-api prebuild-install node-pre-gyp "${NPM_FLAGS[@]}"
 
 print_step "Preparando instalación limpia de dependencias locales"
 rm -rf node_modules
 
-print_step "Preinyectando node-addon-api local para evitar git dep preparation failed"
+print_step "Preinyectando node-addon-api local para evitar fallos de Git"
 npm install --no-save node-addon-api "${NPM_FLAGS[@]}"
 
 print_step "Instalando dependencias del bot desde cero"
 npm install "${NPM_FLAGS[@]}"
 
 print_step "Verificando módulos críticos"
-node - <<'NODECHECK'
+node --input-type=module - <<'NODECHECK'
 const modules = ['better-sqlite3', 'wa-sticker-formatter'];
 for (const name of modules) {
   try {
