@@ -154,16 +154,7 @@ cd Ruby-Hoshino-Bot
 ```
 
 
-6. **Limpiar configuraciones tóxicas previas:** Elimina rastros de intentos anteriores.
-```bash
-sed -i '/npm_config_/d' ~/.bashrc
-sed -i '/SHARP_FORCE_GLOBAL_LIBVIPS/d' ~/.bashrc
-rm -f ~/.npmrc .npmrc
-
-```
-
-
-7. **Configurar variables de entorno limpias:** Incluye NODE_PATH para que Git encuentre node-addon-api.
+6. **Configurar variables de entorno limpias:** Incluye NODE_PATH para que Git encuentre node-addon-api.
 ```bash
 export CC="$PREFIX/bin/clang"
 export CXX="$PREFIX/bin/clang++"
@@ -174,35 +165,35 @@ export NODE_PATH="$PREFIX/lib/node_modules:$NODE_PATH"
 ```
 
 
-8. **Limpiar caché de NPM:**
+7. **Limpiar caché de NPM:**
 ```bash
 npm cache clean --force
 
 ```
 
 
-9. **Instalar compiladores globales:** Versión 8.3.0 anclada para Sharp 0.34.5.
+8. **Instalar compiladores globales:** Versión 8.3.0 anclada para Sharp 0.34.5.
 ```bash
 npm install -g node-gyp node-addon-api@8.3.0 prebuild-install node-pre-gyp --no-audit --no-fund
 
 ```
 
 
-10. **Inyectar dependencias locales de compilación:**
+9. **Inyectar dependencias locales de compilación:**
 ```bash
 npm install --no-save node-addon-api@8.3.0 --no-audit --no-fund
 
 ```
 
 
-11. **Instalar dependencias del bot:**
+10. **Instalar dependencias del bot:**
 ```bash
 npm install --no-audit --no-fund --foreground-scripts
 
 ```
 
 
-12. **Aprobar y forzar compilación de scripts:** Soluciona la advertencia 'allow-scripts'.
+11. **Aprobar y forzar compilación de scripts:** Soluciona la advertencia 'allow-scripts'.
 ```bash
 npm install-scripts approve
 npm rebuild
