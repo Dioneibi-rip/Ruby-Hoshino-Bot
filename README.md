@@ -80,17 +80,31 @@ Antes de instalar, confirma que tienes:
 
 # 💨 Instalación Automática en Termux — Recomendada
 
-Esta es la forma más segura para Android. El script `termux-install.sh` actualiza Termux, instala el kit pesado de compilación, limpia la caché de npm y ejecuta `npm install` con las dependencias correctas para evitar errores de `node-gyp`, `better-sqlite3` y módulos incompletos como `ws`.
+Esta es la forma más segura para Android/ARM64. El script `termux-install.sh` prepara Termux **antes** de tocar `npm`: instala `python`, `make`, `clang`, `pkg-config`, `cmake`, `ninja`, SQLite, `libvips`, `libwebp`, FFmpeg y librerías Cairo/Pango opcionales para dependencias tipo `canvas`; además configura `node-gyp`, fuerza compilación compatible con Android y preinyecta `node-addon-api` para evitar errores de dependencias desde GitHub.
+
+Copia y pega este bloque completo:
 
 ```bash
 termux-setup-storage && \
-pkg update -y && pkg upgrade -y && \
+pkg update -y && \
+pkg upgrade -y && \
 pkg install git -y && \
+rm -rf Ruby-Hoshino-Bot && \
 git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git && \
 cd Ruby-Hoshino-Bot && \
+chmod +x termux-install.sh && \
 bash termux-install.sh
 
 ```
+
+El instalador está pensado para prevenir estos fallos típicos de Termux:
+
+- `node-gyp ERR! find Python` o `make: not found`: instala y fija `python`, `make`, `clang` y `binutils`.
+- `fatal error: sqlite3.h: No such file or directory`: instala `libsqlite` antes de compilar `better-sqlite3`.
+- `sharp: Installation error` / errores de `libvips` o `webp`: instala `libvips`, `libwebp`, `ffmpeg` e `imagemagick`, y activa `SHARP_FORCE_GLOBAL_LIBVIPS=1`.
+- `canvas` / Cairo / Pango: intenta instalar `cairo`, `pango`, `pixman`, `freetype`, `fontconfig`, `libjpeg-turbo`, `giflib` y `librsvg` si están disponibles.
+- `git dep preparation failed` o `Cannot find module node-addon-api`: instala `node-gyp`, `node-addon-api`, `prebuild-install` y `node-pre-gyp` de forma global, y deja `node-addon-api` también en `node_modules` local.
+- Caché corrupta o descargas inestables de npm: usa reintentos largos y verifica/limpia caché.
 
 Cuando termine, inicia Ruby:
 
@@ -114,7 +128,12 @@ pkg update -y && pkg upgrade -y
 ```
 
 ```bash
-pkg install nodejs-lts git python make clang binutils pkg-config libsqlite libvips -y
+pkg install nodejs-lts git python make clang binutils pkg-config cmake ninja patchelf libsqlite libvips libwebp ffmpeg imagemagick -y
+
+```
+
+```bash
+pkg install cairo pango pixman freetype fontconfig libjpeg-turbo giflib librsvg -y
 
 ```
 
@@ -129,12 +148,36 @@ cd Ruby-Hoshino-Bot
 ```
 
 ```bash
-npm cache clean --force
+export CC="$PREFIX/bin/clang"
+export CXX="$PREFIX/bin/clang++"
+export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig:$PKG_CONFIG_PATH"
+export npm_config_python="$PREFIX/bin/python"
+export npm_config_build_from_source=true
+export npm_config_platform=android
+export npm_config_target_platform=android
+export npm_config_sharp_libvips_global=true
+export SHARP_FORCE_GLOBAL_LIBVIPS=1
+export GYP_DEFINES="android_ndk_path= host_os=linux OS=android"
 
 ```
 
 ```bash
-npm install --android_ndk_path=""
+npm config set python "$PREFIX/bin/python" && npm cache verify
+
+```
+
+```bash
+npm install -g node-gyp node-addon-api prebuild-install node-pre-gyp --no-audit --no-fund
+
+```
+
+```bash
+npm install --no-save node-addon-api --no-audit --no-fund
+
+```
+
+```bash
+npm install --no-audit --no-fund --foreground-scripts
 
 ```
 
