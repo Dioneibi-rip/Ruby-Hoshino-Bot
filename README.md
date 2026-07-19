@@ -5,7 +5,7 @@
 <div align="center">
   <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=E91E63&center=true&vCenter=true&width=435&lines=WELCOME+TO+THE+REPOSITORY;RUBY+HOSHINO+BOT;THE+ULTIMATE+WHATSAPP+IDOL;CREATED+WITH+%E2%9D%A4%EF%B8%8F+BY+DIONEIBI;THE+CUTEST+BOT!+%F0%9F%92%96" alt="Typing SVG">
 
-**Bot de WhatsApp Multi Device con SQLite loca y soporte multi-instancia.**
+**Bot de WhatsApp Multi Device con SQLite local y soporte multi-instancia.**
 
 <p>
   <a href="https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot"><img src="https://img.shields.io/github/stars/Dioneibi-rip/Ruby-Hoshino-Bot?style=for-the-badge&logo=github&color=ff4081" alt="GitHub stars"></a>
