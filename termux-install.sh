@@ -59,8 +59,6 @@ export CC="${PREFIX_DIR}/bin/clang"
 export CXX="${PREFIX_DIR}/bin/clang++"
 export PKG_CONFIG_PATH="${PREFIX_DIR}/lib/pkgconfig:${PREFIX_DIR}/share/pkgconfig:${PKG_CONFIG_PATH:-}"
 export GYP_DEFINES="android_ndk_path= host_os=linux OS=android"
-
-# Exportamos NODE_PATH globalmente para que las instalaciones Git encuentren node-addon-api
 export NODE_PATH="${PREFIX_DIR}/lib/node_modules:${NODE_PATH:-}"
 
 touch "$HOME/.bashrc"
@@ -69,24 +67,26 @@ grep -qxF "export CXX=\"${PREFIX_DIR}/bin/clang++\"" "$HOME/.bashrc" || echo "ex
 grep -qxF "export GYP_DEFINES=\"android_ndk_path= host_os=linux OS=android\"" "$HOME/.bashrc" || echo "export GYP_DEFINES=\"android_ndk_path= host_os=linux OS=android\"" >> "$HOME/.bashrc"
 grep -qxF "export NODE_PATH=\"${PREFIX_DIR}/lib/node_modules:\${NODE_PATH:-}\"" "$HOME/.bashrc" || echo "export NODE_PATH=\"${PREFIX_DIR}/lib/node_modules:\${NODE_PATH:-}\"" >> "$HOME/.bashrc"
 
-print_step "Limpiando caché de npm para evitar rastros corruptos"
+print_step "Limpiando caché de npm"
 npm cache clean --force
 
-print_step "Preparando instalación limpia de dependencias locales"
+print_step "Preparando instalación limpia de dependencias"
 rm -rf node_modules package-lock.json
 
-print_step "Inyectando node-addon-api GLOBAL para evitar fallos de Git..."
-# Instalamos globalmente en Termux, no solo en la carpeta del bot
-npm install -g node-addon-api node-gyp
+print_step "Inyectando node-addon-api v8 GLOBAL (Compatible con Sharp 0.34)..."
+npm install -g node-addon-api@8.3.0 node-gyp
 
-print_step "Instalando dependencias del bot"
+print_step "Forzando node-addon-api v8 de forma local..."
+npm install --no-save node-addon-api@8.3.0 "${NPM_FLAGS[@]}"
+
+print_step "Instalando dependencias principales del bot"
 npm install "${NPM_FLAGS[@]}"
 
-print_step "Forzando instalación de módulos de stickers"
+print_step "Instalando creador de stickers"
 npm install wa-sticker-formatter file-type "${NPM_FLAGS[@]}"
 
 print_step "Instalando soporte de imágenes de respaldo (WASM)"
-npm install --cpu=wasm32 sharp "${NPM_FLAGS[@]}"
+npm install --cpu=wasm32 sharp@0.34.5 "${NPM_FLAGS[@]}"
 npm install @img/sharp-wasm32 "${NPM_FLAGS[@]}"
 
 print_step "Verificando módulos críticos"
@@ -105,4 +105,3 @@ NODECHECK
 
 print_step "Instalación completada con éxito"
 echo "✨ Ruby Hoshino está lista. Inicia el bot con: npm start"
-echo "📱 Si Termux no tiene permisos de almacenamiento, ejecuta: termux-setup-storage"
