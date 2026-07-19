@@ -83,31 +83,11 @@ Antes de instalar, confirma que tienes:
 Esta es la forma más segura para Android. El script `termux-install.sh` actualiza Termux, instala el kit pesado de compilación, limpia la caché de npm y ejecuta `npm install` con las dependencias correctas para evitar errores de `node-gyp`, `better-sqlite3` y módulos incompletos como `ws`.
 
 ```bash
-termux-setup-storage
-
-```
-
-```bash
-pkg update -y && pkg upgrade -y
-
-```
-
-```bash
-pkg install git -y
-
-```
-
-```bash
-git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git
-
-```
-
-```bash
-cd Ruby-Hoshino-Bot
-
-```
-
-```bash
+termux-setup-storage && \
+pkg update -y && pkg upgrade -y && \
+pkg install git -y && \
+git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git && \
+cd Ruby-Hoshino-Bot && \
 bash termux-install.sh
 
 ```
