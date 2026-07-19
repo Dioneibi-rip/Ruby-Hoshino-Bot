@@ -31,6 +31,9 @@ npm cache clean --force
 print_step "Compilando bot e instalando módulos base..."
 npm install
 
+print_step "Forzando instalación de módulos de stickers faltantes..."
+npm install wa-sticker-formatter file-type
+
 print_step "Instalando soporte de imágenes de respaldo (WASM)..."
 npm install --cpu=wasm32 sharp
 npm install @img/sharp-wasm32
