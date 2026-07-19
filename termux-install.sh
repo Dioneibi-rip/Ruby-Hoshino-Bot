@@ -25,13 +25,11 @@ fi
 cd "$PROJECT_DIR"
 
 print_step "Desinfectando variables tóxicas del sistema..."
-# Borramos las líneas malas que Codex metió en tu .bashrc
 if [ -f "$HOME/.bashrc" ]; then
   sed -i '/npm_config_/d' "$HOME/.bashrc"
   sed -i '/SHARP_FORCE_GLOBAL_LIBVIPS/d' "$HOME/.bashrc"
 fi
 
-# Las borramos de la memoria activa de esta sesión por si acaso
 unset npm_config_python || true
 unset npm_config_build_from_source || true
 unset npm_config_platform || true
@@ -41,7 +39,6 @@ unset npm_config_target_arch || true
 unset npm_config_sharp_libvips_global || true
 unset SHARP_FORCE_GLOBAL_LIBVIPS || true
 
-# Borramos archivos de configuración residuales
 rm -f "$HOME/.npmrc"
 rm -f "$PROJECT_DIR/.npmrc"
 
@@ -63,20 +60,24 @@ export CXX="${PREFIX_DIR}/bin/clang++"
 export PKG_CONFIG_PATH="${PREFIX_DIR}/lib/pkgconfig:${PREFIX_DIR}/share/pkgconfig:${PKG_CONFIG_PATH:-}"
 export GYP_DEFINES="android_ndk_path= host_os=linux OS=android"
 
-# Guardamos solo las variables buenas en el .bashrc
+# Exportamos NODE_PATH globalmente para que las instalaciones Git encuentren node-addon-api
+export NODE_PATH="${PREFIX_DIR}/lib/node_modules:${NODE_PATH:-}"
+
 touch "$HOME/.bashrc"
 grep -qxF "export CC=\"${PREFIX_DIR}/bin/clang\"" "$HOME/.bashrc" || echo "export CC=\"${PREFIX_DIR}/bin/clang\"" >> "$HOME/.bashrc"
 grep -qxF "export CXX=\"${PREFIX_DIR}/bin/clang++\"" "$HOME/.bashrc" || echo "export CXX=\"${PREFIX_DIR}/bin/clang++\"" >> "$HOME/.bashrc"
 grep -qxF "export GYP_DEFINES=\"android_ndk_path= host_os=linux OS=android\"" "$HOME/.bashrc" || echo "export GYP_DEFINES=\"android_ndk_path= host_os=linux OS=android\"" >> "$HOME/.bashrc"
+grep -qxF "export NODE_PATH=\"${PREFIX_DIR}/lib/node_modules:\${NODE_PATH:-}\"" "$HOME/.bashrc" || echo "export NODE_PATH=\"${PREFIX_DIR}/lib/node_modules:\${NODE_PATH:-}\"" >> "$HOME/.bashrc"
 
 print_step "Limpiando caché de npm para evitar rastros corruptos"
 npm cache clean --force
 
 print_step "Preparando instalación limpia de dependencias locales"
-rm -rf node_modules
+rm -rf node_modules package-lock.json
 
-print_step "Preinyectando node-addon-api local para evitar fallos de Git"
-npm install --no-save node-addon-api "${NPM_FLAGS[@]}"
+print_step "Inyectando node-addon-api GLOBAL para evitar fallos de Git..."
+# Instalamos globalmente en Termux, no solo en la carpeta del bot
+npm install -g node-addon-api node-gyp
 
 print_step "Instalando dependencias del bot"
 npm install "${NPM_FLAGS[@]}"
