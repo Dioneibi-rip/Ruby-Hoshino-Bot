@@ -3,7 +3,8 @@
 </div>
 
 <div align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=E91E63&center=true&vCenter=true&width=435&lines=BIENVENIDO+AL+REPOSITORIO;RUBY+HOSHINO+BOT;LA+IDOL+DEFINITIVA+EN+WHATSAPP;CREADO+CON+%E2%9D%A4%EF%B8%8F+POR+DIONEIBI;%C2%A1LA+BOT+MAS+LINDA!+%F0%9F%92%96" alt="Typing SVG">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=E91E63&center=true&vCenter=true&width=435&lines=WELCOME+TO+THE+REPOSITORY;RUBY+HOSHINO+BOT;THE+ULTIMATE+WHATSAPP+IDOL;CREATED+WITH+%E2%9D%A4%EF%B8%8F+BY+DIONEIBI;THE+CUTEST+BOT!+%F0%9F%92%96" alt="Typing SVG">
+</div>
 
 **Bot de WhatsApp Multi Device con SQLite local, alto rendimiento y soporte multi-instancia.**
 
