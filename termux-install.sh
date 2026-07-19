@@ -28,6 +28,10 @@ fi
 print_step "Limpiando caché de npm para evitar corrupciones..."
 npm cache clean --force
 
+print_step "Instalando puente de compilación C++ (Addon API)..."
+npm install -g node-addon-api
+npm install node-addon-api
+
 print_step "Compilando bot e instalando módulos base..."
 npm install
 
