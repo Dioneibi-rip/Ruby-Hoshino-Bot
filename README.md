@@ -125,34 +125,44 @@ npm start
 
 ```bash
 termux-setup-storage
+
 ```
 
 ```bash
 pkg update -y && pkg upgrade -y
+
 ```
 
 ```bash
-pkg install nodejs git python make clang binutils pkg-config libsqlite -y
+pkg install nodejs-lts git python make clang binutils pkg-config libsqlite libvips -y
+
 ```
 
 ```bash
 git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git
+
 ```
 
 ```bash
 cd Ruby-Hoshino-Bot
+
 ```
 
 ```bash
 npm cache clean --force
+
 ```
 
 ```bash
-npm install
+npm install --android_ndk_path=""
+
 ```
+
+Cuando termine, inicia Ruby:
 
 ```bash
 npm start
+
 ```
 
 > Si Termux pregunta algo como `(Y/I/N/O/D/Z) [default=N]`, escribe `y` y presiona **Enter**.
