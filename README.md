@@ -107,12 +107,12 @@ npm start
 # 🍃 Instalación Manual en Termux
 
 
-# 1. Otorgar permisos de almacenamiento
+1. Otorgar permisos de almacenamiento
 ```bash
 termux-setup-storage
 ```
 
-# 2. Actualizar el sistema e instalar todas las dependencias
+2. Actualizar el sistema e instalar todas las dependencias
 ```bash
 pkg update -y && pkg upgrade -y && \
 pkg install -y nodejs-lts git python make clang binutils pkg-config cmake ninja patchelf \
@@ -120,13 +120,13 @@ libsqlite libvips libwebp ffmpeg imagemagick \
 cairo pango pixman freetype fontconfig libjpeg-turbo giflib librsvg
 ```
 
-# 3. Clonar el repositorio y entrar al directorio
+3. Clonar el repositorio y entrar al directorio
 ```bash
 git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git && \
 cd Ruby-Hoshino-Bot
 ```
 
-# 4. Configurar variables de entorno
+4. Configurar variables de entorno
 ```bash
 export CC="$PREFIX/bin/clang" && \
 export CXX="$PREFIX/bin/clang++" && \
@@ -135,7 +135,7 @@ export GYP_DEFINES="android_ndk_path= host_os=linux OS=android" && \
 export NODE_PATH="$PREFIX/lib/node_modules:$NODE_PATH"
 ```
 
-# 5. Limpiar caché e instalar dependencias
+5. Limpiar caché e instalar dependencias
 ```bash
 npm cache clean --force && \
 npm install -g node-gyp node-addon-api@8.3.0 prebuild-install node-pre-gyp --no-audit --no-fund && \
@@ -143,7 +143,7 @@ npm install --no-save node-addon-api@8.3.0 --no-audit --no-fund && \
 npm install --no-audit --no-fund --foreground-scripts
 ```
 
-# 6. Iniciar el bot
+6. Iniciar el bot
 ```bash
 npm start
 ```
