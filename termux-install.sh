@@ -36,13 +36,25 @@ pkg install -y nodejs-lts git python make clang binutils pkg-config cmake
 print_step "Instalando SQLite, imágenes/stickers y multimedia"
 pkg install -y libsqlite libvips libwebp ffmpeg imagemagick
 
+print_step "Limpiando configuraciones tóxicas antiguas de NPM..."
+# Esto borra las configuraciones que Codex guardó por error
+npm config delete build-from-source || true
+npm config delete python || true
+npm config delete platform || true
+npm config delete target_platform || true
+npm config delete target_arch || true
+npm config delete arch || true
+npm config delete sharp-libvips-global || true
+# Y destruimos el archivo oculto por si acaso
+rm -f "$HOME/.npmrc"
+rm -f "$PROJECT_DIR/.npmrc"
+
 print_step "Configurando entorno Android/ARM64 limpio"
 export CC="${PREFIX_DIR}/bin/clang"
 export CXX="${PREFIX_DIR}/bin/clang++"
 export PKG_CONFIG_PATH="${PREFIX_DIR}/lib/pkgconfig:${PREFIX_DIR}/share/pkgconfig:${PKG_CONFIG_PATH:-}"
 export GYP_DEFINES="android_ndk_path= host_os=linux OS=android"
 
-# Guardamos las variables vitales sin duplicarlas
 touch "$HOME/.bashrc"
 grep -qxF "export CC=\"${PREFIX_DIR}/bin/clang\"" "$HOME/.bashrc" || echo "export CC=\"${PREFIX_DIR}/bin/clang\"" >> "$HOME/.bashrc"
 grep -qxF "export CXX=\"${PREFIX_DIR}/bin/clang++\"" "$HOME/.bashrc" || echo "export CXX=\"${PREFIX_DIR}/bin/clang++\"" >> "$HOME/.bashrc"
@@ -53,6 +65,9 @@ npm cache clean --force
 
 print_step "Preparando instalación limpia de dependencias locales"
 rm -rf node_modules
+
+print_step "Preinyectando node-addon-api local para evitar fallos de Git"
+npm install --no-save node-addon-api "${NPM_FLAGS[@]}"
 
 print_step "Instalando dependencias del bot"
 npm install "${NPM_FLAGS[@]}"
