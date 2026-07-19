@@ -5,7 +5,7 @@
 <div align="center">
   <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=E91E63&center=true&vCenter=true&width=435&lines=WELCOME+TO+THE+REPOSITORY;RUBY+HOSHINO+BOT;THE+ULTIMATE+WHATSAPP+IDOL;CREATED+WITH+%E2%9D%A4%EF%B8%8F+BY+DIONEIBI;THE+CUTEST+BOT!+%F0%9F%92%96" alt="Typing SVG">
 
-**Bot de WhatsApp Multi Device con SQLite local, alto rendimiento y soporte multi-instancia.**
+**Bot de WhatsApp Multi Device con SQLite loca y soporte multi-instancia.**
 
 <p>
   <a href="https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot"><img src="https://img.shields.io/github/stars/Dioneibi-rip/Ruby-Hoshino-Bot?style=for-the-badge&logo=github&color=ff4081" alt="GitHub stars"></a>
@@ -43,7 +43,6 @@
 
 | Pilar | Qué aporta |
 | :--- | :--- |
-| ⚡ **Rendimiento extremo** | Persistencia local rápida con `better-sqlite3`, menos latencia y arranque directo con `npm start`. |
 | 🗄️ **SQLite puro** | No necesitas MongoDB, Redis obligatorio, cuentas externas ni paneles de base de datos. Los datos viven en `src/database/`. |
 | 🤖 **Multi-instancia / JadiBots** | Permite ejecutar sub-bots desde la misma base del proyecto mediante sesiones en `RubyJadiBots`. |
 | 👑 **Bot Primario** | Soporte para definir un bot principal por chat y evitar respuestas duplicadas cuando hay varias sesiones activas. |
