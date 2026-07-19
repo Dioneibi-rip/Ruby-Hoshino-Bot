@@ -3,7 +3,7 @@
  * Adaptado para usar la librería HTTP (axios wrapper) personalizada
  * Bypass de seguridad x-vqd-hash-1 mediante JSDOM
  */
-import axios from './http.js'; // Ajusta la ruta si es necesario
+import axios from '../../infra/http.js'
 import { Buffer } from 'buffer';
 import { JSDOM } from 'jsdom';
 import { createHash } from 'crypto';
