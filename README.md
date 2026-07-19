@@ -184,14 +184,6 @@ npm install --no-audit --no-fund --foreground-scripts
 ```
 
 
-11. **Aprobar y forzar compilación de scripts:** Soluciona la advertencia 'allow-scripts'.
-```bash
-npm install-scripts approve
-npm rebuild
-
-```
-
-
 Cuando termine todo el proceso sin errores en rojo, simplemente inicia a Ruby:
 
 ```bash
