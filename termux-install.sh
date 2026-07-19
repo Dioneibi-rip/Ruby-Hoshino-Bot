@@ -4,7 +4,7 @@ set -Eeuo pipefail
 
 PREFIX_DIR="${PREFIX:-/data/data/com.termux/files/usr}"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NPM_FLAGS=(--no-audit --no-fund --foreground-scripts)
+NPM_FLAGS=(--no-audit --no-fund)
 
 print_step() {
   echo ""
@@ -13,102 +13,56 @@ print_step() {
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 }
 
-warn() {
-  echo "⚠️  $*"
-}
-
 fail() {
   echo "❌ $*" >&2
   exit 1
 }
 
-run_pkg_install() {
-  local label="$1"
-  shift
-  print_step "Instalando paquetes de Termux: ${label}"
-  pkg install -y "$@"
-}
-
-try_pkg_install() {
-  local label="$1"
-  shift
-  print_step "Intentando instalar paquetes opcionales: ${label}"
-  if ! pkg install -y "$@"; then
-    warn "Algunos paquetes opcionales no están disponibles. Continuando..."
-  fi
-}
-
-persist_line() {
-  local line="$1"
-  touch "$HOME/.bashrc"
-  if ! grep -Fqx "$line" "$HOME/.bashrc"; then
-    printf '%s\n' "$line" >> "$HOME/.bashrc"
-  fi
-}
-
 if [[ "${OSTYPE:-}" != linux-android* && ! -d /data/data/com.termux/files/usr ]]; then
-  fail "Este instalador está diseñado para Termux en Android. En Linux/VPS usa npm install normal."
+  fail "Este instalador está diseñado para Termux en Android."
 fi
 
 cd "$PROJECT_DIR"
 
 print_step "Actualizando repositorios de Termux"
-pkg update -y
-pkg upgrade -y
+pkg update -y && pkg upgrade -y
 
 print_step "Evitando versiones no LTS de Node.js"
 pkg remove -y nodejs nodejs-current 2>/dev/null || true
 
-run_pkg_install "base de compilación nativa" \
-  nodejs-lts git python make clang binutils pkg-config cmake ninja patchelf
+print_step "Instalando base de compilación nativa"
+pkg install -y nodejs-lts git python make clang binutils pkg-config cmake
 
-run_pkg_install "SQLite, imágenes/stickers y multimedia" \
-  libsqlite libvips libwebp ffmpeg imagemagick
+print_step "Instalando SQLite, imágenes/stickers y multimedia"
+pkg install -y libsqlite libvips libwebp ffmpeg imagemagick
 
-try_pkg_install "soporte para canvas/cairo si una dependencia lo requiere" \
-  cairo pango pixman freetype fontconfig libjpeg-turbo giflib librsvg
-
-print_step "Configurando entorno Android/ARM64 para node-gyp, sharp y sqlite"
+print_step "Configurando entorno Android/ARM64 limpio"
 export CC="${PREFIX_DIR}/bin/clang"
 export CXX="${PREFIX_DIR}/bin/clang++"
-export AR="${PREFIX_DIR}/bin/ar"
-export LD="${PREFIX_DIR}/bin/ld"
 export PKG_CONFIG_PATH="${PREFIX_DIR}/lib/pkgconfig:${PREFIX_DIR}/share/pkgconfig:${PKG_CONFIG_PATH:-}"
-export npm_config_python="${PREFIX_DIR}/bin/python"
-export npm_config_build_from_source="true"
-export npm_config_platform="android"
-export npm_config_arch="$(node -p 'process.arch')"
-export npm_config_target_platform="android"
-export npm_config_target_arch="$npm_config_arch"
-export npm_config_sharp_libvips_global="true"
-export SHARP_FORCE_GLOBAL_LIBVIPS="1"
 export GYP_DEFINES="android_ndk_path= host_os=linux OS=android"
 
-persist_line "export CC=\"${PREFIX_DIR}/bin/clang\""
-persist_line "export CXX=\"${PREFIX_DIR}/bin/clang++\""
-persist_line "export PKG_CONFIG_PATH=\"${PREFIX_DIR}/lib/pkgconfig:${PREFIX_DIR}/share/pkgconfig:\${PKG_CONFIG_PATH:-}\""
-persist_line "export npm_config_python=\"${PREFIX_DIR}/bin/python\""
-persist_line "export npm_config_build_from_source=\"true\""
-persist_line "export npm_config_platform=\"android\""
-persist_line "export npm_config_target_platform=\"android\""
-persist_line "export npm_config_sharp_libvips_global=\"true\""
-persist_line "export SHARP_FORCE_GLOBAL_LIBVIPS=\"1\""
-persist_line "export GYP_DEFINES=\"android_ndk_path= host_os=linux OS=android\""
+# Guardamos las variables vitales sin duplicarlas
+touch "$HOME/.bashrc"
+grep -qxF "export CC=\"${PREFIX_DIR}/bin/clang\"" "$HOME/.bashrc" || echo "export CC=\"${PREFIX_DIR}/bin/clang\"" >> "$HOME/.bashrc"
+grep -qxF "export CXX=\"${PREFIX_DIR}/bin/clang++\"" "$HOME/.bashrc" || echo "export CXX=\"${PREFIX_DIR}/bin/clang++\"" >> "$HOME/.bashrc"
+grep -qxF "export GYP_DEFINES=\"android_ndk_path= host_os=linux OS=android\"" "$HOME/.bashrc" || echo "export GYP_DEFINES=\"android_ndk_path= host_os=linux OS=android\"" >> "$HOME/.bashrc"
 
-print_step "Limpiando caché de npm"
-npm cache verify || npm cache clean --force
-
-print_step "Instalando herramientas globales usadas por módulos nativos"
-npm install -g node-gyp node-addon-api prebuild-install node-pre-gyp "${NPM_FLAGS[@]}"
+print_step "Limpiando caché de npm para evitar rastros corruptos"
+npm cache clean --force
 
 print_step "Preparando instalación limpia de dependencias locales"
 rm -rf node_modules
 
-print_step "Preinyectando node-addon-api local para evitar fallos de Git"
-npm install --no-save node-addon-api "${NPM_FLAGS[@]}"
-
-print_step "Instalando dependencias del bot desde cero"
+print_step "Instalando dependencias del bot"
 npm install "${NPM_FLAGS[@]}"
+
+print_step "Forzando instalación de módulos de stickers"
+npm install wa-sticker-formatter file-type "${NPM_FLAGS[@]}"
+
+print_step "Instalando soporte de imágenes de respaldo (WASM)"
+npm install --cpu=wasm32 sharp "${NPM_FLAGS[@]}"
+npm install @img/sharp-wasm32 "${NPM_FLAGS[@]}"
 
 print_step "Verificando módulos críticos"
 node --input-type=module - <<'NODECHECK'
