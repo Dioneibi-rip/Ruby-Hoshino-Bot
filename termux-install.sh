@@ -16,7 +16,7 @@ print_step "Eliminando Node.js inestable (v26+)..."
 pkg remove nodejs -y || true
 
 print_step "Instalando Node.js LTS y herramientas pesadas (SQLite, Sharp, FFmpeg)..."
-pkg install nodejs-lts git python make clang binutils pkg-config libsqlite libvips ffmpeg webp -y
+pkg install nodejs-lts git python make clang binutils pkg-config libsqlite libvips ffmpeg libwebp -y
 
 print_step "Inyectando variables para el NDK y guardando configuración..."
 export GYP_DEFINES="android_ndk_path="
