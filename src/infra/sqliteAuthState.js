@@ -29,6 +29,8 @@ sqlite.pragma('synchronous = NORMAL')
 sqlite.pragma('busy_timeout = 5000')
 sqlite.pragma('temp_store = MEMORY')
 sqlite.pragma('cache_size = -20000')
+sqlite.pragma('mmap_size = 268435456')
+sqlite.pragma('wal_autocheckpoint = 1000')
 sqlite.exec(`
 CREATE TABLE IF NOT EXISTS auth_state (
   category TEXT NOT NULL,
@@ -52,6 +54,45 @@ const run = tail.then(fn, fn)
 tail = run.catch(() => {})
 return run
 }
+}
+
+function mergeAuthKeyPatch(target, patch) {
+for (const [category, entries] of Object.entries(patch || {})) {
+target[category] ||= {}
+for (const [id, value] of Object.entries(entries || {})) target[category][id] = value
+}
+return target
+}
+
+function createDebouncedKeyWriter(writeKeys, delayMs = 250, maxDelayMs = 1500) {
+let pending = {}
+let timer
+let maxTimer
+let running = Promise.resolve()
+const flush = () => {
+if (timer) clearTimeout(timer)
+if (maxTimer) clearTimeout(maxTimer)
+timer = undefined
+maxTimer = undefined
+const batch = pending
+pending = {}
+if (!Object.keys(batch).length) return running
+running = running.then(() => writeKeys(batch)).catch(error => console.error('[sqlite-auth] error guardando llaves:', error))
+return running
+}
+const schedule = data => {
+mergeAuthKeyPatch(pending, data)
+if (timer) clearTimeout(timer)
+timer = setTimeout(flush, delayMs)
+timer.unref?.()
+if (!maxTimer) {
+maxTimer = setTimeout(flush, maxDelayMs)
+maxTimer.unref?.()
+}
+return running
+}
+schedule.flush = flush
+return schedule
 }
 
 function authCategory(type = '') {
@@ -170,10 +211,13 @@ else statements.remove.run(category, safeFilePart(id))
 }
 }
 })
+const keyWriter = createDebouncedKeyWriter(data => writeLock(() => writeKeysTx(data)), options.keyFlushDelayMs ?? 250, options.keyMaxFlushDelayMs ?? 1500)
 const cleanupTimer = startDailyCleanup(dbPath, statements, options)
-const closeAuthDb = () => {
+const closeAuthDb = async () => {
 if (cleanupTimer) clearInterval(cleanupTimer)
 cleanupTimers.delete(dbPath)
+await keyWriter.flush()
+sqlite.pragma('wal_checkpoint(TRUNCATE)')
 sqlite.close()
 }
 return {
@@ -192,12 +236,12 @@ data[id] = normalizeValue(type, parse(row?.value))
 }
 return data
 },
-set: async data => writeLock(() => writeKeysTx(data))
+set: async data => keyWriter(data)
 }
 },
-saveCreds: async () => writeLock(() => writeCredsTx()),
+saveCreds: async () => { await keyWriter.flush(); return writeLock(() => writeCredsTx()) },
 removeCreds: async () => writeLock(() => statements.remove.run('creds', 'creds')),
-clearDb: async () => writeLock(() => sqlite.prepare('DELETE FROM auth_state').run()),
+clearDb: async () => { await keyWriter.flush(); return writeLock(() => sqlite.prepare('DELETE FROM auth_state').run()) },
 closeDb: closeAuthDb,
 close: closeAuthDb
 }
@@ -213,6 +257,8 @@ sqlite.pragma('synchronous = NORMAL')
 sqlite.pragma('busy_timeout = 5000')
 sqlite.pragma('temp_store = MEMORY')
 sqlite.pragma('cache_size = -20000')
+sqlite.pragma('mmap_size = 268435456')
+sqlite.pragma('wal_autocheckpoint = 1000')
 sqlite.exec(`CREATE TABLE IF NOT EXISTS ${tableName} (
   id TEXT PRIMARY KEY,
   jid TEXT NOT NULL DEFAULT '',

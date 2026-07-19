@@ -170,7 +170,7 @@ clearInterval(databaseAutosaveInterval)
 await Promise.all([...global.authCredsFlushers].map(flush => flush()))
 await global.saveDatabase()
 await closeMediaQueue()
-store.closeStore?.()
+await store.closeStore?.()
 if (typeof global.db?.close === 'function') await global.db.close()
 } catch (saveError) {
 console.error(saveError)
@@ -232,15 +232,17 @@ printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile,
 browser: ['Windows', 'Firefox', '141.0'],
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })), },
-markOnlineOnConnect: true,
+markOnlineOnConnect: socketCfg.markOnlineOnConnect ?? false,
 generateHighQualityLinkPreview: socketCfg.generateHighQualityLinkPreview ?? false,
-getMessage: async (clave) => { let jid = jidNormalizedUser(clave.remoteJid); let msg = await store.loadMessage(jid, clave.id); return msg?.message || "" },
+getMessage: async (clave) => { const jid = jidNormalizedUser(clave.remoteJid); const msg = await store.loadMessage(jid, clave.id); return msg?.message },
 msgRetryCounterCache,
 msgRetryCounterMap,
 defaultQueryTimeoutMs: socketCfg.defaultQueryTimeoutMs ?? 60000,
 version,
-syncFullHistory: false,
-shouldSyncHistoryMessage: () => false,
+syncFullHistory: socketCfg.syncFullHistory ?? false,
+shouldSyncHistoryMessage: socketCfg.shouldSyncHistoryMessage ?? (() => false),
+fireInitQueries: socketCfg.fireInitQueries ?? false,
+emitOwnEvents: socketCfg.emitOwnEvents ?? false,
 connectTimeoutMs: socketCfg.connectTimeoutMs ?? 30000,
 keepAliveIntervalMs: socketCfg.keepAliveIntervalMs ?? 30000,
 retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 3000,

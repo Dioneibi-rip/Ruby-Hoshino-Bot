@@ -88,6 +88,8 @@ function createOwnedBaileysSqlite(filename = process.env.BAILEYS_STORE_SQLITE ||
   sqlite.pragma('busy_timeout = 5000')
   sqlite.pragma('temp_store = MEMORY')
   sqlite.pragma('cache_size = -20000')
+  sqlite.pragma('mmap_size = 268435456')
+  sqlite.pragma('wal_autocheckpoint = 1000')
   sqlite.pragma('foreign_keys = ON')
   return sqlite
 }
@@ -215,8 +217,10 @@ function loadMessage(jid, id = null) {
 function countChats() {
   return getStore().countChats()
 }
-function closeStore() {
+async function closeStore() {
   if (pruneTimer) clearInterval(pruneTimer)
+  try { await instance?.flush?.() } catch (error) { console.error('[baileys-store] error vaciando cola SQLite', error) }
+  try { ownedSqlite?.pragma?.('wal_checkpoint(TRUNCATE)') } catch {}
   try { ownedSqlite?.close?.() } catch (error) { console.error('[baileys-store] error cerrando SQLite dedicado', error) }
 }
 export { startMessagePruner, pruneStoreMessages, resolveBaileysSqlite, closeStore }
