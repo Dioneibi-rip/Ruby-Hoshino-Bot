@@ -1,5 +1,5 @@
 import { buildParticipantsByLid, normalizeIdentityJid, resolveTarget, resolveIdentityName } from '../../core/identity-utils.js'
-async function handler(m,{conn,args,usedPrefix,command,participants}){
+async function handler(m,{conn,args = [],usedPrefix,command,participants = []}){
 const participantsByLid=buildParticipantsByLid(participants)
 let who=await resolveTarget(m,conn,{participantsByLid,errorMessage:''})
 if(!who)return m.reply(`${emoji} ᥱ𝗍і𝗊ᥙᥱ𝗍ᥲ ᥆ rᥱs⍴᥆ᥒძᥱ ᥲᥣ mᥱᥒsᥲȷᥱ ძᥱᥣ ᥙsᥙᥲrі᥆ ᥲᥣ 𝗊ᥙᥱ 𝗊ᥙіᥱrᥱs 𝗍rᥲᥒsFᥱrіr.`)

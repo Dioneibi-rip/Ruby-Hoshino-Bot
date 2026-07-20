@@ -5,7 +5,7 @@ areJidsSameUser
 } = (await import('@whiskeysockets/baileys')).default
 
 export async function all(m, chatUpdate) {
-if (m.__stickerCommandHydrated || m.isBaileys || !m.message || !m.msg.fileSha256) return
+if (m.__stickerCommandHydrated || m.isBaileys || !m.message || !m.msg?.fileSha256) return
 
 const sha = Buffer.from(m.msg.fileSha256).toString('base64')
 const hash = global.db.getStickerCommand?.(sha) || global.db.getSection('sticker')[sha]
@@ -27,5 +27,5 @@ const msg = {
 messages: [proto.WebMessageInfo.fromObject(messages)],
 type: 'append'
 }
-this.ev.emit('messages.upsert', msg)
+if (this.ev?.emit) this.ev.emit('messages.upsert', msg)
 }

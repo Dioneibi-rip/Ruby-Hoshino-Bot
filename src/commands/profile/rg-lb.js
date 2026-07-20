@@ -1,5 +1,5 @@
 import { resolveIdentityName } from '../../core/identity-utils.js'
-let handler = async (m, { conn, args, participants }) => {
+let handler = async (m, { conn, args, participants = [] }) => {
 const page = parseInt(args[0]) || 1;
 const pageSize = 10;
 const startIndex = (page - 1) * pageSize;
