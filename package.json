@@ -40,7 +40,6 @@
     "dotenv": "^17.4.2",
     "file-type": "^18.0.0",
     "google-libphonenumber": "3.2.38",
-    "googlethis": "^1.8.0",
     "human-readable": "^0.2.1",
     "imagemaker.js": "^2.0.4",
     "ioredis": "^5.4.1",
