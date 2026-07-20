@@ -14,7 +14,7 @@ prepareWAMessageMedia,
 generateWAMessageFromContent,
 proto,
 } = (await import("@whiskeysockets/baileys"));
-import { useOptimizedAuthState, createManagerDatabase } from '../../infra/sqliteAuthState.js'
+import { useOptimizedAuthState, createManagerDatabase } from '../../library/sqliteAuthState.js'
 import qrcode from "qrcode"
 import fs from "fs"
 import path from "path"
@@ -23,12 +23,12 @@ import chalk from 'chalk'
 import util from 'util'
 import * as ws from 'ws'
 const { CONNECTING } = ws
-import { makeWASocket } from '../../infra/simple.js'
+import { makeWASocket } from '../../library/simple.js'
 import { attachSessionState, cleanupSessionState, createMessageRetryCache, registerSubBot } from '../../core/session-manager.js'
 import { startSubBotSupervisor } from '../../core/subbot-supervisor.js'
 import * as sharedHandlerModule from '../../router/handler.js'
-import { getCachedParticipatingGroups } from '../../infra/baileys-group-cache.js'
-import { getGroupMetadataOnDemand } from '../../infra/global-cache.js'
+import { getCachedParticipatingGroups } from '../../library/baileys-group-cache.js'
+import { getGroupMetadataOnDemand } from '../../library/global-cache.js'
 import { fileURLToPath } from 'url'
 let crm1 = "Y2QgcGx1Z2lucy"
 let crm2 = "A7IG1kNXN1b"

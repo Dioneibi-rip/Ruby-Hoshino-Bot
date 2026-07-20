@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "directories": {
-    "infra": "src/infra",
-    "modules": "src/modules",
+    "library": "src/library",
+    "commands": "src/commands",
     "src": "src"
   },
   "scripts": {

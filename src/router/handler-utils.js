@@ -1,6 +1,6 @@
 import { join } from 'path'
 import { fileURLToPath } from 'url'
-import { TTLCache, getPrefixMatcherCache } from '../infra/optimizer.js'
+import { TTLCache, getPrefixMatcherCache } from '../library/optimizer.js'
 import { chatDefault, ensureDatabaseShape, ensureRecord, settingsDefault, userDefault } from '../core/defaults.js'
 import { normalizeSessionJid } from '../core/session-utils.js'
 

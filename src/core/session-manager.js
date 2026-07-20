@@ -1,5 +1,5 @@
 import NodeCache from 'node-cache'
-import { commandTesterCache, groupMetadataCache, msgRetryCounterCache, prefixMatcherCache } from '../infra/global-cache.js'
+import { commandTesterCache, groupMetadataCache, msgRetryCounterCache, prefixMatcherCache } from '../library/global-cache.js'
 
 const DEFAULT_CACHE_TTL_SECONDS = 5 * 60
 
