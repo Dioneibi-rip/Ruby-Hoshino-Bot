@@ -88,7 +88,7 @@ export class SimpleSocketService {
     }
 
     static attachStore(sock) {
-        store.bind(sock)
+        store.bind(sock, sock?.ev)
         sock.baileysStore = sock.baileysStore || store.getStore?.()
         return sock
     }
@@ -1685,6 +1685,7 @@ return conn.sendMessage(jid, { poll: { name, values, selectableCount }})
              * @param {Object} options
              */
             async value(jid, message, forwardingScore = true, options = {}) {
+                if (!message?.message || typeof message.message !== 'object') return null
                 let vtype
                 if (options.readViewOnce && message.message.viewOnceMessage?.message) {
                     vtype = Object.keys(message.message.viewOnceMessage.message)[0]

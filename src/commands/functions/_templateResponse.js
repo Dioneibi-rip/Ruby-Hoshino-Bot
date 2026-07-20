@@ -2,7 +2,7 @@ const { proto, generateWAMessage, areJidsSameUser } = (await import('@whiskeysoc
 
 const regexEscape = (str) => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
 
-function resolveMessageId(message) {
+function resolveMessageId(message = {}) {
 if (message.buttonsResponseMessage) return message.buttonsResponseMessage.selectedButtonId;
 if (message.templateButtonReplyMessage) return message.templateButtonReplyMessage.selectedId;
 if (message.listResponseMessage) return message.listResponseMessage.singleSelectReply?.selectedRowId;
@@ -18,7 +18,7 @@ return '';
 }
 }
 
-function hasInteractiveResponse(message) {
+function hasInteractiveResponse(message = {}) {
 return Boolean(
 message.buttonsResponseMessage ||
 message.templateButtonReplyMessage ||
@@ -96,5 +96,5 @@ messages: [proto.WebMessageInfo.fromObject(messages)].map((v) => ((v.conn = this
 type: 'append',
 };
 
-this.ev.emit('messages.upsert', msg);
+if (this.ev?.emit) this.ev.emit('messages.upsert', msg);
 }

@@ -105,8 +105,8 @@ function getStore() {
   if (!instance) instance = createSQLiteStore(resolveBaileysSqlite())
   return instance
 }
-function bind(conn) {
-  const bound = getStore().bind(conn)
+function bind(conn, ev = conn?.ev || conn) {
+  const bound = getStore().bind(conn, ev)
   startMessagePruner()
   return bound
 }

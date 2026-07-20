@@ -13,7 +13,7 @@ function getPartner(marriages, user) {
 return global.db.getUser(user)?.marry || marriages[user]?.partner || '';
 }
 
-const handler = async (m, { conn, command, participants, usedPrefix }) => {
+const handler = async (m, { conn, command, participants = [], usedPrefix }) => {
 const participantsByLid = buildParticipantsByLid(participants);
 const normalizeToJid = (rawJid) => normalizeIdentityJid(conn, rawJid, participantsByLid);
 const identityName = (jid) => resolveIdentityName(conn, jid, { participantsByLid, fallback: `@${String(jid).split('@')[0]}` });

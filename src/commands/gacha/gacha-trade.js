@@ -223,7 +223,7 @@ return false;
 }
 };
 
-handler.before = async function before(m, { conn, participants }) {
+handler.before = async function before(m, { conn, participants = [] }) {
 if (!m.quoted?.id || !m.text) return false;
 const normalizedText = String(m.text).trim().toLowerCase();
 if (!ACCEPT_WORDS.has(normalizedText)) return false;

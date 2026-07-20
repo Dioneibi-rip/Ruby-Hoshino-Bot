@@ -120,27 +120,31 @@ this.statements.chatIds = this.sqlite.prepare('SELECT id FROM baileys_chats')
 this.statements.deleteChat = this.sqlite.prepare('DELETE FROM baileys_chats WHERE id = ?')
 this.statements.countChats = this.sqlite.prepare('SELECT COUNT(*) AS total FROM baileys_chats WHERE is_chats = 1')
 }
-bind(conn) {
+bind(conn, ev = conn?.ev || conn) {
 this.unbind()
-this.conn = conn
-this.boundConn = conn
+if (!ev || typeof ev.off !== 'function') return this
+this.conn = conn?.ev ? conn : this.conn
+this.boundConn = conn?.ev ? conn : { ev }
+if (conn?.ev) {
 conn.baileysStore = this
 conn.chats = this.chats
-this._on(conn, 'contacts.update', contacts => this.queueContacts(contacts))
-this._on(conn, 'contacts.upsert', contacts => this.queueContacts(contacts))
-this._on(conn, 'contacts.set', payload => this.queueContacts(payload?.contacts || payload))
-this._on(conn, 'chats.update', chats => this.queueChats(chats))
-this._on(conn, 'chats.upsert', chats => this.queueChats(chats))
-this._on(conn, 'chats.set', payload => this.queueChats(payload?.chats || payload))
-this._on(conn, 'groups.update', groups => this.queueChats(groups))
-this._on(conn, 'group-participants.update', update => setTimeout(() => this.refreshGroup(update?.id), 2500).unref?.())
-this._on(conn, 'presence.update', update => this.queuePresence(update))
-this._on(conn, 'messages.upsert', payload => { if (payload?.type !== 'append') this.queueMessagesMetadata(payload?.messages || []) })
+}
+this._on(ev, 'contacts.update', contacts => this.queueContacts(contacts))
+this._on(ev, 'contacts.upsert', contacts => this.queueContacts(contacts))
+this._on(ev, 'contacts.set', payload => this.queueContacts(payload?.contacts || payload))
+this._on(ev, 'chats.update', chats => this.queueChats(chats))
+this._on(ev, 'chats.upsert', chats => this.queueChats(chats))
+this._on(ev, 'chats.set', payload => this.queueChats(payload?.chats || payload))
+this._on(ev, 'groups.update', groups => this.queueChats(groups))
+this._on(ev, 'group-participants.update', update => setTimeout(() => this.refreshGroup(update?.id), 2500).unref?.())
+this._on(ev, 'presence.update', update => this.queuePresence(update))
+this._on(ev, 'messages.upsert', payload => { if (payload?.type !== 'append') this.queueMessagesMetadata(payload?.messages || []) })
 return this
 }
-_on(conn, event, listener) {
-conn.ev.off?.(event, listener)
-conn.ev.on(event, listener)
+_on(ev, event, listener) {
+if (!ev || typeof ev.off !== 'function') return
+ev.off(event, listener)
+ev.on(event, listener)
 this.boundHandlers.push({ event, listener })
 }
 unbind() {
