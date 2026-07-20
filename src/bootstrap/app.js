@@ -13,7 +13,6 @@ import chalk from 'chalk'
 import syntaxerror from 'syntax-error'
 import { tmpdir } from 'os'
 import { format } from 'util'
-import 'dotenv/config';
 import pino from 'pino'
 import { Boom } from '@hapi/boom'
 import { makeWASocket, protoType, serialize } from '../library/simple.js'
@@ -22,6 +21,21 @@ import { initializeDatabase } from '../library/database.js'
 import store from '../library/store.js'
 import readline, { createInterface } from 'readline'
 import { EventEmitter } from 'events'
+
+function loadEnvFile(file = '.env') {
+try {
+const source = readFileSync(file, 'utf8')
+for (const line of source.split(/\r?\n/)) {
+const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)?\s*$/)
+if (!match || process.env[match[1]] !== undefined) continue
+let value = match[2] || ''
+if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) value = value.slice(1, -1)
+process.env[match[1]] = value.replace(/\\n/g, '\n')
+}
+} catch {}
+}
+
+loadEnvFile()
 import { attachSessionState, createMessageRetryCache } from '../core/session-manager.js'
 import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from '../router/handler-utils.js'
 import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from '../library/queue.js'
@@ -31,9 +45,6 @@ global.baileys = baileysModule
 global.Baileys = baileysModule
 const { proto } = baileysModule.default
 const { DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, Browsers } = baileysModule
-import pkg from 'google-libphonenumber'
-const { PhoneNumberUtil } = pkg
-const phoneUtil = PhoneNumberUtil.getInstance()
 const { CONNECTING } = ws
 global.__filename = function filename(pathURL = import.meta.url, rmPrefix = platform !== 'win32') { return rmPrefix ? /file:\/\/\//.test(pathURL) ? fileURLToPath(pathURL) : pathURL : pathToFileURL(pathURL).toString(); };
 global.__dirname = function dirname(pathURL) { return path.dirname(global.__filename(pathURL, true)) };
@@ -503,12 +514,8 @@ ${format(e)}'`); unregisterPluginCommands(filename) } finally { global.plugins =
 Object.freeze(global.reload)
 watchPluginTree(pluginFolder).catch(console.error)
 async function isValidPhoneNumber(number) {
-try {
-number = number.replace(/\s+/g, '')
-if (number.startsWith('+521')) { number = number.replace('+521', '+52'); } else if (number.startsWith('+52') && number[4] === '1') { number = number.replace('+52 1', '+52'); }
-const parsedNumber = phoneUtil.parseAndKeepRawInput(number)
-return phoneUtil.isValidNumber(parsedNumber)
-} catch (error) { return false }
+const digits = String(number || '').replace(/\D/g, '')
+return digits.length >= 8 && digits.length <= 15
 }
 function clearTmp() {
 const tmpDirectories = [tmpdir(), join(process.cwd(), 'tmp')];

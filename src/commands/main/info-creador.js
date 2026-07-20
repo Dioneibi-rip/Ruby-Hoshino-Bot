@@ -1,4 +1,4 @@
-import PhoneNumber from 'awesome-phonenumber'
+import { formatPhoneInternational } from '../../library/native-utils.js'
 
 async function handler(m, { conn }) {
 m.react('📇')
@@ -67,7 +67,7 @@ VERSION:3.0
 N:;${name.replace(/\n/g, '\\n')};;;
 FN:${name.replace(/\n/g, '\\n')}
 item.ORG:${title}
-item1.TEL;waid=${number}:${PhoneNumber('+' + number).getNumber('international')}
+item1.TEL;waid=${number}:${formatPhoneInternational(number)}
 item1.X-ABLabel:${note}
 item2.EMAIL;type=INTERNET:${email}
 item2.X-ABLabel:Correo

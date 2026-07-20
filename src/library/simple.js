@@ -2,7 +2,7 @@ import { getCachedParticipatingGroups } from './baileys-group-cache.js'
 import path from 'path'  
 import { toAudio } from './media-converter.js'
 import chalk from 'chalk'
-import PhoneNumber from 'awesome-phonenumber'
+import { formatPhoneInternational } from './native-utils.js'
 import fs from 'fs'
 import util from 'util'
 import { fileTypeFromBuffer } from 'file-type' 
@@ -320,7 +320,7 @@ BEGIN:VCARD
 VERSION:3.0
 N:;${name.replace(/\n/g, '\\n')};;;
 FN:${name.replace(/\n/g, '\\n')}
-TEL;type=CELL;type=VOICE;waid=${number}:${PhoneNumber('+' + number).getNumber('international')}${biz.description ? `
+TEL;type=CELL;type=VOICE;waid=${number}:${formatPhoneInternational(number)}${biz.description ? `
 X-WA-BIZ-NAME:${(conn.chats[njid]?.vname || conn.getName(njid) || name).replace(/\n/, '\\n')}
 X-WA-BIZ-DESCRIPTION:${biz.description.replace(/\n/g, '\\n')}
 `.trim() : ''}
@@ -461,7 +461,7 @@ VERSION:3.0
 N:Sy;Bot;;;
 FN:${name.replace(/\n/g, '\\n')}
 item.ORG:${isi}
-item1.TEL;waid=${number}:${PhoneNumber('+' + number).getNumber('international')}
+item1.TEL;waid=${number}:${formatPhoneInternational(number)}
 item1.X-ABLabel:${isi1}
 ${isi2 ? `item2.EMAIL;type=INTERNET:${isi2}\nitem2.X-ABLabel:📧 Email` : ''}
 ${isi3 ? `item3.ADR:;;${isi3};;;;\nitem3.X-ABADR:ac \nitem3.X-ABLabel:📍 Region` : ''}
@@ -1774,22 +1774,22 @@ const mappedJid = mapped ? conn.decodeJid?.(mapped) || mapped : jid
 const mappedContact = conn.chats?.[mappedJid] || conn.chats?.[jid] || storeContacts[mappedJid] || storeContacts[jid] || Object.values(storeContacts).find((contact) => contact?.id === mappedJid || contact?.jid === mappedJid || contact?.lid === jid) || {}
 const userId = String(mappedJid).replace('@s.whatsapp.net', '').replace('@lid', '').replace('@hosted.lid', '')
 const user = global.db?.getUser?.(mappedJid) || global.db?.data?.users?.[mappedJid] || global.db?.data?.users?.[jid] || global.db?.data?.users?.[userId] || {}
-return (withoutContact ? '' : mappedContact?.name) || mappedContact?.subject || mappedContact?.vname || mappedContact?.notify || mappedContact?.verifiedName || user?.customName || user?.name || PhoneNumber('+' + userId).getNumber('international')
+return (withoutContact ? '' : mappedContact?.name) || mappedContact?.subject || mappedContact?.vname || mappedContact?.notify || mappedContact?.verifiedName || user?.customName || user?.name || formatPhoneInternational(userId)
 }).catch(() => {
 const userId = String(jid).replace('@lid', '').replace('@hosted.lid', '')
 const user = global.db?.getUser?.(jid) || global.db?.data?.users?.[jid] || global.db?.data?.users?.[userId] || {}
-return user?.customName || user?.name || PhoneNumber('+' + userId).getNumber('international')
+return user?.customName || user?.name || formatPhoneInternational(userId)
 })
 }
 if (jid.endsWith('@g.us')) return new Promise(async (resolve) => {
 v = conn.chats?.[jid] || {}
 if (!(v?.name || v?.subject)) v = await conn.groupMetadata(jid).catch(() => ({})) || {}
-resolve(v?.name || v?.subject || PhoneNumber('+' + jid.replace('@s.whatsapp.net', '')).getNumber('international'))
+resolve(v?.name || v?.subject || formatPhoneInternational(jid.replace('@s.whatsapp.net', '')))
 })
 v = jid === '0@s.whatsapp.net' ? { jid, vname: 'WhatsApp' } : areJidsSameUser(jid, conn.user?.id) ? conn.user || {} : conn.chats?.[jid] || {}
 const userId = String(jid).replace('@s.whatsapp.net', '').replace('@lid', '').replace('@hosted.lid', '')
 const user = jid && typeof jid === 'string' ? global.db?.getUser?.(jid) || global.db?.data?.users?.[jid] || global.db?.data?.users?.[userId] || {} : {}
-const userName = user?.customName || user?.name || PhoneNumber('+' + userId).getNumber('international')
+const userName = user?.customName || user?.name || formatPhoneInternational(userId)
 return (withoutContact ? '' : v?.name) || v?.subject || v?.vname || v?.notify || v?.verifiedName || userName
 },
 enumerable: true

@@ -1,17 +1,14 @@
 import { totalmem, freemem } from 'os'
 import os from 'os'
 import util from 'util'
-import osu from 'node-os-utils'
 import { performance } from 'perf_hooks'
-import { sizeFormatter } from 'human-readable'
-import speed from 'performance-now'
+import { formatBytes as format } from '../../library/native-utils.js'
 import { spawn, exec, execSync } from 'child_process'
-const format = sizeFormatter({ std: 'JEDEC', decimalPlaces: 2, keepTrailingZeroes: false, render: (literal, symbol) => `${literal} ${symbol}B` })
 
 var handler = async (m, { conn }) => {
 
-let timestamp = speed()
-let latensi = speed() - timestamp
+let timestamp = performance.now()
+let latensi = performance.now() - timestamp
 
 let _muptime = process.uptime() * 1000
 let muptime = clockString(_muptime)

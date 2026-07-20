@@ -1,14 +1,6 @@
 import db from '../../library/database.js'
 import { cpus as _cpus, totalmem, freemem, platform, hostname } from 'os'
-import speed from 'performance-now'
-import { sizeFormatter } from 'human-readable'
-
-let format = sizeFormatter({
-std: 'JEDEC',
-decimalPlaces: 2,
-keepTrailingZeroes: false,
-render: (literal, symbol) => `${literal} ${symbol}B`,
-})
+import { formatBytes as format } from '../../library/native-utils.js'
 
 let handler = async (m, { conn, usedPrefix }) => {
 let bot = global.db.get('settings', conn.user.jid)

@@ -1,4 +1,4 @@
-import similarity from 'similarity'
+import { stringSimilarity as similarity } from '../../library/native-utils.js'
 import { loadCharacters } from '../../library/gacha-characters.js'
 import { loadHarem } from '../../library/gacha-group.js'
 const getSeriesImage=async title=>{try{const response=await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(title)}&limit=1`);const data=await response.json();return data.data?.[0]?.images?.jpg?.large_image_url||null}catch{return null}}

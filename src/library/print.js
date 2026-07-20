@@ -1,11 +1,10 @@
 import{WAMessageStubType}from'@whiskeysockets/baileys'
-import terminalImageModule from 'terminal-image'
-import PhoneNumber from'awesome-phonenumber'
+import { formatPhoneInternational, urlRegex as createUrlRegex } from './native-utils.js'
 import chalk from'chalk'
 import{watchFile}from'fs'
 
-const terminalImage=global.opts?.img ? terminalImageModule : null
-const urlRegex=(await import('url-regex-safe')).default({strict:false})
+const terminalImage=null
+const urlRegex=createUrlRegex()
 
 function safeMessageText(m) {
 if (!m || !m.message) return typeof m?.text === 'string' ? m.text : ''
@@ -26,7 +25,7 @@ return ''
 export default async function(m,conn={user:{}}){
 if(m.key.remoteJid==='status@broadcast')return
 let _name=await conn.getName(m.sender)
-let sender=PhoneNumber('+'+m.sender.replace('@s.whatsapp.net','')).getNumber('international')+(_name?' ~'+chalk.green.bold(_name):'')
+let sender=formatPhoneInternational(m.sender.replace('@s.whatsapp.net',''))+(_name?' ~'+chalk.green.bold(_name):'')
 let chat=await conn.getName(m.chat)
 let img
 try{
@@ -40,7 +39,7 @@ try{
 filesize=(m.msg?(m.msg.vcard?m.msg.vcard.length:m.msg.fileLength?(m.msg.fileLength.low||m.msg.fileLength):safeText?safeText.length:0):safeText?safeText.length:0)||0
 }catch(e){filesize=0}
 let user=global.db?.data?.users?.[m.sender]
-let me=PhoneNumber('+'+(conn.user?.jid || '').replace('@s.whatsapp.net','')).getNumber('international')
+let me=formatPhoneInternational((conn.user?.jid || '').replace('@s.whatsapp.net',''))
 let oraAttuale=new Date()
 let oraFormattata=oraAttuale.toLocaleString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
 let chatName=chat?(m.isGroup?chalk.red.bold('Grupo: ')+chat:chalk.green.bold('Privado: ')+chat):chalk.gray('Chat Desconocido')

@@ -25,17 +25,19 @@ handler.group=true
 handler.register=true
 handler.command=['tts']
 export default handler
-function saveSpeech(ttsEngine,filePath,text){
-return new Promise((resolve,reject)=>ttsEngine.save(filePath,text,error=>error?reject(error):resolve()))
+async function tts(text, lang = 'es') {
+if (!text) throw new Error('Texto vacío')
+const chunks = String(text).match(/.{1,180}(?:\s|$)/g)?.map(part => part.trim()).filter(Boolean) || []
+const buffers = []
+for (const chunk of chunks) {
+const url = new URL('https://translate.google.com/translate_tts')
+url.searchParams.set('ie', 'UTF-8')
+url.searchParams.set('client', 'tw-ob')
+url.searchParams.set('tl', lang)
+url.searchParams.set('q', chunk)
+const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+if (!response.ok) throw new Error(`TTS HTTP ${response.status}`)
+buffers.push(Buffer.from(await response.arrayBuffer()))
 }
-async function tts(text,lang='es'){
-const [{ default: gtts }, fs, { join }] = await Promise.all([import('node-gtts'), import('fs'), import('path')])
-const ttsEngine=gtts(lang)
-const tmpDir=join(process.cwd(),'tmp')
-if(!fs.existsSync(tmpDir))fs.mkdirSync(tmpDir,{recursive:true})
-const filePath=join(tmpDir,Date.now()+'.wav')
-await saveSpeech(ttsEngine,filePath,text)
-const buffer=await fs.promises.readFile(filePath)
-await fs.promises.unlink(filePath).catch(()=>null)
-return buffer
+return Buffer.concat(buffers)
 }
