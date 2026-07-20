@@ -54,9 +54,9 @@ if (!targetJid) continue
 try {
 const pp = await conn.profilePictureUrl(targetJid, 'image').catch(() => 'https://i.pinimg.com/736x/40/5a/17/405a170d05df4de50e01e8c5cd2a7250.jpg')
 const username = mentionLabel(targetJid)
-const groupName = groupMetadata.subject || 'este grupo'
-const desc = groupMetadata.desc?.toString() || 'Sin descripción'
-const groupSize = groupMetadata.participants.length
+const groupName = groupMetadata?.subject || 'este grupo'
+const desc = groupMetadata?.desc?.toString() || 'Sin descripción'
+const groupSize = groupMetadata?.participants?.length || participants?.length || 0
 const fecha = new Date().toLocaleDateString("es-ES", { timeZone: "America/Santo_Domingo", day: 'numeric', month: 'long', year: 'numeric' })
 if (isWelcome) {
 let text

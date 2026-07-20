@@ -2,7 +2,7 @@ import db from '../../library/database.js'
 import { formatJobLine, ensureJobFields } from '../../library/rpg-jobs.js'
 import { buildParticipantsByLid, resolveInteractionTarget, normalizeIdentityJid, resolveIdentityName } from '../../core/identity-utils.js'
 
-let handler = async (m, { conn, usedPrefix, participants }) => {
+let handler = async (m, { conn, usedPrefix, participants = [] }) => {
 let who = await resolveInteractionTarget(m, conn)
 
 if (who === conn.user.jid) return m.react('✖️')

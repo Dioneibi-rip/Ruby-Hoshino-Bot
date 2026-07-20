@@ -1,5 +1,5 @@
 import { buildParticipantsByLid, normalizeIdentityJid, resolveTarget, resolveIdentityName } from '../../core/identity-utils.js'
-const handler = async (m, { conn, participants }) => {
+const handler = async (m, { conn, participants = [] }) => {
 try {
 
 const participantsByLid = buildParticipantsByLid(participants);
