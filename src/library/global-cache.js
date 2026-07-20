@@ -1,4 +1,4 @@
-import NodeCache from 'node-cache'
+import { TTLCache } from './native-utils.js'
 
 export class LRUCache {
   constructor({ max = 1000, ttl = 5 * 60 * 1000 } = {}) {
@@ -52,7 +52,7 @@ const globalCaches = global.__rubyGlobalCaches ||= {
   groupMetadata: new LRUCache({ max: Number(process.env.RUBY_GROUP_METADATA_CACHE_MAX || 3000), ttl: Number(process.env.RUBY_GROUP_METADATA_CACHE_TTL_MS || 10 * 60 * 1000) }),
   commandTester: new LRUCache({ max: Number(process.env.RUBY_COMMAND_TESTER_CACHE_MAX || 5000), ttl: Number(process.env.RUBY_COMMAND_TESTER_CACHE_TTL_MS || 30 * 60 * 1000) }),
   prefixMatcher: new LRUCache({ max: Number(process.env.RUBY_PREFIX_MATCHER_CACHE_MAX || 3000), ttl: Number(process.env.RUBY_PREFIX_MATCHER_CACHE_TTL_MS || 30 * 60 * 1000) }),
-  msgRetryCounter: new NodeCache({ stdTTL: Number(process.env.RUBY_MSG_RETRY_TTL_SECONDS || 5 * 60), checkperiod: 120, useClones: false }),
+  msgRetryCounter: new TTLCache({ stdTTL: Number(process.env.RUBY_MSG_RETRY_TTL_SECONDS || 5 * 60), checkperiod: 120, useClones: false }),
 }
 
 export const groupMetadataCache = globalCaches.groupMetadata

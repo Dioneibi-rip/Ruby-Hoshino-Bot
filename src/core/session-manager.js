@@ -1,4 +1,4 @@
-import NodeCache from 'node-cache'
+import { TTLCache } from '../library/native-utils.js'
 import { commandTesterCache, groupMetadataCache, msgRetryCounterCache, prefixMatcherCache } from '../library/global-cache.js'
 
 const DEFAULT_CACHE_TTL_SECONDS = 5 * 60
@@ -36,7 +36,7 @@ export function attachSessionState(conn, { id, type = 'standard', parentId = nul
 }
 
 export function createMessageRetryCache() {
-  return msgRetryCounterCache || new NodeCache({ stdTTL: DEFAULT_CACHE_TTL_SECONDS, checkperiod: 120, useClones: false })
+  return msgRetryCounterCache || new TTLCache({ stdTTL: DEFAULT_CACHE_TTL_SECONDS, checkperiod: 120, useClones: false })
 }
 
 export function cleanupSessionState(conn) {
