@@ -1,9 +1,10 @@
-const handler = async (m, { isOwner, isAdmin, conn, text, participants, args, command, usedPrefix }) => {
+const handler = async (m, { isOwner, isAdmin, conn, text, participants = [], args, command, usedPrefix }) => {
 if (usedPrefix == 'a' || usedPrefix == 'A') return;
 
 const botname = global.botname || 'Ruby';
 
 m.react('✅');
+if (!Array.isArray(participants) || !participants.length) return conn.reply(m.chat, `${emoji} No pude obtener la lista de participantes del grupo.`, m);
 
 if (!(isAdmin || isOwner)) {
 global.dfail('admin', m, conn);
@@ -35,13 +36,15 @@ texto += `*Mensaje:* \`${mensaje}\`\n\n`;
 
 texto += `╭─「 *Invocando al grupo* 」\n`;
 
-for (const member of participants) {
-texto += `│ ${emoji} @${member.id.split('@')[0]}\n`;
+const mentionIds = participants.map((member) => member?.id || member?.jid).filter(Boolean);
+for (const member of mentionIds) {
+texto += `│ ${emoji} @${member.split('@')[0]}\n`;
 }
 
 texto += `╰─「 ${botname} 」`;
 
-conn.sendMessage(m.chat, { text: texto, mentions: participants.map((a) => a.id) }, { quoted: fkontak });
+if (!mentionIds.length) return conn.reply(m.chat, `${emoji} No hay participantes válidos para mencionar.`, m);
+conn.sendMessage(m.chat, { text: texto, mentions: mentionIds }, { quoted: fkontak });
 return false;
 };
 

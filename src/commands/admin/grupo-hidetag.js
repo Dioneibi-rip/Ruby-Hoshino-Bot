@@ -1,13 +1,14 @@
 import { generateWAMessageFromContent } from '@whiskeysockets/baileys'
 import * as fs from 'fs'
 
-var handler = async (m, { conn, text, participants, isOwner, isAdmin }) => {
+var handler = async (m, { conn, text, participants = [], isOwner, isAdmin }) => {
 
 if (!m.quoted && !text) return conn.reply(m.chat, `${emoji} Debes enviar un texto para hacer un tag.`, m)
+if (!Array.isArray(participants) || !participants.length) return conn.reply(m.chat, `${emoji} No pude obtener la lista de participantes del grupo.`, m)
 
 try {
 
-let users = participants.map(u => conn.decodeJid(u.id))
+let users = participants.map(u => conn.decodeJid(u?.id || u?.jid)).filter(Boolean)
 let q = m.quoted ? m.quoted : m || m.text || m.sender
 let c = m.quoted ? await m.getQuotedObj() : m.msg || m.text || m.sender
 let msg = conn.cMod(m.chat, generateWAMessageFromContent(m.chat, { [m.quoted ? q.mtype : 'extendedTextMessage']: m.quoted ? c.message[q.mtype] : { text: '' || c }}, { quoted: null, userJid: conn.user.id }), text || q.text, conn.user.jid, { mentions: users })
@@ -15,7 +16,7 @@ await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id })
 
 } catch (e) {
 
-let users = participants.map(u => conn.decodeJid(u.id))
+let users = participants.map(u => conn.decodeJid(u?.id || u?.jid)).filter(Boolean)
 let quoted = m.quoted ? m.quoted : m
 let mime = (quoted.msg || quoted).mimetype || ''
 let isMedia = /image|video|sticker|audio/.test(mime)

@@ -37,6 +37,7 @@ process.env[match[1]] = value.replace(/\\n/g, '\n')
 
 loadEnvFile()
 import { attachSessionState, createMessageRetryCache } from '../core/session-manager.js'
+import { alignSocketTelemetry, getStandardBrowserProfile } from '../core/socket-telemetry.js'
 import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from '../router/handler-utils.js'
 import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from '../library/queue.js'
 EventEmitter.defaultMaxListeners = 100
@@ -237,11 +238,11 @@ const RECONNECT_BASE_DELAY_MS = 5000
 const RECONNECT_MAX_DELAY_MS = 60000
 let reconnectAttempt = 0
 const socketCfg = global.baileysSocketConfig || {}
-const connectionOptions = {
+let connectionOptions = {
 logger: pino({ level: 'silent' }),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile,
-browser: ['Windows', 'Firefox', '141.0'],
+browser: getStandardBrowserProfile(),
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })), },
 markOnlineOnConnect: socketCfg.markOnlineOnConnect ?? false,
 generateHighQualityLinkPreview: socketCfg.generateHighQualityLinkPreview ?? false,
@@ -259,6 +260,7 @@ keepAliveIntervalMs: socketCfg.keepAliveIntervalMs ?? 30000,
 retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 3000,
 shouldReconnect: ({ statusCode }) => !DISCONNECT_AUTH_STATUS.has(statusCode) && (RECONNECT_REASONS.has(statusCode) || statusCode !== DisconnectReason.loggedOut)
 }
+connectionOptions = alignSocketTelemetry(connectionOptions, { version })
 global.conn = await makeWASocket(connectionOptions);
 setMediaQueueConnection(global.conn)
 startMediaWorker(global.conn)

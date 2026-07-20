@@ -25,6 +25,7 @@ import * as ws from 'ws'
 const { CONNECTING } = ws
 import { makeWASocket } from '../../library/simple.js'
 import { attachSessionState, cleanupSessionState, createMessageRetryCache, registerSubBot } from '../../core/session-manager.js'
+import { alignSocketTelemetry, getStandardBrowserProfile } from '../../core/socket-telemetry.js'
 import { startSubBotSupervisor } from '../../core/subbot-supervisor.js'
 import * as sharedHandlerModule from '../../router/handler.js'
 import { getCachedParticipatingGroups } from '../../library/baileys-group-cache.js'
@@ -367,13 +368,13 @@ const debouncedSaveCreds = createDebouncedSaveCreds(() => saveCreds.call(sock, t
 global.authCredsFlushers ||= new Set()
 global.authCredsFlushers.add(debouncedSaveCreds.flush)
 global.authManagerDb ||= createManagerDatabase({ dbPath: `./${global.Rubysessions || 'sessions'}/system.db`, tableName: 'bot_registry' })
-const connectionOptions = {
+let connectionOptions = {
 logger: pino({ level: "fatal" }),
 printQRInTerminal: false,
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
 msgRetry,
 msgRetryCache,
-browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['Ruby Hoshino (Sub Bot)', 'Chrome','2.0.0'],
+browser: getStandardBrowserProfile(),
 version: version,
 generateHighQualityLinkPreview: subSocketCfg.generateHighQualityLinkPreview ?? false,
 defaultQueryTimeoutMs: subSocketCfg.defaultQueryTimeoutMs ?? 45000,
@@ -385,6 +386,7 @@ syncFullHistory: false,
 shouldSyncHistoryMessage: () => false,
 getMessage: async key => liteMsgStore.get(key) || ''
 };
+connectionOptions = alignSocketTelemetry(connectionOptions, { version })
 let sock = await makeWASocket(connectionOptions)
 sock.__msgRetryCache = msgRetryCache
 sock.__liteMsgStore = liteMsgStore

@@ -48,6 +48,52 @@ const TIMELOCK_COOLDOWN_MS = 24 * 60 * 60 * 1000
 const TIMELOCK_GUARD_PATCH = Symbol.for('ruby.timelockGuard.sendMessagePatch')
 const PRIMARY_BOT_EGRESS_GUARD_PATCH = Symbol.for('ruby.primaryBot.egressGuardPatch')
 
+
+function firePresenceUpdate(conn, state, jid) {
+if (!conn || typeof conn.sendPresenceUpdate !== 'function' || !jid) return
+Promise.resolve(conn.sendPresenceUpdate(state, jid)).catch(() => {})
+}
+
+function watchPresenceEgress(result, settle) {
+Promise.resolve(result).then(settle, settle)
+return result
+}
+
+function patchPresenceEgressMethods(conn, settle) {
+const originals = new Map()
+const methods = ['sendMessage', 'sendFile', 'reply', 'relayMessage', 'sendButton', 'sendButtonImg', 'sendButtonVid']
+for (const method of methods) {
+if (typeof conn?.[method] !== 'function') continue
+const original = conn[method]
+originals.set(method, original)
+conn[method] = function presenceAwareEgress(...args) {
+return watchPresenceEgress(original.apply(this, args), () => settle(args[0]))
+}
+}
+return () => {
+for (const [method, original] of originals) {
+if (conn[method] && conn[method].name === 'presenceAwareEgress') conn[method] = original
+}
+}
+}
+
+async function withCommandPresence(conn, m, run) {
+let settled = false
+const settle = (jid = m?.chat) => {
+if (settled) return
+settled = true
+firePresenceUpdate(conn, 'paused', jid || m?.chat)
+}
+firePresenceUpdate(conn, 'composing', m?.chat)
+const restore = patchPresenceEgressMethods(conn, settle)
+try {
+return await run()
+} finally {
+restore()
+if (!settled) settle(m?.chat)
+}
+}
+
 function extractErrorCode(value, seen = new WeakSet()) {
 if (value == null) return ''
 if (typeof value === 'number' || typeof value === 'string') {
@@ -845,7 +891,7 @@ const __filename = join(pluginDir, name)
 await readCommandMessageSafely(this, m, commandEntry)
 trackLocalGroupActivity(this, m, sender, { countMessage: false, isCommand: true })
 const extra = buildPluginContext(this, { match, usedPrefix, ...commandParsed, participants, groupMetadata, user: userGroup, bot: botGroup, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: pluginDir, __filename })
-await executePlugin(this, plugin, name, m, extra, permissionContext, sender, { chat: chatData, user: global.db?.data?.users?.[sender], isCelestialCommand })
+await withCommandPresence(this, m, () => executePlugin(this, plugin, name, m, extra, permissionContext, sender, { chat: chatData, user: global.db?.data?.users?.[sender], isCelestialCommand }))
 } catch (error) {
 console.error(error)
 } finally {
@@ -888,7 +934,9 @@ if (!chatData?.detect) continue
 const stub = buildGroupUpdateStub({ ...update, id: chat })
 if (!stub) continue
 const groupMetadata = await getGroupMetadataOnDemand(this, chat, { requireParticipants: true })
-await autodetectPlugin.before.call(this, stub, { conn: this, participants: groupMetadata?.participants || [], groupMetadata: groupMetadata || {} })
+const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
+if (!participants.length) continue
+await autodetectPlugin.before.call(this, stub, { conn: this, participants, groupMetadata: groupMetadata || {} })
 } catch (error) {
 console.error('[detect] groups.update error', error)
 }
@@ -907,6 +955,8 @@ const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
 if (shouldSilenceChatForBot(chatData, normalizeConnectionJid(this))) return
 if (!chatData?.welcome) return
 const groupMetadata = await getGroupMetadataOnDemand(this, chat, { requireParticipants: true })
+const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
+if (!participants.length) return
 const m = {
 chat,
 isGroup: true,
@@ -914,7 +964,7 @@ sender: Array.isArray(update.participants) ? update.participants[0] : '',
 messageStubType,
 messageStubParameters: Array.isArray(update.participants) ? update.participants : [],
 }
-await welcomePlugin.before.call(this, m, { conn: this, participants: groupMetadata?.participants || [], groupMetadata: groupMetadata || {} })
+await welcomePlugin.before.call(this, m, { conn: this, participants, groupMetadata: groupMetadata || {} })
 } catch (error) {
 console.error('[welcome] group-participants.update error', error)
 }
