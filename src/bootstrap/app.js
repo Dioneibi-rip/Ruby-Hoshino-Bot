@@ -259,7 +259,7 @@ keepAliveIntervalMs: socketCfg.keepAliveIntervalMs ?? 30000,
 retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 3000,
 shouldReconnect: ({ statusCode }) => !DISCONNECT_AUTH_STATUS.has(statusCode) && (RECONNECT_REASONS.has(statusCode) || statusCode !== DisconnectReason.loggedOut)
 }
-global.conn = makeWASocket(connectionOptions);
+global.conn = await makeWASocket(connectionOptions);
 setMediaQueueConnection(global.conn)
 startMediaWorker(global.conn)
 attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.Rubysessions })
@@ -360,7 +360,7 @@ if (restatConn) {
 const oldChats = global.conn.chats
 try { global.conn.ws.close() } catch (e) { }
 conn.ev.removeAllListeners()
-global.conn = makeWASocket(connectionOptions, { chats: oldChats })
+global.conn = await makeWASocket(connectionOptions, { chats: oldChats })
 setMediaQueueConnection(global.conn)
 startMediaWorker(global.conn)
 attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.Rubysessions })

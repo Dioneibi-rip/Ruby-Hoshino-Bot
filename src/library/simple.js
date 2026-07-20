@@ -99,11 +99,12 @@ export class SimpleSocketService {
     }
 }
 
-export function makeWASocket(connectionOptions, options = {}) {
+export async function makeWASocket(connectionOptions, options = {}) {
     /**
      * @type {import('@adiwajshing/baileys').WASocket | import('@adiwajshing/baileys').WALegacySocket}
      */
-    let conn = (global.opts['legacy'] ? makeWALegacySocket : _makeWaSocket)(connectionOptions)
+    let conn = await (global.opts['legacy'] ? makeWALegacySocket : _makeWaSocket)(connectionOptions)
+    if (!conn?.ev || typeof conn.ev.on !== 'function') throw new TypeError('Baileys makeWASocket no devolvió una conexión válida con EventEmitter en conn.ev')
 
     let sock = Object.defineProperties(conn, {
         chats: {

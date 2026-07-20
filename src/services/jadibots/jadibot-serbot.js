@@ -385,7 +385,7 @@ syncFullHistory: false,
 shouldSyncHistoryMessage: () => false,
 getMessage: async key => liteMsgStore.get(key) || ''
 };
-let sock = makeWASocket(connectionOptions)
+let sock = await makeWASocket(connectionOptions)
 sock.__msgRetryCache = msgRetryCache
 sock.__liteMsgStore = liteMsgStore
 await patchSubBotGroupMetadata(sock)
@@ -467,7 +467,7 @@ const oldChats = sock.chats
 removeSockFromPool(sock)
 try { sock.ws.close() } catch (e) { }
 try { sock.ev.removeAllListeners() } catch (e) {}
-sock = makeWASocket(connectionOptions, { chats: oldChats })
+sock = await makeWASocket(connectionOptions, { chats: oldChats })
 sock.__msgRetryCache = msgRetryCache
 sock.__liteMsgStore = liteMsgStore
 await patchSubBotGroupMetadata(sock)
