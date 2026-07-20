@@ -36,6 +36,7 @@
     "chalk": "^5.1.0",
     "cheerio": "npm:cheerio@1.0.0-rc.12",
     "file-type": "^18.0.0",
+    "form-data": "^4.0.0",
     "imagemaker.js": "^2.0.4",
     "ioredis": "^5.4.1",
     "jimp": "^0.16.1",
