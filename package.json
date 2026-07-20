@@ -33,7 +33,6 @@
   "dependencies": {
     "@whiskeysockets/baileys": "github:Dioneibi-rip/Ruby-Baileys",
     "acrcloud": "^1.4.0",
-    "aptoide-scraper": "github:DIEGO-OFC/dv-aptoide-scraper",
     "awesome-phonenumber": "^3.4.0",
     "better-sqlite3": "^11.10.0",
     "chalk": "^5.1.0",
