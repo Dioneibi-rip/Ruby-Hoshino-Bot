@@ -1,6 +1,6 @@
 import * as ws from 'ws'
 import { cleanupSessionState } from './session-manager.js'
-import { cleanupGlobalCaches } from '../infra/global-cache.js'
+import { cleanupGlobalCaches } from '../library/global-cache.js'
 
 const DEFAULT_SUPERVISOR_INTERVAL_MS = 2 * 60 * 1000
 

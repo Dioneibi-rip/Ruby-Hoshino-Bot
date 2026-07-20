@@ -1,5 +1,5 @@
 import { format } from 'util'
-import { getCooldownKey, getCooldownSeconds, isRedisReady, redis, setRedisWithTTL } from '../infra/redis.js'
+import { getCooldownKey, getCooldownSeconds, isRedisReady, redis, setRedisWithTTL } from '../library/redis.js'
 import { buildGuardContext, isBotSender, runPluginGuards } from './permission-guard.js'
 
 export function segundosAHMS(totalSeconds = 0) {

@@ -1,12 +1,12 @@
-import { smsg } from '../infra/simple.js'
+import { smsg } from '../library/simple.js'
 import * as ws from 'ws'
 import { join } from 'path'
 import { fileURLToPath } from 'url'
 import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
-import failureHandler from '../infra/respuesta.js'
-import welcomePlugin from '../modules/functions/_welcome.js'
-import autodetectPlugin from '../modules/enable/_autodetect.js'
+import failureHandler from '../library/respuesta.js'
+import welcomePlugin from '../commands/functions/_welcome.js'
+import autodetectPlugin from '../commands/enable/_autodetect.js'
 import {
 buildPermissionContext,
 createParticipantIndex,
@@ -26,7 +26,7 @@ import { attachSessionState, cleanupSessionState } from '../core/session-manager
 import messageQueue from '../core/message-queue.js'
 import { normalizeIdentityJid, normalizeJid } from '../core/identity-utils.js'
 import { getMessageDeletePayload, isUserMutedInChat, messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
-import { getGroupMetadataOnDemand } from '../infra/global-cache.js'
+import { getGroupMetadataOnDemand } from '../library/global-cache.js'
 import { getInteractiveResponseText, getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash, unwrapMessageContent } from './raw-filter.js'
 import { executePlugin } from './plugin-executor.js'
 import { isBotSender, pluginRequiresGroupParticipants } from './permission-guard.js'
@@ -855,7 +855,7 @@ if (!m?.__skipStats) await updateStatsAndEconomy(this, m, sender)
 console.error(error)
 }
 try {
-if (!((this.opts || global.opts || {}).noprint) && m) await (await import('../infra/print.js')).default(m, this)
+if (!((this.opts || global.opts || {}).noprint) && m) await (await import('../library/print.js')).default(m, this)
 } catch (error) {
 console.log(chalk.red('Error en print.js'), error)
 }

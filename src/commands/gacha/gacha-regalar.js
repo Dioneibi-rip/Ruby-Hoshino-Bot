@@ -1,0 +1,94 @@
+import {
+loadHarem,
+saveHarem,
+addOrUpdateClaim,
+removeClaim,
+getUserClaims,
+isSameUserId
+} from '../../library/gacha-group.js';
+import { resetProtectionOnTransfer } from '../../library/gacha-protection.js';
+import { loadCharacters, findCharacterByName } from '../../library/gacha-characters.js';
+import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js';
+
+
+let handler = async (m, { conn, args, participants = [] }) => {
+const participantsByLid = buildParticipantsByLid(participants);
+let userId = await normalizeIdentityJid(conn, m.sender, participantsByLid);
+const groupId = m.chat;
+
+if (args.length < 1) {
+await conn.reply(m.chat, 'Debes especificar el nombre del personaje. Ej: #regalar Aika Sano @user o responde a un mensaje: #regalar Aika Sano', m);
+return false;
+}
+
+let rawWho = m.mentionedJid?.[0] || m.quoted?.sender;
+let characterArgs = [...args];
+
+if (m.mentionedJid?.[0] && characterArgs.length > 0) {
+const lastArg = characterArgs[characterArgs.length - 1] || '';
+if (/^@?\d{5,20}$/.test(lastArg)) characterArgs.pop();
+}
+
+if (!rawWho && characterArgs.length > 1) {
+const maybeTarget = characterArgs[characterArgs.length - 1];
+if (/^@?\d{5,20}$/.test(maybeTarget)) {
+rawWho = `${maybeTarget.replace('@', '')}@s.whatsapp.net`;
+characterArgs.pop();
+}
+}
+
+const characterName = characterArgs.join(' ').toLowerCase().trim();
+if (!characterName) {
+await conn.reply(m.chat, 'Debes indicar el nombre del personaje a regalar.', m);
+return false;
+}
+
+if (!rawWho) {
+await conn.reply(m.chat, 'Debes mencionar o responder a un mensaje del usuario al que quieres regalarle el personaje.', m);
+return false;
+}
+
+let who = await normalizeIdentityJid(conn, rawWho, participantsByLid);
+if (!who || who === userId) {
+await conn.reply(m.chat, 'Debes elegir un usuario válido y distinto de ti para regalar.', m);
+return false;
+}
+
+try {
+const characters = await loadCharacters();
+const character = findCharacterByName(characters, characterName);
+
+if (!character) {
+await conn.reply(m.chat, `No se encontró el personaje *${characterName}*.`, m);
+return false;
+}
+
+const harem = await loadHarem();
+const claim = harem.find(c => c.groupId === groupId && c.characterId === character.id && isSameUserId(c.userId, userId));
+if (!claim) {
+await conn.reply(m.chat, `El personaje *${character.name}* no está reclamado por ti en este grupo.`, m);
+return false;
+}
+
+if (claim) {
+claim.userId = who;
+resetProtectionOnTransfer(claim, { now: Date.now(), reason: 'gift' });
+} else {
+removeClaim(harem, groupId, userId, character.id);
+addOrUpdateClaim(harem, groupId, who, character.id);
+}
+await saveHarem(harem);
+
+await conn.reply(m.chat, `✰ *${character.name}* ha sido regalado a @${who.split('@')[0]}!`, m, { mentions: [who] });
+} catch (error) {
+await conn.reply(m.chat, `✘ Error al regalar el personaje: ${error.message}`, m);
+return false;
+}
+};
+
+handler.help = ['regalar <nombre del personaje> @usuario', 'regalar <nombre del personaje> (respondiendo mensaje)'];
+handler.tags = ['anime'];
+handler.command = ['regalar', 'givewaifu', 'givechar'];
+handler.group = true;
+
+export default handler;

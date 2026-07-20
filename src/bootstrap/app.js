@@ -16,15 +16,15 @@ import { format } from 'util'
 import 'dotenv/config';
 import pino from 'pino'
 import { Boom } from '@hapi/boom'
-import { makeWASocket, protoType, serialize } from '../infra/simple.js'
-import { useOptimizedAuthState, createManagerDatabase } from '../infra/sqliteAuthState.js'
-import { initializeDatabase } from '../infra/database.js'
-import store from '../infra/store.js'
+import { makeWASocket, protoType, serialize } from '../library/simple.js'
+import { useOptimizedAuthState, createManagerDatabase } from '../library/sqliteAuthState.js'
+import { initializeDatabase } from '../library/database.js'
+import store from '../library/store.js'
 import readline, { createInterface } from 'readline'
 import { EventEmitter } from 'events'
 import { attachSessionState, createMessageRetryCache } from '../core/session-manager.js'
 import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from '../router/handler-utils.js'
-import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from '../infra/queue.js'
+import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from '../library/queue.js'
 EventEmitter.defaultMaxListeners = 100
 const baileysModule = await import('@whiskeysockets/baileys')
 global.baileys = baileysModule
@@ -436,7 +436,7 @@ if (i + batchSize < subBotPaths.length) await new Promise(resolve => setTimeout(
 }
 }
 }
-const pluginFolder = global.__dirname(join(__dirname, '../modules/index'))
+const pluginFolder = global.__dirname(join(__dirname, '../commands/index'))
 const pluginFilter = (filename) => /\.js$/.test(filename)
 global.plugins = {}
 global.commandsMap = global.commandsMap || new Map()

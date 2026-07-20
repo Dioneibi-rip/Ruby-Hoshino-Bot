@@ -1,0 +1,78 @@
+import { resolveInteractionTarget, resolveIdentityName } from '../../core/identity-utils.js'
+import axios from '../../library/http.js'
+import fs from 'fs'
+import path from 'path'
+import { spawn } from 'child_process'
+import { tmpdir } from 'os'
+
+async function gifToMp4(gifBuffer){
+const tempGif=path.join(tmpdir(),`${Date.now()}.gif`)
+const tempMp4=path.join(tmpdir(),`${Date.now()}.mp4`)
+await fs.promises.writeFile(tempGif,gifBuffer)
+return new Promise((resolve,reject)=>{
+const ffmpeg=spawn('ffmpeg',['-y','-i',tempGif,'-c:v','libx264','-pix_fmt','yuv420p','-vf','scale=trunc(iw/2)*2:trunc(ih/2)*2','-movflags','+faststart',tempMp4])
+ffmpeg.on('close',async code=>{
+await fs.promises.unlink(tempGif)
+if(code===0){
+const mp4Buffer=await fs.promises.readFile(tempMp4)
+await fs.promises.unlink(tempMp4)
+resolve(mp4Buffer)
+}else reject(new Error(`ffmpeg error ${code}`))
+})
+ffmpeg.on('error',async err=>{
+await fs.promises.unlink(tempGif)
+reject(err)
+})
+})
+}
+
+let handler=async(m,{conn})=>{
+let who = await resolveInteractionTarget(m, conn)
+let nameSender=await resolveIdentityName(conn, m.sender, { fallback: `@${String(m.sender).split('@')[0]}` })
+let nameTarget=await resolveIdentityName(conn, who, { fallback: `@${String(who).split('@')[0]}` })
+
+let caption=who===m.sender
+? `\`${nameSender}\` *está seduciendo ( ͡° ͜ʖ ͡°).*`
+: `\`${nameSender}\` *está seduciendo a* \`${nameTarget}\` *( ͡° ͜ʖ ͡°)*.`
+
+await m.react('😏')
+
+const seduceGifs=[
+'https://i.pinimg.com/originals/7f/f3/1c/7ff31ce12432d90fa944748021941b6a.gif',
+'https://i.pinimg.com/originals/ea/de/5b/eade5b83bc8764de3037fcab1f5e2dec.gif',
+'https://media.tenor.com/KsxNSrBLntQAAAAM/zero-two-anime.gif',
+'https://media.tenor.com/R7sidYP5IhgAAAAM/blushing-anime-cute-anime.gif',
+'https://qu.ax/fYPjB.mp4',
+'https://media.tenor.com/xuBjhmC2p9AAAAAM/zero-two-darling-in-the-franxx.gif',
+'https://media.tenor.com/pF3s48bhdIsAAAAM/marin-kitagawa-anime-shy.gif',
+'https://media.tenor.com/vqPt7f8PxtkAAAAM/marrochi-evil.gif',
+'https://media.tenor.com/db96_0PFMpcAAAAM/ano-natsu-ano-natsu-de-matteru.gif',
+'https://media.tenor.com/pZHdmpV3A8IAAAAM/annited.gif',
+'https://media.tenor.com/9iKiVuCdZu8AAAAM/anime-nisekoi.gif',
+'https://media.tenor.com/HG_dSaso5YAAAAAM/anime-hajimete-no-gal.gif',
+'https://media.tenor.com/7P2NiwpYJlMAAAAM/anime-shikimoris-not-just-cute.gif'
+]
+
+const randomGif=seduceGifs[Math.floor(Math.random()*seduceGifs.length)]
+
+try{
+const response=await axios({method:'get',url:randomGif,responseType:'arraybuffer',headers:{'User-Agent':'Mozilla/5.0','Referer':'https://google.com/'}})
+let buffer=Buffer.from(response.data)
+try{
+buffer=await gifToMp4(buffer)
+await conn.sendMessage(m.chat,{video:buffer,caption:caption,gifPlayback:true,mentions:[who,m.sender],mimetype:'video/mp4'},{quoted:m})
+}catch (e) {
+throw new Error('conversion fail')
+}
+}catch (e) {
+await conn.sendMessage(m.chat,{video:{url:randomGif},caption:caption,gifPlayback:true,mentions:[who,m.sender]},{quoted:m})
+return false;
+}
+}
+
+handler.help=['seduce','seducir']
+handler.tags=['anime']
+handler.command=['seduce','seducir']
+handler.group=true
+
+export default handler
