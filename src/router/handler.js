@@ -54,29 +54,43 @@ if (!conn || typeof conn.sendPresenceUpdate !== 'function' || !jid) return
 Promise.resolve(conn.sendPresenceUpdate(state, jid)).catch(() => {})
 }
 
-async function withCommandPresence(conn, m, run) {
-let settled = false
-const originalSendMessage = conn.sendMessage
-const canPatch = typeof originalSendMessage === 'function'
-firePresenceUpdate(conn, 'composing', m?.chat)
-if (!canPatch) {
-try { return await run() }
-finally { firePresenceUpdate(conn, 'paused', m?.chat) }
-}
-const presenceAwareSendMessage = function presenceAwareSendMessage(...args) {
-const result = originalSendMessage.apply(this, args)
-if (!settled) {
-settled = true
-firePresenceUpdate(conn, 'paused', args[0] || m?.chat)
-}
+function watchPresenceEgress(result, settle) {
+Promise.resolve(result).then(settle, settle)
 return result
 }
-conn.sendMessage = presenceAwareSendMessage
+
+function patchPresenceEgressMethods(conn, settle) {
+const originals = new Map()
+const methods = ['sendMessage', 'sendFile', 'reply', 'relayMessage', 'sendButton', 'sendButtonImg', 'sendButtonVid']
+for (const method of methods) {
+if (typeof conn?.[method] !== 'function') continue
+const original = conn[method]
+originals.set(method, original)
+conn[method] = function presenceAwareEgress(...args) {
+return watchPresenceEgress(original.apply(this, args), () => settle(args[0]))
+}
+}
+return () => {
+for (const [method, original] of originals) {
+if (conn[method] && conn[method].name === 'presenceAwareEgress') conn[method] = original
+}
+}
+}
+
+async function withCommandPresence(conn, m, run) {
+let settled = false
+const settle = (jid = m?.chat) => {
+if (settled) return
+settled = true
+firePresenceUpdate(conn, 'paused', jid || m?.chat)
+}
+firePresenceUpdate(conn, 'composing', m?.chat)
+const restore = patchPresenceEgressMethods(conn, settle)
 try {
 return await run()
 } finally {
-if (conn.sendMessage === presenceAwareSendMessage) conn.sendMessage = originalSendMessage
-if (!settled) firePresenceUpdate(conn, 'paused', m?.chat)
+restore()
+if (!settled) settle(m?.chat)
 }
 }
 
