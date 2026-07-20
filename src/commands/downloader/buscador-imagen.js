@@ -4,7 +4,6 @@ import axios from '../../library/http.js'
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
-// Función para generar y transmitir el álbum de Baileys
 async function sendAlbumMessage(conn, jid, medias, options = {}) {
   if (typeof jid !== "string") throw new TypeError(`jid debe ser string, se recibió: ${jid}`)
   if (medias.length < 2) throw new RangeError("Se necesitan al menos 2 imágenes para un álbum")
@@ -39,7 +38,6 @@ async function sendAlbumMessage(conn, jid, medias, options = {}) {
   return album
 }
 
-// Registro del manejador de la cola para este comando
 function registerImageAlbumQueueHandler() {
   global.queueHandlers ||= new Map()
   if (global.queueHandlers.has("image:album")) return
@@ -54,7 +52,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
   const rwait = '⏳'
   
   if (!text) {
-    return conn.reply(m.chat, ` ׄ᱉᱉ Por favor, ingresa un término. ✧ 𝗘j𝗲m𝗽l𝗼: ${usedPrefix + command} paisajes naturales`, m)
+    return conn.reply(m.chat, ` ׄ᱉᱉ Por favor, ingresa un término. ✧ 𝗘j𝗲m𝗽l𝗼: ${usedPrefix + command} goku`, m)
   }
   
   await m.react(rwait)
@@ -63,7 +61,6 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
   try {
     const url = `https://www.bing.com/images/search?q=${encodeURIComponent(text)}`
     
-    // Petición con tu librería axios personalizada
     const response = await axios.get(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
@@ -75,35 +72,40 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     const html = response.data
     const images = []
     
-    const regexList = [
-      /"murl":"([^"]+)"/g,
-      /murl&quot;:&quot;([^&]+)&quot;/g,
-      /"(https?:\/\/[^"]+?\.(?:jpe?g|png))"/gi
-    ]
-
-    for (const regex of regexList) {
-      let match
-      while ((match = regex.exec(html)) !== null && images.length < 4) {
-        if (!images.includes(match[1])) {
-          images.push(match[1])
+    // NUEVO REGEX: Buscamos específicamente las etiquetas <a class="iusc">
+    // Esto ignora los anuncios y productos que Bing precarga al inicio
+    const regex = /class="iusc"[^>]*m=(?:'([^']+)'|"([^"]+)")/gi
+    let match
+    
+    while ((match = regex.exec(html)) !== null && images.length < 4) {
+      // Capturamos el contenido del atributo 'm' (que es un JSON escondido)
+      const rawM = match[1] || match[2]
+      if (!rawM) continue
+      
+      try {
+        // Limpiamos el HTML escapado para poder leer el JSON
+        const mData = rawM.replace(/&quot;/g, '"')
+        const json = JSON.parse(mData)
+        
+        // Si tiene una URL válida y no la hemos guardado ya, la agregamos
+        if (json.murl && !images.includes(json.murl)) {
+          images.push(json.murl)
         }
+      } catch (e) {
+        // Ignoramos si un bloque falla y seguimos buscando
       }
-      if (images.length >= 4) break
     }
     
-    // Baileys requiere mínimo 2 imágenes para crear un álbum válido
     if (images.length < 2) {
       await m.react('❌')
-      return conn.reply(m.chat, `*🍂 No logré encontrar suficientes imágenes para:* ${text}`, m)
+      return conn.reply(m.chat, `*🍂 No logré encontrar suficientes imágenes exactas para:* ${text}`, m)
     }
     
-    // Mapeamos las imágenes al formato que requiere el creador de álbumes
     const albumImages = images.map(imgUrl => ({
       type: "image",
       data: { url: imgUrl }
     }))
 
-    // Encolamos el trabajo de envío multimedia
     registerImageAlbumQueueHandler()
     await enqueueMediaJob("image:album", {
       jid: m.chat,
