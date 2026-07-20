@@ -1,6 +1,5 @@
 import crypto from 'crypto'
-import FormData from 'form-data'
-import fetch from 'node-fetch'
+import axios, { bufferToBlob } from '../../library/http.js'
 
 async function identifyAudio(buffer) {
 const host = 'identify-eu-west-1.acrcloud.com'
@@ -15,20 +14,16 @@ const stringToSign = ['POST', endpoint, access_key, data_type, signature_version
 const signature = crypto.createHmac('sha1', access_secret).update(Buffer.from(stringToSign, 'utf-8')).digest().toString('base64')
 
 const form = new FormData()
-form.append('sample', buffer)
+form.append('sample', bufferToBlob(buffer, 'audio/mpeg'), 'audio.mp3')
 form.append('access_key', access_key)
 form.append('data_type', data_type)
 form.append('signature_version', signature_version)
 form.append('signature', signature)
-form.append('sample_bytes', buffer.length)
-form.append('timestamp', timestamp)
+form.append('sample_bytes', buffer.length.toString())
+form.append('timestamp', timestamp.toString())
 
-const response = await fetch(`https://${host}${endpoint}`, {
-method: 'POST',
-body: form
-})
-
-return await response.json()
+const response = await axios.post(`https://${host}${endpoint}`, form)
+return response.data
 }
 
 let handler = async (m, { conn, usedPrefix, command }) => {
