@@ -49,48 +49,31 @@ const TIMELOCK_GUARD_PATCH = Symbol.for('ruby.timelockGuard.sendMessagePatch')
 const PRIMARY_BOT_EGRESS_GUARD_PATCH = Symbol.for('ruby.primaryBot.egressGuardPatch')
 
 
+const PRESENCE_STATES = new Set(['available', 'unavailable', 'composing', 'recording', 'paused'])
+
+function canSendPresenceUpdate(conn, state, jid) {
+if (conn === undefined || conn === null) return false
+if (typeof conn.sendPresenceUpdate !== 'function') return false
+if (state === undefined || !PRESENCE_STATES.has(state)) return false
+if (jid === undefined || typeof jid !== 'string' || jid.length === 0) return false
+if (conn.ev === undefined) return false
+return true
+}
+
 function firePresenceUpdate(conn, state, jid) {
-if (!conn || typeof conn.sendPresenceUpdate !== 'function' || !jid) return
+if (!canSendPresenceUpdate(conn, state, jid)) return
+queueMicrotask(() => {
 Promise.resolve(conn.sendPresenceUpdate(state, jid)).catch(() => {})
-}
-
-function watchPresenceEgress(result, settle) {
-Promise.resolve(result).then(settle, settle)
-return result
-}
-
-function patchPresenceEgressMethods(conn, settle) {
-const originals = new Map()
-const methods = ['sendMessage', 'sendFile', 'reply', 'relayMessage', 'sendButton', 'sendButtonImg', 'sendButtonVid']
-for (const method of methods) {
-if (typeof conn?.[method] !== 'function') continue
-const original = conn[method]
-originals.set(method, original)
-conn[method] = function presenceAwareEgress(...args) {
-return watchPresenceEgress(original.apply(this, args), () => settle(args[0]))
-}
-}
-return () => {
-for (const [method, original] of originals) {
-if (conn[method] && conn[method].name === 'presenceAwareEgress') conn[method] = original
-}
-}
+})
 }
 
 async function withCommandPresence(conn, m, run) {
-let settled = false
-const settle = (jid = m?.chat) => {
-if (settled) return
-settled = true
-firePresenceUpdate(conn, 'paused', jid || m?.chat)
-}
-firePresenceUpdate(conn, 'composing', m?.chat)
-const restore = patchPresenceEgressMethods(conn, settle)
+const jid = m?.chat
+firePresenceUpdate(conn, 'composing', jid)
 try {
 return await run()
 } finally {
-restore()
-if (!settled) settle(m?.chat)
+firePresenceUpdate(conn, 'paused', jid)
 }
 }
 
@@ -931,6 +914,8 @@ if (!isRealtimeGroupEvent(this, update)) continue
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
 if (shouldSilenceChatForBot(chatData, normalizeConnectionJid(this))) continue
 if (!chatData?.detect) continue
+if (update.participants !== undefined && !Array.isArray(update.participants)) continue
+if (this.ev === undefined) continue
 const stub = buildGroupUpdateStub({ ...update, id: chat })
 if (!stub) continue
 const groupMetadata = await getGroupMetadataOnDemand(this, chat, { requireParticipants: true })
@@ -947,6 +932,8 @@ export async function participantsUpdate(update = {}) {
 try {
 const chat = this.decodeJid?.(update.id) || update.id
 if (!chat || !chat.endsWith('@g.us')) return
+if (update.participants === undefined || !Array.isArray(update.participants)) return
+if (this.ev === undefined) return
 if (!isRealtimeGroupEvent(this, update)) return
 const action = String(update.action || '').toLowerCase()
 const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null
