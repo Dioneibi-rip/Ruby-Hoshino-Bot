@@ -180,27 +180,44 @@ pm2 logs ruby-hoshino
 <details>
 <summary><b>🐧 VER EL APARTADO Y INSTALACIÓN</b></summary>
 
-```bash
-sudo apt update
-```
+> En Ubuntu/Debian limpio no uses `sudo apt install nodejs` directamente: los repositorios del sistema pueden traer una versión antigua. Primero añade NodeSource para instalar Node.js LTS 20.x o superior.
+
+1. Actualiza el sistema e instala herramientas base para añadir repositorios HTTPS.
 
 ```bash
-sudo apt install nodejs npm git python3 build-essential -y
+sudo apt-get update && \
+sudo apt-get install -y ca-certificates curl gnupg
 ```
 
-```bash
-git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git
-```
+2. Añade el repositorio oficial de NodeSource para Node.js 20.x LTS.
 
 ```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+```
+
+3. Instala Node.js y dependencias nativas obligatorias para clonar, compilar módulos y procesar multimedia.
+
+```bash
+sudo apt-get install -y nodejs git python3 build-essential ffmpeg libwebp-dev
+```
+
+4. Verifica que Node.js 20.x o superior y npm quedaron disponibles.
+
+```bash
+node --version && npm --version
+```
+
+5. Clona el repositorio y entra al proyecto.
+
+```bash
+git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git && \
 cd Ruby-Hoshino-Bot
 ```
 
-```bash
-npm install
-```
+6. Instala dependencias de Node.js e inicia Ruby.
 
 ```bash
+npm install && \
 npm start
 ```
 
@@ -231,34 +248,50 @@ pm2 logs ruby-hoshino
 <details>
 <summary><b>🏴 VER EL APARTADO Y INSTALACIÓN EN WINDOWS</b></summary>
 
-1. Descarga e instala **Node.js LTS** desde <https://nodejs.org/>.
-2. Descarga e instala **Git for Windows** desde <https://git-scm.com/download/win>.
-3. Durante la instalación de Node.js, si aparece la opción **Tools for Native Modules**, actívala. Esto instala Python y herramientas C++ necesarias para paquetes nativos.
-4. Abre **PowerShell como Administrador** y, si no tienes herramientas de compilación, ejecuta:
+> Recomendado: abre **PowerShell como Administrador** y usa `winget` para instalar versiones actuales y agregarlas al PATH automáticamente.
 
-```bash
-npm install --global windows-build-tools
+1. Instala Node.js LTS, Git, FFmpeg, Python y Visual Studio Build Tools.
+
+```powershell
+winget install --id OpenJS.NodeJS.LTS -e --source winget
+winget install --id Git.Git -e --source winget
+winget install --id Gyan.FFmpeg -e --source winget
+winget install --id Python.Python.3.12 -e --source winget
+winget install --id Microsoft.VisualStudio.2022.BuildTools -e --source winget --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
 ```
 
-> Nota: en versiones modernas de Windows/Node, también puedes instalar manualmente **Python 3** y **Visual Studio Build Tools** con la carga de trabajo **Desktop development with C++** si `windows-build-tools` no funciona.
+2. Cierra y vuelve a abrir PowerShell para recargar las variables de entorno. Verifica que todo quedó en el PATH.
 
-5. Clona el repositorio:
+```powershell
+node --version
+npm --version
+git --version
+ffmpeg -version
+python --version
+```
 
-```bash
+3. Clona el repositorio y entra al proyecto.
+
+```powershell
 git clone https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot.git
-```
-
-```bash
 cd Ruby-Hoshino-Bot
 ```
 
-```bash
-npm install
-```
+4. Instala dependencias e inicia Ruby.
 
-```bash
+```powershell
+npm install
 npm start
 ```
+
+### Instalación manual si no tienes winget
+
+1. Instala **Node.js LTS** desde <https://nodejs.org/> y deja marcada la opción para agregar Node.js al PATH.
+2. Instala **Git for Windows** desde <https://git-scm.com/download/win> y selecciona la opción para usar Git desde PowerShell o el símbolo del sistema.
+3. Instala **FFmpeg** desde <https://www.gyan.dev/ffmpeg/builds/> y agrega la carpeta `bin` de FFmpeg al PATH.
+4. Instala **Python 3** desde <https://www.python.org/downloads/> y marca **Add python.exe to PATH**.
+5. Instala **Visual Studio Build Tools** desde <https://visualstudio.microsoft.com/visual-cpp-build-tools/> con la carga de trabajo **Desktop development with C++**.
+6. Reinicia PowerShell y ejecuta los comandos de verificación, clonación, `npm install` y `npm start` mostrados arriba.
 
 </details>
 
@@ -361,11 +394,10 @@ npm install
 #### Ubuntu/Debian
 
 ```bash
-sudo apt update
-```
-
-```bash
-sudo apt install nodejs npm git python3 build-essential -y
+sudo apt-get update && \
+sudo apt-get install -y ca-certificates curl gnupg && \
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && \
+sudo apt-get install -y nodejs git python3 build-essential ffmpeg libwebp-dev
 ```
 
 ```bash
@@ -374,18 +406,19 @@ npm install
 
 #### Windows
 
-```bash
-npm install --global windows-build-tools
+```powershell
+winget install --id Python.Python.3.12 -e --source winget
+winget install --id Microsoft.VisualStudio.2022.BuildTools -e --source winget --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
 ```
 
-Si el comando anterior falla, instala manualmente:
+Si no puedes usar `winget`, instala manualmente:
 
 - Python 3 desde <https://www.python.org/downloads/> y marca **Add python.exe to PATH**.
 - Visual Studio Build Tools desde <https://visualstudio.microsoft.com/visual-cpp-build-tools/> con **Desktop development with C++**.
 
-Luego vuelve a ejecutar:
+Luego reinicia PowerShell y vuelve a ejecutar:
 
-```bash
+```powershell
 npm install
 ```
 
