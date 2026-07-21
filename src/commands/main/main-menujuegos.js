@@ -5,8 +5,6 @@ const texto = `
 
 ᰵ𐇽𑂘⃘ׂ◌࠭᷼🪷⃝⃦̸̷᪶᪶ᩘ★ *#amistad • #amigorandom*
 > ✦ Hacer amigos con un juego.
-ᰵ𐇽𑂘⃘ׂ◌࠭᷼🪷⃝⃦̸̷᪶᪶ᩘ★ *#chaqueta • #jalamela*
-> ✦ Hacerte una chaqueta.
 ᰵ𐇽𑂘⃘ׂ◌࠭᷼🪷⃝⃦̸̷᪶᪶ᩘ★ *#chiste*
 > ✦ La bot te cuenta un chiste.
 ᰵ𐇽𑂘⃘ׂ◌࠭᷼🪷⃝⃦̸̷᪶᪶ᩘ★ *#consejo*

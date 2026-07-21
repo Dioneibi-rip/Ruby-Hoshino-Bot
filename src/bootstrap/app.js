@@ -15,7 +15,7 @@ import { tmpdir } from 'os'
 import { format } from 'util'
 import pino from 'pino'
 import { Boom } from '@hapi/boom'
-import { makeWASocket, protoType, serialize } from '../library/simple.js'
+import { makeWASocket, protoType, serialize, SimpleSocketService } from '../library/simple.js'
 import { useOptimizedAuthState, createManagerDatabase } from '../library/sqliteAuthState.js'
 import { initializeDatabase } from '../library/database.js'
 import store from '../library/store.js'
@@ -261,7 +261,8 @@ retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 3000,
 shouldReconnect: ({ statusCode }) => !DISCONNECT_AUTH_STATUS.has(statusCode) && (RECONNECT_REASONS.has(statusCode) || statusCode !== DisconnectReason.loggedOut)
 }
 connectionOptions = alignSocketTelemetry(connectionOptions, { version })
-global.conn = await makeWASocket(connectionOptions);
+const pairingRequested = !state.creds?.registered && (opcion === '2' || methodCode)
+global.conn = await makeWASocket(connectionOptions, { skipStoreBind: pairingRequested });
 setMediaQueueConnection(global.conn)
 startMediaWorker(global.conn)
 attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.Rubysessions })
@@ -313,6 +314,9 @@ if ((qr && opcion === '1') || methodCodeQR) {
 console.log(chalk.hex('#FF66C4')('—🍦ܶ߭ຼ ᪲  ۪  ︵ Escanea el codigo QR aqui ︵ ࣪'))
 }
 if (connection === 'open') {
+if (pairingRequested && !conn.baileysStore) {
+try { conn = global.conn = SimpleSocketService.attachStore(conn) } catch (error) { console.error(error) }
+}
 conn.__groupEventStartedAt = Date.now()
 conn.__groupEventReadyAt = conn.__groupEventStartedAt + 15_000
 reconnectAttempt = 0
@@ -362,7 +366,7 @@ if (restatConn) {
 const oldChats = global.conn.chats
 try { global.conn.ws.close() } catch (e) { }
 conn.ev.removeAllListeners()
-global.conn = await makeWASocket(connectionOptions, { chats: oldChats })
+global.conn = await makeWASocket(connectionOptions, { chats: oldChats, skipStoreBind: pairingRequested && !state.creds?.registered })
 setMediaQueueConnection(global.conn)
 startMediaWorker(global.conn)
 attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.Rubysessions })
@@ -425,6 +429,10 @@ try { rmSync(sessionPath, { recursive: true, force: true }) } catch (removeError
 }
 return validPaths
 }
+let subBotsStartupStarted = false
+async function startSubBotsAfterReady() {
+if (subBotsStartupStarted) return
+subBotsStartupStarted = true
 if (global.RubyJadibts || true) {
 if (!existsSync(global.rutaJadiBot)) {
 mkdirSync(global.rutaJadiBot, { recursive: true });
@@ -449,6 +457,12 @@ if (i + batchSize < subBotPaths.length) await new Promise(resolve => setTimeout(
 }
 }
 }
+}
+if (!pairingRequested || state.creds?.registered) await startSubBotsAfterReady()
+else conn.ev.on('connection.update', async update => {
+if (update?.connection === 'open') await startSubBotsAfterReady()
+if (update?.connection === 'close') await startSubBotsAfterReady()
+})
 const pluginFolder = global.__dirname(join(__dirname, '../commands/index'))
 const pluginFilter = (filename) => /\.js$/.test(filename)
 global.plugins = {}

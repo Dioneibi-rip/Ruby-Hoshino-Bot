@@ -27,6 +27,8 @@ const texto = `
 > ✦ Crea documentos de (audio, imágenes y vídeos).
 ⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#wiki • #wikipedia*
 > ✦ Consulta información en Wikipedia.
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#logocorazon • #logopareja • #logogaming*
+> ✦ Crea logos con texto usando los generadores disponibles.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅,
 `.trim();
 

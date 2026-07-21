@@ -9,7 +9,7 @@ return normalizeSessionJid(raw.replace(/^@/, ''))
 }
 
 const handler = async (m, { conn, text, usedPrefix, command, isAdmin, isOwner, isROwner }) => {
-if (!(isAdmin || isOwner || isROwner)) {
+if (m.isGroup && !(isAdmin || isOwner || isROwner)) {
 global.dfail('admin', m, conn)
 throw false
 }
