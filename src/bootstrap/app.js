@@ -218,7 +218,7 @@ opcion = await question(chalk.bold.magentaBright(`
 ╭━━${lineM}━━╮
 ┃ ${chalk.bold.cyanBright('╔════❖•ೋ° ¡HOLA USUARIO! °ೋ•❖════╗')}
 ┃ ${chalk.bold.cyanBright('║')}    ${chalk.bold.greenBright('SELECCIONA TU MÉTODO DE CONEXIÓN')}
-┃ ${chalk.bold.cyanBright('╚════❖•ೋ° ❀ RUBY-Bot ❀ °ೋ•❖════╝')}
+┃ ${chalk.bold.cyanBright('╚════❖•ೋ° ❀ RUBY-BOT ❀ °ೋ•❖════╝')}
 ┃
 ┃ ${chalk.bold.yellow('🔸 OPCIÓN 1:')} ${chalk.white('Escanear Código QR')}
 ┃ ${chalk.bold.yellow('🔸 OPCIÓN 2:')} ${chalk.white('Código de 8 Dígitos (Pairing)')}
