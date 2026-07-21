@@ -77,6 +77,16 @@ let txt = `
 
 *L I S T A  -  D E  -  C O M A N D O S*
 
+├┈ ↷   𝙞𝙖
+├• ✐; ₊˚✦୧︰ 𝙄𝘼 .
+├┈・──・──・﹕₊˚ ✦・୨୧・
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *#chatgpt • #gpt • #ia*
+> ✦ Conversa con ChatGPT y conserva contexto reciente.
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *#gemini • #gemi*
+> ✦ Pregunta a Gemini con memoria de conversación corregida.
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *#copilot*
+> ✦ Consulta a Copilot desde el bot.
+
 ✞͙͙͙͙͙͙͙͙͙͙⏜❟︵ֹ̩̥̩̥̩̥̩̩̥⏜੭🏮୧ֹ⏜︵ֹ̩̥̩̥̩̥̩̥̩̥̩̥̩̥❟⏜፞✞͙͙͙͙͙͙͙͙͙͙.
 ├┈ ↷   𝙞𝙣𝙛𝙤
 ├• ✐; ₊˚✦୧︰ 𝘽𝙤𝙩 .

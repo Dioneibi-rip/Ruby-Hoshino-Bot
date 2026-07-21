@@ -2008,6 +2008,7 @@ enumerable: true
         } : {})
     })
     if (sock.user?.id) sock.user.jid = sock.decodeJid(sock.user.id)
+    if (options.skipStoreBind) return sock
     return SimpleSocketService.attachStore(sock)
 }
 

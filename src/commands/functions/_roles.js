@@ -111,7 +111,7 @@ return (Object.entries(roles).sort((a, b) => b[1] - a[1]).find(([, minLevel]) =>
 
 export function ensureUserRole(user = {}) {
 if (!user || typeof user !== 'object') return DEFAULT_ROLE
-const role = user.role || getRoleByLevel(user.level)
+const role = getRoleByLevel(user.level)
 if (user.role !== role) user.role = role
 return role
 }

@@ -28,7 +28,7 @@ export function getAiContext(namespace, jid, { maxMessages = DEFAULT_MAX_MESSAGE
 export function rememberAiExchange(namespace, jid, userText, assistantText, options = {}) {
   const history = getAiContext(namespace, jid, options)
   if (userText) history.push({ role: 'user', content: String(userText).trim() })
-  if (assistantText) history.push({ role: 'assistant', content: String(assistantText).trim() })
+  if (assistantText) history.push({ role: 'model', content: String(assistantText).trim() })
   const maxMessages = Number(options.maxMessages || DEFAULT_MAX_MESSAGES)
   if (history.length > maxMessages) history.splice(0, history.length - maxMessages)
   return history
@@ -39,7 +39,7 @@ export function buildAiPromptWithContext(namespace, jid, userText, options = {})
   if (!history.length) return String(userText || '').trim()
   const context = history
     .slice(-Number(options.maxMessages || DEFAULT_MAX_MESSAGES))
-    .map(item => `${item.role === 'assistant' ? 'Asistente' : 'Usuario'}: ${item.content}`)
+    .map(item => `${item.role === 'model' ? 'Modelo' : 'Usuario'}: ${String(item.content || '').trim()}`)
     .join('\n')
-  return `Contexto reciente de esta conversación (no lo repitas salvo que sea útil):\n${context}\n\nUsuario: ${String(userText || '').trim()}\nAsistente:`
+  return `Contexto reciente de esta conversación (no lo repitas salvo que sea útil):\n${context}\n\nUsuario: ${String(userText || '').trim()}\nModelo:`
 }
