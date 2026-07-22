@@ -48,11 +48,9 @@ pkg update -y && pkg upgrade -y
 print_step "Evitando versiones no LTS de Node.js"
 pkg remove -y nodejs nodejs-current 2>/dev/null || true
 
-print_step "Instalando base de compilación nativa"
-pkg install -y nodejs-lts git python make clang binutils pkg-config cmake
-
-print_step "Instalando SQLite, imágenes/stickers y multimedia"
-pkg install -y libsqlite libvips libwebp ffmpeg imagemagick
+print_step "Instalando base de compilación nativa y dependencias multimedia"
+# Se eliminó libvips y otras librerías gráficas innecesarias.
+pkg install -y nodejs-lts git python make clang binutils pkg-config cmake libsqlite libwebp ffmpeg imagemagick
 
 print_step "Configurando entorno Android/ARM64 limpio"
 export CC="${PREFIX_DIR}/bin/clang"
@@ -73,25 +71,16 @@ npm cache clean --force
 print_step "Preparando instalación limpia de dependencias"
 rm -rf node_modules package-lock.json
 
-print_step "Inyectando node-addon-api v8 GLOBAL (Compatible con Sharp 0.34)..."
-npm install -g node-addon-api@8.3.0 node-gyp
+print_step "Instalando compilador global (node-gyp) para SQLite..."
+npm install -g node-gyp
 
-print_step "Forzando node-addon-api v8 de forma local..."
-npm install --no-save node-addon-api@8.3.0 "${NPM_FLAGS[@]}"
-
-print_step "Instalando dependencias principales del bot"
+print_step "Instalando dependencias principales del bot..."
+# Ya no forzamos la instalación de módulos externos, lee tu package.json directamente
 npm install "${NPM_FLAGS[@]}"
-
-print_step "Instalando creador de stickers"
-npm install wa-sticker-formatter file-type "${NPM_FLAGS[@]}"
-
-print_step "Instalando soporte de imágenes de respaldo (WASM)"
-npm install --cpu=wasm32 sharp@0.34.5 "${NPM_FLAGS[@]}"
-npm install @img/sharp-wasm32 "${NPM_FLAGS[@]}"
 
 print_step "Verificando módulos críticos"
 node --input-type=module - <<'NODECHECK'
-const modules = ['better-sqlite3', 'wa-sticker-formatter'];
+const modules = ['better-sqlite3', 'jimp', 'yt-search', 'qrcode'];
 for (const name of modules) {
   try {
     await import(name);
