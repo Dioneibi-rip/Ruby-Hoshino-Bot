@@ -1,5 +1,4 @@
 import { prepareWAMessageMedia, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
-import moment from '../../library/momentCompat.js';
 
 const menuMediaCache = new WeakMap();
 let menuThumbPromise = null;
@@ -187,8 +186,13 @@ let m = isNaN(ms) ? '--' : Math.floor(ms / 60000) % 60;
 return [d, 'D', h, 'H', m, 'M'].map(v => v.toString().padStart(2, '0')).join(' ');
 }
 
+function getHourInTimeZone(timeZone = 'America/Lima', date = new Date()) {
+const hour = new Intl.DateTimeFormat('en-US', { hour: '2-digit', hour12: false, timeZone }).format(date);
+return Number(hour) % 24;
+}
+
 function ucapan() {
-const time = moment.tz('America/Lima').format('HH');
+const time = getHourInTimeZone('America/Lima');
 let res = "Buenas Noches 🌙";
 if (time >= 5 && time < 12) res = "𝘽𝙪𝙚𝙣𝙤𝙨 𝘿𝙞́𝙖𝙨 ☀️";
 else if (time >= 12 && time < 18) res = "𝘽𝙪𝙚𝙣𝙖𝙨 𝙏𝙖𝙧𝙙𝙚𝙨 🌤️";
