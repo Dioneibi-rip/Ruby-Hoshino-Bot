@@ -1,7 +1,7 @@
 import { enqueueMediaJob, getMediaQueueConnection } from '../../library/queue.js'
 import { ytmp3, ytmp4 } from '../../library/youtubedl.js'
 import { assertRemoteFileSize, replyIfMediaTooLarge } from '../../library/media-size.js'
-const yts = async () => { throw new Error('yt-search fue eliminado') }
+import yts from 'yt-search'
 import fs from 'fs'
 import { execFile as execFileCb } from 'child_process'
 import { join } from 'path'
