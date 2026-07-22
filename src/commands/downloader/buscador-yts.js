@@ -1,4 +1,4 @@
-import yts from 'yt-search'
+const yts = async () => { throw new Error('yt-search fue eliminado') }
 
 var handler = async (m, { text, conn, args, command, usedPrefix }) => {
 

@@ -1,7 +1,7 @@
 import { readdirSync, existsSync, readFileSync, watch } from 'fs'
 import { join, resolve } from 'path'
 import { format } from 'util'
-import syntaxerror from 'syntax-error'
+import { syntaxerror as syntaxerror } from './nativeStubs.js'
 import importFile from './import.js'
 import Helper from './helper.js'
 import { rebuildCommandsMap, rebuildPluginHooks, registerPluginCommands, registerPluginHooks, unregisterPluginCommands, unregisterPluginHooks } from '../router/handler-utils.js'

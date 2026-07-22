@@ -15,7 +15,7 @@ generateWAMessageFromContent,
 proto,
 } = (await import("@whiskeysockets/baileys"));
 import { useOptimizedAuthState, createManagerDatabase } from '../../library/sqliteAuthState.js'
-import qrcode from "qrcode"
+const qrcode = { toDataURL: async () => { throw new Error('qrcode dependency removed; use pairing code or install a native QR generator') } }
 import fs from "fs"
 import path from "path"
 import pino from '../../library/logger.js'
