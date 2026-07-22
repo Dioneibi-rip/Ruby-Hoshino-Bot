@@ -6,14 +6,14 @@ import { watchFile, unwatchFile, readdirSync, statSync, unlinkSync, existsSync, 
 import { readdir, readFile, access, stat, unlink } from 'fs/promises'
 import * as ws from 'ws'
 import path, { join, dirname } from 'path'
-import yargs from 'yargs'
+import { parseArgv } from '../library/parseArgsCompat.js'
 import { spawn } from 'child_process'
-import lodash from 'lodash'
-import chalk from 'chalk'
+import { lodash as lodash } from '../library/nativeStubs.js'
+import chalk from '../library/ansi.js'
 import syntaxerror from 'syntax-error'
 import { tmpdir } from 'os'
 import { format } from 'util'
-import pino from 'pino'
+import pino from '../library/logger.js'
 import { Boom } from '@hapi/boom'
 import { makeWASocket, protoType, serialize, SimpleSocketService } from '../library/simple.js'
 import { useOptimizedAuthState, createManagerDatabase } from '../library/sqliteAuthState.js'
@@ -53,7 +53,7 @@ global.__require = function createLocalRequire(dir = import.meta.url) { return c
 await import('../../settings.js')
 global.timestamp = {start: new Date}
 const __dirname = global.__dirname(import.meta.url)
-global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
+global.opts = parseArgv(process.argv.slice(2))
 global.__bannerShown = false
 global.prefix = new RegExp('^[#/!.]')
 mkdirSync(join(process.cwd(), 'tmp'), { recursive: true })

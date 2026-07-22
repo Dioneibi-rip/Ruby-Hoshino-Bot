@@ -1,16 +1,16 @@
 import { getCachedParticipatingGroups } from './baileys-group-cache.js'
 import path from 'path'  
 import { toAudio } from './media-converter.js'
-import chalk from 'chalk'
+import chalk from './ansi.js'
 import { formatPhoneInternational } from './native-utils.js'
 import fs from 'fs'
 import util from 'util'
-import { fileTypeFromBuffer } from 'file-type' 
+import { fileTypeFromBuffer } from './fileType.js' 
 import { format } from 'util'
 import { fileURLToPath } from 'url'
 import store from './store.js'
 import Jimp from 'jimp'  
-import pino from 'pino'
+import pino from './logger.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const tmpDir = path.join(process.cwd(), 'tmp')

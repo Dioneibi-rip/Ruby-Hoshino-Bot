@@ -1,4 +1,4 @@
-import moment from 'moment-timezone';
+import moment from '../../library/momentCompat.js';
 
 let handler = async (m, { conn, args }) => {
 let owner = `

@@ -18,8 +18,8 @@ import { useOptimizedAuthState, createManagerDatabase } from '../../library/sqli
 import qrcode from "qrcode"
 import fs from "fs"
 import path from "path"
-import pino from 'pino'
-import chalk from 'chalk'
+import pino from '../../library/logger.js'
+import chalk from '../../library/ansi.js'
 import util from 'util'
 import * as ws from 'ws'
 const { CONNECTING } = ws

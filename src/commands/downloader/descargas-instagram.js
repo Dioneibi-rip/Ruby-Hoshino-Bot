@@ -1,4 +1,4 @@
-import { igdl } from 'ruhend-scraper'
+import { igdl } from '../../library/scrapers.js'
 import { enqueueMediaJob, getMediaQueueConnection } from '../../library/queue.js'
 import { assertRemoteFileSize, replyIfMediaTooLarge } from '../../library/media-size.js'
 

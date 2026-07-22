@@ -1,5 +1,5 @@
 import axios from '../../library/http.js'
-import cheerio from 'cheerio';
+import cheerio from '../../library/htmlTools.js';
 
 const searchAnime = async (query) => {
 const url = `https://tioanime.com/directorio?q=${encodeURIComponent(query)}`;

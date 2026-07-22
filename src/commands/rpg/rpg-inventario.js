@@ -1,5 +1,5 @@
 import db from '../../library/database.js';
-import moment from 'moment-timezone';
+import moment from '../../library/momentCompat.js';
 import { formatJobLine, ensureJobFields } from '../../library/rpg-jobs.js';
 
 let handler = async (m, { conn, usedPrefix }) => {

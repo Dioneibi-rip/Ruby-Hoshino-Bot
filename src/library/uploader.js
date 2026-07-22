@@ -1,4 +1,4 @@
-import { fileTypeFromBuffer } from 'file-type'
+import { fileTypeFromBuffer } from './fileType.js'
 import { bufferToBlob } from './http.js'
 
 async function detectFile(buffer) {

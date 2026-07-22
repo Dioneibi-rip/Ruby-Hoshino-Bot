@@ -1,6 +1,6 @@
-import { fbdl } from 'ruhend-scraper'
+import { fbdl } from '../../library/scrapers.js'
 import { enqueueMediaJob, getMediaQueueConnection } from '../../library/queue.js'
-import cheerio from 'cheerio'
+import cheerio from '../../library/htmlTools.js'
 
 var handler = async (m, { conn, args, command, usedPrefix, text }) => {
 

@@ -1,7 +1,7 @@
 import { promises } from 'fs'
 import { join } from 'path'
 import { spawn } from 'child_process'
-import { JSDOM } from 'jsdom'
+
 import { bufferToBlob } from './http.js'
 
 function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
@@ -44,16 +44,23 @@ async function ezgifConvert(source, type, selector) {
   if (isUrl) form.append('new-image', '')
   else form.append('new-image', bufferToBlob(source, 'image/webp'), 'image.webp')
   const res = await fetch(`https://ezgif.com/${type}`, { method: 'POST', body: form })
-  const { document } = new JSDOM(await res.text()).window
+  const html = await res.text()
   const form2 = new FormData()
   const obj = {}
-  for (const input of document.querySelectorAll('form input[name]')) {
-    obj[input.name] = input.value
-    form2.append(input.name, input.value)
+  for (const match of html.matchAll(/<input\b[^>]*name=["']([^"']+)["'][^>]*>/gi)) {
+    const tag = match[0]
+    const name = match[1]
+    const value = tag.match(/value=["']([^"']*)["']/i)?.[1] || ''
+    obj[name] = value
+    form2.append(name, value)
   }
   const res2 = await fetch(`https://ezgif.com/${type}/${obj.file}`, { method: 'POST', body: form2 })
-  const { document: document2 } = new JSDOM(await res2.text()).window
-  return new URL(document2.querySelector(selector).src, res2.url).toString()
+  const html2 = await res2.text()
+  const src = selector.includes('video')
+    ? html2.match(/<source\b[^>]*src=["']([^"']+)["']/i)?.[1]
+    : html2.match(/<img\b[^>]*src=["']([^"']+)["']/i)?.[1]
+  if (!src) throw new Error('No se encontró el archivo convertido en ezgif')
+  return new URL(src, res2.url).toString()
 }
 
 const webp2mp4 = source => ezgifConvert(source, 'webp-to-mp4', 'div#output > p.outfile > video > source')
