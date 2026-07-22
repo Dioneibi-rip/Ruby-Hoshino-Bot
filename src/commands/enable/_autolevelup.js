@@ -13,7 +13,9 @@ while (canLevelUp(user.level, user.exp, global.multiplier)) user.level++;
 
 if (before === user.level) return;
 
-m.reply(`*✿ ¡ F E L I C I D A D E S ! ✿*\n\n✰ Nivel Anterior » *${before}*\n✰ Nivel Actual » *${user.level}*\n✦ Fecha » *${moment.tz('America/Bogota').format('DD/MM/YY')}*\n\n> *\`¡Has alcanzado un Nuevo Nivel!\`*`);
+const fecha = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: '2-digit', year: '2-digit' }).format(new Date());
+
+m.reply(`*✿ ¡ F E L I C I D A D E S ! ✿*\n\n✰ Nivel Anterior » *${before}*\n✰ Nivel Actual » *${user.level}*\n✦ Fecha » *${fecha}*\n\n> *\`¡Has alcanzado un Nuevo Nivel!\`*`);
 
 if (user.level % 5 === 0) {
 user.coin += Math.floor(Math.random() * (9 - 6 + 1)) + 6;
