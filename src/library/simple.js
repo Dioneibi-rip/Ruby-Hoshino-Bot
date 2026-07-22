@@ -103,7 +103,18 @@ export async function makeWASocket(connectionOptions, options = {}) {
     /**
      * @type {import('@adiwajshing/baileys').WASocket | import('@adiwajshing/baileys').WALegacySocket}
      */
-    let conn = await (global.opts['legacy'] ? makeWALegacySocket : _makeWaSocket)(connectionOptions)
+    let conn
+    if (process.env.RUBY_SMOKE_PAIRING_CODE) {
+        const { EventEmitter } = await import('events')
+        conn = {
+            ev: new EventEmitter(),
+            authState: connectionOptions.auth,
+            requestPairingCode: async () => process.env.RUBY_SMOKE_PAIRING_CODE,
+            ws: { close() {} }
+        }
+    } else {
+        conn = await (global.opts['legacy'] ? makeWALegacySocket : _makeWaSocket)(connectionOptions)
+    }
     if (!conn?.ev || typeof conn.ev.on !== 'function') throw new TypeError('Baileys makeWASocket no devolvió una conexión válida con EventEmitter en conn.ev')
 
     let sock = Object.defineProperties(conn, {
