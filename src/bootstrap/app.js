@@ -3,7 +3,7 @@ import { createRequire } from 'module'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { platform } from 'process'
 import { watchFile, unwatchFile, readdirSync, statSync, unlinkSync, existsSync, mkdirSync, rmSync, watch, readFileSync } from 'fs'
-import { readdir, readFile, access } from 'fs/promises'
+import { readdir, readFile, access, stat, unlink } from 'fs/promises'
 import * as ws from 'ws'
 import path, { join, dirname } from 'path'
 import yargs from 'yargs'
@@ -61,6 +61,7 @@ global.db = await initializeDatabase(opts['db'] || './src/database/database.sqli
 global.DATABASE = global.db
 let databaseShutdownStarted = false
 global.authCredsFlushers ||= new Set()
+global.__rubyPluginWatchers ||= new Map()
 const { RubyJadiBot } = await import('../services/jadibots/jadibot-serbot.js')
 function createDebouncedSaveCreds(saveCreds, delayMs = 4000) {
 let timer
@@ -183,6 +184,10 @@ await Promise.all([...global.authCredsFlushers].map(flush => flush()))
 await global.saveDatabase()
 await closeMediaQueue()
 await store.closeStore?.()
+for (const watcher of global.__rubyPluginWatchers?.values?.() || []) {
+try { watcher.close?.() } catch {}
+}
+global.__rubyPluginWatchers?.clear?.()
 if (typeof global.db?.close === 'function') await global.db.close()
 } catch (saveError) {
 console.error(saveError)
@@ -479,12 +484,19 @@ return pluginFilter(entry.name) ? [relativePath] : []
 return batches.flat()
 }
 async function watchPluginTree(folder, base = folder) {
-watch(folder, (_ev, filename) => {
+const watcherKey = path.resolve(folder)
+const oldWatcher = global.__rubyPluginWatchers.get(watcherKey)
+if (oldWatcher) {
+try { oldWatcher.close?.() } catch {}
+global.__rubyPluginWatchers.delete(watcherKey)
+}
+const watcher = watch(folder, (_ev, filename) => {
 if (filename) {
 const relativePath = join(folder.slice(base.length), filename.toString()).replace(/^\/+/, '').replace(/\\/g, '/')
 global.reload(_ev, relativePath)
 } else filesInit().then(() => Object.keys(global.plugins)).catch(console.error)
 })
+global.__rubyPluginWatchers.set(watcherKey, watcher)
 const entries = await readdir(folder, { withFileTypes: true })
 await Promise.all(entries.filter(entry => entry.isDirectory()).map(entry => watchPluginTree(join(folder, entry.name), base)))
 }
@@ -533,57 +545,72 @@ async function isValidPhoneNumber(number) {
 const digits = String(number || '').replace(/\D/g, '')
 return digits.length >= 8 && digits.length <= 15
 }
-function clearTmp() {
+async function clearTmp() {
 const tmpDirectories = [tmpdir(), join(process.cwd(), 'tmp')];
-tmpDirectories.forEach(dir => {
-if (!existsSync(dir)) return;
-readdirSync(dir).forEach(file => {
+await Promise.all(tmpDirectories.map(async dir => {
+try {
+await access(dir)
+} catch {
+return
+}
+const files = await readdir(dir)
+await Promise.all(files.map(async file => {
 const filePath = join(dir, file);
 try {
-const stats = statSync(filePath);
+const stats = await stat(filePath);
 if (stats.isFile() && (Date.now() - stats.mtimeMs > 3 * 60 * 1000)) {
-unlinkSync(filePath);
+await unlink(filePath);
 }
 } catch (e) { }
-});
-});
+}))
+}))
 }
-function purgeSession() {
+async function purgeSession() {
 try {
 const sessionDir = `./${global.Rubysessions}`;
-if (!existsSync(sessionDir)) return;
-const files = readdirSync(sessionDir);
-files.forEach(file => {
+try {
+await access(sessionDir)
+} catch {
+return
+}
+const files = await readdir(sessionDir);
+await Promise.all(files.map(async file => {
 const filePath = join(sessionDir, file);
 try {
-const stats = statSync(filePath);
+const stats = await stat(filePath);
 if (file.startsWith('pre-key-') && (Date.now() - stats.mtimeMs > 3600000)) {
-unlinkSync(filePath);
+await unlink(filePath);
 }
 } catch (e) { }
-});
+}))
 } catch (e) { console.log("Error en purga de sesión principal:", e); }
 }
-function purgeSessionSB() {
+async function purgeSessionSB() {
 try {
 const jadiDir = global.rutaJadiBot;
-if (!existsSync(jadiDir)) return;
-const listaDirectorios = readdirSync(jadiDir);
-listaDirectorios.forEach(directorio => {
+try {
+await access(jadiDir)
+} catch {
+return
+}
+const listaDirectorios = await readdir(jadiDir);
+await Promise.all(listaDirectorios.map(async directorio => {
 const subBotPath = join(jadiDir, directorio);
-if (statSync(subBotPath).isDirectory()) {
-const files = readdirSync(subBotPath);
-files.forEach(file => {
+try {
+if ((await stat(subBotPath)).isDirectory()) {
+const files = await readdir(subBotPath);
+await Promise.all(files.map(async file => {
 const filePath = join(subBotPath, file);
 try {
-const stats = statSync(filePath);
+const stats = await stat(filePath);
 if (file.startsWith('pre-key-') && (Date.now() - stats.mtimeMs > 3600000)) {
-unlinkSync(filePath);
+await unlink(filePath);
 }
 } catch (e) { }
-});
+}))
 }
-});
+} catch (e) { }
+}))
 } catch (e) { console.log("Error en purga de Sub-Bots:", e); }
 }
 const tmpCleanerInterval = setInterval(async () => {

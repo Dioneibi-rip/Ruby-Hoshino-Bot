@@ -256,7 +256,7 @@ sendListB: {
              */
             async value(PATH, saveToFile = false) {
                 let res, filename
-                const data = Buffer.isBuffer(PATH) ? PATH : PATH instanceof ArrayBuffer ? PATH.toBuffer() : /^data:.*?\/.*?;base64,/i.test(PATH) ? Buffer.from(PATH.split`,`[1], 'base64') : /^https?:\/\//.test(PATH) ? Buffer.from(await (res = await fetch(PATH)).arrayBuffer()) : fs.existsSync(PATH) ? (filename = PATH, fs.readFileSync(PATH)) : typeof PATH === 'string' ? PATH : Buffer.alloc(0)
+                const data = Buffer.isBuffer(PATH) ? PATH : PATH instanceof ArrayBuffer ? PATH.toBuffer() : /^data:.*?\/.*?;base64,/i.test(PATH) ? Buffer.from(PATH.split`,`[1], 'base64') : /^https?:\/\//.test(PATH) ? Buffer.from(await (res = await fetch(PATH)).arrayBuffer()) : fs.existsSync(PATH) ? (filename = PATH, await fs.promises.readFile(PATH)) : typeof PATH === 'string' ? PATH : Buffer.alloc(0)
                 if (!Buffer.isBuffer(data)) throw new TypeError('Result is not a buffer')
                 const type = await fileTypeFromBuffer(data) || {
                     mime: 'application/octet-stream',
