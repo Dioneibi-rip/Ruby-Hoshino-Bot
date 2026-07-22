@@ -159,6 +159,7 @@ conn.__maintenanceAt ||= 0
 if (Date.now() - conn.__maintenanceAt <= 60_000) return
 conn.__maintenanceAt = Date.now()
 conn.__groupMetadataCache?.clearExpired?.()
+conn.__rubyReadMessagesLast?.clearExpired?.()
 if (conn.__commandTesterCache?.size > 3000) conn.__commandTesterCache.clear()
 if (conn.__prefixMatcherCache?.size > 2000) conn.__prefixMatcherCache.clear()
 global.__rubyMessageQueue?.cleanup?.()

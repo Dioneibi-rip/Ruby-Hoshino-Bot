@@ -44,6 +44,8 @@ const pairingCodeRequests = global.pairingCodeRequests || (global.pairingCodeReq
 const PAIRING_CODE_TTL_MS = 45000
 const PAIRING_CODE_COOLDOWN_MS = 60000
 const SUBBOT_GROUP_PREFETCH_ON_CONNECT = process.env.SUBBOT_GROUP_PREFETCH_ON_CONNECT === 'true'
+const subBotPairingLocks = global.subBotPairingLocks || (global.subBotPairingLocks = new Map())
+const SUBBOT_PAIRING_LOCK_TTL_MS = Number(process.env.SUBBOT_PAIRING_LOCK_TTL_MS || 120000)
 
 async function refreshSubBotGroups(sock, { retry = true } = {}) {
 try {
@@ -139,6 +141,25 @@ return String(jid).split(':')[0].trim().toLowerCase()
 function subBotSessionId(jid = '') {
 const normalized = normalizeSubBotJid(jid)
 return encodeURIComponent(normalized || `subbot-${Date.now()}`)
+}
+
+function acquireSubBotPairingLock(id) {
+if (!id) return null
+const now = Date.now()
+const current = subBotPairingLocks.get(id)
+if (current && now - Number(current.ts || 0) < SUBBOT_PAIRING_LOCK_TTL_MS) return null
+if (current?.timer) clearTimeout(current.timer)
+const lock = { ts: now, timer: null }
+lock.timer = setTimeout(() => {
+if (subBotPairingLocks.get(id) === lock) subBotPairingLocks.delete(id)
+}, SUBBOT_PAIRING_LOCK_TTL_MS)
+lock.timer.unref?.()
+subBotPairingLocks.set(id, lock)
+return () => {
+if (subBotPairingLocks.get(id) !== lock) return
+if (lock.timer) clearTimeout(lock.timer)
+subBotPairingLocks.delete(id)
+}
 }
 
 function cleanPhoneNumber(value = '') {
@@ -301,6 +322,11 @@ return m.reply(`🥀 Se ha alcanzado o superado el límite de *Sub-Bots* activos
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
 const subBotJid = normalizeSubBotJid(who)
 const id = subBotSessionId(subBotJid)
+const releasePairingLock = acquireSubBotPairingLock(id)
+if (!releasePairingLock) {
+return m.reply('⏳ Ya hay una vinculación de Sub-Bot en curso para esta sesión. Espera unos segundos antes de pedir otro código.')
+}
+try {
 const legacyId = `${subBotJid.split`@`[0]}`
 const newPathRubyJadiBot = path.join(`./${jadi}/`, id)
 const legacyPathRubyJadiBot = path.join(`./${jadi}/`, legacyId)
@@ -324,6 +350,9 @@ global.db.getUser(m.sender).Subs = new Date * 1
 } catch (error) {
 clearSubBotConnectionState(id)
 await conn.reply(m.chat, `🥀 no pude iniciar la vinculación del Sub-Bot. Detalle: ${getPairingErrorMessage(error)}`, m)
+}
+} finally {
+releasePairingLock()
 }
 }
 handler.help = ['qr', 'code']

@@ -27,6 +27,7 @@ import messageQueue from '../core/message-queue.js'
 import { normalizeIdentityJid, normalizeJid } from '../core/identity-utils.js'
 import { getMessageDeletePayload, isUserMutedInChat, messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
 import { getGroupMetadataOnDemand } from '../library/global-cache.js'
+import { TTLCache } from '../library/native-utils.js'
 import { getInteractiveResponseText, getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash, unwrapMessageContent } from './raw-filter.js'
 import { executePlugin } from './plugin-executor.js'
 import { isBotSender, pluginRequiresGroupParticipants } from './permission-guard.js'
@@ -40,7 +41,14 @@ const CELESTIAL_COMMANDS = new Set(['resetbot', 'unbanchat', 'desbanearchat'])
 const REALTIME_EVENT_GRACE_MS = 15_000
 const REALTIME_EVENT_MAX_AGE_MS = 60_000
 const READ_MESSAGE_MIN_INTERVAL_MS = 1_500
-const PRIMARY_BOT_CACHE = global.__rubyPrimaryBotCache ||= new Map()
+const PRIMARY_BOT_CACHE_TTL_SECONDS = Number(process.env.RUBY_PRIMARY_BOT_CACHE_TTL_SECONDS || 30 * 60)
+const PRIMARY_BOT_CACHE_MAX = Number(process.env.RUBY_PRIMARY_BOT_CACHE_MAX || 5000)
+const READ_MESSAGE_CACHE_TTL_SECONDS = Number(process.env.RUBY_READ_MESSAGE_CACHE_TTL_SECONDS || 2 * 60)
+const READ_MESSAGE_CACHE_MAX = Number(process.env.RUBY_READ_MESSAGE_CACHE_MAX || 10000)
+if (!(global.__rubyPrimaryBotCache instanceof TTLCache)) {
+global.__rubyPrimaryBotCache = new TTLCache({ stdTTL: PRIMARY_BOT_CACHE_TTL_SECONDS, checkperiod: 120, useClones: false, max: PRIMARY_BOT_CACHE_MAX })
+}
+const PRIMARY_BOT_CACHE = global.__rubyPrimaryBotCache
 const PRIMARY_BOT_EMPTY = ''
 
 const TIMELOCK_COOLDOWN_SCOPE = 'timelock_cooldown'
@@ -402,7 +410,7 @@ function shouldReadCommandMessage(conn, m, commandEntry) {
 if (!commandEntry || !m?.key || typeof conn?.readMessages !== 'function') return false
 const { id, remoteJid } = m.key
 if (typeof id !== 'string' || !id || typeof remoteJid !== 'string' || !remoteJid) return false
-conn.__rubyReadMessagesLast ||= new Map()
+if (!(conn.__rubyReadMessagesLast instanceof TTLCache)) conn.__rubyReadMessagesLast = new TTLCache({ stdTTL: READ_MESSAGE_CACHE_TTL_SECONDS, checkperiod: 60, useClones: false, max: READ_MESSAGE_CACHE_MAX })
 const rateKey = `${remoteJid}:${id}`
 const now = Date.now()
 const lastRead = Number(conn.__rubyReadMessagesLast.get(rateKey) || 0)
@@ -573,7 +581,8 @@ if (chatId) PRIMARY_BOT_CACHE.delete(chatId)
 
 function getCachedPrimaryBot(chatId = '') {
 if (!chatId) return PRIMARY_BOT_EMPTY
-if (PRIMARY_BOT_CACHE.has(chatId)) return PRIMARY_BOT_CACHE.get(chatId) || PRIMARY_BOT_EMPTY
+const cached = PRIMARY_BOT_CACHE.get(chatId)
+if (cached !== undefined) return cached || PRIMARY_BOT_EMPTY
 const chat = global.db?.data?.chats?.[chatId] || null
 return rememberPrimaryBot(chatId, chat)
 }
