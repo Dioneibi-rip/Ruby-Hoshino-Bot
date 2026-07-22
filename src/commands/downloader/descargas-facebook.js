@@ -1,4 +1,4 @@
-const fbdl = async () => { throw new Error('ruhend-scraper fue eliminado') }
+import { fbdl } from '../../library/scrapers.js'
 import { enqueueMediaJob, getMediaQueueConnection } from '../../library/queue.js'
 import cheerio from '../../library/htmlTools.js'
 

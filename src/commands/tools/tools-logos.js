@@ -1,5 +1,5 @@
 
-const Maker = null;
+import { Maker } from '../../library/ephoto360.js';
 const logoCommands = ['logocorazon', 'logochristmas', 'logopareja', 'logoglitch', 'logosad', 'logogaming', 'logosolitario', 'logodragonball', 'logoneon', 'logogatito', 'logochicagamer', 'logonaruto', 'logofuturista', 'logonube', 'logoangel', 'logocielo', 'logograffiti3d', 'logomatrix', 'logohorror', 'logoalas', 'logoarmy', 'logopubg', 'logopubgfem', 'logolol', 'logoamongus', 'logovideopubg', 'logovideotiger', 'logovideointro', 'logovideogaming', 'logoguerrero', 'logoportadaplayer', 'logoportadaff', 'logoportadapubg', 'logoportadacounter']
 const logoHelp = (usedPrefix = '#') => `*[❗] Ingresa un texto para crear tu logo.*\n\n🌸 *Logos disponibles:*\n${logoCommands.map(cmd => `• ${usedPrefix}${cmd} <texto>`).join('\n')}`
 const handler = async (m, {conn, args, command, usedPrefix}) => {

@@ -9,7 +9,7 @@ import { fileTypeFromBuffer } from './fileType.js'
 import { format } from 'util'
 import { fileURLToPath } from 'url'
 import store from './store.js'
-const Jimp = null  
+import Jimp from 'jimp'  
 import pino from './logger.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))

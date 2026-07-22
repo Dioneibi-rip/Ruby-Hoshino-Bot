@@ -1,5 +1,5 @@
 // @ts-check
-import { yargs as yargs } from './nativeStubs.js'
+import { parseArgv } from './parseArgsCompat.js'
 import os from 'os'
 import path from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
@@ -42,7 +42,7 @@ const checkFileExists = (file) => fs.promises.access(file, fs.constants.F_OK).th
 /** @type {(name: string, path: string, query: { [Key: string]: any }, apikeyqueryname: string) => string} */
 const API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.APIs ? global.APIs[name] : name) + path + (query || apikeyqueryname ? '?' + new URLSearchParams(Object.entries({ ...query, ...(apikeyqueryname ? { [apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name] } : {}) })) : '')
 /** @type {ReturnType<yargs.Argv['parse']>} */
-const opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
+const opts = parseArgv(process.argv.slice(2))
 const prefix = new RegExp('^[' + (opts['prefix'] || '‎xzXZ/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']')
 
 

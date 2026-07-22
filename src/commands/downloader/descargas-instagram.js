@@ -1,4 +1,4 @@
-const igdl = async () => { throw new Error('ruhend-scraper fue eliminado') }
+import { igdl } from '../../library/scrapers.js'
 import { enqueueMediaJob, getMediaQueueConnection } from '../../library/queue.js'
 import { assertRemoteFileSize, replyIfMediaTooLarge } from '../../library/media-size.js'
 

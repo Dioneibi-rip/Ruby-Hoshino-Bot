@@ -1,10 +1,8 @@
 import { watchFile, unwatchFile } from 'fs'
-import chalk from 'chalk'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
-import cheerio from 'cheerio'
+const chalk = { redBright: text => `\x1b[91m${text}\x1b[0m` }
 import axios from './src/library/http.js'
-import moment from 'moment-timezone'
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
