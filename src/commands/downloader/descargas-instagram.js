@@ -1,4 +1,4 @@
-import { igdl } from '../../library/scrapers.js'
+import { igdl, fetchMediaBuffer } from '../../library/scrapers.js'
 import { enqueueMediaJob, getMediaQueueConnection } from '../../library/queue.js'
 import { assertRemoteFileSize, replyIfMediaTooLarge } from '../../library/media-size.js'
 
@@ -51,12 +51,13 @@ if (!list || (Array.isArray(list) && list.length === 0)) throw new Error('No se 
 for (let i = 0; i < list.length; i++) {
 const media = list[i]
 const mediaUrl = media.url || media
-const isVideo = /(\.mp4|video)/i.test(mediaUrl)
-const ext = isVideo ? 'mp4' : 'jpg'
 const prettyCaption = '🌹̫ᩙ᮫〫𝆬  𝙘𝙤𝙣𝙩𝙚𝙣𝙞𝙙𝙤 𝙙𝙚 𝙞𝙣𝙨𝙩𝙖𝙜𝙧𝙖𝙢 𝙡𝙞𝙨𝙩𝙤'
 
-await assertRemoteFileSize(mediaUrl, { label: isVideo ? 'video de Instagram' : 'imagen de Instagram' })
-await conn.sendFile(data.chat, mediaUrl, `instagram.${ext}`, prettyCaption, m)
+await assertRemoteFileSize(mediaUrl, { label: 'contenido de Instagram' })
+const file = await fetchMediaBuffer(media)
+const isVideo = /^video\//i.test(file.mime) || file.ext === 'mp4'
+if (isVideo) await conn.sendMessage(data.chat, { video: file.buffer, fileName: `instagram.${file.ext}`, caption: prettyCaption, mimetype: file.mime || 'video/mp4' }, { quoted: m })
+else await conn.sendMessage(data.chat, { image: file.buffer, fileName: `instagram.${file.ext}`, caption: prettyCaption, mimetype: file.mime || 'image/jpeg' }, { quoted: m })
 await new Promise(r => setTimeout(r, 800))
 }
 } catch (e) {

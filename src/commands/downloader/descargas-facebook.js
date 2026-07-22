@@ -1,4 +1,4 @@
-import { fbdl } from '../../library/scrapers.js'
+import { fbdl, fetchMediaBuffer } from '../../library/scrapers.js'
 import { enqueueMediaJob, getMediaQueueConnection } from '../../library/queue.js'
 import cheerio from '../../library/htmlTools.js'
 
@@ -74,7 +74,9 @@ return { title: getMeta('og:title') || getMeta('twitter:title'), description: ge
 try {
 const fb = await fbdl(data.url)
 if (!fb?.data?.length) throw new Error('No se obtuvo video.')
-const videoUrl = fb.data[0].url
+const video = fb.data.find(item => /\.mp4|video|hd|sd/i.test(`${item.url} ${item.quality || ''}`)) || fb.data[0]
+const media = await fetchMediaBuffer(video)
+if (!/^video\//i.test(media.mime) && media.ext !== 'mp4') throw new Error(`La URL extraída no es video: ${media.mime}`)
 const meta = await scrapeMetadata(data.url)
 let caption = `꒰꒰͡  *𝗩𝗶𝗱𝗲𝗼 𝗱𝗲 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸 ⁖❤️꙰* !! ര
 
@@ -84,7 +86,7 @@ let caption = `꒰꒰͡  *𝗩𝗶𝗱𝗲𝗼 𝗱𝗲 𝗙𝗮𝗰𝗲𝗯𝗼
 ┉ ᩿💭 ᩠〪ᷭׄ : *𝙀𝙉𝙇𝘼𝘾𝙀 𝙊𝙍𝙄𝙂𝙄𝙉𝘼𝙇:* ${data.url}
 ────────────────
 > ${global.wm}`
-await conn.sendFile(data.chat, videoUrl, 'facebook.mp4', caption, m)
+await conn.sendMessage(data.chat, { video: media.buffer, fileName: 'facebook.mp4', caption, mimetype: media.mime || 'video/mp4' }, { quoted: m })
 } catch (e) {
 await conn.reply(data.chat, `⁖🧡꙰ 𝙾𝙲𝚄𝚁𝚁𝙸𝙾 𝚄𝙽 𝙴𝚁𝚁𝙾𝚁`, m, rcanal)
 console.log(e)

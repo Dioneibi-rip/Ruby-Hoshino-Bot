@@ -35,6 +35,37 @@ function collectMediaUrls(input, output = []) {
   return output
 }
 
+
+function inferMime(url = '', contentType = '') {
+  const type = String(contentType || '').split(';')[0].trim().toLowerCase()
+  if (type) return type
+  if (/\.mp4(?:$|[?#])/i.test(url)) return 'video/mp4'
+  if (/\.(?:jpe?g)(?:$|[?#])/i.test(url)) return 'image/jpeg'
+  if (/\.png(?:$|[?#])/i.test(url)) return 'image/png'
+  if (/\.webp(?:$|[?#])/i.test(url)) return 'image/webp'
+  return 'application/octet-stream'
+}
+
+function inferExt(mime = '', url = '') {
+  if (/video\/mp4/i.test(mime) || /\.mp4(?:$|[?#])/i.test(url)) return 'mp4'
+  if (/image\/png/i.test(mime) || /\.png(?:$|[?#])/i.test(url)) return 'png'
+  if (/image\/webp/i.test(mime) || /\.webp(?:$|[?#])/i.test(url)) return 'webp'
+  if (/image\//i.test(mime) || /\.jpe?g(?:$|[?#])/i.test(url)) return 'jpg'
+  return 'bin'
+}
+
+export async function fetchMediaBuffer(media) {
+  const mediaUrl = typeof media === 'string' ? media : media?.url
+  if (!mediaUrl) throw new Error('URL de media vacía')
+  const res = await fetch(mediaUrl, { headers: { 'user-agent': UA, accept: 'video/mp4,image/*,*/*' } })
+  if (!res.ok) throw new Error(`HTTP ${res.status} al descargar media`)
+  const arrayBuffer = await res.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+  if (!buffer.length) throw new Error('El proveedor devolvió un archivo vacío')
+  const mime = inferMime(mediaUrl, res.headers.get('content-type'))
+  return { url: mediaUrl, buffer, mime, ext: inferExt(mime, mediaUrl), size: buffer.length }
+}
+
 async function fetchJson(url, options = {}) {
   const res = await fetch(url, { headers: { 'user-agent': UA, accept: 'application/json, text/plain, */*', ...(options.headers || {}) }, ...options })
   if (!res.ok) throw new Error(`HTTP ${res.status} al consultar ${url}`)
