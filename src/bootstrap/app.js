@@ -291,7 +291,8 @@ setTimeout(async () => {
 let codeBot = await conn.requestPairingCode(addNumber);
 codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
 console.log(chalk.bold.white(' Codigo : ') + chalk.bold.bgMagenta(` ${codeBot} `))
-}, 3000)
+if (process.env.RUBY_SMOKE_PAIRING_CODE) await shutdownDatabaseAndExit(0)
+}, Number(process.env.RUBY_SMOKE_PAIRING_CODE ? 10 : 3000))
 }
 }
 }

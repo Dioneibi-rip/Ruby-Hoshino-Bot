@@ -15,7 +15,7 @@
     "eslintfix": "eslint --fix .",
     "qr": "node index.js qr",
     "start": "node index.js",
-    "test": "node --check index.js && node --check src/bootstrap/app.js && node --check src/router/handler.js",
+    "test": "node --check index.js && node --check src/bootstrap/app.js && node --check src/router/handler.js && node --test tests/*.test.js",
     "test:baileys": "node scripts/baileys-smoke.js"
   },
   "author": {
@@ -37,6 +37,7 @@
     "qrcode": "^1.5.1",
     "syntax-error": "^1.4.0",
     "ws": "^8.18.0",
-    "yt-search": "^2.10.3"
+    "yt-search": "^2.10.3",
+    "ruhend-scraper": "^9.1.9"
   }
 }
