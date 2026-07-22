@@ -1,5 +1,5 @@
 import axios from './http.js'
-import * as cheerio from "cheerio";
+import * as cheerio from './htmlTools.js';
 
 const BASE_URL = "https://animeav1.com";
 const DEFAULT_HEADERS = {

@@ -1,7 +1,7 @@
 import { createRequire } from 'module'
 import { existsSync, mkdirSync, unlinkSync } from 'fs'
 import path from 'path'
-import pino from 'pino'
+import pino from './logger.js'
 import createSQLiteStore from './sqlite-store.js'
 
 const baileysModule = await import('@whiskeysockets/baileys')

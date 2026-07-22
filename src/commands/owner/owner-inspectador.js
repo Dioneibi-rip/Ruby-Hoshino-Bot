@@ -1,6 +1,6 @@
 
 import { getUrlFromDirectPath } from "@whiskeysockets/baileys"
-import _ from "lodash"
+import { lodash as _ } from '../../library/nativeStubs.js'
 import axios from '../../library/http.js'
 let handler = async (m, { conn, command, usedPrefix, args, text, groupMetadata, isOwner, isROwner }) => {
 const isCommand1 = /^(inspect|inspeccionar)\b$/i.test(command)

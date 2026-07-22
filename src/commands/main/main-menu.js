@@ -1,4 +1,4 @@
-import moment from 'moment-timezone';
+import moment from '../../library/momentCompat.js';
 import fs from 'fs';
 import { xpRange } from '../../library/levelling.js';
 import path from 'path';

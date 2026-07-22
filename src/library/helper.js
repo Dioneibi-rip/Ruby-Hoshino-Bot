@@ -1,5 +1,5 @@
 // @ts-check
-import yargs from 'yargs'
+import { yargs as yargs } from './nativeStubs.js'
 import os from 'os'
 import path from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'

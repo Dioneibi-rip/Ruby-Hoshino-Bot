@@ -1,4 +1,4 @@
-import cheerio from 'cheerio'
+import cheerio from './htmlTools.js'
 import axios from './http.js'
 async function sekaikomikDl(url) {
 	let res = await fetch(url)

@@ -1,5 +1,5 @@
 import { prepareWAMessageMedia, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
-import moment from 'moment-timezone';
+import moment from '../../library/momentCompat.js';
 
 const menuMediaCache = new WeakMap();
 let menuThumbPromise = null;

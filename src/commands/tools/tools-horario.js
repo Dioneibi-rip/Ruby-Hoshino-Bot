@@ -1,4 +1,4 @@
-import moment from 'moment-timezone';
+import moment from '../../library/momentCompat.js';
 
 const handler = async (m, {conn}) => {
 const fechaper = moment().tz('America/Lima').format('DD/MM HH:mm');

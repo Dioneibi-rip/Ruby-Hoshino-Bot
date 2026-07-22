@@ -1,6 +1,6 @@
 import{WAMessageStubType}from'@whiskeysockets/baileys'
 import { formatPhoneInternational, urlRegex as createUrlRegex } from './native-utils.js'
-import chalk from'chalk'
+import chalk from './ansi.js'
 import{watchFile}from'fs'
 
 const terminalImage=null

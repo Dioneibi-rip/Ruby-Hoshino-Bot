@@ -1,5 +1,5 @@
 import axios from '../../library/http.js'
-import cheerio from 'cheerio'
+import cheerio from '../../library/htmlTools.js'
 
 let handler = async (m, { text }) => {
 if (!text) {
