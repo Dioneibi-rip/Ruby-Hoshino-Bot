@@ -32,7 +32,7 @@ export default handler
 
 async function getToken() {
 try {
-const [{ default: axios }, cheerio] = await Promise.all([import('../../library/http.js'), import('cheerio')])
+const [{ default: axios }, cheerio] = await Promise.all([import('../../library/http.js'), import('../../library/htmlTools.js')])
 const html = await axios.get('https://www.iloveimg.com/upscale-image')
 const $ = cheerio.load(html.data)
 

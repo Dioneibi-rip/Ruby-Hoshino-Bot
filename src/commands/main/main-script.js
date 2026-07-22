@@ -1,4 +1,4 @@
-import moment from 'moment-timezone'
+import moment from '../../library/momentCompat.js';
 let handler = async (m, { conn, args }) => {
 try {
 let res = await fetch('https://api.github.com/repos/Dioneibi-rip/Ruby-Hoshino-Bot')

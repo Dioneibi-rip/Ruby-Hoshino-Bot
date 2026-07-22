@@ -1,4 +1,4 @@
-import cheerio from 'cheerio'
+import cheerio from '../../library/htmlTools.js'
 
 const MEDIAFIRE_URL_REGEX = /^https?:\/\/(www\.)?mediafire\.com\//i
 

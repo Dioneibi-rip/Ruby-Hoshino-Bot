@@ -1,5 +1,5 @@
 import axios from '../../library/http.js'
-import cheerio from 'cheerio';
+import cheerio from '../../library/htmlTools.js';
 
 let handler = async (m, { conn, text, args, command, usedPrefix }) => {
 if (!text) throw m.reply(`${emoji} Por favor, ingresa el link de la imagen de tiktok a descargar.`)

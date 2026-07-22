@@ -1,4 +1,4 @@
-import moment from 'moment-timezone'
+import moment from '../../library/momentCompat.js';
 
 function getWhatsAppLatency(m) {
 const timestamp = Number(m?.messageTimestamp || 0)

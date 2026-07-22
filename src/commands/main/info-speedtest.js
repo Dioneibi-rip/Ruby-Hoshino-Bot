@@ -1,7 +1,7 @@
 import os from 'os'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
-import moment from 'moment-timezone'
+import moment from '../../library/momentCompat.js';
 
 const execFileAsync = promisify(execFile)
 const NETWORK_TIMEOUT_MS = 10_000

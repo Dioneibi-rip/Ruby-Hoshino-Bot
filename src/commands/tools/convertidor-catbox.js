@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { fileTypeFromBuffer } from "file-type";
+import { fileTypeFromBuffer } from '../../library/fileType.js';
 
 let handler = async (m, { conn }) => {
 let q = m.quoted ? m.quoted : m;

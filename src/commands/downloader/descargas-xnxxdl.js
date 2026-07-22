@@ -1,4 +1,4 @@
-import cheerio from 'cheerio';
+import cheerio from '../../library/htmlTools.js';
 
 const handler = async (m, {conn, args, command, usedPrefix}) => {
 if (!global.db.getChat(m.chat).nsfw && m.isGroup) {

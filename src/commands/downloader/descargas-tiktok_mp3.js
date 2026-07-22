@@ -1,4 +1,4 @@
-import yts from 'yt-search'
+const yts = async () => { throw new Error('yt-search fue eliminado') }
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 if (!text) throw m.reply(`${emoji} Por favor, ingresa un enlace de *TikTok*.`);

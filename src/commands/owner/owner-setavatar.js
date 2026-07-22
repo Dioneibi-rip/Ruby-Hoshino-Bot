@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from "crypto";
-import { fileTypeFromBuffer } from "file-type";
+import { fileTypeFromBuffer } from '../../library/fileType.js';
 
 let handler = async (m, { conn, isRowner }) => {
 
