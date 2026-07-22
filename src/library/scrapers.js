@@ -1,3 +1,17 @@
+import { createRequire } from 'module'
+
+const require = createRequire(import.meta.url)
+let ruhendCache
+
+function getRuhend() {
+  if (ruhendCache !== undefined) return ruhendCache
+  try {
+    ruhendCache = require('ruhend-scraper')
+  } catch {
+    ruhendCache = null
+  }
+  return ruhendCache
+}
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36'
 
 const decodeHtml = text => String(text || '')
@@ -28,12 +42,28 @@ function collectMediaUrls(input, output = []) {
   }
   if (typeof input === 'object') {
     for (const [key, value] of Object.entries(input)) {
-      if (/^(url|download|download_url|downloadUrl|video|videoUrl|hd|sd|thumbnail|image|src|link)$/i.test(key)) collectMediaUrls(value, output)
+      if (/^(url|download|download_url|downloadUrl|video|videoUrl|video_hd|video_wm|hd|sd|thumbnail|image|src|link|play|wmplay|hdplay|cover|music|audio)$/i.test(key)) collectMediaUrls(value, output)
       else if (typeof value === 'object') collectMediaUrls(value, output)
     }
   }
   return output
 }
+
+function normalizeProviderData(raw, fallbackQuality = 'media') {
+  const payload = raw?.data || raw?.result || raw?.media || raw?.url || raw
+  const urls = uniqueUrls(collectMediaUrls(payload))
+  return urls.map((mediaUrl, index) => ({ url: mediaUrl, quality: index === 0 ? fallbackQuality : 'media' }))
+}
+
+async function fromRuhend(method, url, fallbackQuality = 'media') {
+  const ruhend = getRuhend()
+  if (typeof ruhend?.[method] !== 'function') throw new Error(`ruhend-scraper no expone ${method}`)
+  const raw = await ruhend[method](url)
+  const data = normalizeProviderData(raw, fallbackQuality)
+  if (!data.length) throw new Error(`ruhend-scraper no devolvió media para ${method}`)
+  return data
+}
+
 
 
 function inferMime(url = '', contentType = '') {
@@ -98,6 +128,8 @@ async function cobaltDownload(url) {
 
 export async function fbdl(url) {
   const attempts = [
+    async () => fromRuhend('fbdl', url, 'HD'),
+    async () => fromRuhend('fbdl2', url, 'HD'),
     async () => cobaltDownload(url),
     async () => {
       const home = await fetch('https://fdownloader.net/', { headers: { 'user-agent': UA } })
@@ -124,6 +156,8 @@ export async function fbdl(url) {
 
 export async function igdl(url) {
   const attempts = [
+    async () => fromRuhend('igdl', url),
+    async () => fromRuhend('igdl2', url),
     async () => cobaltDownload(url),
     async () => {
       const json = await fetchJson(`https://api.dorratz.com/igdl?url=${encodeURIComponent(url)}`)
@@ -142,4 +176,28 @@ export async function igdl(url) {
     } catch {}
   }
   throw new Error('No se pudo extraer contenido de Instagram')
+}
+
+
+export async function ttdl(url) {
+  const attempts = [
+    async () => {
+      const ruhend = getRuhend()
+      if (typeof ruhend?.ttdl !== 'function') throw new Error('ruhend-scraper no expone ttdl')
+      const raw = await ruhend.ttdl(url)
+      return { raw, data: normalizeProviderData(raw, 'HD') }
+    },
+    async () => {
+      const json = await fetchJson(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`)
+      const raw = json?.data || json
+      return { raw, data: normalizeProviderData(raw, 'HD') }
+    }
+  ]
+  for (const attempt of attempts) {
+    try {
+      const result = await attempt()
+      if (result.data.length) return { status: true, ...result }
+    } catch {}
+  }
+  throw new Error('No se pudo extraer video de TikTok')
 }

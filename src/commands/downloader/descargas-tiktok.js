@@ -1,4 +1,5 @@
 import axios from '../../library/http.js'
+import { ttdl, fetchMediaBuffer } from '../../library/scrapers.js'
 import { enqueueMediaJob, getMediaQueueConnection } from '../../library/queue.js'
 import { assertRemoteFileSize, replyIfMediaTooLarge } from '../../library/media-size.js'
 const tiktokRegex=/^(https?:\/\/)?(www\.|vm\.|vt\.|m\.|t\.)?tiktok\.com\/.+/i
@@ -34,16 +35,18 @@ handler.command=['tiktok','tt','tiktokdl','ttdl']
 handler.group=true
 handler.register=true
 export default handler
-async function tiktokdl(url){const{data}=await axios.get(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`);return data}
 global.queueHandlers||=new Map()
 global.queueHandlers.set('tiktok',async data=>{
 const conn=getMediaQueueConnection()
 const m=data.message
 try{
-const result=(await tiktokdl(data.url))?.data
-if(!result?.play)return conn.reply(data.chat,'🌸 ❌ 𝑼𝒑𝒔… 𝒏𝒐 𝒑𝒖𝒅𝒆 𝒐𝒃𝒕𝒆𝒏𝒆𝒓 𝒆𝒍 𝒗𝒊𝒅𝒆𝒐.',m)
-await assertRemoteFileSize(result.play, { label: 'video de TikTok' })
-await conn.sendFile(data.chat,result.play,'tiktok.mp4',caption(result),m)
+const result=await ttdl(data.url)
+const media=result.data.find(item=>/\.mp4|video|hd|play/i.test(`${item.url} ${item.quality||''}`))||result.data[0]
+if(!media?.url)return conn.reply(data.chat,'🌸 ❌ 𝑼𝒑𝒔… 𝒏𝒐 𝒑𝒖𝒅𝒆 𝒐𝒃𝒕𝒆𝒏𝒆𝒓 𝒆𝒍 𝒗𝒊𝒅𝒆𝒐.',m)
+await assertRemoteFileSize(media.url, { label: 'video de TikTok' })
+const file=await fetchMediaBuffer(media)
+if(!/^video\//i.test(file.mime)&&file.ext!=='mp4')throw new Error(`La URL extraída no es video: ${file.mime}`)
+await conn.sendMessage(data.chat,{video:file.buffer,mimetype:file.mime||'video/mp4',fileName:`tiktok.${file.ext}`,caption:caption(result.raw||{})},{quoted:m})
 await conn.sendMessage(data.chat,{react:{text:'🌸',key:m.key}})
 }catch(error){console.error(error);if(await replyIfMediaTooLarge(conn,data.chat,error,m,{label:'video de TikTok'}))return;return conn.reply(data.chat,`❌ 𝑬𝒓𝒓𝒐𝒓 𝒂𝒍 𝒅𝒆𝒔𝒄𝒂𝒓𝒈𝒂𝒓:\n${error.message}`,m)}
 })
