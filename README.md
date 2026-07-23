@@ -116,8 +116,7 @@ termux-setup-storage
 ```bash
 pkg update -y && pkg upgrade -y && \
 pkg install -y nodejs-lts git python make clang binutils pkg-config cmake ninja patchelf \
-libsqlite libvips libwebp ffmpeg imagemagick \
-cairo pango pixman freetype fontconfig libjpeg-turbo giflib librsvg
+libsqlite libwebp ffmpeg imagemagick
 ```
 
 3. Clonar el repositorio y entrar al directorio
@@ -135,11 +134,10 @@ export GYP_DEFINES="android_ndk_path= host_os=linux OS=android" && \
 export NODE_PATH="$PREFIX/lib/node_modules:$NODE_PATH"
 ```
 
-5. Limpiar caché e instalar dependencias
+5. Limpiar caché e instalar dependencias (Compilación de SQLite nativa)
 ```bash
 npm cache clean --force && \
-npm install -g node-gyp node-addon-api@8.3.0 prebuild-install node-pre-gyp --no-audit --no-fund && \
-npm install --no-save node-addon-api@8.3.0 --no-audit --no-fund && \
+npm install -g node-gyp --no-audit --no-fund && \
 npm install --no-audit --no-fund --foreground-scripts
 ```
 
@@ -147,7 +145,6 @@ npm install --no-audit --no-fund --foreground-scripts
 ```bash
 npm start
 ```
-
 
 ### Mantener Ruby 24/7 con PM2 en Termux
 
