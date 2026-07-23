@@ -6,82 +6,94 @@ import { getCooldownKey, isRedisReady, redis } from '../../library/redis.js';
 const cooldownAliases = {
 rollwaifu: ['rw', 'rollwaifu'],
 claim: ['claim', 'reclamar', 'c'],
-vote: ['vote', 'votar'],
-robwaifu: ['robwaifu', 'stealwaifu', 'robarwaifu']
+vote: ['vote', 'votar']
 };
 
 function formatTime(ms) {
-if (!ms || ms <= 0) return 'Ahora.';
+if (!Number.isFinite(ms) || ms <= 0) return 'Ahora.';
 const totalSeconds = Math.ceil(ms / 1000);
 const minutes = Math.floor(totalSeconds / 60);
 const seconds = totalSeconds % 60;
 if (minutes <= 0) return `${seconds} segundos`;
+if (seconds <= 0) return `${minutes} minutos`;
 return `${minutes} minutos ${seconds} segundos`;
 }
 
-async function getCooldownStatus(commands, userId) {
-if (!isRedisReady()) return 'Ahora.';
+async function getCooldownStatus(commands = [], userId = '') {
+if (!userId || !isRedisReady()) return 'Ahora.';
 const ttls = [];
 for (const command of commands) {
+if (!command) continue;
 const key = getCooldownKey(command, userId);
 const value = await redis.get(key);
 if (!value) continue;
 const ttl = await redis.pttl(key);
-if (ttl > 0) ttls.push(ttl);
+if (Number.isFinite(ttl) && ttl > 0) ttls.push(ttl);
 }
-if (!ttls.length) return 'Ahora.';
-return formatTime(Math.max(...ttls));
-}
-
-function normalizeUserId(userId) {
-if (!userId) return userId;
-if (userId.endsWith('@lid')) return `${userId.split('@')[0]}@s.whatsapp.net`;
-return userId;
+return ttls.length ? formatTime(Math.max(...ttls)) : 'Ahora.';
 }
 
-let handler = async (m, { conn, participants = [] }) => {
-const participantsByLid = buildParticipantsByLid(participants);
-const rawTarget = m.mentionedJid?.[0] || m.quoted?.sender || m.quoted?.participant || m.quoted?.key?.participant || m.sender;
-const userId = normalizeUserId(await normalizeIdentityJid(conn, rawTarget, participantsByLid) || rawTarget);
-const groupId = m.chat;
-let userName;
+function normalizeUserId(userId = '') {
+if (!userId) return '';
+const normalized = String(userId).trim();
+if (!normalized) return '';
+if (normalized.endsWith('@lid')) return `${normalized.split('@')[0]}@s.whatsapp.net`;
+return normalized;
+}
 
+function getSeriesName(character = {}) {
+return String(character.source || character.series || character.anime || character.origin || character.game || '').trim();
+}
+
+let handler = async (m, { conn, participants = [] } = {}) => {
+try {
+const safeParticipants = Array.isArray(participants) ? participants : [];
+const participantsByLid = buildParticipantsByLid(safeParticipants);
+const rawTarget = m?.mentionedJid?.[0] || m?.quoted?.sender || m?.quoted?.participant || m?.quoted?.key?.participant || m?.sender || '';
+const normalizedTarget = await normalizeIdentityJid(conn, rawTarget, participantsByLid);
+const userId = normalizeUserId(normalizedTarget || rawTarget || m?.sender || '');
+const groupId = m?.chat;
+if (!userId || !groupId) throw new Error(`Datos insuficientes en ginfo: userId=${userId || 'vacío'}, groupId=${groupId || 'vacío'}`);
+
+let userName = userId;
 try {
 userName = await resolveIdentityName(conn, userId, { participantsByLid, fallback: userId });
-} catch (e) {
-userName = userId;
-return false;
+} catch (error) {
+console.error('[ginfo] No se pudo resolver el nombre del usuario:', error);
 }
 
-try {
 const rwStatus = await getCooldownStatus(cooldownAliases.rollwaifu, userId);
 const claimStatus = await getCooldownStatus(cooldownAliases.claim, userId);
 const voteStatus = await getCooldownStatus(cooldownAliases.vote, userId);
-const robStatus = await getCooldownStatus(cooldownAliases.robwaifu, userId);
 
-const allCharacters = await loadCharacters();
-const charactersById = new Map(allCharacters.map(character => [character.id, character]));
-const harem = await loadHarem();
-const userCharacters = harem.filter(c => c.groupId === groupId && isSameUserId(c.userId, userId));
+const allCharactersRaw = await loadCharacters();
+const allCharacters = Array.isArray(allCharactersRaw) ? allCharactersRaw : [];
+const charactersById = new Map(allCharacters.map(character => [String(character?.id || '').trim(), character]).filter(([id]) => id));
+const haremRaw = await loadHarem();
+const harem = Array.isArray(haremRaw) ? haremRaw : [];
+const userCharacters = harem.filter(character => character?.groupId === groupId && isSameUserId(character?.userId, userId));
 const claimedCount = userCharacters.length;
 const totalCharacters = allCharacters.length;
+const totalSeries = new Set(allCharacters.map(getSeriesName).filter(Boolean)).size;
 
 const totalValue = userCharacters.reduce((sum, char) => {
-const ch = charactersById.get(char.characterId);
-return sum + (Number(ch?.value) || 0);
+const characterId = String(char?.characterId || '').trim();
+const character = charactersById.get(characterId);
+return sum + (Number(character?.value) || 0);
 }, 0);
 
-let response = `*❀ Usuario \`<${userName}>\`*\n\n`;
-response += `ⴵ RollWaifu » *${rwStatus}*\n`;
-response += `ⴵ Claim » *${claimStatus}*\n`;
-response += `ⴵ Vote » *${voteStatus}*\n`;
-response += `ⴵ RobWaifu » *${robStatus}*\n\n`;
-response += `♡ Personajes reclamados en este grupo » *${claimedCount} / ${totalCharacters}*\n`;
-response += `✰ Valor total (est.) » *${totalValue.toLocaleString('es-ES')}*`;
+const response = `*❀ Usuario <${userName}>*\n\n` +
+`ⴵ RollWaifu » *${rwStatus || 'Ahora.'}*\n` +
+`ⴵ Claim » *${claimStatus || 'Ahora.'}*\n` +
+`ⴵ Vote » *${voteStatus || 'Ahora.'}*\n\n` +
+`♡ Personajes reclamados » *${claimedCount}*\n` +
+`✰ Valor total » *${totalValue}*\n` +
+`❏ Personajes totales » *${totalCharacters}*\n` +
+`❏ Series totales » *${totalSeries}*`;
 
 await conn.reply(m.chat, response, m);
-} catch (e) {
-console.error('Error en handler ginfo:', e);
+} catch (error) {
+console.error('[ginfo] Error real al verificar estado:', error);
 await conn.reply(m.chat, '✘ Ocurrió un error al verificar tu estado.', m);
 return false;
 }

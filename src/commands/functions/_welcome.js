@@ -28,7 +28,7 @@ const toFancy = (str) => {
 const map = {'a':'ᥲ','b':'ᑲ','c':'ᥴ','d':'ᑯ','e':'ᥱ','f':'𝖿','g':'g','h':'һ','i':'і','j':'j','k':'k','l':'ᥣ','m':'m','n':'ᥒ','o':'᥆','p':'⍴','q':'q','r':'r','s':'s','t':'𝗍','u':'ᥙ','v':'᥎','w':'ɯ','x':'x','y':'ᥡ','z':'z','A':'A','B':'B','C':'C','D':'D','E':'E','F':'F','G':'G','H':'H','I':'I','J':'J','K':'K','L':'L','M':'M','N':'N','O':'O','P':'P','Q':'Q','R':'R','S':'S','T':'T','U':'U','V':'V','W':'W','X':'X','Y':'Y','Z':'Z'}
 return str.split('').map(c => map[c] || c).join('')
 }
-export async function before(m, { conn, participants, groupMetadata }) {
+export async function before(m, { conn, participants = [], groupMetadata = {} } = {}) {
 if (!m.messageStubType || !m.isGroup) return true
 const chat = global.db.getChat(m.chat)
 if (!chat || !chat.welcome) return true
@@ -46,7 +46,8 @@ WAMessageStubType.GROUP_PARTICIPANT_LEAVE,
 28, 32
 ].includes(m.messageStubType)
 if (!isWelcome && !isBye) return true
-let usuariosAfectados = m.messageStubParameters && m.messageStubParameters.length > 0 ? m.messageStubParameters : [m.sender]
+const safeParticipants = Array.isArray(participants) ? participants : []
+const usuariosAfectados = Array.isArray(m.messageStubParameters) && m.messageStubParameters.length > 0 ? m.messageStubParameters : [m.sender]
 for (let userId of usuariosAfectados) {
 if (!userId) continue;
 const targetJid = normalizeMentionJid(userId) || normalizeMentionJid(m.sender)
@@ -56,7 +57,7 @@ const pp = await conn.profilePictureUrl(targetJid, 'image').catch(() => 'https:/
 const username = mentionLabel(targetJid)
 const groupName = groupMetadata?.subject || 'este grupo'
 const desc = groupMetadata?.desc?.toString() || 'Sin descripción'
-const groupSize = groupMetadata?.participants?.length || participants?.length || 0
+const groupSize = (Array.isArray(groupMetadata?.participants) && groupMetadata.participants.length) || safeParticipants.length || 0
 const fecha = new Date().toLocaleDateString("es-ES", { timeZone: "America/Santo_Domingo", day: 'numeric', month: 'long', year: 'numeric' })
 if (isWelcome) {
 let text
