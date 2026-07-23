@@ -5,7 +5,7 @@ import { BufferJSON, initAuthCreds, proto } from '@whiskeysockets/baileys'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const DEFAULT_CLEANUP_INTERVAL_MS = DAY_MS
-const DEFAULT_RETENTION_MS = 30 * DAY_MS
+const DEFAULT_RETENTION_MS = 7 * DAY_MS
 const cleanupTimers = new Map()
 const CRITICAL_BAILEYS_KEY_TYPES = new Set(['contacts-tc-token', 'lid-mapping'])
 
@@ -24,6 +24,7 @@ return String(value).replace(/[/\\]/g, '__').replace(/:/g, '-')
 
 function openDatabase(dbPath) {
 const sqlite = new Database(dbPath)
+sqlite.pragma('auto_vacuum = INCREMENTAL')
 sqlite.pragma('journal_mode = WAL')
 sqlite.pragma('synchronous = NORMAL')
 sqlite.pragma('busy_timeout = 5000')
@@ -31,6 +32,7 @@ sqlite.pragma('temp_store = MEMORY')
 sqlite.pragma('cache_size = -20000')
 sqlite.pragma('mmap_size = 268435456')
 sqlite.pragma('wal_autocheckpoint = 1000')
+sqlite.pragma('journal_size_limit = 5242880')
 sqlite.exec(`
 CREATE TABLE IF NOT EXISTS auth_state (
   category TEXT NOT NULL,
@@ -165,7 +167,7 @@ ON CONFLICT(category,id) DO UPDATE SET value=excluded.value, updated_at=excluded
 }
 }
 
-function startDailyCleanup(dbPath, statements, options = {}) {
+function startDailyCleanup(dbPath, sqlite, statements, options = {}) {
 if (cleanupTimers.has(dbPath)) return cleanupTimers.get(dbPath)
 const retentionMs = Number(options.retentionMs) || DEFAULT_RETENTION_MS
 const intervalMs = Number(options.cleanupIntervalMs) || DEFAULT_CLEANUP_INTERVAL_MS
@@ -176,6 +178,7 @@ const last = Number(parse(statements.getMeta.get('meta', 'last_cleanup_at')?.val
 if (now - last < intervalMs) return
 const cutoff = now - retentionMs
 const result = statements.cleanup.run(cutoff)
+sqlite.exec('VACUUM;')
 statements.setMeta.run('last_cleanup_at', stringify(now), now, now, now)
 } catch (error) {
 console.error('[sqlite-auth] error en limpieza diaria:', error)
@@ -212,7 +215,7 @@ else statements.remove.run(category, safeFilePart(id))
 }
 })
 const keyWriter = createDebouncedKeyWriter(data => writeLock(() => writeKeysTx(data)), options.keyFlushDelayMs ?? 250, options.keyMaxFlushDelayMs ?? 1500)
-const cleanupTimer = startDailyCleanup(dbPath, statements, options)
+const cleanupTimer = startDailyCleanup(dbPath, sqlite, statements, options)
 const closeAuthDb = async () => {
 if (cleanupTimer) clearInterval(cleanupTimer)
 cleanupTimers.delete(dbPath)
