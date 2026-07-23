@@ -529,6 +529,13 @@ if (now - eventTime > REALTIME_EVENT_MAX_AGE_MS) return false
 return true
 }
 
+function isFreshGroupParticipantEvent(update = {}) {
+const eventTime = getEventTime(update)
+if (!eventTime) return false
+const age = Date.now() - eventTime
+return age >= 0 && age <= REALTIME_EVENT_MAX_AGE_MS
+}
+
 
 function clockString(ms){
 const h=Math.floor(ms/3600000)
@@ -941,8 +948,9 @@ export async function participantsUpdate(update = {}) {
 try {
 const chat = this.decodeJid?.(update.id) || update.id
 if (!chat || !chat.endsWith('@g.us')) return
-if (update.participants === undefined || !Array.isArray(update.participants)) return
+if (update.participants === undefined || !Array.isArray(update.participants) || !update.participants.length) return
 if (this.ev === undefined) return
+if (!isFreshGroupParticipantEvent(update)) return
 if (!isRealtimeGroupEvent(this, update)) return
 const action = String(update.action || '').toLowerCase()
 const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null
