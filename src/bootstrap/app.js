@@ -203,7 +203,7 @@ serialize()
 const { state, saveCreds } = await useOptimizedAuthState(`./${global.Rubysessions}`, { dbName: 'auth.db', cleanOldFiles: true, sessionId: 'main' })
 const debouncedSaveCreds = createDebouncedSaveCreds(() => saveCreds.call(global.conn, true))
 global.authCredsFlushers.add(debouncedSaveCreds.flush)
-global.authManagerDb = createManagerDatabase({ dbPath: `./${global.Rubysessions}/system.db`, tableName: 'bot_registry' })
+global.authManagerDb = await createManagerDatabase({ dbPath: `./${global.Rubysessions}/system.db`, tableName: 'bot_registry' })
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = createMessageRetryCache()
 const { version } = await fetchLatestBaileysVersion();
