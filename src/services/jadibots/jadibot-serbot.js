@@ -289,7 +289,7 @@ for (const targetPath of pathsToRemove) {
 try { await fs.promises.rm(targetPath, { recursive: true, force: true }) } catch (error) { console.error(`Error borrando credenciales del Sub-Bot ${sessionId}:`, error) }
 }
 try {
-global.authManagerDb?.prepare?.('DELETE FROM bot_registry WHERE id = ? OR jid = ?')?.run(sessionId, normalizedJid)
+await global.authManagerDb?.prepare?.('DELETE FROM bot_registry WHERE id = ? OR jid = ?')?.runAsync(sessionId, normalizedJid)
 } catch (error) {
 console.error(`Error borrando registro SQLite del Sub-Bot ${sessionId}:`, error)
 }
@@ -396,7 +396,7 @@ const { state, saveCreds } = await useOptimizedAuthState(pathRubyJadiBot, { dbNa
 const debouncedSaveCreds = createDebouncedSaveCreds(() => saveCreds.call(sock, true))
 global.authCredsFlushers ||= new Set()
 global.authCredsFlushers.add(debouncedSaveCreds.flush)
-global.authManagerDb ||= createManagerDatabase({ dbPath: `./${global.Rubysessions || 'sessions'}/system.db`, tableName: 'bot_registry' })
+global.authManagerDb ||= await createManagerDatabase({ dbPath: `./${global.Rubysessions || 'sessions'}/system.db`, tableName: 'bot_registry' })
 let connectionOptions = {
 logger: pino({ level: "fatal" }),
 printQRInTerminal: false,
@@ -463,7 +463,7 @@ cleanupSessionState(sock)
 global.authCredsFlushers?.delete(debouncedSaveCreds.flush)
 if (global.subBotRegistry instanceof Map) global.subBotRegistry.delete(subBotId)
 clearSubBotConnectionState(subBotId)
-upsertSubBotAuthRegistry(subBotId, sock, removeSession ? 'removed' : 'offline', { path: pathRubyJadiBot, jid: subBotJid })
+void upsertSubBotAuthRegistry(subBotId, sock, removeSession ? 'removed' : 'offline', { path: pathRubyJadiBot, jid: subBotJid })
 if (removeSession) {
 await cleanupSubBotSession({ id: subBotId, jid: subBotJid, sessionPath: pathRubyJadiBot, sock, reason: 'fatal-disconnect' })
 }
@@ -508,7 +508,7 @@ attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.j
 isInit = true
 registerSubBot(global.subBotRegistry, subBotId, { sock, reconnecting: true, ts: Date.now() })
 setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot })
-upsertSubBotAuthRegistry(subBotId, sock, 'reconnecting', { path: pathRubyJadiBot, jid: subBotJid })
+void upsertSubBotAuthRegistry(subBotId, sock, 'reconnecting', { path: pathRubyJadiBot, jid: subBotJid })
 }
 if (!isInit) {
 sock.ev.off("messages.upsert", sock.handler)
@@ -681,7 +681,7 @@ clearReconnectTimer()
 setSubBotConnectionState(subBotId, 'online', { jid: subBotJid, path: pathRubyJadiBot, connectedAt: Date.now() })
 if (!global.conns.includes(sock)) global.conns.push(sock)
 registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() })
-upsertSubBotAuthRegistry(subBotId, sock, 'online', { path: pathRubyJadiBot, jid: subBotJid, connectedAt: Date.now() })
+void upsertSubBotAuthRegistry(subBotId, sock, 'online', { path: pathRubyJadiBot, jid: subBotJid, connectedAt: Date.now() })
 clearPairingCodeLock()
 if (SUBBOT_GROUP_PREFETCH_ON_CONNECT) refreshSubBotGroups(sock).catch(() => {})
 m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `@${m.sender.split('@')[0]}, genial ya eres parte de nuestro ecosistema de bots.`}, {quoted: m}).catch(() => {}) : null
@@ -700,14 +700,14 @@ await conn.reply(m.chat, `🥀 No pude generar el código de vinculación. Detal
 }
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-function upsertSubBotAuthRegistry(id, sock, status, metadata = {}) {
+async function upsertSubBotAuthRegistry(id, sock, status, metadata = {}) {
 const db = global.authManagerDb
 if (!db) return
 const jid = normalizeSubBotJid(metadata.jid || sock?.user?.jid || sock?.authState?.creds?.me?.jid || `${id}@s.whatsapp.net`)
 const payload = JSON.stringify({ ...metadata, jid })
 for (let attempt = 0; attempt < 3; attempt++) {
 try {
-db.prepare('INSERT OR REPLACE INTO bot_registry (id, jid, status, metadata) VALUES (?, ?, ?, ?)').run(id, jid, status, payload)
+await db.prepare('INSERT OR REPLACE INTO bot_registry (id, jid, status, metadata) VALUES (?, ?, ?, ?)').runAsync(id, jid, status, payload)
 return
 } catch (error) {
 if (!['SQLITE_BUSY', 'SQLITE_LOCKED'].includes(error?.code) || attempt === 2) {

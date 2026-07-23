@@ -22,7 +22,7 @@ function safeFilePart(value = '') {
 return String(value).replace(/[/\\]/g, '__').replace(/:/g, '-')
 }
 
-function openDatabase(dbPath) {
+async function openDatabase(dbPath) {
 const sqlite = new Database(dbPath)
 sqlite.pragma('auto_vacuum = INCREMENTAL')
 sqlite.pragma('journal_mode = WAL')
@@ -33,7 +33,7 @@ sqlite.pragma('cache_size = -20000')
 sqlite.pragma('mmap_size = 268435456')
 sqlite.pragma('wal_autocheckpoint = 1000')
 sqlite.pragma('journal_size_limit = 5242880')
-sqlite.exec(`
+await sqlite.execAsync(`
 CREATE TABLE IF NOT EXISTS auth_state (
   category TEXT NOT NULL,
   id TEXT NOT NULL,
@@ -132,19 +132,22 @@ console.error('[sqlite-auth] no se pudieron purgar archivos legacy:', error)
 }
 }
 
-function migrateLegacyAuthFiles(sessionDir, statements) {
+async function migrateLegacyAuthFiles(sessionDir, statements) {
 if (!existsSync(sessionDir)) return
 let files = []
-try { files = readdirSync(sessionDir) } catch { return }
+try { files = readdirSync(sessionDir) } catch (error) {
+console.error('[sqlite-auth] no se pudieron leer archivos legacy:', error)
+return
+}
 const now = Date.now()
 for (const file of files) {
 const legacyKey = legacyKeyFromFile(file)
 if (!legacyKey) continue
 const [category, id] = legacyKey
-if (statements.get.get(category, id)) continue
 try {
+if (await statements.get.getAsync(category, id)) continue
 const value = JSON.parse(readFileSync(path.join(sessionDir, file), 'utf8'), BufferJSON.reviver)
-statements.upsert.run(category, id, stringify(value), now, now, now)
+await statements.upsert.runAsync(category, id, stringify(value), now, now, now)
 } catch (error) {
 console.error(`[sqlite-auth] no se pudo migrar ${file}:`, error)
 }
@@ -171,56 +174,75 @@ function startDailyCleanup(dbPath, sqlite, statements, options = {}) {
 if (cleanupTimers.has(dbPath)) return cleanupTimers.get(dbPath)
 const retentionMs = Number(options.retentionMs) || DEFAULT_RETENTION_MS
 const intervalMs = Number(options.cleanupIntervalMs) || DEFAULT_CLEANUP_INTERVAL_MS
-const runCleanup = () => {
+const runCleanup = async () => {
 try {
 const now = Date.now()
-const last = Number(parse(statements.getMeta.get('meta', 'last_cleanup_at')?.value) || 0)
+const lastRow = await statements.getMeta.getAsync('meta', 'last_cleanup_at')
+const last = Number(parse(lastRow?.value) || 0)
 if (now - last < intervalMs) return
 const cutoff = now - retentionMs
-const result = statements.cleanup.run(cutoff)
-sqlite.exec('VACUUM;')
-statements.setMeta.run('last_cleanup_at', stringify(now), now, now, now)
+await statements.cleanup.runAsync(cutoff)
+await sqlite.execAsync('VACUUM;')
+await statements.setMeta.runAsync('last_cleanup_at', stringify(now), now, now, now)
 } catch (error) {
 console.error('[sqlite-auth] error en limpieza diaria:', error)
 }
 }
-runCleanup()
+void runCleanup()
 const timer = setInterval(runCleanup, intervalMs)
 timer.unref?.()
 cleanupTimers.set(dbPath, timer)
 return timer
 }
 
-export function useSQLiteAuthState(sessionDir, options = {}) {
+export async function useSQLiteAuthState(sessionDir, options = {}) {
 if (!existsSync(sessionDir)) mkdirSync(sessionDir, { recursive: true })
 const dbPath = path.join(sessionDir, options.dbName || 'auth.db')
-const sqlite = openDatabase(dbPath)
+const sqlite = await openDatabase(dbPath)
 const statements = buildStatements(sqlite)
-migrateLegacyAuthFiles(sessionDir, statements)
+await migrateLegacyAuthFiles(sessionDir, statements)
 if (options.cleanOldFiles !== false) purgeLegacyFiles(sessionDir)
-let creds = parse(statements.get.get('creds', 'creds')?.value) || initAuthCreds()
+const credsRow = await statements.get.getAsync('creds', 'creds')
+let creds = parse(credsRow?.value) || initAuthCreds()
 const writeLock = createMutex()
-const writeCredsTx = sqlite.transaction(() => {
+const writeCredsTx = async () => {
+try {
 const now = Date.now()
-statements.upsert.run('creds', 'creds', stringify(creds), now, now, now)
-})
-const writeKeysTx = sqlite.transaction(data => {
+await statements.upsert.runAsync('creds', 'creds', stringify(creds), now, now, now)
+} catch (error) {
+console.error('[sqlite-auth] error guardando credenciales:', error)
+throw error
+}
+}
+const writeKeysTx = async data => {
+try {
 const now = Date.now()
+await sqlite.execAsync('BEGIN IMMEDIATE;')
+try {
 for (const category of Object.keys(data || {})) {
 for (const id of Object.keys(data[category] || {})) {
 const value = data[category][id]
-if (value) statements.upsert.run(category, safeFilePart(id), stringify(value), now, now, now)
-else statements.remove.run(category, safeFilePart(id))
+if (value) await statements.upsert.runAsync(category, safeFilePart(id), stringify(value), now, now, now)
+else await statements.remove.runAsync(category, safeFilePart(id))
 }
 }
-})
+await sqlite.execAsync('COMMIT;')
+} catch (error) {
+try { await sqlite.execAsync('ROLLBACK;') } catch (rollbackError) { console.error('[sqlite-auth] error revirtiendo lote de llaves:', rollbackError) }
+throw error
+}
+} catch (error) {
+console.error('[sqlite-auth] error guardando lote de llaves:', error)
+throw error
+}
+}
 const keyWriter = createDebouncedKeyWriter(data => writeLock(() => writeKeysTx(data)), options.keyFlushDelayMs ?? 250, options.keyMaxFlushDelayMs ?? 1500)
 const cleanupTimer = startDailyCleanup(dbPath, sqlite, statements, options)
 const closeAuthDb = async () => {
 if (cleanupTimer) clearInterval(cleanupTimer)
 cleanupTimers.delete(dbPath)
 await keyWriter.flush()
-sqlite.pragma('wal_checkpoint(TRUNCATE)')
+await sqlite.execAsync('PRAGMA wal_checkpoint(TRUNCATE);')
 sqlite.close()
 }
 return {
@@ -233,8 +255,13 @@ const data = {}
 for (const id of ids || []) {
 const keyId = safeFilePart(id)
 const category = authCategory(type)
-const row = statements.get.get(category, keyId)
-if (row) statements.touch.run(now, category, keyId)
+let row = null
+try {
+row = await statements.get.getAsync(category, keyId)
+if (row) await statements.touch.runAsync(now, category, keyId)
+} catch (error) {
+console.error(`[sqlite-auth] error leyendo llave ${category}/${keyId}:`, error)
+}
 data[id] = normalizeValue(type, parse(row?.value))
 }
 return data
@@ -243,14 +270,31 @@ set: async data => keyWriter(data)
 }
 },
 saveCreds: async () => { await keyWriter.flush(); return writeLock(() => writeCredsTx()) },
-removeCreds: async () => writeLock(() => statements.remove.run('creds', 'creds')),
-clearDb: async () => { await keyWriter.flush(); return writeLock(() => sqlite.prepare('DELETE FROM auth_state').run()) },
+removeCreds: async () => writeLock(async () => {
+try {
+return await statements.remove.runAsync('creds', 'creds')
+} catch (error) {
+console.error('[sqlite-auth] error eliminando credenciales:', error)
+throw error
+}
+}),
+clearDb: async () => {
+await keyWriter.flush()
+return writeLock(async () => {
+try {
+return await sqlite.prepare('DELETE FROM auth_state').runAsync()
+} catch (error) {
+console.error('[sqlite-auth] error limpiando base de autenticación:', error)
+throw error
+}
+})
+},
 closeDb: closeAuthDb,
 close: closeAuthDb
 }
 }
 
-export function createManagerDatabase({ dbPath = './sessions/system.db', tableName = 'bot_registry' } = {}) {
+export async function createManagerDatabase({ dbPath = './sessions/system.db', tableName = 'bot_registry' } = {}) {
 if (!/^[A-Za-z0-9_]+$/.test(tableName)) throw new Error('tableName inválido para createManagerDatabase')
 const dir = path.dirname(dbPath)
 if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
@@ -262,7 +306,7 @@ sqlite.pragma('temp_store = MEMORY')
 sqlite.pragma('cache_size = -20000')
 sqlite.pragma('mmap_size = 268435456')
 sqlite.pragma('wal_autocheckpoint = 1000')
-sqlite.exec(`CREATE TABLE IF NOT EXISTS ${tableName} (
+await sqlite.execAsync(`CREATE TABLE IF NOT EXISTS ${tableName} (
   id TEXT PRIMARY KEY,
   jid TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'offline',
