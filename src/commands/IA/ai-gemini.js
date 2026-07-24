@@ -3,6 +3,8 @@ import { buildAiPromptWithContext, rememberAiExchange } from '../../core/ai-cont
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
 const btoa2 = str => Buffer.from(str, 'utf8').toString('base64')
 const atob2 = b64 => Buffer.from(b64, 'base64').toString('utf8')
+
+// Ya no necesitamos guardar el ID de Google en sessions, porque tu buildAiPromptWithContext ya maneja la memoria
 const sessions = {}
 
 function walkDeep(node, visit, depth = 0, maxDepth = 7) {
@@ -17,14 +19,7 @@ function walkDeep(node, visit, depth = 0, maxDepth = 7) {
 
 function cleanUrlCandidate(s, { stripSpaces = false } = {}) {
   if (typeof s !== 'string') return ''
-  let t = s.trim()
-    .replace(/^['"]|['"]$/g, '')
-    .replace(/\\u003d/gi, '=')
-    .replace(/\\u0026/gi, '&')
-    .replace(/\\u002f/gi, '/')
-    .replace(/\\\//g, '/')
-    .replace(/\\/g, '')
-    .replace(/[\\'"\]\)>,.]+$/g, '')
+  let t = s.trim().replace(/^['"]|['"]$/g, '').replace(/\\u003d/gi, '=').replace(/\\u0026/gi, '&').replace(/\\u002f/gi, '/').replace(/\\\//g, '/').replace(/\\/g, '').replace(/[\\'"\]\)>,.]+$/g, '')
   if (stripSpaces) t = t.replace(/\s+/g, '')
   return t
 }
@@ -54,9 +49,7 @@ function isLikelyText(s) {
 
 function pickBestTextFromAny(parsed) {
   const found = []
-  walkDeep(parsed, n => { 
-    if (typeof n === 'string' && isLikelyText(n)) found.push(n.trim()) 
-  })
+  walkDeep(parsed, n => { if (typeof n === 'string' && isLikelyText(n)) found.push(n.trim()) })
   found.sort((a, b) => b.length - a.length)
   return found[0] || ''
 }
@@ -64,64 +57,30 @@ function pickBestTextFromAny(parsed) {
 function findInnerPayloadString(outer) {
   const candidates = []
   const add = s => { if (typeof s === 'string' && s.trim()) candidates.push(s.trim()) }
-  
-  add(outer?.[0]?.[2])
-  add(outer?.[2])
-  add(outer?.[0]?.[0]?.[2])
-  add(outer?.[0]?.[1]) // Agregado: Nueva ubicación común en la respuesta de Google
-  
-  walkDeep(outer, n => { 
-    if (typeof n === 'string') { 
-      const t = n.trim()
-      if ((t.startsWith('[') || t.startsWith('{')) && t.length > 20) add(t) 
-    } 
-  }, 0, 5)
-  
-  for (const s of candidates) { 
-    try { 
-      JSON.parse(s)
-      return s 
-    } catch {} 
-  }
+  add(outer?.[0]?.[2]); add(outer?.[2]); add(outer?.[0]?.[0]?.[2])
+  walkDeep(outer, n => { if (typeof n === 'string') { const t = n.trim(); if ((t.startsWith('[') || t.startsWith('{')) && t.length > 20) add(t) } }, 0, 5)
+  for (const s of candidates) { try { JSON.parse(s); return s } catch {} }
   return null
 }
 
 function parseStream(data) {
-  if (typeof data !== 'string' || !data.trim()) throw new Error('Respuesta vacía desde los servidores')
-  if (/<html|<!doctype/i.test(data)) throw new Error('Google bloqueó la petición (Devolvió HTML/Captcha)')
-  
-  // Expresión regular mejorada para atrapar todos los fragmentos del stream
-  const chunks = Array.from(data.matchAll(/^\d*\r?\n?(\[[\s\S]+?\])\r?\n?(?=\d+\r?\n|$)/gm))
-    .map(m => m[1])
-    .reverse()
-    
-  if (!chunks.length) {
-      // Intento de rescate si el stream cambió de formato
-      const fallbackMatch = data.match(/\["wrb\.fr".+?\]/g)
-      if (fallbackMatch) chunks.push(...fallbackMatch.reverse())
-      else throw new Error('Respuesta inválida: Estructura no reconocida')
-  }
-
+  if (typeof data !== 'string' || !data.trim()) throw new Error('Respuesta vacía')
+  if (/<html|<!doctype/i.test(data)) throw new Error('Gemini devolvió HTML')
+  const chunks = Array.from(data.matchAll(/^\d+\r?\n([\s\S]+?)\r?\n(?=\d+\r?\n|$)/gm)).map(m => m[1]).reverse()
+  if (!chunks.length) throw new Error('Respuesta inválida')
   let best = { text: '', resumeArray: null, parsed: null }
-  
   for (const c of chunks) {
     try {
       const outer = JSON.parse(c)
       const inner = findInnerPayloadString(outer)
       if (!inner) continue
-      
       const parsed = JSON.parse(inner)
       const text = pickBestTextFromAny(parsed)
       const resumeArray = Array.isArray(parsed?.[1]) ? parsed[1] : null
-      
-      if (!best.parsed || (text && text.length > (best.text?.length || 0))) {
-          best = { text, resumeArray, parsed }
-      }
+      if (!best.parsed || (text && text.length > (best.text?.length || 0))) best = { text, resumeArray, parsed }
     } catch {}
   }
-  
-  if (!best.parsed || !best.text) throw new Error('Respuesta inválida: No se encontró texto útil')
-  
+  if (!best.parsed) throw new Error('Respuesta inválida')
   const urls = new Set(extractImageUrlsFromText(data))
   walkDeep(best.parsed, (n, depth) => {
     if (depth > 6) return false
@@ -129,85 +88,50 @@ function parseStream(data) {
     const u = cleanUrlCandidate(n, { stripSpaces: true })
     if (/^https:\/\//i.test(u) && looksLikeImageUrl(u)) urls.add(u)
   }, 0, 7)
-  
-  return { 
-      text: (best.text || '').replace(/\*\*(.+?)\*\*/g, '*$1*').trim(), 
-      resumeArray: best.resumeArray, 
-      images: Array.from(urls) 
-  }
+  return { text: (best.text || '').replace(/\*\*(.+?)\*\*/g, '*$1*').trim(), resumeArray: best.resumeArray, images: Array.from(urls) }
 }
 
 async function getAnonCookie() {
   const r = await fetch('https://gemini.google.com/_/BardChatUi/data/batchexecute?rpcids=maGuAc&source-path=%2F&hl=en-US&rt=c', { 
-      method: 'POST', 
-      redirect: 'manual', 
-      headers: { 
-          'content-type': 'application/x-www-form-urlencoded;charset=UTF-8', 
-          'user-agent': UA,
-          'origin': 'https://gemini.google.com',
-          'referer': 'https://gemini.google.com/'
-      }, 
-      body: 'f.req=%5B%5B%5B%22maGuAc%22%2C%22%5B0%5D%22%2Cnull%2C%22generic%22%5D%5D%5D&' 
+    method: 'POST', 
+    redirect: 'manual', 
+    headers: { 'content-type': 'application/x-www-form-urlencoded;charset=UTF-8', 'user-agent': UA }, 
+    body: 'f.req=%5B%5B%5B%22maGuAc%22%2C%22%5B0%5D%22%2Cnull%2C%22generic%22%5D%5D%5D&' 
   })
-  
   const setCookie = r.headers.get('set-cookie')
-  if (!setCookie) return null // Permitimos continuar aunque no haya cookie explícita, a veces Google lo permite
+  if (!setCookie) throw new Error('Sin cookies de Gemini')
   return setCookie.split(';')[0]
 }
 
 async function getXsrfToken(cookieHeader) {
   try {
-    const headers = { 'user-agent': UA, accept: 'text/html' }
-    if (cookieHeader) headers.cookie = cookieHeader
-    
-    const res = await fetch('https://gemini.google.com/app', { headers })
+    const res = await fetch('https://gemini.google.com/app', { headers: { 'user-agent': UA, cookie: cookieHeader, accept: 'text/html' } })
     const html = await res.text()
     return html.match(/"SNlM0e":"([^"]+)"/)?.[1] || html.match(/"at":"([^"]+)"/)?.[1] || null
-  } catch { 
-      return null 
-  }
+  } catch { return null }
 }
 
-async function askGemini(prompt, previousId = null) {
-  let resumeArray = null
-  if (previousId) { 
-      try { resumeArray = JSON.parse(atob2(previousId))?.resumeArray || null } catch {} 
-  }
-  
+// Eliminamos el 'previousId' para que siempre use una identidad limpia y no choque con la nueva cookie
+async function askGemini(prompt) {
   let lastErr = null
-  
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const cookie = await getAnonCookie()
       const xsrf = await getXsrfToken(cookie)
-      const params = { 'f.req': JSON.stringify([null, JSON.stringify([[prompt.trim()], ['en-US'], resumeArray])]) }
-      
+      // Enviamos null en lugar del resumeArray para que Google lo procese como una consulta fresca
+      const params = { 'f.req': JSON.stringify([null, JSON.stringify([[prompt.trim()], ['en-US'], null])]) }
       if (xsrf) params.at = xsrf
-      
-      const headers = { 
-          'content-type': 'application/x-www-form-urlencoded;charset=UTF-8', 
-          'user-agent': UA, 
-          'x-same-domain': '1'
-      }
-      if (cookie) headers.cookie = cookie
-
       const response = await fetch('https://gemini.google.com/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate?hl=en-US&rt=c', { 
-          method: 'POST', 
-          headers, 
-          body: new URLSearchParams(params) 
+        method: 'POST', 
+        headers: { 'content-type': 'application/x-www-form-urlencoded;charset=UTF-8', 'user-agent': UA, 'x-same-domain': '1', cookie }, 
+        body: new URLSearchParams(params) 
       })
-      
       if (!response.ok) throw new Error(`${response.status} ${response.statusText}`)
-      
       const parsed = parseStream(await response.text())
-      return { 
-          text: parsed.text, 
-          id: btoa2(JSON.stringify({ resumeArray: parsed.resumeArray })), 
-          images: parsed.images 
-      }
+      return { text: parsed.text, images: parsed.images }
     } catch (e) { 
-        lastErr = e; 
-        if (attempt < 3) await new Promise(r => setTimeout(r, 1000)) // Aumenté el tiempo de espera a 1s para evitar bloqueos rápidos
+      lastErr = e; 
+      if (attempt < 3) await new Promise(r => setTimeout(r, 700)) 
     }
   }
   throw lastErr || new Error('Error desconocido')
@@ -215,16 +139,17 @@ async function askGemini(prompt, previousId = null) {
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text) return m.reply(`> ꒰ঌ(˶ˆᗜˆ˵)໒꒱ 𝖯𝗈𝗋 𝖿⍺𝗏𝗈𝗋 𝗂𝗇𝗀𝗋𝖾𝗌⍺ 𝗎𝗇⍺ 𝗉𝗋𝖾𝗀𝗎𝗇𝗍⍺ 𝗉⍺𝗋⍺ 𝖦𝖾𝗆𝗂𝗇𝗂... 🌸\n> 𝖤𝗃𝖾𝗆𝗉𝗅𝗈: *${usedPrefix}${command} ¿𝖰𝗎𝗂𝖾́𝗇 𝖾𝗋𝖾𝗌?*`)
-  
   await m.react('⏳')
   const userId = m.sender || m.chat
   sessions[userId] = sessions[userId] || {}
   
   try {
     const prompt = buildAiPromptWithContext('gemini', userId, text, { maxMessages: 8 })
-    let res = await askGemini(prompt, sessions[userId].id)
     
-    sessions[userId].id = res.id
+    // Llamamos a Gemini sin enviarle el ID basura, será una petición "fresca" cada vez
+    let res = await askGemini(prompt)
+    
+    // Tu propia función se encarga de guardar la memoria para la próxima pregunta
     rememberAiExchange('gemini', userId, text, res.text, { maxMessages: 8 })
     
     if (res.images?.length) {
@@ -233,7 +158,6 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
       await conn.sendMessage(m.chat, { text: res.text || '> (っ- ‸ - ς) 𝖲𝗂𝗇 𝗋𝖾𝗌𝗉𝗎𝖾𝗌𝗍⍺...' }, { quoted: m })
     }
     await m.react('✅')
-    
   } catch (e) {
     console.error('[Ruby Hoshino - Gemini Error]:', e)
     await m.react('💔')
