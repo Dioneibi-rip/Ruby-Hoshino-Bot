@@ -1,59 +1,122 @@
-import axios from '../../library/http.js'
 import crypto from 'crypto'
+const sessions = {}
 const generateUUID = () => crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16) })
-let handler = async (m, { conn, text }) => {
-await m.react('🔍')
-let debugLog = '*[ REPORTE DE DEPURACIÓN CHATGPT ]*\n\n'
-try {
+const parseCookies = (cookieString) => {
+if (!cookieString) return {}
+return Object.fromEntries(cookieString.split(',').map(c => c.split(';')[0].split('=')).map(([k, ...v]) => [k?.trim(), v.join('=').trim()]).filter(p => p[0]))
+}
+function cleanSpecialTags(text) {
+if (!text) return ''
+return text.replace(/\ue200entity\ue202([^\ue201]+)\ue201/g, (match, p1) => {
+try { return JSON.parse(p1)[1] || JSON.parse(p1)[0] || '' } catch { return '' }
+}).replace(/\ue200[^\ue201]*\ue201/g, '').trim()
+}
+async function getSession() {
 const deviceId = generateUUID()
-debugLog += `*Paso 1: Obteniendo sesión...*\n`
-const resReq = await axios.post('https://android.chat.openai.com/backend-anon/sentinel/chat-requirements', {}, {
+const res = await fetch('https://android.chat.openai.com/backend-anon/sentinel/chat-requirements', {
+method: 'POST',
 headers: {
 'User-Agent': 'ChatGPT/1.2026.181 (Android 16; Neo/1.0; build 2222222)',
+'OAI-Package-Name': 'com.openai.chatgpt',
+'OAI-Client-Type': 'android',
 'OAI-Device-Id': deviceId,
-'Accept': 'application/json'
+'Accept': 'application/json',
+'Content-Type': 'application/json'
 },
-validateStatus: () => true
+body: JSON.stringify({})
 })
-debugLog += `Status Req: ${resReq.status}\n`
-debugLog += `Token recibido: ${resReq.data?.token ? 'Sí' : 'No'}\n`
-debugLog += `Body Req: ${JSON.stringify(resReq.data).substring(0, 150)}\n\n`
-const reqToken = resReq.data?.token || ''
-debugLog += `*Paso 2: Enviando mensaje a la IA...*\n`
+if (!res.ok) throw new Error('Fallo al obtener token de seguridad')
+const data = await res.json()
+const cookieStr = res.headers.get('set-cookie') || ''
+const cookies = parseCookies(cookieStr)
+const cookieHeader = Object.entries(cookies).map(([k, v]) => `${k}=${v}`).join('; ')
+return { cookie: cookieHeader, deviceId, parentMessageId: generateUUID(), chatReqToken: data.token || '' }
+}
+async function chatgpt(prompt, auth = null, chatId = null) {
+auth = auth || await getSession()
+if (!auth.deviceId) auth = await getSession()
 const headers = {
 'User-Agent': 'ChatGPT/1.2026.181 (Android 16; Neo/1.0; build 2222222)',
-'OAI-Device-Id': deviceId,
+'OAI-Package-Name': 'com.openai.chatgpt',
+'OAI-Client-Type': 'android',
+'OAI-Device-Id': auth.deviceId,
 'Accept': 'text/event-stream',
 'Content-Type': 'application/json'
 }
-if (reqToken) headers['OpenAI-Sentinel-Chat-Requirements-Token'] = reqToken
+if (auth.cookie) headers['Cookie'] = auth.cookie
+if (auth.chatReqToken) headers['OpenAI-Sentinel-Chat-Requirements-Token'] = auth.chatReqToken
 const body = {
 action: "next",
 messages: [{
 id: generateUUID(),
 author: { role: "user" },
-content: { content_type: "text", parts: [text || "Hola"] },
+content: { content_type: "text", parts: [prompt] },
+status: "finished_successfully",
+recipient: "all"
 }],
 model: "auto",
-parent_message_id: generateUUID()
+history_and_training_disabled: false,
+force_use_sse: true,
+parent_message_id: auth.parentMessageId,
+timezone_offset_min: 240,
+supports_buffering: true
 }
-const resChat = await axios.post('https://android.chat.openai.com/backend-anon/f/conversation', body, {
+if (chatId) body.conversation_id = chatId
+const res = await fetch('https://android.chat.openai.com/backend-anon/f/conversation', {
+method: 'POST',
 headers,
-validateStatus: () => true
+body: JSON.stringify(body)
 })
-debugLog += `Status Chat: ${resChat.status}\n`
-const rawData = typeof resChat.data === 'object' ? JSON.stringify(resChat.data) : resChat.data.toString()
-debugLog += `Respuesta cruda (Body):\n${rawData.substring(0, 800)}`
-await m.reply(debugLog)
-await m.react('✅')
+if (!res.ok) {
+const errText = await res.text()
+throw new Error(`Error ${res.status}: ${errText}`)
+}
+let text = '', buf = '', finalChatId = chatId, currentAssistantMsgId = null
+for await (const chunk of res.body) {
+buf += chunk instanceof Uint8Array ? new TextDecoder().decode(chunk, { stream: true }) : chunk.toString()
+const lines = buf.split('\n')
+buf = lines.pop()
+for (const line of lines) {
+const trimmed = line.trim()
+if (!trimmed || trimmed === 'data: [DONE]') continue
+if (trimmed.startsWith('data: ')) {
+try {
+const data = JSON.parse(trimmed.substring(6))
+if (data.conversation_id) finalChatId = data.conversation_id
+const msg = data.v?.message || data.message
+if (msg?.author?.role === 'assistant') {
+currentAssistantMsgId = msg.id
+if (msg.content?.parts?.[0]) text = msg.content.parts[0]
+}
+} catch (e) {}
+}
+}
+}
+if (!text) throw new Error('La IA no devolvió texto.')
+if (currentAssistantMsgId) auth.parentMessageId = currentAssistantMsgId
+return { response: cleanSpecialTags(text), chatId: finalChatId, auth }
+}
+let handler = async (m, { conn, text, usedPrefix, command }) => {
+if (!text?.trim()) return m.reply(`> ꒰ঌ(˶ˆᗜˆ˵)໒꒱ 𝖯𝗈𝗋 𝖿⍺𝗏𝗈𝗋 𝗂𝗇𝗀𝗋𝖾𝗌⍺ 𝗎𝗇⍺ 𝗉𝗋𝖾𝗀𝗎𝗇𝗍⍺ 𝗉⍺𝗋⍺ 𝗅⍺ 𝖨𝖠... 🌸\n> 𝖤𝗃𝖾𝗆𝗉𝗅𝗈: *${usedPrefix}${command} ¿𝖢𝗎⍺́𝗇𝗍𝗈 𝖾𝗌 𝟤+𝟤?*`)
+await m.react?.('⏳')
+try {
+const userId = m.sender || m.chat
+sessions[userId] = sessions[userId] || {}
+const result = await chatgpt(text.trim(), sessions[userId].auth, sessions[userId].chatId)
+sessions[userId].auth = result.auth
+sessions[userId].chatId = result.chatId
+await conn.sendMessage(m.chat, { text: result.response }, { quoted: m })
+await m.react?.('✅')
 } catch (error) {
-debugLog += `\n*ERROR FATAL EN SCRIPT:*\n${error.message}\n`
-if (error.response) {
-debugLog += `\n*Detalle extra:*\nStatus: ${error.response.status}\nData: ${JSON.stringify(error.response.data)}`
-}
-await m.reply(debugLog)
-await m.react('💔')
+sessions[m.sender || m.chat] = {}
+console.error('[chatgpt error]:', error.message)
+await m.react?.('💔')
+await m.reply(`> (っ- ‸ - ς) 𝖮𝖼𝗎𝗋𝗋𝗂𝗈́ 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋 𝖼𝗈𝗇 𝗅⍺ 𝖨𝖠... ✨\n\n> 💡 *𝖣𝖾𝗍⍺𝗅𝗅𝖾:* \`${error.message}\``)
 }
 }
-handler.command = ['testgpt']
+handler.command = ['chatgpt', 'gpt', 'ia']
+handler.help = ['chatgpt <pregunta>']
+handler.tags = ['ai']
+handler.limit = true
+handler.register = true
 export default handler
