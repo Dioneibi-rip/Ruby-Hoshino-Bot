@@ -22,7 +22,6 @@ let nameTarget = await resolveIdentityName(conn, user, { fallback: `${String(use
 
 const targetParticipant = groupParticipants.find(p => p.id === user || p.lid === user || p.id.includes(user.split('@')[0]) || (p.lid && p.lid.includes(user.split('@')[0])))
 
-if (!targetParticipant) return conn.reply(m.chat, `> 🌨️ (っ- ‸ - ς) \`${nameTarget}\` 𝗒𝖺 𝗇𝗈 𝖾𝗌𝗍𝖺́ 𝖾𝗇 𝖾𝗅 𝗀𝗋𝗎𝗉𝗈... 💧`, m)
 if (user.includes(botJid.split(':')[0].split('@')[0])) return conn.reply(m.chat, `> 🧊 ¡𝖤𝗒! 𝖭𝗈 𝗆𝖾 𝗉𝗎𝖾𝖽𝗈 𝖾𝗑𝗉𝗎𝗅𝗌𝖺𝗋 𝖺 𝗆𝗂́ 𝗆𝗂𝗌𝗆𝗈 𝖽𝖾𝗅 𝗀𝗋𝗎𝗉𝗈 🪺`, m)
 if (user.includes(ownerGroup.split('@')[0])) return conn.reply(m.chat, `> 💍 𝖭𝗈 𝗉𝗎𝖾𝖽𝗈 𝖾𝗑𝗉𝗎𝗅𝗌𝖺𝗋 𝖺𝗅 𝗉𝗋𝗈𝗉𝗂𝖾𝗍𝖺𝗋𝗂𝗈 𝖽𝖾𝗅 𝗀𝗋𝗎𝗉𝗈, ¡𝖾𝗌 𝖾𝗅 𝗃𝖾𝖿𝖾! 👑`, m)
 if (user.includes(ownerBot.split('@')[0])) return conn.reply(m.chat, `> 🩵 𝖭𝗈 𝗉𝗎𝖾𝖽𝗈 𝖾𝗑𝗉𝗎𝗅𝗌𝖺𝗋 𝖺 𝗆𝗂 𝖼𝗋𝖾𝖺𝖽𝗈𝗋... 🍥`, m)
