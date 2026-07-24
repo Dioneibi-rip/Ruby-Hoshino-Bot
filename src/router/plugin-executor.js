@@ -40,8 +40,8 @@ return customMessage
 return null
 }
 
-async function claimRedisCooldown(conn, plugin, name, m, command, sender, bypass = false) {
-if (bypass || !pluginUsesRedisCooldown(plugin)) return { claimed: false, allowed: true, key: null }
+async function claimRedisCooldown(conn, plugin, name, m, command, sender) {
+if (!pluginUsesRedisCooldown(plugin)) return { claimed: false, allowed: true, key: null }
 if (!isRedisReady()) return { claimed: false, allowed: true, key: null }
 const seconds = getCooldownSeconds(plugin)
 const key = getCooldownKey(command || name, sender)
@@ -93,7 +93,7 @@ const xp = 'exp' in plugin ? parseInt(plugin.exp) : 17
 if (xp > 200) m.reply('chirrido -_-')
 else m.exp += xp
 
-const cooldownState = await claimRedisCooldown(conn, plugin, name, m, extra.command, sender, isBotSelf)
+const cooldownState = await claimRedisCooldown(conn, plugin, name, m, extra.command, sender)
 if (!cooldownState.allowed) return false
 
 let pluginResult
