@@ -25,6 +25,18 @@ function now() { return Date.now() }
 function q(name) { return `"${String(name).replace(/"/g, '""')}"` }
 function parseJSON(value, fallback = {}) { if (value == null || value === '') return fallback; try { return JSON.parse(value) } catch { return fallback } }
 function stringify(value) { return JSON.stringify(value ?? {}) }
+function sanitizeSqliteArg(value, { json = false } = {}) {
+if (typeof value === 'undefined') return null
+if (typeof value === 'boolean') return value ? 1 : 0
+if (value instanceof Date) return value.getTime()
+if (json) return safeJsonString(value, {})
+if (value && typeof value === 'object') return stringify(value)
+return value
+}
+function sanitizeSqliteParams(params = {}) {
+if (Array.isArray(params)) return params.map(value => sanitizeSqliteArg(value))
+return Object.fromEntries(Object.entries(params || {}).map(([key, value]) => [key, sanitizeSqliteArg(value)]))
+}
 function safeJsonString(value, fallback = {}) {
 if (value == null || value === '') return stringify(fallback)
 if (typeof value === 'string') {
@@ -243,10 +255,14 @@ console.error(`[sqlite] no se pudo migrar ${section} ${row?.id || '<sin-id>'}`, 
 this._migrateJsonUsersToTable()
 }
 _jsonSectionPayload(section, id, value) {
-const payload = { id, value: safeJsonString(value), updated_at: Math.floor(Date.now() / 1000) }
+const payload = {
+id: sanitizeSqliteArg(id),
+value: sanitizeSqliteArg(value, { json: true }),
+updated_at: sanitizeSqliteArg(Math.floor(Date.now() / 1000))
+}
 const columns = new Set(this.sqlite.prepare(`PRAGMA table_info(${section})`).all().map(col => col.name))
 if (columns.has('data')) payload.data = payload.value
-return payload
+return sanitizeSqliteParams(payload)
 }
 _jsonSectionUpsertStatement(section, { ignoreExisting = false } = {}) {
 const columns = new Set(this.sqlite.prepare(`PRAGMA table_info(${section})`).all().map(col => col.name))
@@ -689,7 +705,19 @@ chat.bannedBots = Object.entries(chat.botSettings).filter(([, value]) => value?.
 return chat
 }
 getChat(id) { if (!id || typeof id !== 'string') throw new TypeError('getChat requiere un id de chat válido'); const row = this.sqlite.prepare('SELECT value FROM chats WHERE id=?').get(id); return this.normalizeChatDefaults(parseJSON(row?.value, {})) }
-updateChat(id, patch = {}) { const chat = this.normalizeChatDefaults({ ...this.getChat(id), ...(patch || {}) }); this.set('chats', id, chat); const primary = chat.primaryBot || chat.botPrimario || ''; global.__rubyPrimaryBotCache?.set?.(id, primary ? String(primary).toLowerCase() : ''); return chat }
+updateChat(id, patch = {}) {
+const args = { id: sanitizeSqliteArg(id), patch: sanitizeSqliteArg(patch, { json: true }) }
+try {
+const chat = this.normalizeChatDefaults({ ...this.getChat(id), ...(patch || {}) })
+this.set('chats', id, chat)
+const primary = chat.primaryBot || chat.botPrimario || ''
+global.__rubyPrimaryBotCache?.set?.(id, primary ? String(primary).toLowerCase() : '')
+return chat
+} catch (error) {
+console.error('[sqlite] no se pudo actualizar chat', { args, error })
+return this.normalizeChatDefaults({ ...(patch || {}) })
+}
+}
 getGroup(id) { const row = this.sqlite.prepare('SELECT metadata_json FROM groups WHERE id=?').get(id); return parseJSON(row?.metadata_json, {}) }
 upsertGroupMetadata(id, metadata = {}) { if (!id || typeof id !== 'string') return null; const payload = { ...(metadata || {}), id }; const participants = Array.isArray(payload.participants) ? payload.participants : []; this.sqlite.prepare('INSERT INTO groups(id,subject,owner,participants_json,metadata_json,updated_at) VALUES(?,?,?,?,?,unixepoch()) ON CONFLICT(id) DO UPDATE SET subject=excluded.subject, owner=excluded.owner, participants_json=excluded.participants_json, metadata_json=excluded.metadata_json, updated_at=excluded.updated_at').run(id, String(payload.subject || ''), String(payload.owner || ''), stringify(participants), stringify(payload)); return payload }
 listGroups() { return Object.fromEntries(this.sqlite.prepare('SELECT id,metadata_json FROM groups').all().map(r => [r.id, parseJSON(r.metadata_json, {})])) }
@@ -812,7 +840,31 @@ return this.sqlite.prepare('DELETE FROM temporary_states WHERE expire_at <= ?').
 getRecord(section, id) { if (section === 'users') return this.getUser(id); if (section === 'sticker') return this.getStickerCommand(id); if (section === 'groups') return this.getGroup(id); if (section === 'claim_config') return this.sqlite.prepare('SELECT message FROM claim_config WHERE user_id=?').get(id)?.message; if (section === 'character_favorites') return this.sqlite.prepare('SELECT character_id FROM character_favorites WHERE user_id=?').get(id)?.character_id; if (section === 'chats') return this.getChat(id); if (section === 'settings') { const row = this.sqlite.prepare('SELECT value FROM settings WHERE id=?').get(id); return parseJSON(row?.value, undefined) } const row = this.statements.getJson.get(section, id); return parseJSON(row?.value, undefined) }
 setRecord(section, id, value) { return this.set(section, id, value) }
 countSection(section, filter = {}) { if (section === 'users') return this.sqlite.prepare('SELECT COUNT(*) AS total FROM users').get().total; if (section === 'chats' || section === 'settings') return this.sqlite.prepare(`SELECT COUNT(*) AS total FROM ${section}`).get().total; if (section === 'groups') return this.sqlite.prepare('SELECT COUNT(*) AS total FROM groups').get().total; if (section === 'claim_config') return this.sqlite.prepare('SELECT COUNT(*) AS total FROM claim_config').get().total; if (section === 'character_favorites') return this.sqlite.prepare('SELECT COUNT(*) AS total FROM character_favorites').get().total; return this.sqlite.prepare('SELECT COUNT(*) AS total FROM json_records WHERE section=?').get(section).total }
-set(section, id, value) { if (section === 'sticker') return this.setStickerCommand(id, value); if (section === 'users') return this.updateUser(id, value); if (section === 'groups') return this.upsertGroupMetadata(id, value); if (section === 'claim_config') return this.sqlite.prepare('INSERT INTO claim_config(user_id,message,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET message=excluded.message, updated_at=excluded.updated_at').run(id, String(value || ''), now()); if (section === 'character_favorites') return this.sqlite.prepare('INSERT INTO character_favorites(user_id,character_id,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET character_id=excluded.character_id, updated_at=excluded.updated_at').run(id, String(value || ''), now()); if (section === 'chats' || section === 'settings') return this._jsonSectionUpsertStatement(section).run(this._jsonSectionPayload(section, id, value)); this.statements.upsertJson.run(section, id, stringify(value)) }
+set(section, id, value) {
+const safeSection = sanitizeSqliteArg(section)
+const safeId = sanitizeSqliteArg(id)
+const safeTextValue = sanitizeSqliteArg(value == null ? '' : String(value))
+const safeJsonValue = sanitizeSqliteArg(value, { json: true })
+try {
+if (section === 'sticker') return this.setStickerCommand(safeId, value)
+if (section === 'users') return this.updateUser(safeId, value)
+if (section === 'groups') return this.upsertGroupMetadata(safeId, value)
+if (section === 'claim_config') return this.sqlite.prepare('INSERT INTO claim_config(user_id,message,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET message=excluded.message, updated_at=excluded.updated_at').run(safeId, safeTextValue, sanitizeSqliteArg(now()))
+if (section === 'character_favorites') return this.sqlite.prepare('INSERT INTO character_favorites(user_id,character_id,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET character_id=excluded.character_id, updated_at=excluded.updated_at').run(safeId, safeTextValue, sanitizeSqliteArg(now()))
+if (section === 'chats' || section === 'settings') {
+const payload = this._jsonSectionPayload(section, safeId, value)
+const columns = Object.keys(payload)
+const placeholders = columns.map(() => '?').join(',')
+const updates = columns.filter(column => column !== 'id').map(column => `${column}=excluded.${column}`)
+const sql = `INSERT INTO ${section}(${columns.join(',')}) VALUES(${placeholders}) ON CONFLICT(id) DO UPDATE SET ${updates.join(', ')}`
+return this.sqlite.prepare(sql).run(...Object.values(payload).map(arg => sanitizeSqliteArg(arg)))
+}
+return this.statements.upsertJson.run(safeSection, safeId, safeJsonValue)
+} catch (error) {
+console.error('[sqlite] no se pudo guardar registro', { args: { section: safeSection, id: safeId, value: safeJsonValue }, error })
+return undefined
+}
+}
 has(section, id) { if (section === 'users') return this.userExists(id); return this.get(section, id) !== undefined }
 delete(section, id) { if (section === 'sticker') return this.sqlite.prepare('DELETE FROM sticker_cmds WHERE hash=?').run(id); if (section === 'claim_config') return this.sqlite.prepare('DELETE FROM claim_config WHERE user_id=?').run(id); if (section === 'character_favorites') return this.sqlite.prepare('DELETE FROM character_favorites WHERE user_id=?').run(id); if (section === 'chats' || section === 'settings' || section === 'groups') { const table = section === 'groups' ? 'groups' : section; return this.sqlite.prepare(`DELETE FROM ${table} WHERE id=?`).run(id) } if (section === 'users') { for (const [cachedId, cachedUser] of this.userCache.entries()) if (cachedUser?.marry === id) { cachedUser.marry = ''; this.userCache.set(cachedId, cachedUser) } this.userCache.delete(id); this.userProxyCache.delete(id); this.dirtyUsers.delete(id); const tx = this.sqlite.transaction(userId => { this.sqlite.prepare('DELETE FROM marriages WHERE user_id=? OR partner_id=?').run(userId, userId); this.sqlite.prepare("UPDATE users SET marry='' WHERE marry=?").run(userId); this.sqlite.prepare("UPDATE harem SET user_id='', protection_json='{}' WHERE user_id=?").run(userId); return this.sqlite.prepare('DELETE FROM users WHERE id=?').run(userId) }); return tx(id) } this.sqlite.prepare('DELETE FROM json_records WHERE section=? AND id=?').run(section, id) }
 _createDataFacade() { return { users: this._sectionFacade('users'), chats: this._sectionFacade('chats'), settings: this._sectionFacade('settings'), stats: this._sectionFacade('stats'), msgs: this._sectionFacade('msgs'), sticker: this._sectionFacade('sticker'), sessions: this._sectionFacade('sessions'), codes: this._sectionFacade('codes') } }
