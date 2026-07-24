@@ -43,7 +43,7 @@ const resultado = rollRoulette();
 const multipliers = { red: 2, black: 2, green: 14 };
 const gano = resultado === color;
 const premio = gano ? Math.floor(bet * multipliers[color]) : 0;
-const updated = global.db.settleUserBet(m.sender, { field: 'coin', bet, payout: premio });
+const updated = await global.db.settleUserBet(m.sender, { field: 'coin', bet, payout: premio });
 if (!updated) {
 await conn.reply(m.chat, `《✧》Tu saldo cambió antes de completar la apuesta. Vuelve a intentarlo.`, m);
 return false;

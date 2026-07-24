@@ -22,9 +22,9 @@ await conn.reply(m.chat, `${emoji2} Este código fue agotado completamente... Es
 return false;
 }
 
-global.db.addMoney(m.sender, codesDB[code].coin);
+await global.db.addMoney(m.sender, codesDB[code].coin);
 codesDB[code].claimedBy.push(m.sender);
-global.db.replaceSection('codes', codesDB);
+await global.db.replaceSection('codes', codesDB);
 
 let remaining = Math.max(0, 5 - codesDB[code].claimedBy.length);
 

@@ -273,12 +273,12 @@ const normalizedJid = normalizeSubBotJid(jid || sock?.subBotJid || sock?.user?.j
 const sessionId = id || sock?.subBotId || subBotSessionId(normalizedJid)
 const pathsToRemove = new Set([sessionPath, sock?.session?.path].filter(Boolean))
 try {
-if (sock?.ws?.socket?.readyState === ws.OPEN || sock?.ws?.socket?.readyState === ws.CONNECTING) {
-try { sock.end?.() } catch (error) { console.error(`Error cerrando Sub-Bot ${sessionId} con end():`, error) }
-try { sock.ws?.close?.() } catch (error) { console.error(`Error cerrando websocket del Sub-Bot ${sessionId}:`, error) }
+if (sock && (sock?.ws?.socket?.readyState === ws.OPEN || sock?.ws?.socket?.readyState === ws.CONNECTING || typeof sock?.end === 'function' || typeof sock?.ws?.close === 'function')) {
+try { sock?.end?.() } catch (error) { console.error(`Error cerrando Sub-Bot ${sessionId} con end():`, error) }
+try { sock?.ws?.close?.() } catch (error) { console.error(`Error cerrando websocket del Sub-Bot ${sessionId}:`, error) }
 }
 try { sock?.ev?.removeAllListeners?.() } catch (error) { console.error(`Error quitando listeners del Sub-Bot ${sessionId}:`, error) }
-clearSubBotMemoryRefs(sock)
+if (sock) clearSubBotMemoryRefs(sock)
 if (Array.isArray(global.conns)) {
 global.conns = global.conns.filter(conn => conn && conn !== sock && conn.subBotId !== sessionId && normalizeSubBotJid(conn.subBotJid || conn.user?.jid || conn.authState?.creds?.me?.jid || '') !== normalizedJid)
 }

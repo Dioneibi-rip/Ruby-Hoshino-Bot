@@ -56,7 +56,7 @@ delete proposals[proposeeJid];
 
 const fecha = Date.now();
 if (typeof global.db.setMarriagePair === 'function') {
-global.db.setMarriagePair(proposerJid, proposeeJid, fecha);
+await global.db.setMarriagePair(proposerJid, proposeeJid, fecha);
 } else {
 let user1 = global.db.getUser(proposerJid);
 let user2 = global.db.getUser(proposeeJid);
@@ -97,7 +97,7 @@ if (!isUserMarried(marriages, proposerJid)) throw new Error('No estás casado co
 let partner = getPartner(marriages, proposerJid);
 
 if (typeof global.db.divorcePair === 'function') {
-global.db.divorcePair(proposerJid);
+await global.db.divorcePair(proposerJid);
 } else {
 let userDb = global.db.getUser(proposerJid);
 let partnerDb = global.db.getUser(partner);
