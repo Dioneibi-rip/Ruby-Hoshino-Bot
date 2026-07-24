@@ -4,8 +4,9 @@ class StickerLy {
 async search(query) {
 if (!query) throw new Error('Query requerida')
 const { data } = await axios.post('https://api.sticker.ly/v4/stickerPack/smartSearch', { keyword: query, enabledKeywordSearch: true, filter: { extendSearchResult: false, sortBy: 'RECOMMENDED', languages: ['ALL'], minStickerCount: 3, searchBy: 'ALL', stickerType: 'ALL' } }, { headers: { 'user-agent': 'androidapp.stickerly/3.17.0 (Redmi Note 4; U; Android 29; in-ID; id;)', 'content-type': 'application/json', 'accept-encoding': 'gzip' } })
-if (!data.result || !data.result.stickerPacks || !data.result.stickerPacks.length) return []
-const packs = data.result.stickerPacks.map(pack => ({ name: pack.name || 'Sin nombre', author: pack.authorName || 'Desconocido', url: pack.shareUrl, stickerCount: pack.resourceFiles?.length || pack.stickerCount || 0, viewCount: pack.viewCount || 0, exportCount: pack.exportCount || 0, isAnimated: pack.isAnimated || false })).filter(pack => {
+const stickerPacks = Array.isArray(data?.result?.stickerPacks) ? data.result.stickerPacks : []
+if (!stickerPacks.length) return []
+const packs = stickerPacks.map(pack => ({ name: pack.name || 'Sin nombre', author: pack.authorName || 'Desconocido', url: pack.shareUrl, stickerCount: pack.resourceFiles?.length || pack.stickerCount || 0, viewCount: pack.viewCount || 0, exportCount: pack.exportCount || 0, isAnimated: pack.isAnimated || false })).filter(pack => {
 if (!pack.url || pack.stickerCount < 3) return false
 const name = pack.name.toLowerCase()
 const badNames = ['my stickers', 'test', 'sin nombre']
@@ -22,9 +23,16 @@ async detail(url) {
 const match = url.match(/\/s\/([^\/\?#]+)/)
 if (!match) throw new Error('URL inválida')
 const { data } = await axios.get(`https://api.sticker.ly/v4/stickerPack/${match[1]}?needRelation=true`, { headers: { 'user-agent': 'androidapp.stickerly/3.17.0 (Redmi Note 4; U; Android 29; in-ID; id;)', 'content-type': 'application/json', 'accept-encoding': 'gzip' } })
-if (!data.result) throw new Error('Paquete no encontrado')
-const stickers = data.result.stickers.map(stick => ({ fileName: stick.fileName, isAnimated: stick.isAnimated || false, imageUrl: stick.resourceUrl || `${data.result.resourceUrlPrefix}${stick.fileName}` })).filter(stick => stick.imageUrl)
-return { name: data.result.name || 'Sin nombre', author: data.result.user?.displayName || 'Desconocido', stickers, stickerCount: stickers.length }
+const result = data?.result
+if (!result || typeof result !== 'object') throw new Error('Paquete no encontrado')
+const stickerItems = Array.isArray(result.stickers) ? result.stickers : []
+if (!stickerItems.length) throw new Error('Paquete sin stickers válidos')
+const resourceUrlPrefix = String(result.resourceUrlPrefix || '')
+const stickers = stickerItems.map(stick => {
+const fileName = String(stick?.fileName || '')
+return { fileName, isAnimated: Boolean(stick?.isAnimated), imageUrl: stick?.resourceUrl || (resourceUrlPrefix && fileName ? `${resourceUrlPrefix}${fileName}` : '') }
+}).filter(stick => stick.imageUrl)
+return { name: result.name || 'Sin nombre', author: result.user?.displayName || 'Desconocido', stickers, stickerCount: stickers.length }
 }
 }
 let handler = async (m, { conn, text, usedPrefix, command }) => {
@@ -70,8 +78,8 @@ coverBuffer = buffer
 }
 stickersArray.push({ media: buffer, isAnimated: sticker.isAnimated, emojis: ['🎀'] })
 } catch (err) {
-console.log(`Error al procesar sticker ${i + 1}:`, err.message)
-return false;
+console.log(`Error al procesar sticker ${i + 1}:`, err?.message || err)
+continue
 }
 }
 if (stickersArray.length === 0) {
@@ -85,7 +93,9 @@ await m.react('🎀')
 } catch (e) {
 console.error(e)
 await m.react('🥀')
-m.reply(`───│ ❌ 𝖮𝖼𝗎𝗋𝗋𝗂𝗈́ 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋:\n${e.message} ✉𓈒𓂂ׅ◝ׄ`)
+const errorMessage = e?.message || 'No se encontró el paquete de stickers solicitado.'
+const friendlyMessage = /no encontrado|sin stickers|inválida|not found/i.test(errorMessage) ? 'No se encontró un paquete de stickers válido para esa búsqueda o URL.' : errorMessage
+await m.reply(`───│ ❌ ${friendlyMessage} ✉𓈒𓂂ׅ◝ׄ`)
 return false;
 }
 }

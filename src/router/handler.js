@@ -439,11 +439,13 @@ function canBypassSilencedChat(message = {}) {
 return isCelestialCommandMessage(message)
 }
 
-async function forceResetBotState(conn, m, sender, participantsByLid = null) {
+async function forceResetBotState(conn, m, sender, participantsByLid = null, participants = []) {
 let normalizedSender = sender
 if (m?.isGroup && participantsByLid) normalizedSender = normalizeLidReferences(m, normalizedSender, participantsByLid)
 normalizedSender = await normalizeMessageIdentifiers(conn, m, normalizedSender, participantsByLid)
-if (!isAuthorizedOwner(normalizedSender)) return true
+const permissionContext = buildPermissionContext(conn, m, normalizedSender, participants)
+if (m?.isGroup && !(permissionContext.isAdmin || permissionContext.isOwner || permissionContext.isROwner || canManageBotSecurity(normalizedSender, conn))) return true
+if (!m?.isGroup && !isAuthorizedOwner(normalizedSender)) return true
 const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
 if (!chat) return true
 resetChatBotRouting(chat)
@@ -776,7 +778,7 @@ if (!sender) return
 const groupMetadata = m.isGroup ? await getGroupMetadataOnDemand(this, m.chat, { requireParticipants: true }) : {}
 const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
 const participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
-await forceResetBotState(this, m, sender, participantsByLid)
+await forceResetBotState(this, m, sender, participantsByLid, participants)
 return
 }
 

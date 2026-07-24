@@ -28,8 +28,8 @@ const key = getCooldownKey(command, userId);
 try {
 const value = await redis.get(key);
 if (!value) continue;
-const ttl = await redis.pttl(key);
-if (Number.isFinite(ttl) && ttl > 0) ttls.push(ttl);
+const ttlSeconds = await redis.ttl(key);
+if (Number.isFinite(ttlSeconds) && ttlSeconds > 0) ttls.push(ttlSeconds * 1000);
 } catch (error) {
 console.error('[ginfo] No se pudo consultar cooldown:', error);
 return 'Ahora.';
@@ -84,7 +84,7 @@ const character = charactersById.get(characterId);
 return sum + (Number(character?.value) || 0);
 }, 0);
 
-const response = `*❀ Usuario <${userName}>*\n\n` +
+const response = '*❀ Usuario `<' + `¡ ${userName} ! ₍ᐢ..ᐢ₎⁩` + '>`*\n\n' +
 `ⴵ RollWaifu » *${rwStatus || 'Ahora.'}*\n` +
 `ⴵ Claim » *${claimStatus || 'Ahora.'}*\n` +
 `ⴵ Vote » *${voteStatus || 'Ahora.'}*\n\n` +
