@@ -1,4 +1,4 @@
-function getTargetJid(m) {
+ function getTargetJid(m) {
 return m.mentionedJid?.[0] || m.quoted?.sender || ''
 }
 
@@ -16,7 +16,7 @@ return String(a || '').split(':')[0] === String(b || '').split(':')[0]
 
 async function handler(m, { conn, participants = [] }) {
 const user = getTargetJid(m)
-if (!user) return conn.reply(m.chat, ` 𝜗ৎ ¡𝖧𝗈𝗅𝖺 𝗅𝗂𝗇𝖽𝗑! 𝖣𝖾𝖻𝖾𝗌 𝗆𝖾𝗇𝖼𝗂𝗈𝗇𝖺𝗋 𝗈 𝗋𝖾𝗌𝗉𝗈𝗇𝖽𝖾𝗋 𝖺 𝗎𝗇 𝗎𝗌𝗎𝖺𝗋𝗂𝗈 𝗉𝖺𝗋𝖺 𝖾𝗑𝗉𝗎𝗅𝗌𝖺𝗋𝗅𝗈 🪽`, m)
+if (!user) return conn.reply(m.chat, ` Debes mencionar a un usuario para poder expulsarlo del grupo.`, m)
 
 const groupInfo = await conn.groupMetadata(m.chat)
 const groupParticipants = Array.isArray(groupInfo?.participants) && groupInfo.participants.length ? groupInfo.participants : participants
