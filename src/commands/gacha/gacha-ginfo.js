@@ -25,20 +25,22 @@ const ttls = [];
 for (const command of commands) {
 if (!command) continue;
 const key = getCooldownKey(command, userId);
+try {
 const value = await redis.get(key);
 if (!value) continue;
 const ttl = await redis.pttl(key);
 if (Number.isFinite(ttl) && ttl > 0) ttls.push(ttl);
+} catch (error) {
+console.error('[ginfo] No se pudo consultar cooldown:', error);
+return 'Ahora.';
+}
 }
 return ttls.length ? formatTime(Math.max(...ttls)) : 'Ahora.';
 }
 
 function normalizeUserId(userId = '') {
 if (!userId) return '';
-const normalized = String(userId).trim();
-if (!normalized) return '';
-if (normalized.endsWith('@lid')) return `${normalized.split('@')[0]}@s.whatsapp.net`;
-return normalized;
+return String(userId).trim();
 }
 
 function getSeriesName(character = {}) {

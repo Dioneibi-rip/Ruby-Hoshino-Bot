@@ -1,8 +1,9 @@
 import { formatJobLine, ensureJobFields } from '../../library/rpg-jobs.js'
 import { resolveInteractionTarget, resolveIdentityName } from '../../core/identity-utils.js'
 
-let handler = async (m, {conn, usedPrefix}) => {
-let who = await resolveInteractionTarget(m, conn)
+let handler = async (m, {conn, usedPrefix, participants = []}) => {
+const participantsByLid = global.buildParticipantsByLid?.(participants) || null
+let who = await resolveInteractionTarget(m, conn, { participantsByLid })
 let user = global.db.getUser(who)
 ensureJobFields(user)
 let trabajo = formatJobLine(user)

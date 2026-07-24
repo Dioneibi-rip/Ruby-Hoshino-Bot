@@ -23,12 +23,13 @@ const INTERNAL_PROPS = new Set(['then', 'inspect', 'toJSON', 'valueOf', Symbol.t
 function ensureDir(filename) { const dir = path.dirname(filename); if (dir && dir !== '.' && !existsSync(dir)) mkdirSync(dir, { recursive: true }) }
 function now() { return Date.now() }
 function q(name) { return `"${String(name).replace(/"/g, '""')}"` }
-function parseJSON(value, fallback = {}) { if (value == null || value === '') return fallback; try { return JSON.parse(value) } catch { return fallback } }
+function parseJSON(value, fallback = {}) { if (value == null || value === '') return fallback; if (typeof value === 'object') return value; try { return JSON.parse(value) } catch { return fallback } }
 function stringify(value) { return JSON.stringify(value ?? {}) }
 function sanitizeSqliteArg(value, { json = false } = {}) {
 if (typeof value === 'undefined') return null
 if (typeof value === 'boolean') return value ? 1 : 0
 if (value instanceof Date) return value.getTime()
+if (Buffer.isBuffer(value) || value instanceof Uint8Array) return value
 if (json) return safeJsonString(value, {})
 if (value && typeof value === 'object') return stringify(value)
 return value
@@ -36,6 +37,64 @@ return value
 function sanitizeSqliteParams(params = {}) {
 if (Array.isArray(params)) return params.map(value => sanitizeSqliteArg(value))
 return Object.fromEntries(Object.entries(params || {}).map(([key, value]) => [key, sanitizeSqliteArg(value)]))
+}
+function sanitizeSqliteArgs(args = [], statement = null, { prefixNamed = false } = {}) {
+if (args.length === 1 && args[0] && typeof args[0] === 'object' && !Array.isArray(args[0]) && !(args[0] instanceof Date) && !Buffer.isBuffer(args[0]) && !(args[0] instanceof Uint8Array)) {
+const params = sanitizeSqliteParams(args[0])
+const source = String(statement?.source || '')
+const placeholders = [...source.matchAll(/[@:$][A-Za-z_][A-Za-z0-9_]*/g)].map(match => match[0])
+if (!placeholders.length) return [params]
+const bound = {}
+for (const placeholder of [...new Set(placeholders)]) {
+const key = placeholder.slice(1)
+const outputKey = prefixNamed ? placeholder : key
+if (Object.prototype.hasOwnProperty.call(params, placeholder)) bound[outputKey] = params[placeholder]
+else if (Object.prototype.hasOwnProperty.call(params, key)) bound[outputKey] = params[key]
+else bound[outputKey] = null
+}
+return [bound]
+}
+return args.map(value => sanitizeSqliteArg(value))
+}
+function sanitizeRowJson(row) {
+if (!row || typeof row !== 'object') return row
+for (const [key, value] of Object.entries(row)) {
+if (typeof value !== 'string') continue
+const trimmed = value.trim()
+if (!trimmed || !/^(?:\{|\[)/.test(trimmed)) continue
+try { row[key] = JSON.parse(trimmed) } catch {}
+}
+return row
+}
+function patchSQLiteStatement(statement) {
+if (!statement || statement.__rubySanitized) return statement
+for (const method of ['run', 'get', 'all', 'runAsync', 'getAsync', 'allAsync']) {
+if (typeof statement[method] !== 'function') continue
+const original = statement[method].bind(statement)
+statement[method] = (...args) => {
+let result
+try {
+result = original(...sanitizeSqliteArgs(args, statement))
+} catch (error) {
+if (error?.message !== 'Invalid argument') throw error
+result = original(...sanitizeSqliteArgs(args, statement, { prefixNamed: true }))
+}
+if (method === 'get') return sanitizeRowJson(result)
+if (method === 'all') return Array.isArray(result) ? result.map(sanitizeRowJson) : result
+if (method === 'getAsync') return Promise.resolve(result).then(sanitizeRowJson)
+if (method === 'allAsync') return Promise.resolve(result).then(rows => Array.isArray(rows) ? rows.map(sanitizeRowJson) : rows)
+return result
+}
+}
+Object.defineProperty(statement, '__rubySanitized', { value: true })
+return statement
+}
+function patchSQLiteConnection(sqlite) {
+if (!sqlite || sqlite.__rubySanitizedPrepare || typeof sqlite.prepare !== 'function') return sqlite
+const prepare = sqlite.prepare.bind(sqlite)
+sqlite.prepare = (...args) => patchSQLiteStatement(prepare(...args))
+Object.defineProperty(sqlite, '__rubySanitizedPrepare', { value: true })
+return sqlite
 }
 function safeJsonString(value, fallback = {}) {
 if (value == null || value === '') return stringify(fallback)
@@ -118,7 +177,7 @@ export class SQLiteDatabase {
 constructor(filename = './src/database/database.sqlite') {
 this.filename = filename
 ensureDir(filename)
-this.sqlite = new Database(filename)
+this.sqlite = patchSQLiteConnection(new Database(filename))
 this.sqlite.pragma('journal_mode = WAL')
 this.sqlite.pragma('synchronous = NORMAL')
 this.sqlite.pragma('cache_size = -20000')

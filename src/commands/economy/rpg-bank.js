@@ -3,11 +3,11 @@ import { formatJobLine, ensureJobFields } from '../../library/rpg-jobs.js'
 import { buildParticipantsByLid, resolveInteractionTarget, normalizeIdentityJid, resolveIdentityName } from '../../core/identity-utils.js'
 
 let handler = async (m, { conn, usedPrefix, participants = [] }) => {
-let who = await resolveInteractionTarget(m, conn)
+const participantsByLid = buildParticipantsByLid(participants)
+let who = await resolveInteractionTarget(m, conn, { participantsByLid })
 
 if (who === conn.user.jid) return m.react('✖️')
 
-const participantsByLid = buildParticipantsByLid(participants)
 let primaryJid = await normalizeIdentityJid(conn, who, participantsByLid)
 
 const user = global.db.getUser(primaryJid)

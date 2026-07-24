@@ -1,4 +1,5 @@
 import { JOBS, normalizeJobInput, getJobData, getJobTenureDays } from '../../library/rpg-jobs.js'
+import { buildParticipantsByLid, normalizeIdentityJid } from '../../core/identity-utils.js'
 
 const JOB_LIST = Object.values(JOBS).filter((job) => job?.key && job.key !== 'ninguno')
 const PICK_WORDS = new Set(['elegir', 'set', 'escoger', 'seleccionar', 'tomar', 'cambiar'])
@@ -31,11 +32,11 @@ function renderJobs(usedPrefix, conn) {
   ].join('\n')
 }
 
-function normalizeSender(m, participants = []) {
+async function normalizeSender(conn, m, participants = []) {
   const sender = String(m?.sender || '').trim()
   if (!sender.endsWith('@lid') || !m?.isGroup) return sender
-  const participant = participants.find((entry) => entry?.lid === sender || entry?.jid === sender || entry?.id === sender)
-  return participant?.id || participant?.jid || sender
+  const participantsByLid = buildParticipantsByLid(participants)
+  return await normalizeIdentityJid(conn, sender, participantsByLid) || sender
 }
 
 function resolveJobKey(input = '') {
@@ -62,7 +63,7 @@ async function persistUserPatch(jid, patch) {
 }
 
 const handler = async (m, { conn, usedPrefix, args = [], participants = [] }) => {
-  const jid = normalizeSender(m, participants)
+  const jid = await normalizeSender(conn, m, participants)
   if (!jid) return conn.reply(m.chat, '❌ No pude identificar tu usuario para guardar el trabajo.', m)
 
   const action = String(args[0] || '').trim().toLowerCase()

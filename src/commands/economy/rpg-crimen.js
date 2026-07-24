@@ -41,7 +41,7 @@ if (roll < jailChance + successChance) {
 let baseAmount = Math.floor((Math.random() * 4500 + 3000) * 0.5);
 let amount = Math.floor(baseAmount * job.crimeRewardMultiplier * (user.premium ? 1.18 : 1) * crimeBonus * 0.33);
 user.coin = (user.coin || 0) + amount;
-global.db.updateUser(senderId, { coin: user.coin });
+await global.db.updateUser(senderId, { coin: user.coin });
 
 let phraseList = useGeneric ? frasesCrimenGenericas.success : (frasesCrimenPorTrabajo[job.key]?.success || frasesCrimenGenericas.success);
 let phrase = pickRandom(phraseList);
@@ -53,7 +53,7 @@ return conn.reply(m.chat, texto, m);
 let rawLossAmount = Math.floor((Math.random() * 2400 + 1600) * (user.premium ? 1.05 : 1.35) * lossResist);
 let loss = rawLossAmount;
 user.coin = (Number(user.coin) || 0) - loss;
-global.db.updateUser(senderId, { coin: user.coin });
+await global.db.updateUser(senderId, { coin: user.coin });
 
 let phraseList = useGeneric ? frasesCrimenGenericas.fail : (frasesCrimenPorTrabajo[job.key]?.fail || frasesCrimenGenericas.fail);
 let phrase = pickRandom(phraseList);

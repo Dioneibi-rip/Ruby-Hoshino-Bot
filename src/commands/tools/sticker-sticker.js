@@ -1,7 +1,7 @@
 import { sticker } from '../../library/sticker.js'
 
 let handler = async (m, { conn, args }) => {
-let q = m.quoted ? m.quoted : m
+let q = m?.quoted || m
 let mime = getMime(q)
 if (!mime && !(args[0] && isUrl(args[0]))) {
 await conn.reply(m.chat, '❌ Envía o responde a una imagen / gif / video con el comando.', m)
@@ -16,7 +16,7 @@ const txt = args.join(' ').trim()
 const marca = txt ? txt.split(/[\u2022|]/).map(v => v.trim()) : [defaultPack, defaultAuthor]
 let stiker = null
 if (mime) {
-if (/video/.test(mime) && q.seconds > 15) {
+if (/video/.test(mime) && Number(q?.seconds || q?.msg?.seconds || 0) > 15) {
 await conn.reply(m.chat, '❌ El video no puede durar más de *15 segundos*', m)
 return false
 }
@@ -40,12 +40,14 @@ handler.command = ['s','sticker']
 export default handler
 
 function getMime(q) {
-return q.mimetype || q.mediaType || q.message?.imageMessage?.mimetype || q.message?.videoMessage?.mimetype || q.message?.stickerMessage?.mimetype || ''
+const message = q?.message || q?.msg || {}
+return q?.mimetype || q?.mediaType || message?.imageMessage?.mimetype || message?.videoMessage?.mimetype || message?.stickerMessage?.mimetype || ''
 }
 
 async function downloadMedia(q, conn) {
-if (typeof q.download === 'function') return await q.download()
-if (q.message) return await conn.downloadMediaMessage(q)
+if (!q) return null
+if (typeof q?.download === 'function') return await q.download()
+if (q?.message || q?.msg) return await conn.downloadMediaMessage(q)
 return null
 }
 

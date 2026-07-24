@@ -8,7 +8,7 @@ if(deuda<0)return conn.reply(m.chat,`${emoji2} No puedes reiniciar tu cuenta mie
 if(confirmar!=='si')return conn.reply(m.chat,`${emoji2} ¿Seguro que quieres reiniciar totalmente tu cuenta? Se borrarán economía, nivel, trabajos, matrimonio, estadísticas y cualquier progreso.
 
 Escribe *${usedPrefix+command} si* para confirmar.`,m)
-global.db.delete('users',m.sender)
+await global.db.delete('users',m.sender)
 return conn.reply(m.chat,`${emoji} Tu cuenta fue eliminada por completo. En tu próximo mensaje se creará otra vez desde cero con trabajo Ninguno, 0 monedas y sin vínculos anteriores.`,m)
 }
 handler.help=['unreg','quitaregistro','reset']

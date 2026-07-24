@@ -14,7 +14,7 @@ const type='coin'
 const bankType='bank'
 if(!global.db.userExists(targetJid))return m.reply(`❌ ᥱᥣ ᥙsᥙᥲrі᥆ ᥒ᥆ sᥱ ᥱᥒᥴᥙᥱᥒ𝗍rᥲ ᥱᥒ mі ᑲᥲsᥱ ძᥱ datos.`)
 if(targetJid===senderJid)return m.reply(`❌ ᥒ᥆ ⍴ᥙᥱძᥱs 𝗍rᥲᥒs𝖿ᥱrіr𝗍ᥱ ძіᥒᥱr᥆ ᥲ 𝗍і mіsm᥆.`)
-const transfer=global.db.transferBetweenUsers(senderJid,targetJid,{debitField:bankType,creditField:type,amount:count,creditAmount:received})
+const transfer=await global.db.transferBetweenUsers(senderJid,targetJid,{debitField:bankType,creditField:type,amount:count,creditAmount:received})
 if(!transfer)return m.reply(`⚠️ ᥒ᥆ 𝗍іᥱᥒᥱs sᥙ𝖿іᥴіᥱᥒ𝗍ᥱs ${m.moneda} ᥱᥒ ᥱᥣ ᑲᥲᥒᥴ᥆ ⍴ᥲrᥲ rᥱᥲᥣіzᥲr ᥣᥲ transferenciᥲ.`)
 const user=transfer.sender
 const mentionText=await resolveIdentityName(conn,targetJid,{participantsByLid,fallback:`@${String(targetJid).split('@')[0]}`})
