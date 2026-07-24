@@ -58,7 +58,8 @@ function snapshotUser(user = {}) {
 
 async function persistUserPatch(jid, patch) {
   if (!global.db?.updateUser) throw new Error('Base de datos no disponible para updateUser')
-  const result = await global.db.updateUser(jid, patch)
+  const writer = typeof global.db.updateUserAsync === 'function' ? global.db.updateUserAsync : global.db.updateUser
+  const result = await writer.call(global.db, jid, patch)
   return result
 }
 
@@ -69,7 +70,7 @@ const handler = async (m, { conn, usedPrefix, args = [], participants = [] }) =>
   const action = String(args[0] || '').trim().toLowerCase()
   if (!action || LIST_WORDS.has(action)) return conn.reply(m.chat, renderJobs(usedPrefix, conn), m)
 
-  const currentUser = global.db?.getUser?.(jid) || {}
+  const currentUser = typeof global.db?.getUserAsync === 'function' ? await global.db.getUserAsync(jid, { bypassCache: true }) : global.db?.getUser?.(jid) || {}
   const current = snapshotUser(currentUser)
 
   if (INFO_WORDS.has(action)) {
