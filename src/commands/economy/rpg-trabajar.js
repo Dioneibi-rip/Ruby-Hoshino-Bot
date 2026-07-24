@@ -38,7 +38,7 @@ await global.db.updateUser(senderId, { coin: user.coin, jobXp: user.jobXp });
 let phraseList = useGeneric ? frasesGenericas.success : (frasesPorTrabajo[job.key]?.success || frasesGenericas.success);
 let phrase = pickRandom(phraseList);
 
-let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐆𝐚𝐧𝐚𝐬𝐭𝐞: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐗𝐏: *+${xpEarned}*\n\nㅤㅤ ⬫   ͜ ۬ ︵࣪᷼⏜݊᷼✿⃘𐇽۫ꥈ࣪࣪࣪࣪࣪࣪࣪࣪࣪۬۬۬࣪࣪࣪۬۬۬𝇈ٜ࣪࣪࣪࣪࣪۬۬࣪࣪࣪۬۬𑁍ٜ𐇽࣪࣪࣪࣪࣪۬۬࣪࣪࣪۬ 𝇈⃘۫ꥈ࣪࣪࣪࣪࣪࣪࣪࣪࣪۬۬۬࣪࣪࣪۬۬۬✿݊᷼⏜࣪᷼︵۬ ͜   ⬫`;
+let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐆𝐚𝐧𝐚𝐬𝐭𝐞: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐗𝐏: *+${xpEarned}*`;
 return conn.reply(m.chat, texto, m);
 }
 
