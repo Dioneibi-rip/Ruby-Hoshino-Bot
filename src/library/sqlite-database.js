@@ -38,8 +38,22 @@ function sanitizeSqliteParams(params = {}) {
 if (Array.isArray(params)) return params.map(value => sanitizeSqliteArg(value))
 return Object.fromEntries(Object.entries(params || {}).map(([key, value]) => [key, sanitizeSqliteArg(value)]))
 }
-function sanitizeSqliteArgs(args = []) {
-if (args.length === 1 && args[0] && typeof args[0] === 'object' && !Array.isArray(args[0]) && !(args[0] instanceof Date) && !Buffer.isBuffer(args[0]) && !(args[0] instanceof Uint8Array)) return [sanitizeSqliteParams(args[0])]
+function sanitizeSqliteArgs(args = [], statement = null, { prefixNamed = false } = {}) {
+if (args.length === 1 && args[0] && typeof args[0] === 'object' && !Array.isArray(args[0]) && !(args[0] instanceof Date) && !Buffer.isBuffer(args[0]) && !(args[0] instanceof Uint8Array)) {
+const params = sanitizeSqliteParams(args[0])
+const source = String(statement?.source || '')
+const placeholders = [...source.matchAll(/[@:$][A-Za-z_][A-Za-z0-9_]*/g)].map(match => match[0])
+if (!placeholders.length) return [params]
+const bound = {}
+for (const placeholder of [...new Set(placeholders)]) {
+const key = placeholder.slice(1)
+const outputKey = prefixNamed ? placeholder : key
+if (Object.prototype.hasOwnProperty.call(params, placeholder)) bound[outputKey] = params[placeholder]
+else if (Object.prototype.hasOwnProperty.call(params, key)) bound[outputKey] = params[key]
+else bound[outputKey] = null
+}
+return [bound]
+}
 return args.map(value => sanitizeSqliteArg(value))
 }
 function sanitizeRowJson(row) {
@@ -58,7 +72,13 @@ for (const method of ['run', 'get', 'all', 'runAsync', 'getAsync', 'allAsync']) 
 if (typeof statement[method] !== 'function') continue
 const original = statement[method].bind(statement)
 statement[method] = (...args) => {
-const result = original(...sanitizeSqliteArgs(args))
+let result
+try {
+result = original(...sanitizeSqliteArgs(args, statement))
+} catch (error) {
+if (error?.message !== 'Invalid argument') throw error
+result = original(...sanitizeSqliteArgs(args, statement, { prefixNamed: true }))
+}
 if (method === 'get') return sanitizeRowJson(result)
 if (method === 'all') return Array.isArray(result) ? result.map(sanitizeRowJson) : result
 if (method === 'getAsync') return Promise.resolve(result).then(sanitizeRowJson)

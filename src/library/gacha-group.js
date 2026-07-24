@@ -7,7 +7,7 @@ return Object.values(global.db?.getSection?.(section) || {})
 async function saveList(section, list, mapper) {
 if (!global.db?.replaceSection) throw new Error(`SQLite no está inicializado para guardar ${section}.`)
 const rows = Object.fromEntries(normalizeList(list, mapper).map((item, index) => [mapper === normalizeHaremEntry ? `${item.groupId}:${item.characterId}` : `${item.groupId}:${item.id || index}`, item]))
-global.db.replaceSection(section, rows)
+await global.db.replaceSection(section, rows)
 await global.db.write?.()
 }
 
@@ -66,13 +66,13 @@ await saveList('harem', harem, normalizeHaremEntry)
 }
 
 async function loadVentas() {
-if (global.db?.getGachaMarket) return normalizeList(global.db.getGachaMarket(), normalizeVentaEntry)
+if (global.db?.getGachaMarket) return normalizeList(await global.db.getGachaMarket(), normalizeVentaEntry)
 return normalizeList(loadList('waifus_venta'), normalizeVentaEntry)
 }
 
 async function saveVentas(ventas) {
 if (global.db?.replaceGachaMarket) {
-global.db.replaceGachaMarket(normalizeList(ventas, normalizeVentaEntry))
+await global.db.replaceGachaMarket(normalizeList(ventas, normalizeVentaEntry))
 await global.db.write?.()
 return
 }
