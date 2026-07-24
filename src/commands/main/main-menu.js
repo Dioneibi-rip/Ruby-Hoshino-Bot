@@ -81,8 +81,8 @@ let txt = `
 ├┈ ↷   𝙞𝙖
 ├• ✐; ₊˚✦୧︰ 𝙄𝘼 .
 ├┈・──・──・﹕₊˚ ✦・୨୧・
-ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *#chatgpt • #gpt • #ia*
-> ✦ Conversa con ChatGPT y conserva contexto reciente.
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *#Ruby • #bot • #ia*
+> ✦ Conversa con Ruby con memoria extensa.
 ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *#gemini • #gemi*
 > ✦ Pregunta a Gemini con memoria de conversación corregida.
 ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *#copilot*
