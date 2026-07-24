@@ -84,7 +84,7 @@ const character = charactersById.get(characterId);
 return sum + (Number(character?.value) || 0);
 }, 0);
 
-const response = '*❀ Usuario `<' + `¡ ${userName} ! ₍ᐢ..ᐢ₎⁩` + '>`*\n\n' +
+const response = '*❀ Usuario `<' + `${userName}` + '>`*\n\n' +
 `ⴵ RollWaifu » *${rwStatus || 'Ahora.'}*\n` +
 `ⴵ Claim » *${claimStatus || 'Ahora.'}*\n` +
 `ⴵ Vote » *${voteStatus || 'Ahora.'}*\n\n` +
