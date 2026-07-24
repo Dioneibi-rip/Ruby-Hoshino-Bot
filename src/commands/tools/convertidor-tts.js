@@ -1,31 +1,40 @@
-const defaultLang='es'
-const handler=async(m,{conn,args})=>{
-let lang=args[0]
-let text=args.slice(1).join(' ')
-if((args[0]||'').length!==2){
-lang=defaultLang
-text=args.join(' ')
+const voices = {
+'es': 'es',
+'anime': 'ja',
+'chica': 'ko',
+'ingles': 'en',
+'ruso': 'ru'
 }
-if(!text&&m.quoted?.text)text=m.quoted.text
+const defaultVoice = 'es'
+const handler = async (m, { conn, args, usedPrefix, command }) => {
+let voice = defaultVoice
+let text = ''
+if (args.length > 0 && voices[args[0].toLowerCase()]) {
+voice = voices[args[0].toLowerCase()]
+text = args.slice(1).join(' ')
+} else {
+text = args.join(' ')
+}
+if (!text && m.quoted?.text) text = m.quoted.text
+if (!text) {
+const voiceList = Object.keys(voices).map(v => `*${v}*`).join(', ')
+return m.reply(`> ꒰ঌ(˶ˆᗜˆ˵)໒꒱ 𝖥⍺𝗅𝗍⍺ 𝖾𝗅 𝗍𝖾𝗑𝗍𝗈...\n> 💡 *𝖴𝗌𝗈:* ${usedPrefix}${command} <voz> <texto>\n> 🗣️ *𝖵𝗈𝖼𝖾𝗌:* ${voiceList}\n> 🌸 *𝖤𝗃𝖾𝗆𝗉𝗅𝗈:* ${usedPrefix}${command} anime Hola soy Ruby`)
+}
 let res
-try{
-res=await tts(text,lang)
-}catch(e){
-m.reply(e+'')
-text=args.join(' ')
-if(!text)throw `Por favor, ingresé una frase.`
-res=await tts(text,defaultLang)
-return false
+try {
+res = await tts(text, voice)
+} catch (e) {
+return m.reply(e + '')
 }
-if(res)return conn.sendFile(m.chat,res,'tts.opus',null,m,true)
+if (res) return conn.sendFile(m.chat, res, 'tts.opus', null, m, true)
 }
-handler.help=['tts <lang> <teks>']
-handler.tags=['transformador']
-handler.group=true
-handler.register=true
-handler.command=['tts']
+handler.help = ['tts <voz> <texto>']
+handler.tags = ['transformador']
+handler.group = true
+handler.register = true
+handler.command = ['tts', 'voz']
 export default handler
-async function tts(text, lang = 'es') {
+async function tts(text, lang) {
 if (!text) throw new Error('Texto vacío')
 const chunks = String(text).match(/.{1,180}(?:\s|$)/g)?.map(part => part.trim()).filter(Boolean) || []
 const buffers = []
