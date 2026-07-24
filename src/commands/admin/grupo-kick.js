@@ -1,4 +1,4 @@
- function getTargetJid(m) {
+function getTargetJid(m) {
 return m.mentionedJid?.[0] || m.quoted?.sender || ''
 }
 
@@ -47,3 +47,5 @@ handler.admin = true
 handler.group = true
 handler.register = true
 handler.botAdmin = true
+
+export default handler
