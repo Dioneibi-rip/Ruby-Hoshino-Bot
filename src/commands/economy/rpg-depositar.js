@@ -5,7 +5,7 @@ const input = String(args?.[0] || '').trim().toLowerCase()
 if (!input) return m.reply(`${emoji} Ingresa la cantidad de *${m.moneda}* que deseas depositar.`)
 
 const user = typeof global.db.getUserAsync === 'function'
-? await global.db.getUserAsync(m.sender)
+? await global.db.getUserAsync(m.sender, { bypassCache: true })
 : global.db.getUser(m.sender)
 const wallet = Math.max(0, Math.trunc(Number(user.coin) || 0))
 
@@ -23,7 +23,7 @@ if (typeof global.db.transferUserEconomy === 'function') {
 const updated = await global.db.transferUserEconomy(m.sender, { from: 'coin', to: 'bank', amount })
 if (!updated) return m.reply(`${emoji2} Tu saldo cambió antes de completar el depósito. Vuelve a intentarlo.`)
 } else {
-await global.db.updateUser(m.sender, { coin: wallet - amount, bank: (Number(user.bank) || 0) + amount })
+await (typeof global.db.updateUserAsync === 'function' ? global.db.updateUserAsync : global.db.updateUser).call(global.db, m.sender, { coin: wallet - amount, bank: (Number(user.bank) || 0) + amount })
 }
 
 return m.reply(`✿ Depositaste *¥${amount.toLocaleString()} ${m.moneda}* en el banco, ya no podrán robártelo.`)

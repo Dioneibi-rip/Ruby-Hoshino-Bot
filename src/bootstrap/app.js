@@ -153,7 +153,8 @@ if (global.db.data !== null) {
 global.db.READ = true
 await global.db.read().catch(console.error)
 global.db.READ = null
-global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {}, ...(global.db.data || {}) }
+if (!global.db.data) global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {} }
+else for (const section of ['users', 'chats', 'stats', 'msgs', 'sticker', 'settings']) global.db.data[section] ||= {}
 global.db.chain = global.db.data
 return global.db.data
 }
