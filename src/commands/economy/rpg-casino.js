@@ -17,7 +17,7 @@ await conn.reply(m.chat, `${emoji} Ingresa la cantidad de ` + `💸 *${m.moneda}
 return false;
 }
 if ((Number(user.coin) || 0) < count) return m.reply(`${emoji2} No tienes suficientes ${m.moneda} para apostar.`)
-const updated = global.db.settleUserBet(m.sender, { field: 'coin', bet: count, payout: win ? count * 2 : 0 })
+const updated = await global.db.settleUserBet(m.sender, { field: 'coin', bet: count, payout: win ? count * 2 : 0 })
 if (!updated) return m.reply(`${emoji2} Tu saldo cambió antes de completar la apuesta. Vuelve a intentarlo.`)
 if (!win) {
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *PERDISTE* ${formatNumber(count)} 💸 ${m.moneda}.`.trim(), m)

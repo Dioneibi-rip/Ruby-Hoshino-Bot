@@ -4,6 +4,7 @@ return Date.now()
 }
 function safeJson(value, fallback = {}) {
 if (value == null || value === '') return fallback
+if (typeof value === 'object') return value
 try {
 return JSON.parse(value)
 } catch {
@@ -12,6 +13,54 @@ return fallback
 }
 function stringify(value) {
 return JSON.stringify(value ?? {})
+}
+function sanitizeSqliteArg(value) {
+if (typeof value === 'undefined') return null
+if (typeof value === 'boolean') return value ? 1 : 0
+if (value instanceof Date) return value.getTime()
+if (Buffer.isBuffer(value) || value instanceof Uint8Array) return value
+if (value && typeof value === 'object') return stringify(value)
+return value
+}
+function sanitizeSqliteArgs(args = []) {
+if (args.length === 1 && args[0] && typeof args[0] === 'object' && !Array.isArray(args[0]) && !(args[0] instanceof Date) && !Buffer.isBuffer(args[0]) && !(args[0] instanceof Uint8Array)) {
+return [Object.fromEntries(Object.entries(args[0]).map(([key, value]) => [key, sanitizeSqliteArg(value)]))]
+}
+return args.map(value => sanitizeSqliteArg(value))
+}
+function sanitizeRowJson(row) {
+if (!row || typeof row !== 'object') return row
+for (const [key, value] of Object.entries(row)) {
+if (typeof value !== 'string') continue
+const trimmed = value.trim()
+if (!trimmed || !/^(?:\{|\[)/.test(trimmed)) continue
+try { row[key] = JSON.parse(trimmed) } catch {}
+}
+return row
+}
+function patchSQLiteStatement(statement) {
+if (!statement || statement.__rubySanitized) return statement
+for (const method of ['run', 'get', 'all', 'runAsync', 'getAsync', 'allAsync']) {
+if (typeof statement[method] !== 'function') continue
+const original = statement[method].bind(statement)
+statement[method] = (...args) => {
+const result = original(...sanitizeSqliteArgs(args))
+if (method === 'get') return sanitizeRowJson(result)
+if (method === 'all') return Array.isArray(result) ? result.map(sanitizeRowJson) : result
+if (method === 'getAsync') return Promise.resolve(result).then(sanitizeRowJson)
+if (method === 'allAsync') return Promise.resolve(result).then(rows => Array.isArray(rows) ? rows.map(sanitizeRowJson) : rows)
+return result
+}
+}
+Object.defineProperty(statement, '__rubySanitized', { value: true })
+return statement
+}
+function patchSQLiteConnection(sqlite) {
+if (!sqlite || sqlite.__rubySanitizedPrepare || typeof sqlite.prepare !== 'function') return sqlite
+const prepare = sqlite.prepare.bind(sqlite)
+sqlite.prepare = (...args) => patchSQLiteStatement(prepare(...args))
+Object.defineProperty(sqlite, '__rubySanitizedPrepare', { value: true })
+return sqlite
 }
 function normalizeId(conn, id) {
 if (!id || typeof id !== 'string') return ''
@@ -62,7 +111,7 @@ return sqlite
 }
 class SQLiteBaileysStore {
 constructor(sqlite) {
-this.sqlite = resolveSQLiteDatabase(sqlite)
+this.sqlite = patchSQLiteConnection(resolveSQLiteDatabase(sqlite))
 this.conn = null
 this.statements = {}
 this.boundConn = null

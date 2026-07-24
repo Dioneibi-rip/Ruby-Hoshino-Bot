@@ -30,7 +30,7 @@ let amount = Math.floor(baseAmount * job.workMultiplier * premiumBoost * jobBonu
 let xpEarned = Math.floor(amount * 0.075);
 user.coin = (user.coin || 0) + amount;
 user.jobXp = (user.jobXp || 0) + xpEarned;
-global.db.updateUser(m.sender, { coin: user.coin, jobXp: user.jobXp });
+await global.db.updateUser(m.sender, { coin: user.coin, jobXp: user.jobXp });
 
 let phraseList = useGeneric ? frasesGenericas.success : (frasesPorTrabajo[job.key]?.success || frasesGenericas.success);
 let phrase = pickRandom(phraseList);
@@ -44,7 +44,7 @@ let rawLoss = Math.floor((Math.random() * 900 + 600) * (user.premium ? 0.95 : 1.
 let loss = rawLoss;
 user.coin = (Number(user.coin) || 0) - loss;
 user.bank = Math.max(0, Number(user.bank) || 0);
-global.db.updateUser(m.sender, { coin: user.coin, bank: user.bank });
+await global.db.updateUser(m.sender, { coin: user.coin, bank: user.bank });
 
 let phraseList = useGeneric ? frasesGenericas.fail : (frasesPorTrabajo[job.key]?.fail || frasesGenericas.fail);
 let phrase = pickRandom(phraseList);

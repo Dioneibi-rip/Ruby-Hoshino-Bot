@@ -36,7 +36,7 @@ if (didWin) {
 let baseAmount = Math.floor(Math.random() * 3500 + 2200);
 let amount = Math.floor(baseAmount * job.slutMultiplier * (user.premium ? 1.2 : 1) * slutBonus);
 user.coin = (user.coin || 0) + amount;
-global.db.updateUser(senderId, { coin: user.coin });
+await global.db.updateUser(senderId, { coin: user.coin });
 
 let phraseList = useGeneric ? frasesSlutGenericas.success : (frasesSlutPorTrabajo[job.key]?.success || frasesSlutGenericas.success);
 let phrase = pickRandom(phraseList).replace(/\{user\}/g, mentionStr);
@@ -49,7 +49,7 @@ let amountLoss = Math.floor((Math.random() * 700 + 300) * job.slutLossMultiplier
 let loss = amountLoss;
 user.coin = (Number(user.coin) || 0) - loss;
 user.bank = Math.max(0, Number(user.bank) || 0);
-global.db.updateUser(senderId, { coin: user.coin, bank: user.bank });
+await global.db.updateUser(senderId, { coin: user.coin, bank: user.bank });
 
 let phraseList = useGeneric ? frasesSlutGenericas.fail : (frasesSlutPorTrabajo[job.key]?.fail || frasesSlutGenericas.fail);
 let phrase = pickRandom(phraseList).replace(/\{user\}/g, mentionStr);
