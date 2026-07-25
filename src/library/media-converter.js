@@ -9,38 +9,40 @@ async function removeTempFile(filename) {
   await promises.unlink(filename).catch(() => {})
 }
 
-function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
-  return new Promise(async (resolve, reject) => {
-    let tmp
-    let out
-    let outputHandedOff = false
-    try {
-      const tmpDir = join(process.cwd(), 'tmp')
-      await promises.mkdir(tmpDir, { recursive: true })
-      tmp = join(tmpDir, `${Date.now()}.${ext}`)
-      out = `${tmp}.${ext2}`
-      await promises.writeFile(tmp, buffer)
-      spawn('ffmpeg', ['-y', '-i', tmp, ...args, out])
-        .on('error', reject)
-        .on('close', async (code) => {
-          try {
-            if (code !== 0) throw new Error(`ffmpeg terminó con código ${code}`)
-            const data = await promises.readFile(out)
-            outputHandedOff = true
-            resolve({ data, filename: out, delete: () => removeTempFile(out) })
-          } catch (e) {
-            reject(e)
-          } finally {
-            await removeTempFile(tmp)
-            if (!outputHandedOff) await removeTempFile(out)
-          }
-        })
-    } catch (e) {
-      await removeTempFile(tmp)
-      await removeTempFile(out)
-      reject(e)
-    }
+function runProcess(command, args) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args)
+    child.on('error', reject)
+    child.on('close', code => code === 0 ? resolve() : reject(new Error(`${command} terminó con código ${code}`)))
   })
+}
+
+async function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
+  let tmp
+  let out
+  let outputHandedOff = false
+  try {
+    const tmpDir = join(process.cwd(), 'tmp')
+    await promises.mkdir(tmpDir, { recursive: true })
+    tmp = join(tmpDir, `${Date.now()}.${ext}`)
+    out = `${tmp}.${ext2}`
+    await promises.writeFile(tmp, buffer)
+    await runProcess('ffmpeg', ['-y', '-i', tmp, ...args, out])
+    const data = await promises.readFile(out)
+    outputHandedOff = true
+    return { data, filename: out, delete: () => removeTempFile(out) }
+  } finally {
+    await removeTempFile(tmp)
+    if (!outputHandedOff) await removeTempFile(out)
+  }
+}
+
+function resizeImage(buffer, width, height, ext = 'jpg') {
+  return ffmpeg(buffer, ['-vf', `scale=${width}:${height}`, '-frames:v', '1'], ext, 'jpg')
+}
+
+function generateProfilePicture(buffer) {
+  return ffmpeg(buffer, ['-vf', "scale='if(gt(iw,ih),550,-2)':'if(gt(iw,ih),-2,650)'", '-frames:v', '1'], 'jpg', 'jpg')
 }
 
 function toPTT(buffer, ext) {
@@ -84,4 +86,4 @@ async function ezgifConvert(source, type, selector) {
 const webp2mp4 = source => ezgifConvert(source, 'webp-to-mp4', 'div#output > p.outfile > video > source')
 const webp2png = source => ezgifConvert(source, 'webp-to-png', 'div#output > p.outfile > img')
 
-export { toAudio, toPTT, toVideo, ffmpeg, webp2mp4, webp2png }
+export { toAudio, toPTT, toVideo, ffmpeg, resizeImage, generateProfilePicture, webp2mp4, webp2png }

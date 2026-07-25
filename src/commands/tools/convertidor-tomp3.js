@@ -16,12 +16,16 @@ return false;
 }
 
 const audio = await toAudio(media, 'mp4');
+try {
 if (!audio.data) {
 await conn.reply(m.chat, `${msm} Ocurrio un error al convertir su nota de voz a Audio/MP3.`, m);
 return false;
 }
 
-conn.sendMessage(m.chat, {audio: audio.data, mimetype: 'audio/mpeg'}, {quoted: m});
+await conn.sendMessage(m.chat, {audio: audio.data, mimetype: 'audio/ogg; codecs=opus'}, {quoted: m});
+} finally {
+await audio.delete?.().catch(() => {});
+}
 };
 
 handler.help = ['tomp3', 'toaudio'];
