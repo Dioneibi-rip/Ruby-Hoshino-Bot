@@ -1,6 +1,15 @@
+import { applyTalismanIfDead } from '../../library/rpg-talisman.js';
+
 let handler = async (m, { conn }) => {
 let user = global.db.getUser(m.sender);
 let img = 'https://files.catbox.moe/bj45rp.jpg';
+let level = Number(user.level || 0);
+
+if (level < 15) {
+await conn.reply(m.chat, '🛡️ Necesitas ser nivel 15 para emprender aventuras épicas.', m);
+return false;
+}
+
 user.health = Math.min(100, Math.max(0, Number(user.health || 100)));
 if (user.health < 80) {
 await conn.reply(m.chat, '💔 No tienes suficiente salud para aventurarte. Usa el comando .heal para curarte.', m);
@@ -39,6 +48,7 @@ user.health -= 50;
 if (user.health < 0) {
 user.health = 0;
 }
+await applyTalismanIfDead(m, conn, user);
 let info = `🛫 Te has aventurado en el *<${randomKingdom}>*\n` +
 `🏞️ *Aventura Finalizada* 🏞️\n` +
 `💸 *${m.moneda} Ganados:* ${coin}\n` +

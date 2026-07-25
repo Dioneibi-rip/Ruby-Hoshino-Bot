@@ -10,6 +10,10 @@ oro: { field: 'gold', label: 'Oro', price: 100 },
 gold: { field: 'gold', label: 'Oro', price: 100 },
 esmeralda: { field: 'emerald', label: 'Esmeralda', price: 250 },
 emerald: { field: 'emerald', label: 'Esmeralda', price: 250 },
+diamante: { field: 'diamond', label: 'Diamante', price: 1500 },
+diamond: { field: 'diamond', label: 'Diamante', price: 1500 },
+diamantes: { field: 'diamond', label: 'Diamante', price: 1500 },
+diamonds: { field: 'diamond', label: 'Diamante', price: 1500 },
 };
 
 const BUY_CATALOG = {
@@ -147,7 +151,7 @@ return `╭━〔 🏪 Tienda RPG 〕⬣
 ┃ Comprar:
 ┃ • pocion: 3,000 ${moneda} → +50 salud
 ┃ • pico: 5,000 ${moneda} + 5 hierro → pico 100/100
-┃ • talismán: 10 diamantes → decorativo
+┃ • talismán: 10 diamantes → seguro de vida
 ┃
 ┃ Vender materiales:
 ┃ • piedra: 5 ${moneda}
@@ -155,5 +159,6 @@ return `╭━〔 🏪 Tienda RPG 〕⬣
 ┃ • hierro: 40 ${moneda}
 ┃ • oro: 100 ${moneda}
 ┃ • esmeralda: 250 ${moneda}
+┃ • diamante: 1,500 ${moneda}
 ╰━━━━━━━━━━━━⬣`;
 }
