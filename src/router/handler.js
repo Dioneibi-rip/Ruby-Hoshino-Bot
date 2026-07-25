@@ -962,13 +962,15 @@ if (shouldSilenceChatForBot(chatData, normalizeConnectionJid(this))) return
 if (!chatData?.welcome) return
 const groupMetadata = await getGroupMetadataOnDemand(this, chat, { requireParticipants: true })
 const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
-if (!participants.length) return
+const affectedParticipants = Array.isArray(update.participants) ? update.participants.filter(Boolean) : []
+const firstParticipant = affectedParticipants[0]
+const sender = typeof firstParticipant === 'object' ? (firstParticipant.id || firstParticipant.jid || firstParticipant.lid || '') : firstParticipant
 const m = {
 chat,
 isGroup: true,
-sender: Array.isArray(update.participants) ? update.participants[0] : '',
+sender,
 messageStubType,
-messageStubParameters: Array.isArray(update.participants) ? update.participants : [],
+messageStubParameters: affectedParticipants,
 }
 await welcomePlugin.before.call(this, m, { conn: this, participants, groupMetadata: groupMetadata || {} })
 } catch (error) {

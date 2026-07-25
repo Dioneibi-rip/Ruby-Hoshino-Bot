@@ -6,14 +6,14 @@ import { normalizeJid } from '../core/identity-utils.js'
 const USER_COLUMNS = {
 id: { type: 'TEXT', defaultSql: null, primary: true },
 coin: { type: 'INTEGER', defaultSql: '0' }, bank: { type: 'INTEGER', defaultSql: '0' }, exp: { type: 'INTEGER', defaultSql: '0' }, level: { type: 'INTEGER', defaultSql: '0' },
-role: { type: 'TEXT', defaultSql: "'*Chibi Aventurero/a V*🐙'" }, limit: { type: 'INTEGER', defaultSql: '0' }, health: { type: 'INTEGER', defaultSql: '100' }, warn: { type: 'INTEGER', defaultSql: '0' },
+role: { type: 'TEXT', defaultSql: "'🌱 Viajero Novato'" }, limit: { type: 'INTEGER', defaultSql: '0' }, health: { type: 'INTEGER', defaultSql: '100' }, warn: { type: 'INTEGER', defaultSql: '0' },
 name: { type: 'TEXT', defaultSql: "''" }, customName: { type: 'TEXT', defaultSql: "''" }, registered: { type: 'INTEGER', defaultSql: '1' }, age: { type: 'INTEGER', defaultSql: '-1' }, regTime: { type: 'INTEGER', defaultSql: '-1' },
 birth: { type: 'TEXT', defaultSql: "''" }, genre: { type: 'TEXT', defaultSql: "''" }, description: { type: 'TEXT', defaultSql: "''" },
 premium: { type: 'INTEGER', defaultSql: '0' }, premiumTime: { type: 'INTEGER', defaultSql: '0' }, banned: { type: 'INTEGER', defaultSql: '0' }, bannedReason: { type: 'TEXT', defaultSql: "''" }, antispam: { type: 'INTEGER', defaultSql: '0' }, muto: { type: 'INTEGER', defaultSql: '0' }, mutoChat: { type: 'TEXT', defaultSql: "''" }, lastBanMsg: { type: 'INTEGER', defaultSql: '0' },
 job: { type: 'TEXT', defaultSql: "'Ninguno'" }, jobSince: { type: 'INTEGER', defaultSql: '0' }, jobXp: { type: 'INTEGER', defaultSql: '0' }, commands: { type: 'INTEGER', defaultSql: '0' },
 msg_count: { type: 'INTEGER', defaultSql: '0' },
 lastclaim: { type: 'INTEGER', defaultSql: '0' }, lastmonthly: { type: 'INTEGER', defaultSql: '0' }, monthly: { type: 'INTEGER', defaultSql: '0' }, weekly: { type: 'INTEGER', defaultSql: '0' }, dailyStreak: { type: 'INTEGER', defaultSql: '0' }, lastwork: { type: 'INTEGER', defaultSql: '0' }, lastAdventure: { type: 'INTEGER', defaultSql: '0' }, lastmining: { type: 'INTEGER', defaultSql: '0' }, lastmiming: { type: 'INTEGER', defaultSql: '0' }, lastrob: { type: 'INTEGER', defaultSql: '0' }, lastrob2: { type: 'INTEGER', defaultSql: '0' }, lastHeal: { type: 'INTEGER', defaultSql: '0' }, halloween: { type: 'INTEGER', defaultSql: '0' }, christmas: { type: 'INTEGER', defaultSql: '0' },
-diamond: { type: 'INTEGER', defaultSql: '0' }, diamonds: { type: 'INTEGER', defaultSql: '0' }, emerald: { type: 'INTEGER', defaultSql: '0' }, iron: { type: 'INTEGER', defaultSql: '0' }, gold: { type: 'INTEGER', defaultSql: '0' }, coal: { type: 'INTEGER', defaultSql: '0' }, stone: { type: 'INTEGER', defaultSql: '0' }, candies: { type: 'INTEGER', defaultSql: '0' }, gifts: { type: 'INTEGER', defaultSql: '0' }, joincount: { type: 'INTEGER', defaultSql: '0' }, pickaxedurability: { type: 'INTEGER', defaultSql: '100' },
+diamond: { type: 'INTEGER', defaultSql: '0' }, diamonds: { type: 'INTEGER', defaultSql: '0' }, emerald: { type: 'INTEGER', defaultSql: '0' }, iron: { type: 'INTEGER', defaultSql: '0' }, gold: { type: 'INTEGER', defaultSql: '0' }, coal: { type: 'INTEGER', defaultSql: '0' }, stone: { type: 'INTEGER', defaultSql: '0' }, tokens: { type: 'INTEGER', defaultSql: '0' }, candies: { type: 'INTEGER', defaultSql: '0' }, gifts: { type: 'INTEGER', defaultSql: '0' }, joincount: { type: 'INTEGER', defaultSql: '0' }, pickaxedurability: { type: 'INTEGER', defaultSql: '100' },
 marry: { type: 'TEXT', defaultSql: "''" }, extras: { type: 'TEXT', defaultSql: "'{}'" }, updated_at: { type: 'INTEGER', defaultSql: '(unixepoch())' }
 }
 const BOOLEAN_FIELDS = new Set(['registered', 'premium', 'banned', 'muto'])
@@ -413,7 +413,7 @@ if (spec.primary) continue
 this.sqlite.prepare(`ALTER TABLE users ADD COLUMN ${this._userColumnSql(name, spec, { forAlter: true })}`).run()
 }
 this.sqlite.prepare(`UPDATE users SET ${Object.entries(USER_COLUMNS).filter(([name, spec]) => !spec.primary && spec.defaultSql !== null).map(([name]) => `${q(name)} = COALESCE(${q(name)}, ${sqlDefault(name)})`).join(', ')}`).run()
-this.sqlite.prepare(`UPDATE users SET role=${sqlDefault('role')} WHERE role IS NULL OR role='' OR role='Nuv'`).run()
+this.sqlite.prepare(`UPDATE users SET role=${sqlDefault('role')} WHERE role IS NULL OR role='' OR role='Nuv' OR role='*Chibi Aventurero/a V*🐙'`).run()
 }
 _migrateRelationalTables() {
 const ensureUserIdColumn = table => {

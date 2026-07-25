@@ -3,6 +3,15 @@ import { loadCharactersOptimized, invalidateCache } from '../../library/gacha-ca
 import { normalizeCharacterId } from '../../library/gacha-characters.js'
 import { getExclusiveOwner } from '../../library/gacha-restrictions.js'
 
+const ROLL_TOKEN_COST = 1
+
+function rollRarity() {
+const roll = Math.random()
+if (roll < 0.05) return { name: 'Legendario', emoji: '🔥' }
+if (roll < 0.30) return { name: 'Épico', emoji: '🌟' }
+return { name: 'Común', emoji: '⭐' }
+}
+
 global.gachaCooldowns = global.gachaCooldowns || {}
 global.activeRolls = global.activeRolls || {}
 
@@ -38,6 +47,13 @@ return url
 let handler = async (m, { conn, participants = [] }) => {
 const userId = m.sender
 const groupId = m.chat
+const user = global.db.getUser(userId)
+if (!user) return false
+user.tokens = Number(user.tokens || 0)
+if (user.tokens < ROLL_TOKEN_COST) {
+await conn.reply(m.chat, `✘ Necesitas *1 Token* para tirar el gacha. Puedes comprar Tokens en la tienda con *#tienda comprar token*.`, m)
+return false
+}
 const now = Date.now()
 
 let expCount = 0
@@ -55,6 +71,7 @@ if (!characters.length) throw new Error('❀ No hay personajes disponibles para 
 
 const randomCharacter = characters[Math.floor(Math.random() * characters.length)]
 randomCharacter.id = normalizeCharacterId(randomCharacter.id)
+const rarity = rollRarity()
 
 const imageList = Array.isArray(randomCharacter.img) ? randomCharacter.img : []
 let randomImage = imageList[Math.floor(Math.random() * imageList.length)]
@@ -86,6 +103,8 @@ const statusText = claimedInGroup
 ? '🚫 Ocupado'
 : (exclusiveOwner ? '🔒 Exclusivo' : '✅ Libre')
 
+user.tokens = Math.max(0, Number(user.tokens || 0) - ROLL_TOKEN_COST)
+
 if (!claimedInGroup) {
 const rollOwner = exclusiveOwner || userId
 global.activeRolls[`${groupId}:${randomCharacter.id}`] = { user: rollOwner, time: Date.now() }
@@ -96,7 +115,10 @@ const message = `
 ꒰ㅤ꒰͡ㅤ 🄽🅄🄴🅅🄾 🄿🄴🅁🅂🄾🄽🄰🄹🄴ㅤㅤ͡꒱ㅤ꒱
 
 ▓𓏴𓏴 ۪ ֹ 🄽꯭🄾꯭🄼꯭🄱꯭🅁꯭🄴 :
-╰┈➤ ❝ ${randomCharacter.name} ❞
+╰┈➤ ❝ ${rarity.emoji} ${randomCharacter.name} ❞
+
+▓𓏴𓏴 ۪ ֹ 🅁꯭🄰꯭🅁꯭🄴꯭🅉꯭🄰 :
+╰┈➤ ${rarity.emoji} ${rarity.name}
 
 ▓𓏴𓏴 ۪ ֹ 🅅꯭🄰꯭🄻꯭🄾꯭🅁 :
 ╰┈➤ 🪙 ${randomCharacter.value}
@@ -111,6 +133,9 @@ const message = `
 ╰┈➤ 📖 ${randomCharacter.source}
 
 ┉͜┄͜─┈┉⃛┄─꒰֟፝͡ 🅸🅳: ${randomCharacter.id} ꒱─┄⃨┉┈─͡┄͡┉
+▓𓏴𓏴 ۪ ֹ 🅃꯭🄾꯭🄺꯭🄴꯭🄽꯭🅂 :
+╰┈➤ 🎟️ ${Number(user.tokens || 0)} restantes
+
 ㅤㅤㅤㅤㅤㅤ© ᑲ᥆𝗍 𝗀ɑᥴ꯭hɑ 𝗌𝗒sł꯭ᥱꭑ꒱
 `
 

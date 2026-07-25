@@ -11,6 +11,13 @@ await conn.reply(m.chat, '🌲 El bosque es muy peligroso para un novato. Alcanz
 return false
 }
 
+const minHealth = 35
+user.health = Math.min(100, Math.max(0, Number(user.health || 0)))
+if (user.health < minHealth) {
+await conn.reply(m.chat, `💔 Necesitas al menos ${minHealth} de salud para continuar. Usa el comando .heal para curarte.`, m)
+return false
+}
+
 const eventos = [
 { nombre: '🌲 Tesoro bajo el Árbol Sagrado', coin: 11250, exp: 450, health: 0, mensaje: `¡Descubriste un cofre antiguo lleno de ${m.moneda}!` },
 { nombre: '🐺 Ataque de Lobos Hambrientos', coin: -15000, exp: 700, health: -25, mensaje: `¡Fuiste atacado por una manada y escapaste perdiendo ${m.moneda}!` },

@@ -22,6 +22,8 @@ poción: { label: 'Poción', coin: 3000, heal: 50 },
 pico: { label: 'Pico', coin: 5000, iron: 5, durability: 100 },
 talisman: { label: 'Talismán', diamond: 10, field: 'talisman' },
 talismán: { label: 'Talismán', diamond: 10, field: 'talisman' },
+token: { label: 'Token Gacha', coin: 1200, field: 'tokens' },
+tokens: { label: 'Token Gacha', coin: 1200, field: 'tokens' },
 };
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -36,6 +38,7 @@ user.coin = Number(user.coin || 0);
 user.diamond = Number(user.diamond || 0);
 user.health = Math.min(100, Math.max(0, Number(user.health || 0)));
 user.pickaxedurability = Math.min(100, Math.max(0, Number(user.pickaxedurability || 0)));
+user.tokens = Number(user.tokens || 0);
 
 if (!action || !['comprar', 'vender', 'buy', 'sell'].includes(action)) {
 return conn.reply(m.chat, buildHelp(usedPrefix, command, m.moneda), m);
@@ -146,12 +149,14 @@ return `╭━〔 🏪 Tienda RPG 〕⬣
 ┃ Uso:
 ┃ • *${usedPrefix}${command} comprar pocion 1*
 ┃ • *${usedPrefix}${command} comprar pico 1*
+┃ • *${usedPrefix}${command} comprar token 1*
 ┃ • *${usedPrefix}${command} vender hierro 10*
 ┃
 ┃ Comprar:
 ┃ • pocion: 3,000 ${moneda} → +50 salud
 ┃ • pico: 5,000 ${moneda} + 5 hierro → pico 100/100
 ┃ • talismán: 10 diamantes → seguro de vida
+┃ • token: 1,200 ${moneda} → 1 intento de rollwaifu
 ┃
 ┃ Vender materiales:
 ┃ • piedra: 5 ${moneda}
