@@ -246,30 +246,39 @@ await new Promise(resolve => setTimeout(resolve, 1500));
 }
 const RECONNECT_REASONS = new Set([DisconnectReason.connectionLost, DisconnectReason.connectionClosed, DisconnectReason.restartRequired, DisconnectReason.connectionReplaced, 408, 428, 429])
 const DISCONNECT_AUTH_STATUS = new Set([401, 403, DisconnectReason.loggedOut])
-const RECONNECT_BASE_DELAY_MS = 5000
-const RECONNECT_MAX_DELAY_MS = 60000
-let reconnectAttempt = 0
 const socketCfg = global.baileysSocketConfig || {}
+const RECONNECT_BASE_DELAY_MS = socketCfg.reconnectBaseDelayMs ?? 5000
+const RECONNECT_MAX_DELAY_MS = socketCfg.reconnectMaxDelayMs ?? 120000
+const RECONNECT_JITTER_MS = socketCfg.reconnectJitterMs ?? 5000
+let reconnectAttempt = 0
+const getReconnectDelayMs = (attempt, statusCode, upstreamDelay = 0) => {
+const numericStatus = Number(statusCode)
+const rateLimitDelay = [429, 503].includes(numericStatus) ? 30000 : 0
+const cappedExponential = Math.min(RECONNECT_MAX_DELAY_MS, RECONNECT_BASE_DELAY_MS * (2 ** Math.max(0, attempt)))
+const fullJitter = Math.floor(Math.random() * Math.max(RECONNECT_JITTER_MS, cappedExponential))
+return Math.min(RECONNECT_MAX_DELAY_MS, Math.max(Number(upstreamDelay) || 0, rateLimitDelay, cappedExponential + fullJitter))
+}
 let connectionOptions = {
 logger: pino({ level: 'silent' }),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile,
 browser: getStandardBrowserProfile(),
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })), },
-markOnlineOnConnect: socketCfg.markOnlineOnConnect ?? false,
+markOnlineOnConnect: socketCfg.markOnlineOnConnect ?? true,
 generateHighQualityLinkPreview: socketCfg.generateHighQualityLinkPreview ?? false,
 getMessage: async (clave) => { const jid = jidNormalizedUser(clave.remoteJid); const msg = await store.loadMessage(jid, clave.id); return msg?.message },
 msgRetryCounterCache,
 msgRetryCounterMap,
 defaultQueryTimeoutMs: socketCfg.defaultQueryTimeoutMs ?? 60000,
 version,
-syncFullHistory: socketCfg.syncFullHistory ?? false,
-shouldSyncHistoryMessage: socketCfg.shouldSyncHistoryMessage ?? (() => false),
-fireInitQueries: socketCfg.fireInitQueries ?? false,
-emitOwnEvents: socketCfg.emitOwnEvents ?? false,
-connectTimeoutMs: socketCfg.connectTimeoutMs ?? 30000,
+syncFullHistory: socketCfg.syncFullHistory ?? true,
+shouldSyncHistoryMessage: socketCfg.shouldSyncHistoryMessage ?? (({ syncType } = {}) => syncType !== proto.HistorySync.HistorySyncType.FULL),
+fireInitQueries: socketCfg.fireInitQueries ?? true,
+emitOwnEvents: socketCfg.emitOwnEvents ?? true,
+waWebSocketUrl: socketCfg.waWebSocketUrl ?? 'wss://web.whatsapp.com/ws/chat',
+connectTimeoutMs: socketCfg.connectTimeoutMs ?? 20000,
 keepAliveIntervalMs: socketCfg.keepAliveIntervalMs ?? 30000,
-retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 3000,
+retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 250,
 shouldReconnect: ({ statusCode }) => !DISCONNECT_AUTH_STATUS.has(statusCode) && (RECONNECT_REASONS.has(statusCode) || statusCode !== DisconnectReason.loggedOut)
 }
 connectionOptions = alignSocketTelemetry(connectionOptions, { version })
@@ -356,10 +365,7 @@ return
 }
 if (reconnectTimer) return
 if ([408, 428, 429].includes(Number(statusCode))) cleanupTransientSessionState()
-const rateLimitDelay = [429, 503].includes(Number(statusCode)) ? 30000 : 0
-const exponentialDelay = Math.max(rateLimitDelay, RECONNECT_BASE_DELAY_MS * (2 ** reconnectAttempt))
-const jitter = Math.floor(Math.random() * 1000)
-const reconnectDelay = Math.min(Math.max(reconnectDelayMs || 0, exponentialDelay + jitter), RECONNECT_MAX_DELAY_MS)
+const reconnectDelay = getReconnectDelayMs(reconnectAttempt, statusCode, reconnectDelayMs)
 reconnectAttempt += 1
 show(chalk.yellow, `🔌 RECONECTANDO EN ${Math.ceil(reconnectDelay / 1000)}S...`, '🔁')
 reconnectTimer = setTimeout(async () => {

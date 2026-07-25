@@ -406,13 +406,16 @@ msgRetryCache,
 browser: getStandardBrowserProfile(),
 version: version,
 generateHighQualityLinkPreview: subSocketCfg.generateHighQualityLinkPreview ?? false,
-defaultQueryTimeoutMs: subSocketCfg.defaultQueryTimeoutMs ?? 45000,
-connectTimeoutMs: subSocketCfg.connectTimeoutMs ?? 60000,
-keepAliveIntervalMs: subSocketCfg.keepAliveIntervalMs ?? 20000,
-retryRequestDelayMs: subSocketCfg.retryRequestDelayMs ?? 5000,
-markOnlineOnConnect: false,
-syncFullHistory: false,
-shouldSyncHistoryMessage: () => false,
+defaultQueryTimeoutMs: subSocketCfg.defaultQueryTimeoutMs ?? 60000,
+waWebSocketUrl: subSocketCfg.waWebSocketUrl ?? 'wss://web.whatsapp.com/ws/chat',
+connectTimeoutMs: subSocketCfg.connectTimeoutMs ?? 20000,
+keepAliveIntervalMs: subSocketCfg.keepAliveIntervalMs ?? 30000,
+retryRequestDelayMs: subSocketCfg.retryRequestDelayMs ?? 250,
+markOnlineOnConnect: subSocketCfg.markOnlineOnConnect ?? true,
+syncFullHistory: subSocketCfg.syncFullHistory ?? true,
+shouldSyncHistoryMessage: subSocketCfg.shouldSyncHistoryMessage ?? (({ syncType } = {}) => syncType !== proto.HistorySync.HistorySyncType.FULL),
+fireInitQueries: subSocketCfg.fireInitQueries ?? true,
+emitOwnEvents: subSocketCfg.emitOwnEvents ?? true,
 getMessage: async key => liteMsgStore.get(key) || ''
 };
 connectionOptions = alignSocketTelemetry(connectionOptions, { version })
@@ -479,7 +482,9 @@ if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) reconnectAttempts = Math.max(1,
 reconnectAttempts += 1
 setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot, lastReason: closeReason, attempts: reconnectAttempts })
 const rateLimitDelay = String(closeReason || '').includes('429') || String(closeReason || '').includes('rate') ? 30000 : 0
-const waitMs = Math.max(rateLimitDelay, Math.min(SUBBOT_RECONNECT_MAX_DELAY_MS, Math.max(SUBBOT_RECONNECT_MIN_DELAY_MS, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1))))) + Math.floor(Math.random() * SUBBOT_RECONNECT_JITTER_MS)
+const cappedExponential = Math.min(SUBBOT_RECONNECT_MAX_DELAY_MS, Math.max(SUBBOT_RECONNECT_MIN_DELAY_MS, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1))))
+const fullJitter = Math.floor(Math.random() * Math.max(SUBBOT_RECONNECT_JITTER_MS, cappedExponential))
+const waitMs = Math.min(SUBBOT_RECONNECT_MAX_DELAY_MS, Math.max(rateLimitDelay, cappedExponential + fullJitter))
 reconnectTimer = setTimeout(async () => {
 reconnectTimer = null
 try { await (reconnectFn || (() => creloadHandler(true)))() }
