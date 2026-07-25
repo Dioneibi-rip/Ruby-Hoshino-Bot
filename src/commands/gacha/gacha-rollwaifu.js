@@ -51,7 +51,8 @@ const user = global.db.getUser(userId)
 if (!user) return false
 user.tokens = Number(user.tokens || 0)
 if (user.tokens < ROLL_TOKEN_COST) {
-return conn.reply(m.chat, `✘ Necesitas *1 Token* para tirar el gacha. Puedes comprar Tokens en la tienda con *#tienda comprar token*.`, m)
+await conn.reply(m.chat, `✘ Necesitas *1 Token* para tirar el gacha. Puedes comprar Tokens en la tienda con *#tienda comprar token*.`, m)
+return false
 }
 const now = Date.now()
 
