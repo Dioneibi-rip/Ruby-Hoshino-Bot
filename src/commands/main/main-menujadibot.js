@@ -18,6 +18,10 @@ const texto = `
 > ✦ Restablece la ruta de bots y habilita todos los Sub-Bots del grupo.
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭🤖 *#setmoneda*
 > ✦ cambia el nombre de la moneda del bot.
+𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭🤖 *#banchat*
+> ✦ Banear al Bot en un chat o grupo.
+𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭🤖 *#unbanchat*
+> ✦ Desbanear al Bot del chat o grupo.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅
 `.trim();
 
