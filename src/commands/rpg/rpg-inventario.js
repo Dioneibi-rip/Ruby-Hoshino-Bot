@@ -5,7 +5,7 @@ import { formatJobLine, ensureJobFields } from '../../library/rpg-jobs.js';
 let handler = async (m, { conn, usedPrefix }) => {
 let who = m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
 
-let img = 'https://qu.ax/fRMNm.jpg';
+let img = 'https://i.pinimg.com/736x/d1/6a/9f/d16a9f964d41ae8ad44154a5bdf10560.jpg';
 let user = global.db.getUser(who);
 ensureJobFields(user);
 let name = conn.getName(who);
