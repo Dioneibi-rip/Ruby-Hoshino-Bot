@@ -11,15 +11,21 @@ ensureJobFields(user);
 let name = conn.getName(who);
 
 let premium = user.premium ? '✅' : '❌';
+let level = Number(user.level || 0);
+let pickaxeDurability = Number(user.pickaxedurability || 0);
+let talisman = Number(user.talisman || 0);
 
 let text = `╭━〔 Inventario de ${name} 〕⬣\n` +
 `┋ 💸 *${m.moneda} en Cartera:* ${user.coin || 0}\n` +
 `┋ 🏦 *${m.moneda} en Banco:* ${user.bank || 0}\n` +
-`┋ ♦️ *Esmeraldas:* ${user.emerald || 0}\n` +
-`┋ 🔩 *Hierro:* ${user.iron || 0}\n` +
-`┋ 🏅 *Oro:* ${user.gold || 0}\n` +
-`┋ 🕋 *Carbón:* ${user.coal || 0}\n` +
+`┋ 🧬 *Nivel:* ${level}\n` +
+`┋ ❇️ *Esmeralda:* ${user.emerald || 0}\n` +
+`┋ ⛓️ *Hierro:* ${user.iron || 0}\n` +
+`┋ 🪙 *Oro:* ${user.gold || 0}\n` +
+`┋ ⬛ *Carbón:* ${user.coal || 0}\n` +
 `┋ 🪨 *Piedra:* ${user.stone || 0}\n` +
+`┋ ⛏️ *Durabilidad del Pico:* ${pickaxeDurability}/100\n` +
+`┋ 🧿 *Talismanes:* ${talisman}\n` +
 `┋ ✨ *Experiencia:* ${user.exp || 0}\n` +
 `┋ ❤️ *Salud:* ${user.health || 100}\n` +
 `┋ 💎 *Diamantes:* ${user.diamond || 0}\n` +
