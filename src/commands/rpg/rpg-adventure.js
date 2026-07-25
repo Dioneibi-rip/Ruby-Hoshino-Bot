@@ -1,6 +1,7 @@
 let handler = async (m, { conn }) => {
 let user = global.db.getUser(m.sender);
 let img = 'https://files.catbox.moe/bj45rp.jpg';
+user.health = Math.min(100, Math.max(0, Number(user.health || 100)));
 if (user.health < 80) {
 await conn.reply(m.chat, '💔 No tienes suficiente salud para aventurarte. Usa el comando .heal para curarte.', m);
 return false;
@@ -25,15 +26,15 @@ let gold = pickRandom([25, 35, 45, 60, 75]);
 let coal = pickRandom([20, 5, 7, 8, 88, 40, 50, 80, 70, 60, 100, 120, 600, 700, 64]);
 let stone = pickRandom([200, 500, 700, 800, 900, 4000, 300]);
 let diamonds = pickRandom([6, 8, 10, 12, 14]);
-let exp = pickRandom([1200, 1600, 2200, 2800, 3400]);
-user.coin += coin;
-user.emerald += emerald;
-user.iron += iron;
-user.gold += gold;
-user.coal += coal;
-user.stone += stone;
-user.diamond += diamonds;
-user.exp += exp;
+let exp = pickRandom([150, 250, 350, 450, 600]);
+user.coin = (user.coin || 0) + coin;
+user.emerald = (user.emerald || 0) + emerald;
+user.iron = (user.iron || 0) + iron;
+user.gold = (user.gold || 0) + gold;
+user.coal = (user.coal || 0) + coal;
+user.stone = (user.stone || 0) + stone;
+user.diamond = (user.diamond || 0) + diamonds;
+user.exp = (user.exp || 0) + exp;
 user.health -= 50;
 if (user.health < 0) {
 user.health = 0;
