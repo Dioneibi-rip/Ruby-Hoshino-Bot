@@ -31,7 +31,9 @@ const eventos = [
 { nombre: 'Sabio de la Mazmorra', tipo: 'victoria', coin: randomNumber(2250, 4500), exp: randomNumber(250, 500), health: 0, mensaje: `👴 Un sabio te recompensó por escuchar sus historias.` },
 ];
 
-let evento = eventos[Math.floor(Math.random() * eventos.length)];
+let evento = { ...eventos[Math.floor(Math.random() * eventos.length)] };
+const torchProtected = Number(user.antorcha || 0) > 0 && Number(evento.health || 0) < 0;
+if (torchProtected) evento.health = Math.ceil(Number(evento.health || 0) / 2);
 
 user.coin = Math.max(0, (Number(user.coin) || 0) + evento.coin);
 user.exp = (user.exp || 0) + evento.exp;
@@ -43,6 +45,7 @@ let info = `╭━〔 Mazmorras Antiguas 〕\n` +
 `┃Evento: ${evento.mensaje}\n` +
 `┃Recompensa: ${evento.coin > 0 ? '+' : '-'}${Math.abs(evento.coin)} *${m.moneda}* y +${evento.exp} *XP*.\n` +
 `┃Tu salud ${evento.health < 0 ? 'bajó en: ' + Math.abs(evento.health) : 'se mantuvo igual.'}\n` +
+`${torchProtected ? '┃🕯️ Tu antorcha redujo el daño a la mitad.\n' : ''}` +
 `╰━━━━━━━━━━━━⬣`;
 
 await conn.sendFile(m.chat, 'https://files.catbox.moe/wtyj6h.jpg', 'mazmorras.jpg', info, m);

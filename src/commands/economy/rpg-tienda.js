@@ -14,6 +14,8 @@ diamante: { field: 'diamond', label: 'Diamante', price: 1500 },
 diamond: { field: 'diamond', label: 'Diamante', price: 1500 },
 diamantes: { field: 'diamond', label: 'Diamante', price: 1000 },
 diamonds: { field: 'diamond', label: 'Diamante', price: 1000 },
+anillo: { field: 'anillo', label: 'Anillo', price: 15000 },
+ring: { field: 'anillo', label: 'Anillo', price: 15000 },
 };
 
 const BUY_CATALOG = {
@@ -151,6 +153,7 @@ return `╭━〔 🏪 Tienda RPG 〕⬣
 ┃ • *${usedPrefix}${command} comprar pico 1*
 ┃ • *${usedPrefix}${command} comprar token 1*
 ┃ • *${usedPrefix}${command} vender hierro 10*
+┃ • *${usedPrefix}${command} vender anillo 1*
 ┃
 ┃ Comprar:
 ┃ • pocion: 3,000 ${moneda} → +50 salud
@@ -165,5 +168,6 @@ return `╭━〔 🏪 Tienda RPG 〕⬣
 ┃ • oro: 100 ${moneda}
 ┃ • esmeralda: 250 ${moneda}
 ┃ • diamante: 1,000 ${moneda}
+┃ • anillo: 15,000 ${moneda}
 ╰━━━━━━━━━━━━⬣`;
 }

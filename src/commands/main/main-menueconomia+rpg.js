@@ -34,6 +34,8 @@ const texto = `
 > ✦ Trabaja como minero y recolecta recursos.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🛍️̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#tienda • #shop • #store*
 > ✦ Compra y vende ítems de economía y RPG.
+ൃ⵿꤬ᩚ̸̷͠ᩘ🛠️̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#craftear • #craft*
+> ✦ Convierte materiales en antorchas y anillos.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#buyall • #buy*
 > ✦ Compra ${m.moneda} con tu XP.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#daily • #diario*
@@ -52,6 +54,8 @@ const texto = `
 > ✦ Reclama tu recompensa mensual.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#steal • #robar • #rob*
 > ✦ Intenta robarle ${m.moneda} a alguien.
+ൃ⵿꤬ᩚ̸̷͠ᩘ🚔̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#fianza • #bail*
+> ✦ Paga tu fianza desde el banco para salir de la cárcel.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#robarxp • #robxp*
 > ✦ Intenta robar XP a un usuario.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#eboard • #baltop*
@@ -62,7 +66,7 @@ const texto = `
 > ✦ Cura tu salud para volverte aventurero.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#inv • #inventario*
 > ✦ Ver tu inventario con todos tus ítems.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#mazmorra • #explorar*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#mazmorra • #explorar • #dungeon*
 > ✦ Explorar mazmorras para ganar ${m.moneda}.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#halloween*
 > ✦ Reclama tu dulce o truco (Solo en Halloween).

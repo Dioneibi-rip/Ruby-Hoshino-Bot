@@ -19,7 +19,7 @@ export function pluginNeedsJob(plugin, name, command) {
 const tags = Array.isArray(plugin?.tags) ? plugin.tags.map((tag) => String(tag).toLowerCase()) : []
 const economyTagged = tags.some((tag) => ['economy', 'economia', 'rpg'].includes(tag)) || String(name || '').startsWith('rpg-')
 if (!economyTagged) return false
-return !['trabajo', 'job', 'empleo'].includes(String(command || '').toLowerCase())
+return !['trabajo', 'job', 'empleo', 'fianza', 'bail'].includes(String(command || '').toLowerCase())
 }
 
 export function userHasJob(user) {
@@ -112,6 +112,19 @@ fail: async ({ fail, m, conn }) => { fail('private', m, conn); return false },
 condition: ({ plugin, isBotSelf }) => !isBotSelf && plugin.group,
 check: ({ m }) => !m.isGroup,
 fail: async ({ fail, m, conn }) => { fail('group', m, conn); return false },
+},
+
+{
+condition: ({ plugin, isBotSelf, name, extra }) => !isBotSelf && pluginNeedsJob(plugin, name, extra.command) && !['fianza', 'bail'].includes(String(extra.command || '').toLowerCase()),
+check: ({ user }) => Number(user?.extras?.jailUntil || 0) > Date.now(),
+fail: async ({ conn, m, user }) => {
+const remainingMs = Math.max(0, Number(user?.extras?.jailUntil || 0) - Date.now())
+const minutes = Math.floor(remainingMs / 60000)
+const seconds = Math.ceil((remainingMs % 60000) / 1000)
+conn.reply(m.chat, `🚔 Estás en la cárcel. Te faltan *${minutes}m ${seconds}s* para usar comandos de economía.
+💰 Puedes pagar tu salida con *#fianza*.`, m)
+return false
+},
 },
 {
 condition: ({ plugin, isBotSelf, name, extra }) => !isBotSelf && pluginNeedsJob(plugin, name, extra.command),

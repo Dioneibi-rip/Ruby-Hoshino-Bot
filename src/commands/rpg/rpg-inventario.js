@@ -26,6 +26,8 @@ let text = `╭━〔 Inventario de ${name} 〕⬣\n` +
 `┋ 🪨 *Piedra:* ${user.stone || 0}\n` +
 `┋ ⛏️ *Durabilidad del Pico:* ${pickaxeDurability}/100\n` +
 `┋ 🧿 *Talismanes:* ${talisman}\n` +
+`┋ 🕯️ *Antorchas:* ${user.antorcha || 0}\n` +
+`┋ 💍 *Anillos:* ${user.anillo || 0}\n` +
 `┋ ✨ *Experiencia:* ${user.exp || 0}\n` +
 `┋ ❤️ *Salud:* ${user.health || 100}\n` +
 `┋ 💎 *Diamantes:* ${user.diamond || 0}\n` +
