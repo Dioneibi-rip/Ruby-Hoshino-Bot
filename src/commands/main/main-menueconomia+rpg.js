@@ -32,6 +32,8 @@ const texto = `
 > ✦ Transfiere ${m.moneda} o XP a otros usuarios.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#miming • #minar • #mine*
 > ✦ Trabaja como minero y recolecta recursos.
+ൃ⵿꤬ᩚ̸̷͠ᩘ🛍️̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#tienda • #shop • #store*
+> ✦ Compra y vende ítems de economía y RPG.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#buyall • #buy*
 > ✦ Compra ${m.moneda} con tu XP.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#daily • #diario*

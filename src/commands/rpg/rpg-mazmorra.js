@@ -2,6 +2,12 @@
 let handler = async (m, { conn }) => {
 let senderId = m.sender;
 let user = global.db.getUser(senderId);
+let level = Number(user.level || 0);
+
+if (level < 10) {
+await conn.reply(m.chat, '💀 Los monstruos de la mazmorra te harían pedazos. Alcanza el nivel 10.', m);
+return false;
+}
 
 const eventos = [
 { nombre: 'Mazmorras de los Caídos', tipo: 'victoria', coin: randomNumber(4500, 9000), exp: randomNumber(225, 450), health: 0, mensaje: `🏆 Derrotaste al guardián y abriste su cofre.` },
@@ -19,7 +25,7 @@ const eventos = [
 let evento = eventos[Math.floor(Math.random() * eventos.length)];
 
 user.coin = Math.max(0, (Number(user.coin) || 0) + evento.coin);
-user.exp += evento.exp;
+user.exp = (user.exp || 0) + evento.exp;
 user.health = Math.max(0, (user.health || 100) + (evento.health || 0));
 
 let info = `╭━〔 Mazmorras Antiguas 〕\n` +

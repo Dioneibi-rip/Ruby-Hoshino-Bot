@@ -2,6 +2,12 @@
 let handler = async (m, { conn }) => {
 let senderId = m.sender
 let user = global.db.getUser(senderId)
+let level = Number(user.level || 0)
+
+if (level < 5) {
+await conn.reply(m.chat, '🌲 El bosque es muy peligroso para un novato. Alcanza el nivel 5 para explorar.', m)
+return false
+}
 
 const eventos = [
 { nombre: '🌲 Tesoro bajo el Árbol Sagrado', coin: 11250, exp: 450, health: 0, mensaje: `¡Descubriste un cofre antiguo lleno de ${m.moneda}!` },
@@ -20,7 +26,7 @@ const eventos = [
 let evento = eventos[Math.floor(Math.random() * eventos.length)]
 
 user.coin = Math.max(0, (Number(user.coin) || 0) + evento.coin)
-user.exp += evento.exp
+user.exp = (user.exp || 0) + evento.exp
 user.health = Math.max(0, (user.health || 100) + evento.health)
 
 let info = `╭─「 *🌲 Exploración del Bosque Mágico* 」─
