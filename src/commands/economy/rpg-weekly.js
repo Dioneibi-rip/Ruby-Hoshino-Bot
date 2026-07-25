@@ -1,6 +1,6 @@
 const handler=async(m)=>{
 const user=global.db.getUser(m.sender)||{}
-const coinReward=user.premium?36000:22500
+const coinReward=user.premium?25200:15750
 const expReward=user.premium?6000:3500
 const diamondReward=user.premium?14:8
 user.coin=(user.coin||0)+coinReward

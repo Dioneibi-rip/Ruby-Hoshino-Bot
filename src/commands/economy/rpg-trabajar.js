@@ -45,7 +45,7 @@ return conn.reply(m.chat, texto, m);
 let lossResist = (job.key === 'comerciante' || job.key === 'basurero') ? 0.7 : 1;
 let rawLoss = Math.floor((Math.random() * 900 + 600) * (user.premium ? 0.95 : 1.25) * lossResist);
 let loss = rawLoss;
-user.coin = (Number(user.coin) || 0) - loss;
+user.coin = Math.max(0, (Number(user.coin) || 0) - loss);
 user.bank = Math.max(0, Number(user.bank) || 0);
 await global.db.updateUser(senderId, { coin: user.coin, bank: user.bank });
 

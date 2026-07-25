@@ -52,7 +52,7 @@ return conn.reply(m.chat, texto, m);
 
 let rawLossAmount = Math.floor((Math.random() * 2400 + 1600) * (user.premium ? 1.05 : 1.35) * lossResist);
 let loss = rawLossAmount;
-user.coin = (Number(user.coin) || 0) - loss;
+user.coin = Math.max(0, (Number(user.coin) || 0) - loss);
 await global.db.updateUser(senderId, { coin: user.coin });
 
 let phraseList = useGeneric ? frasesCrimenGenericas.fail : (frasesCrimenPorTrabajo[job.key]?.fail || frasesCrimenGenericas.fail);
