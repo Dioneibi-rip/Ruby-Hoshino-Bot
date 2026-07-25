@@ -31,14 +31,19 @@ if (ok) {
 let baseAmount = Math.floor((Math.random() * 1800 + 1200) * 0.5);
 let amount = Math.floor(baseAmount * job.workMultiplier * premiumBoost * jobBonus * 0.33);
 let xpEarned = Math.floor(amount * 0.075);
+const materialDrop = rollWorkMaterial(job);
 user.coin = (user.coin || 0) + amount;
 user.jobXp = (user.jobXp || 0) + xpEarned;
-await global.db.updateUser(senderId, { coin: user.coin, jobXp: user.jobXp });
+if (materialDrop) user[materialDrop.field] = Number(user[materialDrop.field] || 0) + materialDrop.amount;
+const patch = { coin: user.coin, jobXp: user.jobXp };
+if (materialDrop) patch[materialDrop.field] = user[materialDrop.field];
+await global.db.updateUser(senderId, patch);
 
 let phraseList = useGeneric ? frasesGenericas.success : (frasesPorTrabajo[job.key]?.success || frasesGenericas.success);
 let phrase = pickRandom(phraseList);
 
-let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐆𝐚𝐧𝐚𝐬𝐭𝐞: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐗𝐏: *+${xpEarned}*`;
+let materialText = materialDrop ? `\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐌𝐚𝐭𝐞𝐫𝐢𝐚𝐥: *+${materialDrop.amount} ${materialDrop.label}*` : '';
+let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐆𝐚𝐧𝐚𝐬𝐭𝐞: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐗𝐏: *+${xpEarned}*${materialText}`;
 return conn.reply(m.chat, texto, m);
 }
 
@@ -206,3 +211,17 @@ fail: [
 ]
 }
 };
+
+
+function randomInt(min, max) {
+return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function rollWorkMaterial(job = {}) {
+const tier = String(job.tier || '').toLowerCase();
+if (tier === 'novato') return { field: 'stone', label: 'Piedra', amount: randomInt(1, 3) };
+if (tier === 'intermedio') return { field: 'iron', label: 'Hierro', amount: randomInt(1, 2) };
+if (tier === 'avanzado') return { field: 'gold', label: 'Oro', amount: 1 };
+if (tier === 'elite' && Math.random() < 0.20) return { field: 'diamond', label: 'Diamante', amount: 1 };
+return null;
+}

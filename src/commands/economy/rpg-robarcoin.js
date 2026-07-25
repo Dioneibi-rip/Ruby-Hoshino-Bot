@@ -3,7 +3,7 @@ const handler = async (m, { conn, participants = [] }) => {
 try {
 
 const participantsByLid = buildParticipantsByLid(participants);
-let senderJid = await normalizeIdentityJid(conn, m.sender, participantsByLid);
+let senderJid = await normalizeIdentityJid(conn, m.sender, participantsByLid) || m.sender;
 
 const user = global.db.getUser(senderJid);
 
@@ -14,7 +14,7 @@ await conn.reply(m.chat, `${emoji2} Debes mencionar a alguien para intentar roba
 return false;
 }
 
-let targetJid = await normalizeIdentityJid(conn, target, participantsByLid);
+let targetJid = await normalizeIdentityJid(conn, target, participantsByLid) || target;
 const targetName = await resolveIdentityName(conn, targetJid, { participantsByLid, fallback: `@${String(targetJid).split('@')[0]}` });
 
 if (targetJid === senderJid) {
@@ -40,6 +40,9 @@ const amount = Math.min(victimCash, randomInt(minSteal, maxSteal));
 targetUser.coin = victimCash - amount;
 user.coin = (Number(user.coin) || 0) + amount;
 
+await global.db.updateUser(targetJid, { coin: targetUser.coin });
+await global.db.updateUser(senderJid, { coin: user.coin });
+
 return conn.reply(
 m.chat,
 `🕶️ Robo exitoso a ${targetName}\n💸 Te llevaste *¥${amount.toLocaleString()} ${m.moneda}*`,
@@ -50,10 +53,19 @@ m,
 
 const multa = Math.max(300, Math.floor(Math.abs(Number(user.coin) || 0) * 0.05));
 user.coin = Math.max(0, (Number(user.coin) || 0) - multa);
+const caught = Math.random() < 0.25;
+const patch = { coin: user.coin };
+if (caught) {
+const jailUntil = Date.now() + 30 * 60 * 1000;
+user.extras = user.extras && typeof user.extras === 'object' && !Array.isArray(user.extras) ? user.extras : {};
+user.extras.jailUntil = jailUntil;
+patch.extras = { jailUntil };
+}
+await global.db.updateUser(senderJid, patch);
 
 return conn.reply(
 m.chat,
-`🚨 Fallaste el robo a ${targetName} y te multaron.\n💸 Perdiste *¥${multa.toLocaleString()} ${m.moneda}*`,
+`🚨 Fallaste el robo a ${targetName} y te multaron.\n💸 Perdiste *¥${multa.toLocaleString()} ${m.moneda}*${caught ? '\n🚔 Te atraparon: estarás preso *30 minutos*.' : ''}`,
 m,
 { mentions: [targetJid] },
 );

@@ -33,7 +33,11 @@ if (roll < jailChance) {
 let phraseList = useGeneric ? frasesCrimenGenericas.jail : (frasesCrimenPorTrabajo[job.key]?.jail || frasesCrimenGenericas.jail);
 let phrase = pickRandom(phraseList);
 
-let textoJail = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐂𝐨𝐧𝐝𝐞𝐧𝐚: *16 Minutos Preso*`;
+const jailUntil = Date.now() + 30 * 60 * 1000;
+user.extras = user.extras && typeof user.extras === 'object' && !Array.isArray(user.extras) ? user.extras : {};
+user.extras.jailUntil = jailUntil;
+await global.db.updateUser(senderId, { extras: { jailUntil } });
+let textoJail = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐂𝐨𝐧𝐝𝐞𝐧𝐚: *30 Minutos Preso*`;
 return conn.reply(m.chat, textoJail, m);
 }
 
