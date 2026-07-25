@@ -22,8 +22,8 @@ poción: { label: 'Poción', coin: 3000, heal: 50 },
 pico: { label: 'Pico', coin: 5000, iron: 5, durability: 100 },
 talisman: { label: 'Talismán', diamond: 10, field: 'talisman' },
 talismán: { label: 'Talismán', diamond: 10, field: 'talisman' },
-token: { label: 'Token Gacha', coin: 1200, field: 'tokens' },
-tokens: { label: 'Token Gacha', coin: 1200, field: 'tokens' },
+token: { label: 'Token Gacha', coin: 1500, field: 'tokens' },
+tokens: { label: 'Token Gacha', coin: 1500, field: 'tokens' },
 };
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -156,7 +156,7 @@ return `╭━〔 🏪 Tienda RPG 〕⬣
 ┃ • pocion: 3,000 ${moneda} → +50 salud
 ┃ • pico: 5,000 ${moneda} + 5 hierro → pico 100/100
 ┃ • talismán: 10 diamantes → seguro de vida
-┃ • token: 1,200 ${moneda} → 1 intento de rollwaifu
+┃ • token: 1,500 ${moneda} → 1 intento de rollwaifu
 ┃
 ┃ Vender materiales:
 ┃ • piedra: 5 ${moneda}
