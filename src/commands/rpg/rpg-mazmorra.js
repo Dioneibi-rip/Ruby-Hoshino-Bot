@@ -11,6 +11,13 @@ await conn.reply(m.chat, '💀 Los monstruos de la mazmorra te harían pedazos. 
 return false;
 }
 
+const minHealth = 50;
+user.health = Math.min(100, Math.max(0, Number(user.health || 0)));
+if (user.health < minHealth) {
+await conn.reply(m.chat, `💔 Necesitas al menos ${minHealth} de salud para entrar a la mazmorra. Usa el comando .heal para curarte.`, m);
+return false;
+}
+
 const eventos = [
 { nombre: 'Mazmorras de los Caídos', tipo: 'victoria', coin: randomNumber(4500, 9000), exp: randomNumber(225, 450), health: 0, mensaje: `🏆 Derrotaste al guardián y abriste su cofre.` },
 { nombre: 'Cámara de los Espectros', tipo: 'derrota', coin: randomNumber(-10000, -6000), exp: randomNumber(300, 700), health: randomNumber(-15, -5), mensaje: `⚠️ Un espectro te atrapó en sombras.` },

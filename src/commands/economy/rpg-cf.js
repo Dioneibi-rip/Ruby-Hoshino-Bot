@@ -1,35 +1,49 @@
+const MAX_BET = 50000
+const WIN_MULTIPLIER = 0.8
+
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-let [eleccion, cantidad] = text.trim().split(' ');
+let [eleccion, cantidad] = String(text || '').trim().split(' ');
 
 if (!eleccion || !cantidad) {
-return m.reply(`${emoji} Por favor, elige *cara* o *cruz* y una cantidad de ${m.moneda} para apostar.\nEjemplo: *${usedPrefix + command} cara 5000*`);
+await m.reply(`${emoji} Por favor, elige *cara* o *cruz* y una cantidad de ${m.moneda} para apostar.\nEjemplo: *${usedPrefix + command} cara 5000*`);
+return false;
 }
 
 eleccion = eleccion.toLowerCase();
 cantidad = parseInt(cantidad);
 
 if (!['cara', 'cruz'].includes(eleccion)) {
-return m.reply(`${emoji2} Elección no válida. Usa *cara* o *cruz*.\nEjemplo: *${usedPrefix + command} cara 5000*`);
+await m.reply(`${emoji2} Elección no válida. Usa *cara* o *cruz*.\nEjemplo: *${usedPrefix + command} cara 5000*`);
+return false;
 }
 
 if (isNaN(cantidad) || cantidad <= 0) {
-return m.reply(`${emoji2} Debes ingresar una cantidad válida mayor que cero.\nEjemplo: *${usedPrefix + command} cara 5000*`);
+await m.reply(`${emoji2} Debes ingresar una cantidad válida mayor que cero.\nEjemplo: *${usedPrefix + command} cara 5000*`);
+return false;
+}
+
+if (cantidad > MAX_BET) {
+await m.reply(`${emoji2} La apuesta máxima permitida es *¥${MAX_BET.toLocaleString()} ${m.moneda}*. Baja el monto para proteger la economía.`);
+return false;
 }
 
 const user = global.db.getUser(m.sender);
-const saldo = Number(user.coin) || 0;
+if (!user) return false;
+const saldo = Number(user.coin || 0);
 if (saldo < cantidad) {
-return m.reply(`${emoji2} No tienes suficientes ${m.moneda} para apostar. Tienes *¥${saldo.toLocaleString()}* y necesitas *¥${cantidad.toLocaleString()}*.`);
+await m.reply(`${emoji2} No tienes suficientes ${m.moneda} para apostar. Tienes *¥${saldo.toLocaleString()}* y necesitas *¥${cantidad.toLocaleString()}*.`);
+return false;
 }
 user.coin = saldo - cantidad;
 let resultado = Math.random() < 0.5 ? 'cara' : 'cruz';
 
 if (resultado === eleccion) {
-let ganancia = cantidad * 2;
-user.coin += ganancia;
+let ganancia = Math.floor(cantidad * WIN_MULTIPLIER);
+let pagoTotal = cantidad + ganancia;
+user.coin += pagoTotal;
 
 return conn.reply(m.chat,
-`「✿」La moneda ha caído en *${resultado.toUpperCase()}* y has ganado *¥${ganancia.toLocaleString()} ${m.moneda}*! 🍀
+`「✿」La moneda ha caído en *${resultado.toUpperCase()}* y recuperaste *¥${cantidad.toLocaleString()}* + ganaste *¥${ganancia.toLocaleString()} ${m.moneda}* netos. 🍀
 > Tu elección fue *${eleccion.toUpperCase()}*
 ✨ ¡La suerte estuvo de tu lado! ✨`, m);
 } else {
