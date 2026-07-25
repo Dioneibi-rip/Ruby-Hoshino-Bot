@@ -1,3 +1,5 @@
+import { applyTalismanIfDead } from '../../library/rpg-talisman.js';
+
 let handler = async (m, { conn }) => {
 let user = global.db.getUser(m.sender);
 let img = 'https://files.catbox.moe/bj45rp.jpg';
@@ -46,6 +48,7 @@ user.health -= 50;
 if (user.health < 0) {
 user.health = 0;
 }
+await applyTalismanIfDead(m, conn, user);
 let info = `🛫 Te has aventurado en el *<${randomKingdom}>*\n` +
 `🏞️ *Aventura Finalizada* 🏞️\n` +
 `💸 *${m.moneda} Ganados:* ${coin}\n` +

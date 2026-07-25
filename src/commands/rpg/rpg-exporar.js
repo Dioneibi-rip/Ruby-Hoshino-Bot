@@ -1,4 +1,6 @@
 
+import { applyTalismanIfDead } from '../../library/rpg-talisman.js'
+
 let handler = async (m, { conn }) => {
 let senderId = m.sender
 let user = global.db.getUser(senderId)
@@ -28,6 +30,7 @@ let evento = eventos[Math.floor(Math.random() * eventos.length)]
 user.coin = Math.max(0, (Number(user.coin) || 0) + evento.coin)
 user.exp = (user.exp || 0) + evento.exp
 user.health = Math.max(0, (user.health || 100) + evento.health)
+await applyTalismanIfDead(m, conn, user, Number(evento.health || 0) < 0)
 
 let info = `╭─「 *🌲 Exploración del Bosque Mágico* 」─
 │ ✦ Misión: *${evento.nombre}*

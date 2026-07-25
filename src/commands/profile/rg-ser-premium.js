@@ -21,13 +21,16 @@ response += `- Multiplicadores en #daily, #weekly y #mensual\n`;
 response += `- Acceso a #premiumbonus cada 8h\n`;
 response += `- Nuevo comando: #premiumpack cada 24h\n`;
 response += `- Mejor rentabilidad en #interes\n\n`;
-response += `Ejemplo: *${usedPrefix + command} semana*`;
+response += `💡 *¿Cómo comprar?*\n`;
+response += `Escribe el comando seguido del plan que deseas. Por ejemplo:\n`;
+response += `👉 *${usedPrefix + command} dia*\n`;
+response += `👉 *${usedPrefix + command} semana*`;
 return conn.reply(m.chat, response, m);
 }
 
 const selectedPlan = plans[text];
 
-if ((user.coin || 0) < selectedPlan.cost) {
+if (Number(user.coin || 0) < selectedPlan.cost) {
 return conn.reply(
 m.chat,
 `❌ Te faltan ${m.moneda}. Necesitas *¥${selectedPlan.cost.toLocaleString()}* y tienes *¥${(user.coin || 0).toLocaleString()}*.`,
@@ -35,11 +38,11 @@ m,
 );
 }
 
-user.coin -= selectedPlan.cost;
+user.coin = Number(user.coin || 0) - selectedPlan.cost;
 user.premium = true;
 
 const extraMs = selectedPlan.duration * 24 * 60 * 60 * 1000;
-user.premiumTime = (user.premiumTime > Date.now() ? user.premiumTime : Date.now()) + extraMs;
+user.premiumTime = (Number(user.premiumTime || 0) > Date.now() ? Number(user.premiumTime || 0) : Date.now()) + extraMs;
 
 const bonusCoins = Math.floor(selectedPlan.cost * selectedPlan.bonusRate);
 const bonusExp = selectedPlan.duration * 3000;
