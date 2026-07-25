@@ -58,7 +58,7 @@ return conn.reply(m.chat, `✿ Pusiste a *${character.name}* en el mercado por *
 
 handler.help = ['venderwaifu <personaje> <precio>']
 handler.tags = ['waifus', 'economia']
-handler.command = ['venderwaifu', 'venderpj']
+handler.command = ['vender', 'sell']
 handler.group = true
 handler.register = true
 
