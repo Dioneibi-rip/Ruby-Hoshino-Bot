@@ -8,7 +8,7 @@ let targetJid=await normalizeIdentityJid(conn,who,participantsByLid)
 const amountText=args.find(arg=>!arg.startsWith('@')&&isNumber(arg))
 if(!amountText)return m.reply(`(๑•̌ . •̑๑)ˀ̣ˀ̣  ძᥱᑲᥱs ᥱs⍴ᥱᥴі𝖿іᥴᥲr ᥣᥲ ᥴᥲᥒ𝗍іძᥲძ ძᥱ ${m.moneda} 𝗊ᥙᥱ 𝗊ᥙіᥱrᥱs transferir.\n> *ᥱȷᥱm⍴ᥣ᥆:* ${usedPrefix+command} 1000 @usuario`)
 const count=Math.min(Number.MAX_SAFE_INTEGER,Math.max(1,parseInt(amountText)))
-const tax=Math.floor(count*0.5)
+const tax=Math.floor(count*0.05)
 const received=count-tax
 const type='coin'
 const bankType='bank'
