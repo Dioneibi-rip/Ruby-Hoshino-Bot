@@ -59,9 +59,10 @@ const profileText=`
 │ ⧉ 𖦹 𝖦𝖾́𝗇𝖾𝗋𝗈 » ${genero}
 │ ⧉ 𖦹 𝖢⍺𝗌⍺𝖽𝗈/⍺ 𝖼𝗈𝗇 » ${parejaTag}
 ├────────────────────────
+│ ✦ 𝖳𝖨́𝖳𝖴𝖫𝖮 𝖣𝖤 𝖱𝖠𝖭𝖦𝖮 ✦
+│ ⧉ 𖦹 ${role}
 │ ⧉ 𖦹 𝖭𝗂𝗏𝖾𝗅 » ${nivel}
 │ ⧉ 𖦹 𝖤𝗑𝗉 » ${exp.toLocaleString()}
-│ ⧉ 𖦹 𝖱⍺𝗇𝗀𝗈 » ${role}
 ├────────────────────────
 │ ⧉ 𖦹 𝖢𝗈𝗂𝗇𝗌 » ${coins.toLocaleString()} ${moneda}
 │ ⧉ 𖦹 𝖡⍺𝗇𝖼𝗈 » ${bankCoins.toLocaleString()} ${moneda}
