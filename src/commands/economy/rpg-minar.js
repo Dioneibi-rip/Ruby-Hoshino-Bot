@@ -2,6 +2,19 @@ const handler = async (m, { conn }) => {
 const user = global.db.getUser(m.sender);
 if (!user) return;
 
+user.health = Math.min(100, Math.max(0, Number(user.health || 100)));
+user.pickaxedurability = Math.min(100, Math.max(0, Number(user.pickaxedurability || 100)));
+
+if (user.health < 20) {
+await conn.reply(m.chat, '💔 Estás muy débil para trabajar en la mina. Necesitas curarte antes de volver a minar.', m);
+return false;
+}
+
+if (user.pickaxedurability <= 0) {
+await conn.reply(m.chat, '⛏️ Tu pico está roto. Compra o repara uno en la tienda con *tienda comprar pico*.', m);
+return false;
+}
+
 const bonus = user.premium ? 1.25 : 1;
 const esEventoPositivo = Math.random() < (user.premium ? 0.68 : 0.56);
 const evento = esEventoPositivo ? pickRandom(eventosBuenos) : pickRandom(eventosMalos);
@@ -14,8 +27,8 @@ user.emerald = Math.max(0, (user.emerald || 0) + cambios.emerald);
 user.coal = Math.max(0, (user.coal || 0) + cambios.coal);
 user.stone = Math.max(0, (user.stone || 0) + cambios.stone);
 user.exp = (user.exp || 0) + cambios.exp;
-user.health = Math.max(0, (user.health || 100) - 10);
-user.pickaxedurability = Math.max(0, (user.pickaxedurability || 100) - 8);
+user.health = Math.max(0, Number(user.health || 0) - 10);
+user.pickaxedurability = Math.min(100, Math.max(0, Number(user.pickaxedurability || 0) - 8));
 
 const resultado =
 `⛏️ *${evento.texto}*\n\n` +
