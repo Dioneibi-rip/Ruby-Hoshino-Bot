@@ -14,10 +14,10 @@ return conn.reply(m.chat, '✅ No estás en la cárcel. No necesitas pagar fianz
 const bank = Math.max(0, Number(user.bank || 0));
 const bail = Math.max(MIN_BAIL, Math.floor(bank * BAIL_RATE));
 if (bank < bail) {
-return conn.reply(m.chat, `🚔 Sigues preso.\n💰 Fianza requerida: *${bail.toLocaleString()} ${m.moneda}*\n🏦 Banco disponible: *${bank.toLocaleString()} ${m.moneda}*`, m);
+return conn.reply(m.chat, `❌ Fondos insuficientes. Necesitas ${bail.toLocaleString()} en tu banco y solo tienes ${bank.toLocaleString()}. Ve a hacer un retiro o pide que te transfieran.`, m);
 }
 
-user.bank = bank - bail;
+user.bank = Math.max(0, bank - bail);
 user.extras.jailUntil = 0;
 await global.db.updateUser(m.sender, { bank: user.bank, extras: { jailUntil: 0 } });
 return conn.reply(m.chat, `🔓 Fianza pagada.\n💸 Se destruyeron *${bail.toLocaleString()} ${m.moneda}* de tu banco.\n✅ Ya estás libre.`, m);

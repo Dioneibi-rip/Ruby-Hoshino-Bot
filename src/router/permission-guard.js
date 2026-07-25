@@ -15,6 +15,12 @@ const botJid = conn?.decodeJid?.(conn?.user?.jid) || conn?.user?.jid
 return Boolean(m?.fromMe || isSameJid(sender, botJid))
 }
 
+export const JAIL_COMMAND_WHITELIST = ['fianza', 'depositar', 'retirar', 'dep', 'with', 'bal', 'inventario', 'perfil', 'menu']
+
+export function isJailWhitelistedCommand(command) {
+return JAIL_COMMAND_WHITELIST.includes(String(command || '').trim().toLowerCase())
+}
+
 export function pluginNeedsJob(plugin, name, command) {
 const tags = Array.isArray(plugin?.tags) ? plugin.tags.map((tag) => String(tag).toLowerCase()) : []
 const economyTagged = tags.some((tag) => ['economy', 'economia', 'rpg'].includes(tag)) || String(name || '').startsWith('rpg-')
@@ -115,7 +121,7 @@ fail: async ({ fail, m, conn }) => { fail('group', m, conn); return false },
 },
 
 {
-condition: ({ plugin, isBotSelf, name, extra }) => !isBotSelf && pluginNeedsJob(plugin, name, extra.command) && !['fianza', 'bail'].includes(String(extra.command || '').toLowerCase()),
+condition: ({ plugin, isBotSelf, name, extra }) => !isBotSelf && pluginNeedsJob(plugin, name, extra.command) && !isJailWhitelistedCommand(extra.command),
 check: ({ user }) => Number(user?.extras?.jailUntil || 0) > Date.now(),
 fail: async ({ conn, m, user }) => {
 const remainingMs = Math.max(0, Number(user?.extras?.jailUntil || 0) - Date.now())
