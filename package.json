@@ -10,6 +10,7 @@
     "src": "src"
   },
   "scripts": {
+    "postinstall": "node scripts/clean-sqlite.js",
     "code": "node index.js code",
     "eslint": "eslint .",
     "eslintfix": "eslint --fix .",

@@ -11,10 +11,18 @@ let instance
 let ownedSqlite
 let pruneTimer
 const require = createRequire(import.meta.url)
-const MAX_MESSAGES_PER_CHAT = Number.parseInt(process.env.BAILEYS_STORE_MAX_MESSAGES_PER_CHAT || '50', 10)
-const MAX_MESSAGE_AGE_MS = Number.parseInt(process.env.BAILEYS_STORE_MAX_MESSAGE_AGE_MS || `${3 * 60 * 60 * 1000}`, 10)
-const INACTIVE_CHAT_TTL_MS = Number.parseInt(process.env.BAILEYS_STORE_INACTIVE_CHAT_TTL_MS || `${24 * 60 * 60 * 1000}`, 10)
-const PRUNE_INTERVAL_MS = Number.parseInt(process.env.BAILEYS_STORE_PRUNE_INTERVAL_MS || `${15 * 60 * 1000}`, 10)
+const DEFAULT_MAX_MESSAGES_PER_CHAT = 20
+const DEFAULT_MAX_MESSAGE_AGE_MS = 60 * 60 * 1000
+const DEFAULT_INACTIVE_CHAT_TTL_MS = 6 * 60 * 60 * 1000
+const DEFAULT_PRUNE_INTERVAL_MS = 5 * 60 * 1000
+process.env.BAILEYS_STORE_MAX_MESSAGES_PER_CHAT ||= String(DEFAULT_MAX_MESSAGES_PER_CHAT)
+process.env.BAILEYS_STORE_MAX_MESSAGE_AGE_MS ||= String(DEFAULT_MAX_MESSAGE_AGE_MS)
+process.env.BAILEYS_STORE_INACTIVE_CHAT_TTL_MS ||= String(DEFAULT_INACTIVE_CHAT_TTL_MS)
+process.env.BAILEYS_STORE_PRUNE_INTERVAL_MS ||= String(DEFAULT_PRUNE_INTERVAL_MS)
+const MAX_MESSAGES_PER_CHAT = Number.parseInt(process.env.BAILEYS_STORE_MAX_MESSAGES_PER_CHAT, 10)
+const MAX_MESSAGE_AGE_MS = Number.parseInt(process.env.BAILEYS_STORE_MAX_MESSAGE_AGE_MS, 10)
+const INACTIVE_CHAT_TTL_MS = Number.parseInt(process.env.BAILEYS_STORE_INACTIVE_CHAT_TTL_MS, 10)
+const PRUNE_INTERVAL_MS = Number.parseInt(process.env.BAILEYS_STORE_PRUNE_INTERVAL_MS, 10)
 const DEFAULT_BAILEYS_SQLITE_FILE = './src/database/baileys-store.sqlite'
 const LEGACY_MEMORY_STORE_FILES = ['./baileys_store_multi.json', './baileys_store.json']
 
@@ -98,6 +106,9 @@ function resolveBaileysSqlite() {
   if (!ownedSqlite) {
     ownedSqlite = createOwnedBaileysSqlite()
   }
+  return ownedSqlite
+}
+function getBaileysSQLite() {
   return ownedSqlite
 }
 
@@ -223,5 +234,5 @@ async function closeStore() {
   try { ownedSqlite?.pragma?.('wal_checkpoint(TRUNCATE)') } catch {}
   try { ownedSqlite?.close?.() } catch (error) { console.error('[baileys-store] error cerrando SQLite dedicado', error) }
 }
-export { startMessagePruner, pruneStoreMessages, resolveBaileysSqlite, closeStore }
+export { startMessagePruner, pruneStoreMessages, getBaileysSQLite, resolveBaileysSqlite, closeStore }
 export default { bind, loadMessage, countChats, getStore, startMessagePruner, pruneStoreMessages, closeStore }
