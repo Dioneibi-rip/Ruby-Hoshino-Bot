@@ -18,7 +18,8 @@ import { Boom } from '@hapi/boom'
 import { makeWASocket, protoType, serialize, SimpleSocketService } from '../library/simple.js'
 import { useOptimizedAuthState, createManagerDatabase } from '../library/sqliteAuthState.js'
 import { initializeDatabase } from '../library/database.js'
-import store from '../library/store.js'
+import store, { getBaileysSQLite } from '../library/store.js'
+import { startSQLiteMaintenance } from '../library/sqlite-maintenance.js'
 import readline, { createInterface } from 'readline'
 import { EventEmitter } from 'events'
 
@@ -60,6 +61,10 @@ mkdirSync(join(process.cwd(), 'tmp'), { recursive: true })
 global.db = await initializeDatabase(opts['db'] || './src/database/database.sqlite')
 global.DATABASE = global.db
 let databaseShutdownStarted = false
+const sqliteMaintenance = startSQLiteMaintenance(() => [
+{ label: 'database.sqlite', db: global.db?.sqlite || global.db },
+{ label: 'baileys-store.sqlite', db: getBaileysSQLite() || global.db?.baileysSqlite }
+])
 global.authCredsFlushers ||= new Set()
 global.__rubyPluginWatchers ||= new Map()
 const { RubyJadiBot } = await import('../services/jadibots/jadibot-serbot.js')
@@ -181,6 +186,7 @@ databaseShutdownStarted = true
 if (error) console.error(error)
 try {
 clearInterval(databaseAutosaveInterval)
+sqliteMaintenance.stop?.()
 await Promise.all([...global.authCredsFlushers].map(flush => flush()))
 await global.saveDatabase()
 await closeMediaQueue()

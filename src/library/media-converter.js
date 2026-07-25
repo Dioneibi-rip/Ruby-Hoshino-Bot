@@ -4,24 +4,42 @@ import { spawn } from 'child_process'
 
 import { bufferToBlob } from './http.js'
 
+async function removeTempFile(filename) {
+  if (!filename) return
+  await promises.unlink(filename).catch(() => {})
+}
+
 function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
   return new Promise(async (resolve, reject) => {
+    let tmp
+    let out
+    let outputHandedOff = false
     try {
       const tmpDir = join(process.cwd(), 'tmp')
       await promises.mkdir(tmpDir, { recursive: true })
-      const tmp = join(tmpDir, `${Date.now()}.${ext}`)
-      const out = `${tmp}.${ext2}`
+      tmp = join(tmpDir, `${Date.now()}.${ext}`)
+      out = `${tmp}.${ext2}`
       await promises.writeFile(tmp, buffer)
       spawn('ffmpeg', ['-y', '-i', tmp, ...args, out])
         .on('error', reject)
         .on('close', async (code) => {
           try {
-            await promises.unlink(tmp)
-            if (code !== 0) return reject(code)
-            resolve({ data: await promises.readFile(out), filename: out, delete: () => promises.unlink(out) })
-          } catch (e) { reject(e) }
+            if (code !== 0) throw new Error(`ffmpeg terminó con código ${code}`)
+            const data = await promises.readFile(out)
+            outputHandedOff = true
+            resolve({ data, filename: out, delete: () => removeTempFile(out) })
+          } catch (e) {
+            reject(e)
+          } finally {
+            await removeTempFile(tmp)
+            if (!outputHandedOff) await removeTempFile(out)
+          }
         })
-    } catch (e) { reject(e) }
+    } catch (e) {
+      await removeTempFile(tmp)
+      await removeTempFile(out)
+      reject(e)
+    }
   })
 }
 
