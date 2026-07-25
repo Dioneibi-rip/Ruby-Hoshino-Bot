@@ -14,7 +14,7 @@ const texto = `
 await conn.sendMessage(
 m.chat,
 {
-image: { url: 'https://files.catbox.moe/8iug4q.jpeg' },
+image: { url: 'https://i.pinimg.com/736x/06/d0/49/06d049413ac75b327e92e84c7b1410bd.jpg' },
 caption: texto,
 contextInfo: {
 mentionedJid: [m.sender],
