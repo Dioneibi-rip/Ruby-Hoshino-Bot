@@ -12,8 +12,8 @@ esmeralda: { field: 'emerald', label: 'Esmeralda', price: 250 },
 emerald: { field: 'emerald', label: 'Esmeralda', price: 250 },
 diamante: { field: 'diamond', label: 'Diamante', price: 1500 },
 diamond: { field: 'diamond', label: 'Diamante', price: 1500 },
-diamantes: { field: 'diamond', label: 'Diamante', price: 1500 },
-diamonds: { field: 'diamond', label: 'Diamante', price: 1500 },
+diamantes: { field: 'diamond', label: 'Diamante', price: 1000 },
+diamonds: { field: 'diamond', label: 'Diamante', price: 1000 },
 };
 
 const BUY_CATALOG = {
@@ -159,6 +159,6 @@ return `╭━〔 🏪 Tienda RPG 〕⬣
 ┃ • hierro: 40 ${moneda}
 ┃ • oro: 100 ${moneda}
 ┃ • esmeralda: 250 ${moneda}
-┃ • diamante: 1,500 ${moneda}
+┃ • diamante: 1,000 ${moneda}
 ╰━━━━━━━━━━━━⬣`;
 }
