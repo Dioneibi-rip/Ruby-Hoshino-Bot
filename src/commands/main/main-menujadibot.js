@@ -16,6 +16,8 @@ const texto = `
 > ✦ Define qué Sub-Bot atiende comandos en el grupo.
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭🤖 *#resetbot*
 > ✦ Restablece la ruta de bots y habilita todos los Sub-Bots del grupo.
+𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭🤖 *#setmoneda*
+> ✦ cambia el nombre de la moneda del bot.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅
 `.trim();
 
