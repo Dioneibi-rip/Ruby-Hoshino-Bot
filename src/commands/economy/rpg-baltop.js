@@ -1,62 +1,28 @@
-import { buildParticipantsByLid, normalizeIdentityJid, resolveTarget, resolveIdentityName, normalizeJid } from '../../core/identity-utils.js'
-
-const handler = async (m, { conn, participants = [], groupMetadata }) => {
-  // 1. Forzar la obtención de la metadata de forma segura (como en baltop)
-  const metadata = await conn.groupMetadata(m.chat).catch(() => groupMetadata || {})
-  const actualParticipants = metadata?.participants || participants || []
-
-  const participantsByLid = buildParticipantsByLid(actualParticipants)
-  const target = await resolveTarget(m, conn, { participantsByLid, errorMessage: '' })
-
-  if (target) {
-    const targetJid = await normalizeIdentityJid(conn, target, participantsByLid)
-    if (!targetJid || !global.db.userExists(targetJid)) {
-      return conn.reply(m.chat, '☢️ Objetivo no encontrado en la base de datos económica.', m)
-    }
-
-    await global.db.updateUser(targetJid, { coin: 0, bank: 0 })
-    await global.db.write?.()
-    const targetName = await resolveIdentityName(conn, targetJid, { participantsByLid, fallback: `@${String(targetJid).split('@')[0]}` })
-    return conn.reply(
-      m.chat,
-      `☢️ *BOTÓN NUCLEAR ACTIVADO*\n\nLos fondos de ${targetName} han sido confiscados.\n💸 Cartera: *0*\n🏦 Banco: *0*`,
-      m,
-      { mentions: [targetJid] },
-    )
-  }
-
-  // 2. Extraer y normalizar los JIDs usando el mismo método que baltop
-  const groupParticipants = [...new Set(
-    actualParticipants
-      .flatMap(participant => [participant?.id, participant?.jid, participant?.lid])
-      .map(normalizeJid) // Limpieza estricta de IDs
-      .filter(Boolean)
-  )]
-
-  const targets = new Set()
-  for (const jid of groupParticipants) {
-    // 3. Verificar los IDs limpios en la base de datos
-    if (global.db.userExists(jid)) targets.add(jid)
-  }
-
-  if (!targets.size) {
-    return conn.reply(m.chat, '☢️ No encontré usuarios del grupo con economía registrada para resetear.', m)
-  }
-
-  for (const jid of targets) await global.db.updateUser(jid, { coin: 0, bank: 0 })
-  await global.db.write?.()
-
-  return conn.reply(
-    m.chat,
-    `☢️ *COLAPSO ECONÓMICO TOTAL*\n\nToda la economía del grupo ha colapsado y los fondos han sido confiscados.\n👥 Usuarios afectados: *${targets.size}*\n💸 Cartera y banco fueron reducidos a *0*.`,
-    m,
-  )
+import { normalizeJid, resolveIdentityName } from '../../core/identity-utils.js'
+let handler=async(m,{conn,args,groupMetadata})=>{
+const metadata=await conn.groupMetadata(m.chat).catch(()=>groupMetadata||{})
+const participantIds=[...new Set((metadata?.participants||[]).flatMap(participant=>[participant?.id,participant?.jid,participant?.lid]).map(normalizeJid).filter(Boolean))]
+const requestedPage=Number.parseInt(args[0],10)
+const perPage=10
+const rows=(global.db.topUsersByIds?.(participantIds,{field:'coin'})||[]).map(row=>({...row,totalWealth:Number(row.coin||0)+Number(row.bank||0)})).sort((a,b)=>b.totalWealth-a.totalWealth||String(a.id).localeCompare(String(b.id)))
+const totalPages=Math.max(1,Math.ceil(rows.length/perPage))
+const page=Math.min(Math.max(Number.isInteger(requestedPage)&&requestedPage>0?requestedPage:1,1),totalPages)
+const start=(page-1)*perPage
+const icons=['👑','🥈','🥉']
+let text=`「✿」Los usuarios con más *${m.moneda}* son:\n\n`
+for(const[rowIndex,row]of rows.slice(start,start+perPage).entries()){
+const fallback=String(row.id).split('@')[0]
+const name=(await resolveIdentityName(conn,row.id,{fallback})).replace(/@/g,'')||fallback
+text+=`${icons[start+rowIndex]||'✰'} ${start+rowIndex+1} » *${name}:*\n\t\tTotal→ *¥${Number(row.totalWealth||0).toLocaleString()} ${m.moneda}*
+Cartera→ *¥${Number(row.coin||0).toLocaleString()}* · Banco→ *¥${Number(row.bank||0).toLocaleString()}*\n`
 }
-
-handler.help = ['reseteconomy [@usuario]']
-handler.tags = ['owner']
-handler.command = ['reseteconomy', 'resetearconomia', 'reseteco']
-handler.group = true
-handler.rowner = true
-
+if(!rows.length)text+='✰ Aún no hay balances de participantes registrados.\n'
+await conn.reply(m.chat,`${text}\n> • Pagina *${page}* de *${totalPages}*`.trim(),m)
+}
+handler.help=['baltop']
+handler.tags=['rpg']
+handler.command=['baltop','eboard']
+handler.group=true
+handler.register=true
+handler.exp=0
 export default handler
