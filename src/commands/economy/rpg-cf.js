@@ -1,4 +1,4 @@
-const MAX_BET = 50000
+const MAX_BET = 150000
 const WIN_MULTIPLIER = 0.8
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
