@@ -46,10 +46,18 @@ global.RubyJadibts = true
 global.subbotlimitt = 22
 
 global.baileysSocketConfig = {
-  connectTimeoutMs: 45000,
-  keepAliveIntervalMs: 20000,
-  retryRequestDelayMs: 1500,
-  defaultQueryTimeoutMs: 30000
+  // Valores alineados con DEFAULT_CONNECTION_CONFIG del upstream Baileys estable.
+  connectTimeoutMs: 20000,
+  keepAliveIntervalMs: 30000,
+  retryRequestDelayMs: 250,
+  defaultQueryTimeoutMs: 60000,
+  markOnlineOnConnect: true,
+  syncFullHistory: true,
+  fireInitQueries: true,
+  emitOwnEvents: true,
+  reconnectBaseDelayMs: 5000,
+  reconnectMaxDelayMs: 120000,
+  reconnectJitterMs: 5000
 }
 
 // Límites de concurrencia y anti-spam interno para proteger el Event Loop bajo ráfagas.
