@@ -1,7 +1,7 @@
 let handler = async (m, { conn }) => {
 let user = global.db.getUser(m.sender);
 
-const costoCura = 1500;
+const costoCura = 8000;
 const cura = 75;
 
 if (user.coin < costoCura) {

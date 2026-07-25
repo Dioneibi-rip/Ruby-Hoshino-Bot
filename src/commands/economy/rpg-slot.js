@@ -12,6 +12,8 @@ if (users.exp < apuesta) {
 throw `${emoji2} Tu XP no es suficiente para aportar esa cantidad.`;
 }
 
+users.exp -= apuesta;
+
 const emojis = ['💴', '💵', '💶'];
 const getRandomEmojis = () => {
 const x = Array.from({ length: 3 }, () => emojis[Math.floor(Math.random() * emojis.length)]);
@@ -46,11 +48,10 @@ if (x[0] === y[0] && y[0] === z[0]) {
 end = `${emoji} Ganaste! 🎁 +${apuesta + apuesta} XP.`;
 users.exp += apuesta * 2;
 } else if (x[0] === y[0] || x[0] === z[0] || y[0] === z[0]) {
-end = `${emoji2} Casi lo logras!, sigue intentandolo = *Toma +10 XP*`;
-users.exp += 10;
+end = `${emoji2} Casi lo logras!, recuperas la mitad de tu apuesta.`;
+users.exp += Math.floor(apuesta * 0.5);
 } else {
 end = `${emoji4} Perdiste -${apuesta} XP`;
-users.exp -= apuesta;
 }
 
 const finalResult = `

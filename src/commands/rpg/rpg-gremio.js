@@ -24,11 +24,11 @@ const eventos = [
 let evento = eventos[Math.floor(Math.random() * eventos.length)];
 
 if (evento.tipo === 'victoria') {
-user.coin += evento.coin;
+user.coin = Math.max(0, (Number(user.coin) || 0) + evento.coin);
 user.exp += evento.exp;
 user.health += evento.health;
 } else if (evento.tipo === 'derrota') {
-user.coin += evento.coin;
+user.coin = Math.max(0, (Number(user.coin) || 0) + evento.coin);
 user.exp += evento.exp;
 user.health -= evento.health;
 } else if (evento.tipo === 'troll') {

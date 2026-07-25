@@ -47,7 +47,7 @@ return conn.sendMessage(m.chat, { text: texto, contextInfo: { mentionedJid: [tar
 
 let amountLoss = Math.floor((Math.random() * 700 + 300) * job.slutLossMultiplier * slutLossResist);
 let loss = amountLoss;
-user.coin = (Number(user.coin) || 0) - loss;
+user.coin = Math.max(0, (Number(user.coin) || 0) - loss);
 user.bank = Math.max(0, Number(user.bank) || 0);
 await global.db.updateUser(senderId, { coin: user.coin, bank: user.bank });
 

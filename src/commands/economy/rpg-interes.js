@@ -8,7 +8,7 @@ return false;
 }
 
 const rate = user.premium ? 0.0285 : 0.028;
-const cap = user.premium ? 55000 : 110000;
+const cap = user.premium ? 220000 : 110000;
 const interest = Math.min(cap, Math.max(600, Math.floor(bank * rate)));
 
 user.coin = (user.coin || 0) + interest;

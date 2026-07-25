@@ -49,7 +49,7 @@ m,
 }
 
 const multa = Math.max(300, Math.floor(Math.abs(Number(user.coin) || 0) * 0.05));
-user.coin = (Number(user.coin) || 0) - multa;
+user.coin = Math.max(0, (Number(user.coin) || 0) - multa);
 
 return conn.reply(
 m.chat,

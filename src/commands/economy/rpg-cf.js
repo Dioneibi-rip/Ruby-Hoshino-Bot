@@ -17,7 +17,11 @@ return m.reply(`${emoji2} Debes ingresar una cantidad válida mayor que cero.\nE
 }
 
 const user = global.db.getUser(m.sender);
-user.coin = (Number(user.coin) || 0) - cantidad;
+const saldo = Number(user.coin) || 0;
+if (saldo < cantidad) {
+return m.reply(`${emoji2} No tienes suficientes ${m.moneda} para apostar. Tienes *¥${saldo.toLocaleString()}* y necesitas *¥${cantidad.toLocaleString()}*.`);
+}
+user.coin = saldo - cantidad;
 let resultado = Math.random() < 0.5 ? 'cara' : 'cruz';
 
 if (resultado === eleccion) {

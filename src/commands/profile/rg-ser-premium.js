@@ -47,7 +47,6 @@ const bonusDiamonds = Math.max(8, Math.floor(selectedPlan.duration / 2));
 user.coin += bonusCoins;
 user.exp = (user.exp || 0) + bonusExp;
 user.diamond = (user.diamond || 0) + bonusDiamonds;
-user.diamonds = (user.diamonds || 0) + bonusDiamonds;
 
 const remainingTime = user.premiumTime - Date.now();
 const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));

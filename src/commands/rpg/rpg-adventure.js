@@ -18,7 +18,7 @@ let kingdoms = [
 'Reino de Elenaria'
 ];
 let randomKingdom = pickRandom(kingdoms);
-let coin = pickRandom([12000, 15000, 18000, 20000, 24000, 28000, 35000, 40000, 52000]);
+let coin = pickRandom([3000, 4000, 5000, 6000, 7000, 8000]);
 let emerald = pickRandom([4, 6, 8, 10, 12]);
 let iron = pickRandom([5, 6, 7, 9, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]);
 let gold = pickRandom([25, 35, 45, 60, 75]);
@@ -32,7 +32,7 @@ user.iron += iron;
 user.gold += gold;
 user.coal += coal;
 user.stone += stone;
-user.diamonds += diamonds;
+user.diamond += diamonds;
 user.exp += exp;
 user.health -= 50;
 if (user.health < 0) {
