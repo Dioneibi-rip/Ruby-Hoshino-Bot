@@ -28,7 +28,7 @@ return m.reply(`${emoji} Retiraste *${amount.toLocaleString()} ${m.moneda}* del 
 
 handler.help = ['retirar']
 handler.tags = ['rpg']
-handler.command = ['withdraw', 'retirar', 'with']
+handler.command = ['withdraw', 'retirar', 'with', 'ret']
 handler.group = true
 handler.register = true
 
