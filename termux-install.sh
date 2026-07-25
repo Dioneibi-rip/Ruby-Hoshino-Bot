@@ -80,7 +80,7 @@ npm install "${NPM_FLAGS[@]}"
 
 print_step "Verificando módulos críticos"
 node --input-type=module - <<'NODECHECK'
-const modules = ['better-sqlite3', 'jimp', 'yt-search', 'qrcode'];
+const modules = ['better-sqlite3', 'yt-search', 'qrcode'];
 for (const name of modules) {
   try {
     await import(name);

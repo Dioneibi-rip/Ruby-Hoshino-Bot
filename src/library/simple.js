@@ -1,6 +1,6 @@
 import { getCachedParticipatingGroups } from './baileys-group-cache.js'
 import path from 'path'  
-import { toAudio } from './media-converter.js'
+import { generateProfilePicture as generateProfilePictureWithFfmpeg, resizeImage, toAudio } from './media-converter.js'
 import chalk from './ansi.js'
 import { formatPhoneInternational } from './native-utils.js'
 import fs from 'fs'
@@ -9,7 +9,6 @@ import { fileTypeFromBuffer } from './fileType.js'
 import { format } from 'util'
 import { fileURLToPath } from 'url'
 import store from './store.js'
-import Jimp from 'jimp'  
 import pino from './logger.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -353,12 +352,13 @@ END:VCARD
             enumerable: true
         },
         resize: {
-                value(buffer, ukur1, ukur2) {
-                return new Promise(async(resolve, reject) => {
-        var baper = await Jimp.read(buffer)
-        var ab = await baper.resize(ukur1, ukur2).getBufferAsync(Jimp.MIME_JPEG)
-        resolve(ab)
-       })
+                async value(buffer, ukur1, ukur2) {
+                const converted = await resizeImage(buffer, ukur1, ukur2)
+                try {
+                    return converted.data
+                } finally {
+                    await converted.delete?.().catch(() => {})
+                }
       }
     },
 
@@ -580,9 +580,14 @@ END:VCARD`.trim()
                     console.error(e)
                     m = null
                 } finally {
-                    if (!m) m = await conn.sendMessage(jid, { ...message, [mtype]: file }, { ...opt, ...options })
-                    file = null // releasing the memory
-                    return m
+                    try {
+                        if (!m) m = await conn.sendMessage(jid, { ...message, [mtype]: file }, { ...opt, ...options })
+                        return m
+                    } finally {
+                        await convert?.delete?.().catch(() => {})
+                        if (pathFile === type.filename) await type.deleteFile?.().catch(() => {})
+                        file = null // releasing the memory
+                    }
                 }
             },
             enumerable: true
@@ -609,9 +614,12 @@ reply: {
       */
       resize: {
       async value(image, width, height) {
-       let oyy = await Jimp.read(image)
-       let kiyomasa = await oyy.resize(width, height).getBufferAsync(Jimp.MIME_JPEG)
-       return kiyomasa
+       const converted = await resizeImage(image, width, height)
+       try {
+        return converted.data
+       } finally {
+        await converted.delete?.().catch(() => {})
+       }
       }
     },
     /** Profile Image
@@ -622,11 +630,11 @@ reply: {
       */
     generateProfilePicture: {
     async value(buffer) {
-        const jimp_1 = await Jimp.read(buffer);
-        const resz = jimp_1.getWidth() > jimp_1.getHeight() ? jimp_1.resize(550, Jimp.AUTO) : jimp_1.resize(Jimp.AUTO, 650)
-        const jimp_2 = await Jimp.read(await resz.getBufferAsync(Jimp.MIME_JPEG));
-        return {
-          img: await resz.getBufferAsync(Jimp.MIME_JPEG)
+        const converted = await generateProfilePictureWithFfmpeg(buffer)
+        try {
+          return { img: converted.data }
+        } finally {
+          await converted.delete?.().catch(() => {})
         }}
         },
 
