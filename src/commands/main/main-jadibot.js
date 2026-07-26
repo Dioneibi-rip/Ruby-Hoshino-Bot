@@ -11,7 +11,7 @@ return false
 }
 }
 
-let handler = async (m, { conn, command, usedPrefix, args, text, isOwner }) => {
+let handler = async (m, { conn, command, usedPrefix, args, text, isOwner, participants = [] }) => {
 
 const isDeleteSession = /^(deletesesion|deletebot|deletesession|deletesesaion)$/i.test(command)
 const isPauseBot = /^(stop|pausarai|pausarbot)$/i.test(command)
@@ -33,21 +33,6 @@ return str.split('').map(c => map[c] || c).join('')
 const reportError = async (e) => {
 await m.reply(`⚠️ ${toFancy("Ocurrió un error inesperado, lo siento mucho...")}`)
 console.error(e)
-}
-
-const convertirMsAFormato = (ms) => {
-if (!ms || ms < 1000) return toFancy('Recién conectado')
-let segundos = Math.floor(ms / 1000)
-let minutos = Math.floor(segundos / 60)
-let horas = Math.floor(minutos / 60)
-let días = Math.floor(horas / 24)
-segundos %= 60; minutos %= 60; horas %= 24
-const parts = []
-if (días > 0) parts.push(`${días}d`)
-if (horas > 0) parts.push(`${horas}h`)
-if (minutos > 0) parts.push(`${minutos}m`)
-if (segundos > 0) parts.push(`${segundos}s`)
-return parts.join(', ') || toFancy('Justo ahora')
 }
 
 if (isDeleteSession) {
@@ -88,21 +73,36 @@ conn.ws.close()
 }
 
 else if (isShowBots) {
-const users = [...new Set([...global.conns.filter(c => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)])]
-
-let listaSubBots = users.map((v, i) => {
-const uptime = v.uptime ? convertirMsAFormato(Date.now() - v.uptime) : toFancy('Desconocido')
-const numero = v.user.jid.split('@')[0]
-const nombre = v.user.name || toFancy('Sin Nombre')
-return `╭━ • 🤖 *SUB-BOT ${i + 1}* • ━
-│➤ *${toFancy("Usuario")}:* ${nombre}
-│➤ *${toFancy("Número")}:* wa.me/${numero}
-│➤ *${toFancy("Activo")}:* ${uptime}
-╰━━━━━━━━━━━━━`
-}).join('\n\n')
-
-const finalMessage = users.length > 0 ? listaSubBots : `💤 ${toFancy("Actualmente no hay Sub-Bots conectados.")}`
-const headerText = `*${toFancy("SUB-BOTS CONECTADOS")}* ✨\n\n${toFancy("Total Activos:")} ${users.length}\n${users.length > 0 ? '───────────────\n' : ''}${finalMessage}`
+const socketOpen = (sock) => sock?.user && sock?.ws?.socket && sock.ws.socket.readyState !== ws.CLOSED
+const normalizeJid = (jid = '') => String(jid).replace(/:\d+(?=@)/, '')
+const cleanPhone = (jid = '') => normalizeJid(jid).split('@')[0]
+const displayName = (sock) => {
+const jid = sock?.user?.jid || sock?.user?.id || ''
+return sock?.user?.name || sock?.user?.pushname || cleanPhone(jid) || toFancy('Sin Nombre')
+}
+const participantJids = new Set((participants || []).flatMap((participant) => [participant?.jid, participant?.id, participant?.lid].filter(Boolean).map(normalizeJid)))
+const isInCurrentGroup = (sock) => !m.isGroup || participantJids.has(normalizeJid(sock?.user?.jid || sock?.user?.id || ''))
+const wantsAll = /^all$/i.test((args?.[0] || text || '').trim())
+const showAll = Boolean(isOwner && wantsAll)
+const mainSocket = socketOpen(global.conn) ? [{ sock: global.conn, type: 'main' }] : []
+const subSockets = [...new Set([...(global.conns || []).filter(socketOpen)])].map((sock) => ({ sock, type: 'Sub' }))
+const activeSockets = [...mainSocket, ...subSockets]
+const scopedSockets = showAll ? activeSockets : activeSockets.filter(isInCurrentGroup)
+const mainCount = activeSockets.filter(({ type }) => type === 'main').length
+const subCount = activeSockets.filter(({ type }) => type === 'Sub').length
+const scopedLabel = showAll ? 'Bots activos' : 'Bots en el grupo'
+const botLines = scopedSockets.length
+? scopedSockets.map(({ sock, type }) => `- [${type} *Ruby*] › ${displayName(sock)}`).join('\n')
+: `- ${showAll ? 'No hay bots activos.' : 'No hay bots activos en este grupo.'}`
+const headerText = [
+`Sockets activos: *${activeSockets.length}*`,
+'',
+`- Principales: *${mainCount}*`,
+`- Subs: *${subCount}*`,
+'',
+`${scopedLabel}: *${scopedSockets.length}*`,
+botLines,
+].join('\n')
 
 let mediaMessage = await prepareWAMessageMedia({
 image: { url: 'https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/855ccb61ddb6e8a6265750cb601ca07b.jpg' }
@@ -116,7 +116,7 @@ body: proto.Message.InteractiveMessage.Body.create({
 text: headerText
 }),
 footer: proto.Message.InteractiveMessage.Footer.create({
-text: toFancy('Gestión de Sub-Bots')
+text: showAll ? 'Vista global de sockets' : 'Vista del grupo actual'
 }),
 header: proto.Message.InteractiveMessage.Header.create({
 hasMediaAttachment: true,
