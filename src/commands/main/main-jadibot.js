@@ -136,12 +136,12 @@ return p?.admin ? '👑 𝖠𝖽𝗆𝗂𝗇' : '👤 𝖬𝗂𝖾𝗆𝖻𝗋�
 const wantsAll = /^all$/i.test((args?.[0] || text || '').trim())
 const showAll = Boolean(isOwner && wantsAll)
 const mainJid = normalizeBotJid(global.conn?.user?.id || global.conn?.user?.jid || conn?.user?.id || conn?.user?.jid)
-const mainSocket = socketOpen(global.conn) && mainJid ? [{ jid: mainJid, sock: global.conn, type: '𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅' }] : []
+const mainSocket = socketOpen(global.conn) && mainJid ? [{ jid: mainJid, sock: global.conn, type: 'main' }] : []
 const subFolderPath = global.rutaJadiBot || path.join(process.cwd(), global.jadi || jadi)
 const subBots = [...new Set(getBotsFromFolder(subFolderPath))].map((number) => {
 const jid = `${number}@s.whatsapp.net`
 const sock = (global.conns || []).find((socket) => normalizeBotJid(socket?.subBotJid || socket?.user?.id || socket?.user?.jid) === jid)
-return { jid, sock, type: '𝖲𝗎𝖻𝖡𝗈𝗍' }
+return { jid, sock, type: '𝖲𝗎𝖻' }
 })
 const activeSockets = [...mainSocket, ...subBots]
 const isInCurrentGroup = ({ jid }) => !m.isGroup || groupParticipants.includes(jid)
@@ -158,7 +158,7 @@ const settings = global.db?.get?.('settings', jid) || global.db?.data?.settings?
 const name = sock?.user?.name || sock?.user?.pushname || settings?.namebot2 || settings?.namebot || 'Ruby AI'
 const role = getAdminStatus(jid)
 const roleText = role ? `𓋲  *${role}*` : ''
-return `> ┌᷒⣿̷̸⵿⃛⣦💝⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 [${type}]\n> ִ \`${name}\`\n> 📱 +${num} ${roleText}`
+return `> ⏤͟͟͞͞⃟⃞🫧  [${type}]\n> ִ \`${name}\`\n> 📱 +${num} ${roleText}`
 }).join('\n\n')
 : `> 💧 (っ- ‸ - ς) \`No hay bots activos aquí...\``
 
@@ -171,7 +171,7 @@ const headerText = [
 `> *┌᷒☁️⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 ${scopedLabel}:* \`${scopedSockets.length}\``,
 ``,
 botLines,
-`ᅟᅟ◢⃝ᩡ⣦꯭⏜͜͜❀ᅟ𝖲꯭𝖮꯭𝖢꯭𝖪꯭𝖤꯭𝖳꯭𝖲ᅟ⵿ᩚ̷ᅟ͜𑁘ࡄ▆ᩘ̫✹`
+`ᅟᅟ◢⃝ᩡ⣦ 𝖲꯭𝖮꯭𝖢꯭𝖪꯭𝖤꯭𝖳꯭𝖲 ࡄ▆ᩘ̫✹`
 ].join('\n')
 
 let mediaMessage = await prepareWAMessageMedia({
