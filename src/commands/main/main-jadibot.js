@@ -93,7 +93,7 @@ const subCount = activeSockets.filter(({ type }) => type === 'Sub').length
 const scopedLabel = showAll ? 'Bots activos' : 'Bots en el grupo'
 const botLines = scopedSockets.length
 ? scopedSockets.map(({ sock, type }) => `- [${type} *Ruby*] › ${displayName(sock)}`).join('\n')
-: `- ${showAll ? 'No hay bots activos.' : 'No hay bots activos en este grupo.'}`
+: `- ${showAll ? 'No hay bot activos.' : 'No hay bots activos en este grupo.'}`
 const headerText = [
 `Sockets activos: *${activeSockets.length}*`,
 '',
