@@ -7,7 +7,7 @@ let menuThumbPromise = null;
 
 async function getMenuThumb() {
 if (!menuThumbPromise) {
-menuThumbPromise = fetch('https://i.postimg.cc/XqsLDBQ4/Ruby-Hoshino-Trailer-season-3.jpg')
+menuThumbPromise = fetch('https://i.postimg.cc/W4qcpZ16/Hoshino-Ruby-(8).jpg')
 .then(res => res.ok ? res.arrayBuffer() : null)
 .then(buffer => buffer ? Buffer.from(buffer) : null)
 .catch(() => null);
@@ -24,8 +24,8 @@ message: {
 productMessage: {
 product: {
 productImage: { jpegThumbnail: thumb2 },
-title: 'INFO • SUBBOTS',
-description: ' =͟͟͞͞(꒪ᗜ꒪ ‧̣̥̇) THE BEST IDOL',
+title: '𝐈𝐍𝐅𝐎 • 𝐒𝐔𝐁𝐁𝐎𝐓𝐒',
+description: ' =͟͟͞͞(꒪ᗜ꒪ ‧̣̥̇) 𝙏𝙃𝙀 𝘽𝙀𝙎𝙏 𝙄𝘿𝙊𝙇',
 retailerId: 'INFO • ESTADO',
 productImageCount: 1
 },
