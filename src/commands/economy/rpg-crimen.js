@@ -19,9 +19,9 @@ if (job.key === 'albañil') { crimeBonus = 1.10; jailNerf = 0.05; }
 if (job.key === 'repartidor') { crimeBonus = 1.05; jailNerf = 0.02; }
 if (job.key === 'basurero') { lossResist = 0.8; }
 
-let baseJailChance = Math.max(0.22, (user.premium ? 0.28 : 0.38) - (job.crimeSuccessBonus * 0.20) - (skill * 0.20));
-let jailChance = Math.max(0.20, baseJailChance - jailNerf);
-let successChance = Math.min(0.46, (user.premium ? 0.36 : 0.30) + (job.crimeSuccessBonus * 0.35) + (skill * 0.35) + (jailNerf * 0.35));
+let baseJailChance = Math.max(0.05, (user.premium ? 0.08 : 0.10) - (job.crimeSuccessBonus * 0.08) - (skill * 0.08));
+let jailChance = Math.max(0.04, baseJailChance - jailNerf);
+let successChance = Math.min(0.80, (user.premium ? 0.78 : 0.75) + (job.crimeSuccessBonus * 0.10) + (skill * 0.10) + (jailNerf * 0.10));
 
 let roll = Math.random();
 let useGeneric = Math.random() < 0.35;
@@ -36,8 +36,8 @@ let phrase = pickRandom(phraseList);
 const jailUntil = Date.now() + 30 * 60 * 1000;
 user.extras = user.extras && typeof user.extras === 'object' && !Array.isArray(user.extras) ? user.extras : {};
 user.extras.jailUntil = jailUntil;
-const jailFine = Math.max(5000, Math.floor((Number(user.coin) || 0) * 0.15));
-user.coin = Math.max(0, (Number(user.coin) || 0) - jailFine);
+const jailFine = Math.max(750, Math.floor(Math.abs(Number(user.coin) || 0) * 0.05));
+user.coin = (Number(user.coin) || 0) - jailFine;
 await global.db.updateUser(senderId, { coin: user.coin, extras: { jailUntil } });
 let textoJail = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐂𝐨𝐧𝐝𝐞𝐧𝐚: *30 Minutos Preso*
 ㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐌𝐮𝐥𝐭𝐚: *${toNum(jailFine)}* ${m.moneda}`;
@@ -45,8 +45,8 @@ return conn.reply(m.chat, textoJail, m);
 }
 
 if (roll < jailChance + successChance) {
-let baseAmount = Math.floor((Math.random() * 4500 + 3000) * 0.5);
-let amount = Math.floor(baseAmount * job.crimeRewardMultiplier * (user.premium ? 1.18 : 1) * crimeBonus * 0.33);
+let baseAmount = Math.floor(Math.random() * 9000 + 8000);
+let amount = Math.floor(baseAmount * job.crimeRewardMultiplier * (user.premium ? 1.35 : 1) * crimeBonus);
 user.coin = (user.coin || 0) + amount;
 await global.db.updateUser(senderId, { coin: user.coin });
 
@@ -57,10 +57,10 @@ let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐁
 return conn.reply(m.chat, texto, m);
 }
 
-let wallet = Math.max(0, Number(user.coin) || 0);
-let rawLossAmount = Math.floor((Math.random() * 2400 + 1600) * (user.premium ? 1.05 : 1.35) * lossResist);
-let loss = Math.max(rawLossAmount, Math.floor(wallet * 0.15));
-user.coin = Math.max(0, (Number(user.coin) || 0) - loss);
+let wallet = Math.abs(Number(user.coin) || 0);
+let rawLossAmount = Math.floor((Math.random() * 500 + 300) * (user.premium ? 0.85 : 1) * lossResist);
+let loss = Math.max(rawLossAmount, Math.floor(wallet * 0.10));
+user.coin = (Number(user.coin) || 0) - loss;
 await global.db.updateUser(senderId, { coin: user.coin });
 
 let phraseList = useGeneric ? frasesCrimenGenericas.fail : (frasesCrimenPorTrabajo[job.key]?.fail || frasesCrimenGenericas.fail);

@@ -34,18 +34,14 @@ await conn.reply(m.chat, `《✧》Tu apuesta máxima por tirada es *${maxByTier
 return false;
 }
 
-if ((Number(user.coin) || 0) < bet) {
-await conn.reply(m.chat, `《✧》No tienes suficientes ${m.moneda} para apostar.`, m);
-return false;
-}
-
 const resultado = rollRoulette();
-const multipliers = { red: 2, black: 2, green: 14 };
+const multipliers = { red: 3, black: 3, green: 18 };
 const gano = resultado === color;
 const grossPrize = gano ? Math.floor(bet * multipliers[color]) : 0;
 const casinoTax = gano ? Math.floor(Math.max(0, grossPrize - bet) * 0.08) : 0;
 const premio = Math.max(0, grossPrize - casinoTax);
-const updated = await global.db.settleUserBet(m.sender, { field: 'coin', bet, payout: premio });
+const loss = Math.max(1, Math.floor(bet * 0.15));
+const updated = await global.db.settleUserBet(m.sender, { field: 'coin', bet: gano ? bet : loss, payout: premio });
 if (!updated) {
 await conn.reply(m.chat, `《✧》Tu saldo cambió antes de completar la apuesta. Vuelve a intentarlo.`, m);
 return false;
@@ -61,7 +57,7 @@ Ganaste *¥${premio.toLocaleString()} ${m.moneda}* (incluye apuesta).
 }
 
 return conn.reply(m.chat, `「✿」Resultado: *${resultado}* 🔴
-Perdiste *¥${bet.toLocaleString()} ${m.moneda}*.
+Perdiste *¥${loss.toLocaleString()} ${m.moneda}*.
 Saldo actual: *¥${(Number(updated.coin) || 0).toLocaleString()} ${m.moneda}*`, m);
 };
 

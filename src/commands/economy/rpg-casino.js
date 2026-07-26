@@ -5,7 +5,7 @@ const CASINO_TAX_RATE = 0.08
 
 let handler = async (m, { conn, args, usedPrefix, command, DevMode }) => {
 const user = global.db.getUser(m.sender)
-let win = Math.random() < 0.48
+let win = Math.random() < 0.78
 let Aku = win ? 48 : 52
 let Kamu = win ? 96 : 13
 let count = args[0]
@@ -18,13 +18,14 @@ if (args.length < 1) {
 await conn.reply(m.chat, `${emoji} Ingresa la cantidad de ` + `💸 *${m.moneda}*` + ' que deseas aportar contra' + ` *${botname}*` + `\n\n` + '`Ejemplo:`\n' + `> *${usedPrefix + command}* 100`, m);
 return false;
 }
-if ((Number(user.coin) || 0) < count) return m.reply(`${emoji2} No tienes suficientes ${m.moneda} para apostar.`)
 const casinoTax = win ? Math.floor(count * CASINO_TAX_RATE) : 0
-const payout = win ? Math.max(0, (count * 2) - casinoTax) : 0
-const updated = await global.db.settleUserBet(m.sender, { field: 'coin', bet: count, payout })
+const loss = Math.max(1, Math.floor(count * 0.15))
+const payout = win ? Math.max(0, (count * 3) - casinoTax) : 0
+const settledBet = win ? count : loss
+const updated = await global.db.settleUserBet(m.sender, { field: 'coin', bet: settledBet, payout })
 if (!updated) return m.reply(`${emoji2} Tu saldo cambió antes de completar la apuesta. Vuelve a intentarlo.`)
 if (!win) {
-conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *PERDISTE* ${formatNumber(count)} 💸 ${m.moneda}.`.trim(), m)
+conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *PERDISTE* ${formatNumber(loss)} 💸 ${m.moneda}.`.trim(), m)
 } else if (win) {
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *GANASTE* ${formatNumber(payout)} 💸 ${m.moneda}. Impuesto casino destruido: ${formatNumber(casinoTax)}.`.trim(), m)
 } else {

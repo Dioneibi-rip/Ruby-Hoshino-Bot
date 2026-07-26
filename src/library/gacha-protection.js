@@ -51,12 +51,11 @@ return { coin, bank, total: coin + bank }
 export function spendUserFunds(user = {}, amount = 0) {
 const cost = Math.max(0, Number(amount) || 0)
 const funds = getUserFunds(user)
-if (funds.total < cost) return false
 let remaining = cost
-const fromBank = Math.min(funds.bank, remaining)
+const fromBank = Math.min(Math.max(0, funds.bank), remaining)
 user.bank = funds.bank - fromBank
 remaining -= fromBank
-const fromCoin = Math.min(funds.coin, remaining)
+const fromCoin = remaining
 user.coin = funds.coin - fromCoin
 return { fromBank, fromCoin, total: cost, coinLeft: user.coin, bankLeft: user.bank, totalLeft: (user.coin || 0) + (user.bank || 0) }
 }

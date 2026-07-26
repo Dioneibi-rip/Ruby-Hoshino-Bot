@@ -10,13 +10,10 @@ const users = global.db.getUser(m.sender);
 if (!Number.isFinite(apuesta) || apuesta < 100) throw `${emoji2} El minimo para apostar es de 100 XP.`;
 const maxBet = 50000;
 if (apuesta > maxBet) throw `${emoji2} La apuesta máxima es de ${maxBet.toLocaleString()} XP.`;
-if (users.exp < apuesta) {
-throw `${emoji2} Tu XP no es suficiente para aportar esa cantidad.`;
-}
-
-users.exp = Math.max(0, Number(users.exp || 0) - apuesta);
+users.exp = Number(users.exp || 0) - apuesta;
 
 const emojis = ['💴', '💵', '💶'];
+const forcedWin = Math.random() < 0.78;
 const getRandomEmojis = () => {
 const x = Array.from({ length: 3 }, () => emojis[Math.floor(Math.random() * emojis.length)]);
 const y = Array.from({ length: 3 }, () => emojis[Math.floor(Math.random() * emojis.length)]);
@@ -45,17 +42,20 @@ await delay(300);
 await animateSlots();
 
 const { x, y, z } = getRandomEmojis();
+if (forcedWin) y[0] = x[0], z[0] = x[0];
 let end;
 if (x[0] === y[0] && y[0] === z[0]) {
 const tax = Math.floor(apuesta * 0.08);
-const payout = Math.max(0, apuesta * 2 - tax);
+const payout = Math.max(0, apuesta * 3 - tax);
 end = `${emoji} Ganaste! 🎁 +${payout} XP. Impuesto casino destruido: ${tax} XP.`;
-users.exp = Math.max(0, Number(users.exp || 0) + payout);
+users.exp = Number(users.exp || 0) + payout;
 } else if (x[0] === y[0] || x[0] === z[0] || y[0] === z[0]) {
 end = `${emoji2} Casi lo logras!, recuperas la mitad de tu apuesta.`;
-users.exp = Math.max(0, Number(users.exp || 0) + Math.floor(apuesta * 0.5));
+users.exp = Number(users.exp || 0) + Math.floor(apuesta * 0.85);
 } else {
-end = `${emoji4} Perdiste -${apuesta} XP`;
+const perdida = Math.max(1, Math.floor(apuesta * 0.15));
+users.exp = Number(users.exp || 0) + (apuesta - perdida);
+end = `${emoji4} Perdiste -${perdida} XP`;
 }
 
 const finalResult = `
