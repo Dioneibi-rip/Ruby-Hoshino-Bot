@@ -70,6 +70,7 @@ conn.anime[m.sender] = {
 title: info.title,
 episodes,
 key: sent.key,
+chat: m.chat,
 downloading: false,
 timeout: setTimeout(() => delete conn.anime[m.sender], SESSION_TTL),
 };
@@ -99,14 +100,18 @@ return false;
 handler.before = async (m, { conn }) => {
 conn.anime = conn.anime || {};
 const session = conn.anime[m.sender];
-if (!session || !m.quoted || m.quoted.id !== session.key.id) return;
+if (!session || session.chat !== m.chat) return;
+const quotedId = m.quoted?.id || m.quoted?.key?.id;
+const isReplyToList = quotedId && quotedId === session.key.id;
+const looksLikeEpisodeSelection = /^\s*\d+(?:\s+(?:sub|dub|lat|latino|es|esp|espanol|español))?\s*$/i.test(m.text || '');
+if (!isReplyToList && !looksLikeEpisodeSelection) return;
 if (session.downloading) return m.reply("⏳ Ya hay una descarga en progreso, espera a que termine.");
 
 const [epStr, langInput] = (m.text || "").trim().toLowerCase().split(/\s+/);
 const epi = Number.parseInt(epStr, 10);
 if (Number.isNaN(epi)) return m.reply("❌ Debes escribir un número de episodio válido. Ejemplo: *1 sub*");
 
-const episode = session.episodes.find((e) => e.ep === epi);
+const episode = session.episodes.find((e) => Number.parseInt(e.ep, 10) === epi);
 if (!episode) return m.reply(`❌ El episodio ${epi} no existe en la lista.`);
 
 session.downloading = true;
@@ -121,6 +126,8 @@ throw new Error("No se detectaron enlaces de descarga en ese episodio");
 }
 
 let idioma = langInput;
+const langAliases = { lat: 'dub', latino: 'dub', es: 'dub', esp: 'dub', espanol: 'dub', 'español': 'dub' };
+idioma = langAliases[idioma] || idioma;
 if (!idioma || !availableLangs.includes(idioma)) idioma = availableLangs[0];
 const idiomaLabel = idioma === "sub" ? "Sub Español" : "Español Latino";
 
