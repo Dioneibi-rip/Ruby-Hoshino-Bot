@@ -173,7 +173,7 @@ botLines
 ].join('\n')
 
 let mediaMessage = await prepareWAMessageMedia({
-image: { url: '[https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/855ccb61ddb6e8a6265750cb601ca07b.jpg](https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/855ccb61ddb6e8a6265750cb601ca07b.jpg)' }
+image: { url: '[https://i.pinimg.com/736x/bd/97/48/bd974853f6bb55bb0e77a30d34e0030c.jpg](https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/855ccb61ddb6e8a6265750cb601ca07b.jpg)' }
 }, { upload: conn.waUploadToServer })
 
 let msg = generateWAMessageFromContent(m.chat, {
