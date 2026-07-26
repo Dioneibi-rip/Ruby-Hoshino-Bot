@@ -39,7 +39,7 @@ user.extras.jailUntil = jailUntil;
 const jailFine = Math.max(750, Math.floor(Math.abs(Number(user.coin) || 0) * 0.05));
 user.coin = (Number(user.coin) || 0) - jailFine;
 await global.db.updateUser(senderId, { coin: user.coin, extras: { jailUntil } });
-let textoJail = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐂𝐨𝐧𝐝𝐞𝐧𝐚: *30 Minutos Preso*
+let textoJail = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\n ֶָ֢ ✻̸ ➪ 𝐂𝐨𝐧𝐝𝐞𝐧𝐚: *30 Minutos Preso*
 ㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐌𝐮𝐥𝐭𝐚: *${toNum(jailFine)}* ${m.moneda}`;
 return conn.reply(m.chat, textoJail, m);
 }
@@ -53,7 +53,7 @@ await global.db.updateUser(senderId, { coin: user.coin });
 let phraseList = useGeneric ? frasesCrimenGenericas.success : (frasesCrimenPorTrabajo[job.key]?.success || frasesCrimenGenericas.success);
 let phrase = pickRandom(phraseList);
 
-let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐁𝐨𝐭𝐢́𝐧: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}`;
+let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\n ֶָ֢ ✻̸ ➪ 𝐁𝐨𝐭𝐢́𝐧: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}`;
 return conn.reply(m.chat, texto, m);
 }
 
@@ -66,7 +66,7 @@ await global.db.updateUser(senderId, { coin: user.coin });
 let phraseList = useGeneric ? frasesCrimenGenericas.fail : (frasesCrimenPorTrabajo[job.key]?.fail || frasesCrimenGenericas.fail);
 let phrase = pickRandom(phraseList);
 
-let textoLoss = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐏𝐞𝐫𝐝𝐢𝐬𝐭𝐞: *${toNum(loss)}* ( *${loss}* ) ${m.moneda}`;
+let textoLoss = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\n ֶָ֢ ✻̸ ➪ 𝐏𝐞𝐫𝐝𝐢𝐬𝐭𝐞: *${toNum(loss)}* ( *${loss}* ) ${m.moneda}`;
 return conn.reply(m.chat, textoLoss, m);
 };
 
