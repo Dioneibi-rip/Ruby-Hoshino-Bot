@@ -43,7 +43,7 @@ await global.db.updateUser(senderId, patch);
 let phraseList = useGeneric ? frasesGenericas.success : (frasesPorTrabajo[job.key]?.success || frasesGenericas.success);
 let phrase = pickRandom(phraseList);
 
-let materialText = materialDrop ? `\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐌𝐚𝐭𝐞𝐫𝐢𝐚𝐥: *+${materialDrop.amount} ${materialDrop.label}*` : '';
+let materialText = materialDrop ? `\n ֶָ֢ ✻̸ ➪ 𝐌𝐚𝐭𝐞𝐫𝐢𝐚𝐥: *+${materialDrop.amount} ${materialDrop.label}*` : '';
 let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\n ֶָ֢ ✻̸ ➪ 𝐆𝐚𝐧𝐚𝐬𝐭𝐞: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐗𝐏: *+${xpEarned}*${materialText}`;
 return conn.reply(m.chat, texto, m);
 }
