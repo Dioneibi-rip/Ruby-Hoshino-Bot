@@ -149,7 +149,7 @@ const scopedSockets = showAll ? activeSockets : activeSockets.filter(isInCurrent
 
 const mainCount = mainSocket.length
 const subCount = subBots.length
-const scopedLabel = showAll ? '𝖡𝗈𝗍𝗌 𝖺𝖼𝗍𝗂𝗏𝗈𝗌' : '𝖡𝗈𝗍𝗌 𝖾𝗇 𝖾𝗅 𝗀𝗋𝗎𝗉𝗈'
+const scopedLabel = showAll ? '𝖲𝗈𝖼𝗄𝖾𝗍𝗌 𝗀𝗅𝗈𝖻𝖺𝗅𝖾𝗌' : '𝖲𝗈𝖼𝗄𝖾𝗍𝗌 𝖽𝗂𝗌𝗉𝗈𝗇𝗂𝖻𝗅𝖾𝗌 𝖾𝗇 𝖾𝗅 𝗀𝗋𝗎𝗉𝗈'
 
 const botLines = scopedSockets.length
 ? scopedSockets.map(({ jid, sock, type }) => {
@@ -158,12 +158,12 @@ const settings = global.db?.get?.('settings', jid) || global.db?.data?.settings?
 const name = sock?.user?.name || sock?.user?.pushname || settings?.namebot2 || settings?.namebot || 'Ruby AI'
 const role = getAdminStatus(jid)
 const roleText = role ? `𓋲  *${role}*` : ''
-return `> ⏤͟͟͞͞⃟⃞🫧  [${type}]\n> ִ \`${name}\`\n> 📱 +${num} ${roleText}`
+return `> [${type}] ִ \`${name}\`\n> 📱 +${num} ${roleText}`
 }).join('\n\n')
 : `> 💧 (っ- ‸ - ς) \`No hay bots activos aquí...\``
 
 const headerText = [
-`ᅟᅟᅟ＼ׂׄᅟᅟᅟ｜ּᅟᅟᅟּׅ／ּ`,
+`ᅟᅟᅟ＼ׂׄᅟᅟᅟ｜ּᅟᅟᅟּׅ／ּ`,
 `ᅟᅟ \`𝖲𝗈𝖼𝗄𝖾𝗍𝗌 𝖠𝖼𝗍𝗂𝗏𝗈𝗌: ${activeSockets.length}\``,
 ``,
 `> *┌᷒👑⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅𝖾𝗌:* \`${mainCount}\``,
