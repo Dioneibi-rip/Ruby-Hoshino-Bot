@@ -5,14 +5,16 @@ const handler = async (m, { args, usedPrefix, command, conn }) => {
 const fa = `${emoji} Por favor, ingresa la cantidad que desea apostar.`.trim();
 if (!args[0] || isNaN(args[0]) || parseInt(args[0]) <= 0) throw fa;
 
-const apuesta = parseInt(args[0]);
+const apuesta = Math.floor(Number(args[0]));
 const users = global.db.getUser(m.sender);
-if (apuesta < 100) throw `${emoji2} El minimo para apostar es de 100 XP.`;
+if (!Number.isFinite(apuesta) || apuesta < 100) throw `${emoji2} El minimo para apostar es de 100 XP.`;
+const maxBet = 50000;
+if (apuesta > maxBet) throw `${emoji2} La apuesta máxima es de ${maxBet.toLocaleString()} XP.`;
 if (users.exp < apuesta) {
 throw `${emoji2} Tu XP no es suficiente para aportar esa cantidad.`;
 }
 
-users.exp -= apuesta;
+users.exp = Math.max(0, Number(users.exp || 0) - apuesta);
 
 const emojis = ['💴', '💵', '💶'];
 const getRandomEmojis = () => {
@@ -45,11 +47,13 @@ await animateSlots();
 const { x, y, z } = getRandomEmojis();
 let end;
 if (x[0] === y[0] && y[0] === z[0]) {
-end = `${emoji} Ganaste! 🎁 +${apuesta + apuesta} XP.`;
-users.exp += apuesta * 2;
+const tax = Math.floor(apuesta * 0.08);
+const payout = Math.max(0, apuesta * 2 - tax);
+end = `${emoji} Ganaste! 🎁 +${payout} XP. Impuesto casino destruido: ${tax} XP.`;
+users.exp = Math.max(0, Number(users.exp || 0) + payout);
 } else if (x[0] === y[0] || x[0] === z[0] || y[0] === z[0]) {
 end = `${emoji2} Casi lo logras!, recuperas la mitad de tu apuesta.`;
-users.exp += Math.floor(apuesta * 0.5);
+users.exp = Math.max(0, Number(users.exp || 0) + Math.floor(apuesta * 0.5));
 } else {
 end = `${emoji4} Perdiste -${apuesta} XP`;
 }

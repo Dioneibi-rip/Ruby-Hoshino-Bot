@@ -15,7 +15,8 @@ await conn.reply(m.chat, '⛏️ Tu pico está roto. Compra o repara uno en la t
 return false;
 }
 
-const bonus = user.premium ? 1.25 : 1;
+const levelBoost = 1 + Math.min(0.35, Math.max(0, Number(user.level || 0)) * 0.01);
+const bonus = Math.min(1.5, (user.premium ? 1.25 : 1) * levelBoost);
 const esEventoPositivo = Math.random() < (user.premium ? 0.68 : 0.56);
 const evento = esEventoPositivo ? pickRandom(eventosBuenos) : pickRandom(eventosMalos);
 const cambios = evento.cambios(bonus);

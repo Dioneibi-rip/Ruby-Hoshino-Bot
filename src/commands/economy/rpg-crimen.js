@@ -19,9 +19,9 @@ if (job.key === 'albañil') { crimeBonus = 1.10; jailNerf = 0.05; }
 if (job.key === 'repartidor') { crimeBonus = 1.05; jailNerf = 0.02; }
 if (job.key === 'basurero') { lossResist = 0.8; }
 
-let baseJailChance = Math.max(0.16, (user.premium ? 0.22 : 0.30) - (job.crimeSuccessBonus * 0.25) - (skill * 0.25));
-let jailChance = Math.max(0.12, baseJailChance - jailNerf);
-let successChance = Math.min(0.58, (user.premium ? 0.42 : 0.34) + (job.crimeSuccessBonus * 0.5) + (skill * 0.5) + (jailNerf * 0.5));
+let baseJailChance = Math.max(0.22, (user.premium ? 0.28 : 0.38) - (job.crimeSuccessBonus * 0.20) - (skill * 0.20));
+let jailChance = Math.max(0.20, baseJailChance - jailNerf);
+let successChance = Math.min(0.46, (user.premium ? 0.36 : 0.30) + (job.crimeSuccessBonus * 0.35) + (skill * 0.35) + (jailNerf * 0.35));
 
 let roll = Math.random();
 let useGeneric = Math.random() < 0.35;
@@ -36,8 +36,11 @@ let phrase = pickRandom(phraseList);
 const jailUntil = Date.now() + 30 * 60 * 1000;
 user.extras = user.extras && typeof user.extras === 'object' && !Array.isArray(user.extras) ? user.extras : {};
 user.extras.jailUntil = jailUntil;
-await global.db.updateUser(senderId, { extras: { jailUntil } });
-let textoJail = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐂𝐨𝐧𝐝𝐞𝐧𝐚: *30 Minutos Preso*`;
+const jailFine = Math.max(5000, Math.floor((Number(user.coin) || 0) * 0.15));
+user.coin = Math.max(0, (Number(user.coin) || 0) - jailFine);
+await global.db.updateUser(senderId, { coin: user.coin, extras: { jailUntil } });
+let textoJail = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐂𝐨𝐧𝐝𝐞𝐧𝐚: *30 Minutos Preso*
+ㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐌𝐮𝐥𝐭𝐚: *${toNum(jailFine)}* ${m.moneda}`;
 return conn.reply(m.chat, textoJail, m);
 }
 
@@ -54,8 +57,9 @@ let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐁
 return conn.reply(m.chat, texto, m);
 }
 
+let wallet = Math.max(0, Number(user.coin) || 0);
 let rawLossAmount = Math.floor((Math.random() * 2400 + 1600) * (user.premium ? 1.05 : 1.35) * lossResist);
-let loss = rawLossAmount;
+let loss = Math.max(rawLossAmount, Math.floor(wallet * 0.15));
 user.coin = Math.max(0, (Number(user.coin) || 0) - loss);
 await global.db.updateUser(senderId, { coin: user.coin });
 

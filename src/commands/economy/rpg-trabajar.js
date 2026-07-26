@@ -13,7 +13,8 @@ await conn.reply(m.chat, `💼 No tienes chamba todavía rey.\nUsa *${usedPrefix
 return false;
 }
 
-let premiumBoost = user.premium ? 1.2 : 1;
+let premiumBoost = user.premium ? 1.25 : 1;
+let levelBoost = 1 + Math.min(0.35, Math.max(0, Number(user.level || 0)) * 0.01);
 let successChance = (user.premium ? 0.88 : 0.82) + Math.min(0.08, (user.jobXp || 0) / 200000);
 let ok = Math.random() < successChance;
 let useGeneric = Math.random() < 0.35;
@@ -28,8 +29,8 @@ let jobName = job.name.toUpperCase();
 let jobEmoji = job.emoji;
 
 if (ok) {
-let baseAmount = Math.floor((Math.random() * 1800 + 1200) * 0.5);
-let amount = Math.floor(baseAmount * job.workMultiplier * premiumBoost * jobBonus * 0.33);
+let baseAmount = randomInt(450, 900);
+let amount = Math.min(2500, Math.floor(baseAmount * job.workMultiplier * premiumBoost * jobBonus * levelBoost));
 let xpEarned = Math.floor(amount * 0.075);
 const materialDrop = rollWorkMaterial(job);
 user.coin = (user.coin || 0) + amount;
