@@ -1,7 +1,7 @@
 import { promises as fsPromises } from "fs"
 import path, { join } from 'path'
 import ws from 'ws'
-const { proto, generateWAMessageFromContent, prepareWAMessageMedia } = (await import("@whiskeysockets/baileys")).default
+const { proto, generateWAMessageFromContent, prepareWAMessageMedia, jidNormalizedUser } = (await import("@whiskeysockets/baileys")).default
 async function pathExists(file){
 try{
 await fsPromises.access(file)
@@ -74,7 +74,7 @@ conn.ws.close()
 
 else if (isShowBots) {
 const socketOpen = (sock) => sock?.user && sock?.ws?.socket && sock.ws.socket.readyState !== ws.CLOSED
-const normalizeJid = (jid = '') => String(jid).replace(/:\d+(?=@)/, '')
+const normalizeJid = (jid = '') => jidNormalizedUser(jid) || String(jid).replace(/:\d+(?=@)/, '')
 const cleanPhone = (jid = '') => normalizeJid(jid).split('@')[0]
 const displayName = (sock) => {
 const jid = sock?.user?.jid || sock?.user?.id || ''
