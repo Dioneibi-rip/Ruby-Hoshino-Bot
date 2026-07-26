@@ -1,4 +1,4 @@
-import { promises as fsPromises } from "fs"
+import { existsSync, promises as fsPromises, readdirSync, readFileSync, statSync } from "fs"
 import path, { join } from 'path'
 import ws from 'ws'
 const { proto, generateWAMessageFromContent, prepareWAMessageMedia } = (await import("@whiskeysockets/baileys")).default
@@ -76,49 +76,85 @@ let handler = async (m, { conn, command, usedPrefix, args, text, isOwner, partic
     else if (isShowBots) {
         const socketOpen = (sock) => sock?.user && sock?.ws?.socket && sock.ws.socket.readyState !== ws.CLOSED
         
-        // EXTRACCIÓN DESTRUTIVA: Saca solo los números, ignorando cualquier sufijo.
-        const getRawNumber = (jid) => {
+        const normalizeBotJid = (jid) => {
             if (!jid) return '';
-            return String(jid).split('@')[0].split(':')[0].replace(/\D/g, '');
+            const user = String(jid).split('@')[0].split(':')[0].replace(/\D/g, '');
+            return user ? `${user}@s.whatsapp.net` : '';
         }
 
-        // Convertimos todos los participantes del grupo en una lista pura de números
-        const participantNumbers = (participants || []).map(p => {
-            const id = typeof p === 'string' ? p : (p?.id || p?.jid || p?.lid || p?.phoneNumber || '');
-            return getRawNumber(id);
-        }).filter(Boolean);
+        const getRawNumber = (jid) => normalizeBotJid(jid).split('@')[0]
 
-        // La validación ahora compara números planos contra números planos.
-        const isInCurrentGroup = (sock) => {
-            if (!m.isGroup) return true;
-            const botJid = sock?.subBotJid || sock?.user?.id || sock?.user?.jid;
-            const botNum = getRawNumber(botJid);
-            return participantNumbers.includes(botNum);
+        const decodeSessionId = (id) => {
+            try { return decodeURIComponent(String(id || '')) }
+            catch { return String(id || '') }
         }
+
+        const getSessionNumber = (id) => {
+            const decoded = decodeSessionId(id)
+            return decoded.split('@')[0].split(':')[0].replace(/\D/g, '')
+        }
+
+        const hasValidCredentials = (sessionPath) => {
+            try {
+                const credsPath = path.join(sessionPath, 'creds.json')
+                const authDbPath = path.join(sessionPath, 'auth.db')
+                if (existsSync(credsPath)) {
+                    const parsed = JSON.parse(readFileSync(credsPath, 'utf8'))
+                    return Boolean(parsed?.me || parsed?.registered || parsed?.noiseKey || parsed?.signedIdentityKey)
+                }
+                return existsSync(authDbPath) && statSync(authDbPath).size > 0
+            } catch {
+                return false
+            }
+        }
+
+        // Lógica de carpetas adaptada del bot de referencia a la ruta real de Ruby AI.
+        const getBotsFromFolder = (folderPath) => {
+            if (!existsSync(folderPath)) return []
+            return readdirSync(folderPath)
+                .filter((dir) => {
+                    const sessionPath = path.join(folderPath, dir)
+                    return statSync(sessionPath).isDirectory() && hasValidCredentials(sessionPath)
+                })
+                .map((id) => getSessionNumber(id))
+                .filter(Boolean)
+        }
+
+        const getParticipantId = (participant) => {
+            if (typeof participant === 'string') return participant
+            return participant?.phoneNumber || participant?.jid || participant?.lid || participant?.id || ''
+        }
+
+        const groupMetadata = m.isGroup ? await conn.groupMetadata(m.chat).catch(() => null) : null
+        const groupParticipants = (groupMetadata?.participants?.length ? groupMetadata.participants : participants || [])
+            .map(getParticipantId)
+            .filter(Boolean)
 
         const wantsAll = /^all$/i.test((args?.[0] || text || '').trim())
         const showAll = Boolean(isOwner && wantsAll)
-        
-        const mainSocket = socketOpen(global.conn) ? [{ sock: global.conn, type: 'main' }] : []
-        const subSockets = [...new Set([...(global.conns || []).filter(socketOpen)])].map((sock) => ({ sock, type: 'Sub' }))
-        const activeSockets = [...mainSocket, ...subSockets]
-        
+        const mainJid = normalizeBotJid(global.conn?.user?.id || global.conn?.user?.jid || conn?.user?.id || conn?.user?.jid)
+        const mainSocket = socketOpen(global.conn) && mainJid ? [{ jid: mainJid, sock: global.conn, type: 'main' }] : []
+        const subFolderPath = global.rutaJadiBot || path.join(process.cwd(), global.jadi || jadi)
+        const subBots = [...new Set(getBotsFromFolder(subFolderPath))].map((number) => {
+            const jid = `${number}@s.whatsapp.net`
+            const sock = (global.conns || []).find((socket) => normalizeBotJid(socket?.subBotJid || socket?.user?.id || socket?.user?.jid) === jid)
+            return { jid, sock, type: 'Sub' }
+        })
+        const activeSockets = [...mainSocket, ...subBots]
+        const isInCurrentGroup = ({ jid }) => !m.isGroup || groupParticipants.includes(jid)
         const scopedSockets = showAll ? activeSockets : activeSockets.filter(isInCurrentGroup)
         
-        const mainCount = activeSockets.filter(({ type }) => type === 'main').length
-        const subCount = activeSockets.filter(({ type }) => type === 'Sub').length
+        const mainCount = mainSocket.length
+        const subCount = subBots.length
         const scopedLabel = showAll ? 'Bots activos' : 'Bots en el grupo'
         
-        // Creamos el array de menciones como en el bot de referencia
-        const mentionedJid = scopedSockets.map(({ sock }) => {
-            const num = getRawNumber(sock?.subBotJid || sock?.user?.id || sock?.user?.jid);
-            return num ? `${num}@s.whatsapp.net` : '';
-        }).filter(Boolean);
+        const mentionedJid = scopedSockets.map(({ jid }) => jid).filter(Boolean)
 
         const botLines = scopedSockets.length
-            ? scopedSockets.map(({ sock, type }) => {
-                const num = getRawNumber(sock?.subBotJid || sock?.user?.id || sock?.user?.jid);
-                const name = sock?.user?.name || sock?.user?.pushname || 'Ruby AI';
+            ? scopedSockets.map(({ jid, sock, type }) => {
+                const num = getRawNumber(jid)
+                const settings = global.db?.get?.('settings', jid) || global.db?.data?.settings?.[jid] || {}
+                const name = sock?.user?.name || sock?.user?.pushname || settings?.namebot2 || settings?.namebot || 'Ruby AI'
                 return `- [${type} *${name}*] › @${num}`
             }).join('\n')
             : `- ${showAll ? 'No hay bot activos.' : 'No hay bots activos en este grupo.'}`
