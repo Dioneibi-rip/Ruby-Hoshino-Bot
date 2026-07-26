@@ -1,5 +1,5 @@
 import axios from './http.js'
-import * as cheerio from './htmlTools.js';
+import * as cheerio from 'cheerio';
 
 const BASE_URL = "https://animeav1.com";
 const DEFAULT_HEADERS = {
@@ -71,13 +71,21 @@ async function detail(url) {
     const backdrop = normalizeUrl($("figure img[alt$='Backdrop']").attr("src"));
 
     const genres = [];
-    $("a.btn[href*='catalogo?genre=']").each((_, el) => genres.push($(el).text().trim()));
+    $("a.btn[href*='catalogo?genre=']").each((_, el) => {
+      const $el = $(el);
+      if (!$el.length) return;
+      const genre = $el.text().trim();
+      if (genre) genres.push(genre);
+    });
 
     const episodes = [];
-    $("article.group\\/item").each((_, el) => {
-      const epNum = Number.parseInt($(el).find(".text-lead").first().text().trim(), 10);
-      const link = normalizeUrl($(el).find("a").attr("href"));
-      const img = normalizeUrl($(el).find("img").attr("src"));
+    $("article.group\\/item, article").each((_, el) => {
+      const $el = $(el);
+      if (!$el.length) return;
+      const epText = $el.find(".text-lead").first().text().trim() || $el.text().match(/episodio\s*(\d+)/i)?.[1] || "";
+      const epNum = Number.parseInt(epText, 10);
+      const link = normalizeUrl($el.find("a[href*='/media/']").first().attr("href") || $el.find("a").first().attr("href"));
+      const img = normalizeUrl($el.find("img").first().attr("src"));
       if (!Number.isNaN(epNum) && link) episodes.push({ ep: epNum, img, link });
     });
 
@@ -99,9 +107,11 @@ async function search(query) {
   const results = [];
 
   $("article").each((_, el) => {
-    const title = $(el).find("h3").text().trim();
-    const link = normalizeUrl($(el).find("a").attr("href"));
-    const img = normalizeUrl($(el).find("img").attr("src"));
+    const $el = $(el);
+    if (!$el.length) return;
+    const title = $el.find("h3").first().text().trim() || $el.find("a").first().text().trim();
+    const link = normalizeUrl($el.find("a").first().attr("href"));
+    const img = normalizeUrl($el.find("img").first().attr("src"));
     if (title && link) results.push({ title, link, img });
   });
 

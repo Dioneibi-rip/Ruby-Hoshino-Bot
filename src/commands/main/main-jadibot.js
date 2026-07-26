@@ -74,35 +74,52 @@ conn.ws.close()
 
 else if (isShowBots) {
 const socketOpen = (sock) => sock?.user && sock?.ws?.socket && sock.ws.socket.readyState !== ws.CLOSED
-const normalizeJid = (jid = '') => String(jid).replace(/:\d+(?=@)/, '')
+const normalizeJid = (jid = '') => {
+const raw = String(jid || '').trim()
+if (!raw) return ''
+const user = raw.split('@')[0].split(':')[0]
+const server = raw.includes('@') ? raw.split('@')[1] : 's.whatsapp.net'
+return `${user}@${server}`
+}
 const cleanPhone = (jid = '') => normalizeJid(jid).split('@')[0]
 const displayName = (sock) => {
 const jid = sock?.user?.jid || sock?.user?.id || ''
-return sock?.user?.name || sock?.user?.pushname || cleanPhone(jid) || toFancy('Sin Nombre')
+return (sock?.user?.name || sock?.user?.pushname || cleanPhone(jid) || toFancy('Sin Nombre')).replace(/@/g, '')
 }
-const participantJids = new Set((participants || []).flatMap((participant) => [participant?.jid, participant?.id, participant?.lid].filter(Boolean).map(normalizeJid)))
-const isInCurrentGroup = (sock) => !m.isGroup || participantJids.has(normalizeJid(sock?.user?.jid || sock?.user?.id || ''))
+const participantData = participants?.length ? participants : (m.isGroup ? (await conn.groupMetadata(m.chat).catch(() => ({ participants: [] }))).participants : [])
+const participantMap = new Map((participantData || []).flatMap((participant) => {
+const ids = [participant?.jid, participant?.id, participant?.lid].filter(Boolean).map(normalizeJid)
+return ids.map((id) => [id, participant])
+}))
+const isAdminParticipant = (jid) => {
+const participant = participantMap.get(normalizeJid(jid))
+return Boolean(participant?.admin || participant?.isAdmin || participant?.isSuperAdmin)
+}
+const isInCurrentGroup = (sock) => !m.isGroup || participantMap.has(normalizeJid(sock?.user?.jid || sock?.user?.id || ''))
 const wantsAll = /^all$/i.test((args?.[0] || text || '').trim())
 const showAll = Boolean(isOwner && wantsAll)
-const mainSocket = socketOpen(global.conn) ? [{ sock: global.conn, type: 'main' }] : []
-const subSockets = [...new Set([...(global.conns || []).filter(socketOpen)])].map((sock) => ({ sock, type: 'Sub' }))
+const mainSocket = socketOpen(global.conn) ? [{ sock: global.conn, type: 'Main', icon: '👑' }] : []
+const subSockets = [...new Set([...(global.conns || []).filter(socketOpen)])].map((sock) => ({ sock, type: 'Sub', icon: '🎀' }))
 const activeSockets = [...mainSocket, ...subSockets]
 const scopedSockets = showAll ? activeSockets : activeSockets.filter(isInCurrentGroup)
-const mainCount = activeSockets.filter(({ type }) => type === 'main').length
+const mainCount = activeSockets.filter(({ type }) => type === 'Main').length
 const subCount = activeSockets.filter(({ type }) => type === 'Sub').length
-const scopedLabel = showAll ? 'Bots activos' : 'Bots en el grupo'
 const botLines = scopedSockets.length
-? scopedSockets.map(({ sock, type }) => `- [${type} *Ruby*] › ${displayName(sock)}`).join('\n')
-: `- ${showAll ? 'No hay bots activos.' : 'No hay bots activos en este grupo.'}`
-const headerText = [
-`Sockets activos: *${activeSockets.length}*`,
-'',
-`- Principales: *${mainCount}*`,
-`- Subs: *${subCount}*`,
-'',
-`${scopedLabel}: *${scopedSockets.length}*`,
-botLines,
-].join('\n')
+? scopedSockets.map(({ sock, type, icon }) => {
+const jid = sock?.user?.jid || sock?.user?.id || ''
+const adminTag = isAdminParticipant(jid) ? ' 🛡️(Admin)' : ''
+return `┃ ${icon} [${type}] ➭ ${displayName(sock)}${adminTag}`
+}).join('\n')
+: '┃ ✧ No hay bots activos en este grupo.'
+const headerText = `╭━━━〔 🌟 ＲＵＢＹ ＳＯＣＫＥＴＳ 🌟 〕━━━⬣
+┃ ◈ 𝗧𝗼𝘁𝗮𝗹 𝗔𝗰𝘁𝗶𝘃𝗼𝘀: ${activeSockets.length}
+┃ ◈ 👑 𝗠𝗮𝗶𝗻: ${mainCount}
+┃ ◈ 🎀 𝗦𝘂𝗯𝘀: ${subCount}
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━⬣
+
+╭━━━〔 📍 𝗘𝗡 𝗘𝗦𝗧𝗘 𝗚𝗥𝗨𝗣𝗢 (${scopedSockets.length}) 〕━━━⬣
+${botLines}
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━⬣`
 
 let mediaMessage = await prepareWAMessageMedia({
 image: { url: 'https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/855ccb61ddb6e8a6265750cb601ca07b.jpg' }
