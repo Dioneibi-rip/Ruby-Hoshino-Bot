@@ -44,7 +44,7 @@ let phraseList = useGeneric ? frasesGenericas.success : (frasesPorTrabajo[job.ke
 let phrase = pickRandom(phraseList);
 
 let materialText = materialDrop ? `\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐌𝐚𝐭𝐞𝐫𝐢𝐚𝐥: *+${materialDrop.amount} ${materialDrop.label}*` : '';
-let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐆𝐚𝐧𝐚𝐬𝐭𝐞: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐗𝐏: *+${xpEarned}*${materialText}`;
+let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\n ֶָ֢ ✻̸ ➪ 𝐆𝐚𝐧𝐚𝐬𝐭𝐞: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐗𝐏: *+${xpEarned}*${materialText}`;
 return conn.reply(m.chat, texto, m);
 }
 
@@ -58,7 +58,7 @@ await global.db.updateUser(senderId, { coin: user.coin, bank: user.bank });
 let phraseList = useGeneric ? frasesGenericas.fail : (frasesPorTrabajo[job.key]?.fail || frasesGenericas.fail);
 let phrase = pickRandom(phraseList);
 
-let textoLoss = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐏𝐞𝐫𝐝𝐢𝐬𝐭𝐞: *${toNum(loss)}* ( *${loss}* ) ${m.moneda}`;
+let textoLoss = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\n ֶָ֢ ✻̸ ➪ 𝐏𝐞𝐫𝐝𝐢𝐬𝐭𝐞: *${toNum(loss)}* ( *${loss}* ) ${m.moneda}`;
 return conn.reply(m.chat, textoLoss, m);
 };
 
