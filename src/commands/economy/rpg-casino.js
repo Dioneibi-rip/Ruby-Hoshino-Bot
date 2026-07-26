@@ -1,6 +1,7 @@
 import { resolveInteractionTarget, resolveIdentityName } from '../../core/identity-utils.js'
 
-let buatall = 1
+const MAX_BET = 75000
+const CASINO_TAX_RATE = 0.08
 
 let handler = async (m, { conn, args, usedPrefix, command, DevMode }) => {
 const user = global.db.getUser(m.sender)
@@ -10,19 +11,22 @@ let Kamu = win ? 96 : 13
 let count = args[0]
 let who = await resolveInteractionTarget(m, conn)
 let username = await resolveIdentityName(conn, who, { fallback: `@${String(who).split('@')[0]}` })
-count = count ? /all/i.test(count) ? Math.max(1, Math.abs(Number(user.coin) || 1)) : parseInt(count) : args[0] ? parseInt(args[0]) : 1
-count = Math.max(1, count)
+count = count ? (/all/i.test(count) ? Math.min(MAX_BET, Math.max(1, Math.floor(Number(user.coin) || 0))) : Math.floor(Number(count))) : 1
+if (!Number.isFinite(count) || count <= 0) return m.reply(`${emoji2} Ingresa una apuesta válida mayor que cero.`)
+if (count > MAX_BET) return m.reply(`${emoji2} La apuesta máxima es ${formatNumber(MAX_BET)} ${m.moneda}.`)
 if (args.length < 1) {
 await conn.reply(m.chat, `${emoji} Ingresa la cantidad de ` + `💸 *${m.moneda}*` + ' que deseas aportar contra' + ` *${botname}*` + `\n\n` + '`Ejemplo:`\n' + `> *${usedPrefix + command}* 100`, m);
 return false;
 }
 if ((Number(user.coin) || 0) < count) return m.reply(`${emoji2} No tienes suficientes ${m.moneda} para apostar.`)
-const updated = await global.db.settleUserBet(m.sender, { field: 'coin', bet: count, payout: win ? count * 2 : 0 })
+const casinoTax = win ? Math.floor(count * CASINO_TAX_RATE) : 0
+const payout = win ? Math.max(0, (count * 2) - casinoTax) : 0
+const updated = await global.db.settleUserBet(m.sender, { field: 'coin', bet: count, payout })
 if (!updated) return m.reply(`${emoji2} Tu saldo cambió antes de completar la apuesta. Vuelve a intentarlo.`)
 if (!win) {
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *PERDISTE* ${formatNumber(count)} 💸 ${m.moneda}.`.trim(), m)
 } else if (win) {
-conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *GANASTE* ${formatNumber(count * 2)} 💸 ${m.moneda}.`.trim(), m)
+conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *GANASTE* ${formatNumber(payout)} 💸 ${m.moneda}. Impuesto casino destruido: ${formatNumber(casinoTax)}.`.trim(), m)
 } else {
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username} obtienes ${formatNumber(count * 1)} 💸 ${m.moneda}.`.trim(), m)}
 }

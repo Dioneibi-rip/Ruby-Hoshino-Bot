@@ -31,8 +31,8 @@ await conn.reply(m.chat, `${emoji2} ${targetName} no tiene efectivo suficiente (
 return false;
 }
 
-const successChance = user.premium ? 0.47 : 0.40;
-const maxSteal = Math.max(1200, Math.floor(victimCash * 0.12));
+const successChance = user.premium ? 0.42 : 0.35;
+const maxSteal = Math.max(1200, Math.floor(victimCash * 0.10));
 const minSteal = 600;
 
 if (Math.random() < successChance) {
@@ -51,9 +51,9 @@ m,
 );
 }
 
-const multa = Math.max(300, Math.floor(Math.abs(Number(user.coin) || 0) * 0.05));
+const multa = Math.max(2500, Math.floor(Math.max(0, Number(user.coin) || 0) * 0.15));
 user.coin = Math.max(0, (Number(user.coin) || 0) - multa);
-const caught = Math.random() < 0.25;
+const caught = Math.random() < 0.40;
 const patch = { coin: user.coin };
 if (caught) {
 const jailUntil = Date.now() + 30 * 60 * 1000;

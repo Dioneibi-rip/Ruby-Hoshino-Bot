@@ -1,9 +1,9 @@
 let handler=async(m)=>{
 let user=global.db.getUser(m.sender)||{}
-const premiumFactor=user.premium?1.3:1
-const coinReward=Math.floor(pickRandom([90000,102000,114000,126000])*premiumFactor*0.7)
-const expReward=Math.floor(pickRandom([12000,14000,16000,18000])*premiumFactor)
-const diamondReward=Math.floor(pickRandom([28,34,40,46])*premiumFactor)
+const premiumFactor=user.premium?1.25:1
+const coinReward=Math.floor(randomInt(15000,25000)*premiumFactor)
+const expReward=Math.floor(randomInt(6000,10000)*premiumFactor)
+const diamondReward=Math.floor(randomInt(15,25)*premiumFactor)
 user.coin=(user.coin||0)+coinReward
 user.exp=(user.exp||0)+expReward
 user.diamond=(user.diamond||0)+diamondReward
@@ -31,6 +31,6 @@ handler.cooldownMessage = (seconds, time, hms) => `${emoji3} ✿ Ya reclamaste t
 ⏳ Vuelve en *${hms}*`;
 
 export default handler
-function pickRandom(list){
-return list[Math.floor(Math.random()*list.length)]
+function randomInt(min,max){
+return Math.floor(Math.random()*(max-min+1))+min
 }

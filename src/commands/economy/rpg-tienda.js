@@ -19,13 +19,13 @@ ring: { field: 'anillo', label: 'Anillo', price: 15000 },
 };
 
 const BUY_CATALOG = {
-pocion: { label: 'Poción', coin: 3000, heal: 50 },
-poción: { label: 'Poción', coin: 3000, heal: 50 },
-pico: { label: 'Pico', coin: 5000, iron: 5, durability: 100 },
-talisman: { label: 'Talismán', diamond: 10, field: 'talisman' },
-talismán: { label: 'Talismán', diamond: 10, field: 'talisman' },
-token: { label: 'Token Gacha', coin: 1500, field: 'gachaTokens' },
-tokens: { label: 'Token Gacha', coin: 1500, field: 'gachaTokens' },
+pocion: { label: 'Poción', coin: 7500, heal: 50 },
+poción: { label: 'Poción', coin: 7500, heal: 50 },
+pico: { label: 'Pico', coin: 18000, iron: 20, durability: 100 },
+talisman: { label: 'Talismán', diamond: 35, coin: 50000, field: 'talisman' },
+talismán: { label: 'Talismán', diamond: 35, coin: 50000, field: 'talisman' },
+token: { label: 'Token Gacha', coin: 12000, field: 'gachaTokens' },
+tokens: { label: 'Token Gacha', coin: 12000, field: 'gachaTokens' },
 };
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -114,9 +114,9 @@ Necesitas: *${totalIron}*
 Tienes: *${Number(user.iron || 0)}*`, m);
 }
 
-user.coin = Number(user.coin || 0) - totalCoin;
-user.diamond = Number(user.diamond || 0) - totalDiamond;
-user.iron = Number(user.iron || 0) - totalIron;
+user.coin = Math.max(0, Number(user.coin || 0) - totalCoin);
+user.diamond = Math.max(0, Number(user.diamond || 0) - totalDiamond);
+user.iron = Math.max(0, Number(user.iron || 0) - totalIron);
 
 let effect = '';
 if (item.heal) {
@@ -157,10 +157,10 @@ return `╭━〔 🏪 Tienda RPG 〕⬣
 ┃ • *${usedPrefix}${command} vender anillo 1*
 ┃
 ┃ Comprar:
-┃ • pocion: 3,000 ${moneda} → +50 salud
-┃ • pico: 5,000 ${moneda} + 5 hierro → pico 100/100
-┃ • talismán: 10 diamantes → seguro de vida
-┃ • token: 1,500 ${moneda} → 1 intento de rollwaifu
+┃ • pocion: 7,500 ${moneda} → +50 salud
+┃ • pico: 18,000 ${moneda} + 20 hierro → pico 100/100
+┃ • talismán: 50,000 coins + 35 diamantes → seguro de vida
+┃ • token: 12,000 ${moneda} → 1 intento de rollwaifu
 ┃
 ┃ Vender materiales:
 ┃ • piedra: 5 ${moneda}

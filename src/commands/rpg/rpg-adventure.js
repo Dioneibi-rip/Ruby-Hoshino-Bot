@@ -28,14 +28,17 @@ let kingdoms = [
 'Reino de Elenaria'
 ];
 let randomKingdom = pickRandom(kingdoms);
-let coin = pickRandom([3000, 4000, 5000, 6000, 7000, 8000]);
-let emerald = pickRandom([4, 6, 8, 10, 12]);
-let iron = pickRandom([5, 6, 7, 9, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]);
-let gold = pickRandom([25, 35, 45, 60, 75]);
-let coal = pickRandom([20, 5, 7, 8, 88, 40, 50, 80, 70, 60, 100, 120, 600, 700, 64]);
-let stone = pickRandom([200, 500, 700, 800, 900, 4000, 300]);
-let diamonds = pickRandom([6, 8, 10, 12, 14]);
-let exp = pickRandom([150, 250, 350, 450, 600]);
+const levelBoost = 1 + Math.min(0.40, Math.max(0, level - 15) * 0.008);
+const premiumBoost = user.premium ? 1.25 : 1;
+const rewardBoost = Math.min(1.5, levelBoost * premiumBoost);
+let coin = Math.min(12000, Math.floor(randomInt(3500, 8000) * rewardBoost));
+let emerald = Math.floor(randomInt(3, 8) * rewardBoost);
+let iron = Math.floor(randomInt(12, 45) * rewardBoost);
+let gold = Math.floor(randomInt(10, 35) * rewardBoost);
+let coal = Math.floor(randomInt(20, 90) * rewardBoost);
+let stone = Math.floor(randomInt(150, 650) * rewardBoost);
+let diamonds = Math.floor(randomInt(3, 8) * rewardBoost);
+let exp = Math.floor(randomInt(350, 900) * rewardBoost);
 user.coin = (user.coin || 0) + coin;
 user.emerald = (user.emerald || 0) + emerald;
 user.iron = (user.iron || 0) + iron;
@@ -76,4 +79,8 @@ export default handler;
 
 function pickRandom(list) {
 return list[Math.floor(Math.random() * list.length)];
+}
+
+function randomInt(min,max){
+return Math.floor(Math.random()*(max-min+1))+min
 }

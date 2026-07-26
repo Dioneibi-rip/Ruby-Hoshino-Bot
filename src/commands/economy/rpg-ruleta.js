@@ -28,7 +28,7 @@ await conn.reply(m.chat, `《✧》Color inválido. Usa *red*, *black* o *green*
 return false;
 }
 
-const maxByTier = user.premium ? 150000 : 50000;
+const maxByTier = user.premium ? 75000 : 50000;
 if (bet > maxByTier) {
 await conn.reply(m.chat, `《✧》Tu apuesta máxima por tirada es *${maxByTier.toLocaleString()} ${m.moneda}*.`, m);
 return false;
@@ -42,7 +42,9 @@ return false;
 const resultado = rollRoulette();
 const multipliers = { red: 2, black: 2, green: 14 };
 const gano = resultado === color;
-const premio = gano ? Math.floor(bet * multipliers[color]) : 0;
+const grossPrize = gano ? Math.floor(bet * multipliers[color]) : 0;
+const casinoTax = gano ? Math.floor(Math.max(0, grossPrize - bet) * 0.08) : 0;
+const premio = Math.max(0, grossPrize - casinoTax);
 const updated = await global.db.settleUserBet(m.sender, { field: 'coin', bet, payout: premio });
 if (!updated) {
 await conn.reply(m.chat, `《✧》Tu saldo cambió antes de completar la apuesta. Vuelve a intentarlo.`, m);
@@ -54,7 +56,8 @@ await conn.reply(m.chat, `🎲 Apuesta registrada: *¥${bet.toLocaleString()} ${
 
 if (gano) {
 return conn.reply(m.chat, `「✿」Resultado: *${resultado}* 🟢
-Ganaste *¥${premio.toLocaleString()} ${m.moneda}* (incluye apuesta).`, m);
+Ganaste *¥${premio.toLocaleString()} ${m.moneda}* (incluye apuesta).
+🏦 Impuesto de casino destruido: *¥${casinoTax.toLocaleString()}*.`, m);
 }
 
 return conn.reply(m.chat, `「✿」Resultado: *${resultado}* 🔴
