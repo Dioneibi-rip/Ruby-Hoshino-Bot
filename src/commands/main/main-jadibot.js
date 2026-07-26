@@ -76,24 +76,32 @@ let handler = async (m, { conn, command, usedPrefix, args, text, isOwner, partic
     else if (isShowBots) {
         const socketOpen = (sock) => sock?.user && sock?.ws?.socket && sock.ws.socket.readyState !== ws.CLOSED
         
-        // EXTRACCIÓN DESTRUTIVA: Saca solo los números, ignorando cualquier sufijo.
-        const getRawNumber = (jid) => {
+        // Lógica de validación tomada del bot de referencia:
+        // 1) Leer los participantes reales desde groupMetadata del grupo actual.
+        // 2) Normalizar cada socket a "número@s.whatsapp.net" quitando el device id (:xx).
+        // 3) Validar por inclusión exacta del JID normalizado en los participantes del grupo.
+        const normalizeBotJid = (jid) => {
             if (!jid) return '';
-            return String(jid).split('@')[0].split(':')[0].replace(/\D/g, '');
+            const user = String(jid).split('@')[0].split(':')[0].replace(/\D/g, '');
+            return user ? `${user}@s.whatsapp.net` : '';
         }
 
-        // Convertimos todos los participantes del grupo en una lista pura de números
-        const participantNumbers = (participants || []).map(p => {
-            const id = typeof p === 'string' ? p : (p?.id || p?.jid || p?.lid || p?.phoneNumber || '');
-            return getRawNumber(id);
-        }).filter(Boolean);
+        const getRawNumber = (jid) => normalizeBotJid(jid).split('@')[0]
 
-        // La validación ahora compara números planos contra números planos.
+        const getParticipantId = (participant) => {
+            if (typeof participant === 'string') return participant;
+            return participant?.phoneNumber || participant?.jid || participant?.lid || participant?.id || '';
+        }
+
+        const groupMetadata = m.isGroup ? await conn.groupMetadata(m.chat).catch(() => null) : null;
+        const groupParticipants = (groupMetadata?.participants?.length ? groupMetadata.participants : participants || [])
+            .map(getParticipantId)
+            .filter(Boolean);
+
         const isInCurrentGroup = (sock) => {
             if (!m.isGroup) return true;
-            const botJid = sock?.subBotJid || sock?.user?.id || sock?.user?.jid;
-            const botNum = getRawNumber(botJid);
-            return participantNumbers.includes(botNum);
+            const botJid = normalizeBotJid(sock?.subBotJid || sock?.user?.id || sock?.user?.jid);
+            return Boolean(botJid && groupParticipants.includes(botJid));
         }
 
         const wantsAll = /^all$/i.test((args?.[0] || text || '').trim())
