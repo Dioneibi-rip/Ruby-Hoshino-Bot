@@ -1,6 +1,6 @@
 const MAX_BET = 75000
 const CASINO_TAX_RATE = 0.08
-const WIN_MULTIPLIER = 2.4 - CASINO_TAX_RATE
+const WIN_MULTIPLIER = 1 - CASINO_TAX_RATE
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 let [eleccion, cantidad] = String(text || '').trim().split(' ');
@@ -31,14 +31,18 @@ return false;
 const user = global.db.getUser(m.sender);
 if (!user) return false;
 const saldo = Number(user.coin || 0);
-user.coin = saldo - cantidad;
-let resultado = Math.random() < 0.78 ? eleccion : (eleccion === 'cara' ? 'cruz' : 'cara');
+if (saldo < cantidad) {
+await m.reply(`${emoji2} No tienes suficientes ${m.moneda} para apostar. Tienes *¥${saldo.toLocaleString()}* y necesitas *¥${cantidad.toLocaleString()}*.`);
+return false;
+}
+user.coin = Math.max(0, saldo - cantidad);
+let resultado = Math.random() < 0.5 ? 'cara' : 'cruz';
 
 if (resultado === eleccion) {
 let ganancia = Math.floor(cantidad * WIN_MULTIPLIER);
 let impuesto = cantidad - ganancia;
 let pagoTotal = cantidad + ganancia;
-user.coin = Number(user.coin || 0) + pagoTotal;
+user.coin = Math.max(0, Number(user.coin || 0) + pagoTotal);
 
 return conn.reply(m.chat,
 `「✿」La moneda ha caído en *${resultado.toUpperCase()}* y recuperaste *¥${cantidad.toLocaleString()}* + ganaste *¥${ganancia.toLocaleString()} ${m.moneda}* netos.
@@ -46,8 +50,7 @@ return conn.reply(m.chat,
 > Tu elección fue *${eleccion.toUpperCase()}*
 ✨ ¡La suerte estuvo de tu lado! ✨`, m);
 } else {
-let perdida = Math.max(1, Math.floor(cantidad * 0.15));
-user.coin = saldo - perdida;
+let perdida = cantidad;
 
 return conn.reply(m.chat,
 `🥀 La moneda cayó en *${resultado.toUpperCase()}* y perdiste *¥${perdida.toLocaleString()} ${m.moneda}*...
