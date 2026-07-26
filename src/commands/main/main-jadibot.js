@@ -3,11 +3,11 @@ import path, { join } from 'path'
 import ws from 'ws'
 const { proto, generateWAMessageFromContent, prepareWAMessageMedia } = (await import("@whiskeysockets/baileys")).default
 
-async function pathExists(file) {
-try {
+async function pathExists(file){
+try{
 await fsPromises.access(file)
 return true
-} catch {
+}catch{
 return false
 }
 }
@@ -125,13 +125,12 @@ return participant?.phoneNumber || participant?.jid || participant?.lid || parti
 
 const groupMetadata = m.isGroup ? await conn.groupMetadata(m.chat).catch(() => null) : null
 const rawParticipants = groupMetadata?.participants?.length ? groupMetadata.participants : participants || []
-const groupParticipantsIds = rawParticipants.map(getParticipantId).filter(Boolean)
+const groupParticipants = rawParticipants.map(getParticipantId).filter(Boolean)
 
 const getAdminStatus = (jid) => {
-if (!m.isGroup || !groupMetadata) return 'N/A'
-const participant = rawParticipants.find(p => getParticipantId(p) === jid)
-if (!participant) return 'Fuera del grupo'
-return participant.admin ? '👑 Admin' : '👤 Miembro'
+if (!m.isGroup) return ''
+const p = rawParticipants.find(v => getParticipantId(v) === jid)
+return p?.admin ? '👑 Admin' : '👤 Miembro'
 }
 
 const wantsAll = /^all$/i.test((args?.[0] || text || '').trim())
@@ -145,12 +144,12 @@ const sock = (global.conns || []).find((socket) => normalizeBotJid(socket?.subBo
 return { jid, sock, type: 'SubBot' }
 })
 const activeSockets = [...mainSocket, ...subBots]
-const isInCurrentGroup = ({ jid }) => !m.isGroup || groupParticipantsIds.includes(jid)
+const isInCurrentGroup = ({ jid }) => !m.isGroup || groupParticipants.includes(jid)
 const scopedSockets = showAll ? activeSockets : activeSockets.filter(isInCurrentGroup)
 
 const mainCount = mainSocket.length
 const subCount = subBots.length
-const scopedLabel = showAll ? '🌐 Vista Global' : '👥 Vista de Grupo'
+const scopedLabel = showAll ? 'Bots activos' : 'Bots en el grupo'
 
 const botLines = scopedSockets.length
 ? scopedSockets.map(({ jid, sock, type }) => {
@@ -158,22 +157,24 @@ const num = getRawNumber(jid)
 const settings = global.db?.get?.('settings', jid) || global.db?.data?.settings?.[jid] || {}
 const name = sock?.user?.name || sock?.user?.pushname || settings?.namebot2 || settings?.namebot || 'Ruby AI'
 const role = getAdminStatus(jid)
-const status = socketOpen(sock) ? '🟢 Conectado' : '🔴 Desconectado'
-return `┌ ⚙️ *[${type}]* ${name}\n│ 📱 wa.me/${num}\n│ 📡 Estado: ${status}\n└ 🏷️ Rol: ${role}`
-}).join('\n\n')
-: `- ${showAll ? 'No hay bots registrados.' : 'No hay bots activos en este grupo.'}`
+const roleText = role ? ` | ${role}` : ''
+return `> [${type}] *${name}*\n> 📱 +${num}${roleText}\n`
+}).join('\n')
+: `> ${showAll ? 'No hay bots activos.' : 'No hay bots activos en este grupo.'}`
 
 const headerText = [
-`*${scopedLabel}*`,
-`Sockets Totales: *${activeSockets.length}*`,
-`├ Principales: *${mainCount}*`,
-`└ SubBots: *${subCount}*`,
+`Sockets activos: *${activeSockets.length}*`,
 '',
-botLines
+`- Principales: *${mainCount}*`,
+`- Subs: *${subCount}*`,
+'',
+`${scopedLabel}: *${scopedSockets.length}*`,
+'',
+botLines,
 ].join('\n')
 
 let mediaMessage = await prepareWAMessageMedia({
-image: { url: '[https://i.pinimg.com/736x/bd/97/48/bd974853f6bb55bb0e77a30d34e0030c.jpg](https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/855ccb61ddb6e8a6265750cb601ca07b.jpg)' }
+image: { url: 'https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/855ccb61ddb6e8a6265750cb601ca07b.jpg' }
 }, { upload: conn.waUploadToServer })
 
 let msg = generateWAMessageFromContent(m.chat, {
@@ -184,7 +185,7 @@ body: proto.Message.InteractiveMessage.Body.create({
 text: headerText
 }),
 footer: proto.Message.InteractiveMessage.Footer.create({
-text: showAll ? 'Mapeo global de red' : 'Mapeo de red actual'
+text: showAll ? 'Vista global de sockets' : 'Vista del grupo actual'
 }),
 header: proto.Message.InteractiveMessage.Header.create({
 hasMediaAttachment: true,
