@@ -33,7 +33,8 @@ let text = `╭━〔 Inventario de ${name} 〕⬣\n` +
 `┋ 💎 *Diamantes:* ${user.diamond || 0}\n` +
 `┋ 🍬 *Dulces:* ${user.candies || 0}\n` +
 `┋ 🎁 *Regalos:* ${user.gifts || 0}\n` +
-`┋ 🎟️ *Tokens:* ${user.joincount || 0}\n` +
+`┋ 🪙 *Tokens economía:* ${user.tokens || 0}\n` +
+`┋ 🎟️ *Tokens gacha:* ${user.gachaTokens || 0}\n` +
 `┋ ⚜️ *Premium:* ${premium}\n` +
 `┋ 💼 *Trabajo:* ${formatJobLine(user)}\n` +
 `┋ ⏳ *Última Aventura:* ${user.lastAdventure ? moment(user.lastAdventure).fromNow() : 'Nunca'}\n` +

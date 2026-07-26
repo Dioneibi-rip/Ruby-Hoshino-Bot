@@ -1,15 +1,54 @@
 import { loadHarem, saveHarem, findClaim, isSameUserId } from '../../library/gacha-group.js'
-import { loadCharactersOptimized, invalidateCache } from '../../library/gacha-cache-manager.js'
+import { loadCharactersOptimized } from '../../library/gacha-cache-manager.js'
 import { normalizeCharacterId } from '../../library/gacha-characters.js'
 import { getExclusiveOwner } from '../../library/gacha-restrictions.js'
 
 const ROLL_TOKEN_COST = 1
+const RARITY_TIERS = [
+{ key: 'common', name: 'Común', emoji: '⭐', maxPercentile: 0.40, weight: 50 },
+{ key: 'rare', name: 'Raro', emoji: '💎', maxPercentile: 0.70, weight: 28 },
+{ key: 'epic', name: 'Épico', emoji: '🌟', maxPercentile: 0.90, weight: 14 },
+{ key: 'legendary', name: 'Legendario', emoji: '🔥', maxPercentile: 0.98, weight: 6 },
+{ key: 'mythic', name: 'Mítico', emoji: '👑', maxPercentile: 1, weight: 2 }
+]
 
-function rollRarity() {
-const roll = Math.random()
-if (roll < 0.05) return { name: 'Legendario', emoji: '🔥' }
-if (roll < 0.30) return { name: 'Épico', emoji: '🌟' }
-return { name: 'Común', emoji: '⭐' }
+function getCharacterValue(character = {}) {
+const value = Number(character.value ?? character.valor ?? character.price ?? 0)
+return Number.isFinite(value) ? Math.max(0, value) : 0
+}
+
+function buildRarityPools(characters = []) {
+const values = characters.map(getCharacterValue).sort((a, b) => a - b)
+const maxIndex = Math.max(values.length - 1, 0)
+const thresholds = RARITY_TIERS.map(tier => values[Math.min(maxIndex, Math.floor(maxIndex * tier.maxPercentile))] ?? 0)
+const pools = new Map(RARITY_TIERS.map(tier => [tier.key, []]))
+
+for (const character of characters) {
+const value = getCharacterValue(character)
+const tierIndex = thresholds.findIndex(limit => value <= limit)
+const tier = RARITY_TIERS[tierIndex === -1 ? RARITY_TIERS.length - 1 : tierIndex]
+pools.get(tier.key).push(character)
+}
+return { pools, thresholds }
+}
+
+function pickWeightedTier(pools) {
+const available = RARITY_TIERS.filter(tier => (pools.get(tier.key) || []).length)
+const total = available.reduce((sum, tier) => sum + tier.weight, 0)
+let roll = Math.random() * total
+for (const tier of available) {
+roll -= tier.weight
+if (roll <= 0) return tier
+}
+return available[0]
+}
+
+function rollCharacterByRarity(characters = []) {
+const { pools } = buildRarityPools(characters)
+const tier = pickWeightedTier(pools)
+const pool = pools.get(tier.key) || characters
+const character = pool[Math.floor(Math.random() * pool.length)]
+return { character, rarity: tier }
 }
 
 global.gachaCooldowns = global.gachaCooldowns || {}
@@ -32,15 +71,9 @@ if (index !== -1) harem.splice(index, 1)
 function formatUrl(url) {
 if (!url) return url
 url = url.trim()
-if (url.includes('github.com') && url.includes('/blob/')) {
-url = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/')
-}
-if (url.includes('github.com') && url.includes('?raw=true')) {
-url = url.replace('github.com', 'raw.githubusercontent.com').replace('?raw=true', '')
-}
-if (url.includes('raw.github.com')) {
-url = url.replace('raw.github.com', 'raw.githubusercontent.com')
-}
+if (url.includes('github.com') && url.includes('/blob/')) url = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/')
+if (url.includes('github.com') && url.includes('?raw=true')) url = url.replace('github.com', 'raw.githubusercontent.com').replace('?raw=true', '')
+if (url.includes('raw.github.com')) url = url.replace('raw.github.com', 'raw.githubusercontent.com')
 return url
 }
 
@@ -50,38 +83,28 @@ const groupId = m.chat
 const user = global.db.getUser(userId)
 if (!user) return false
 user.tokens = Number(user.tokens || 0)
-if (user.tokens < ROLL_TOKEN_COST) {
-await conn.reply(m.chat, `✘ Necesitas *1 Token* para tirar el gacha. Puedes comprar Tokens en la tienda con *#tienda comprar token*.`, m)
+user.gachaTokens = Number(user.gachaTokens || 0)
+if (user.gachaTokens < ROLL_TOKEN_COST) {
+await conn.reply(m.chat, `✘ Necesitas *1 Token Gacha* para tirar el gacha. Puedes comprarlo con *#tienda comprar token*.`, m)
 return false
 }
 const now = Date.now()
-
-let expCount = 0
 for (const [rollKey, rollData] of Object.entries(global.activeRolls)) {
-if (!rollData?.time || now - rollData.time > 3 * 60 * 1000) {
-delete global.activeRolls[rollKey]
-expCount++
-if (expCount >= 50) break
-}
+if (!rollData?.time || now - rollData.time > 3 * 60 * 1000) delete global.activeRolls[rollKey]
 }
 
 try {
 const characters = await loadCharactersOptimized()
 if (!characters.length) throw new Error('❀ No hay personajes disponibles para el gacha.')
 
-const randomCharacter = characters[Math.floor(Math.random() * characters.length)]
+const { character: randomCharacter, rarity } = rollCharacterByRarity(characters)
 randomCharacter.id = normalizeCharacterId(randomCharacter.id)
-const rarity = rollRarity()
 
 const imageList = Array.isArray(randomCharacter.img) ? randomCharacter.img : []
 let randomImage = imageList[Math.floor(Math.random() * imageList.length)]
 if (!randomImage) throw new Error(`❀ El personaje ${randomCharacter.name} no tiene imágenes válidas.`)
-
 randomImage = formatUrl(randomImage)
-
-if (randomImage.match(/\.webp($|\?)/i)) {
-randomImage = `https://wsrv.nl/?url=${encodeURIComponent(randomImage)}&output=png`
-}
+if (randomImage.match(/\.webp($|\?)/i)) randomImage = `https://wsrv.nl/?url=${encodeURIComponent(randomImage)}&output=png`
 
 const harem = await loadHarem()
 let claimedInGroup = findClaim(harem, groupId, randomCharacter.id)
@@ -91,19 +114,12 @@ await saveHarem(harem)
 claimedInGroup = null
 }
 const exclusiveOwner = getExclusiveOwner(randomCharacter.id)
-
 let ownerName = 'Nadie'
-if (claimedInGroup) {
-ownerName = await conn.getName(claimedInGroup.userId)
-} else if (exclusiveOwner) {
-ownerName = await conn.getName(exclusiveOwner).catch(() => `@${exclusiveOwner.split('@')[0]}`)
-}
+if (claimedInGroup) ownerName = await conn.getName(claimedInGroup.userId)
+else if (exclusiveOwner) ownerName = await conn.getName(exclusiveOwner).catch(() => `@${exclusiveOwner.split('@')[0]}`)
 
-const statusText = claimedInGroup
-? '🚫 Ocupado'
-: (exclusiveOwner ? '🔒 Exclusivo' : '✅ Libre')
-
-user.tokens = Math.max(0, Number(user.tokens || 0) - ROLL_TOKEN_COST)
+const statusText = claimedInGroup ? '🚫 Ocupado' : (exclusiveOwner ? '🔒 Exclusivo' : '✅ Libre')
+user.gachaTokens = Math.max(0, Number(user.gachaTokens || 0) - ROLL_TOKEN_COST)
 
 if (!claimedInGroup) {
 const rollOwner = exclusiveOwner || userId
@@ -134,21 +150,16 @@ const message = `
 
 ┉͜┄͜─┈┉⃛┄─꒰֟፝͡ 🅸🅳: ${randomCharacter.id} ꒱─┄⃨┉┈─͡┄͡┉
 ▓𓏴𓏴 ۪ ֹ 🅃꯭🄾꯭🄺꯭🄴꯭🄽꯭🅂 :
-╰┈➤ 🎟️ ${Number(user.tokens || 0)} restantes
+╰┈➤ 🎟️ ${Number(user.gachaTokens || 0)} restantes
 
 ㅤㅤㅤㅤㅤㅤ© ᑲ᥆𝗍 𝗀ɑᥴ꯭hɑ 𝗌𝗒sł꯭ᥱꭑ꒱
 `
 
-await conn.sendMessage(m.chat, {
-image: { url: randomImage },
-mimetype: "image/jpeg",
-caption: message
-}, { quoted: m })
-
+await conn.sendMessage(m.chat, { image: { url: randomImage }, mimetype: 'image/jpeg', caption: message }, { quoted: m })
 } catch (error) {
 console.error(error)
 await conn.reply(m.chat, `✘ Error al cargar el personaje: ${error.message}`, m)
-return false // <--- SOLUCIÓN: Evita el cooldown si ocurre un error
+return false
 }
 }
 
@@ -157,7 +168,6 @@ handler.tags = ['gacha']
 handler.command = ['rw', 'rollwaifu']
 handler.group = true
 handler.cooldown = 900000
-
-handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`;
+handler.cooldownMessage = (seconds, time, hms) => `⏳ Espera ${hms || time || seconds + 's'} antes de volver a usar este comando.`
 
 export default handler

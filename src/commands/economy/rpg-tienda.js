@@ -24,8 +24,8 @@ poción: { label: 'Poción', coin: 3000, heal: 50 },
 pico: { label: 'Pico', coin: 5000, iron: 5, durability: 100 },
 talisman: { label: 'Talismán', diamond: 10, field: 'talisman' },
 talismán: { label: 'Talismán', diamond: 10, field: 'talisman' },
-token: { label: 'Token Gacha', coin: 1500, field: 'tokens' },
-tokens: { label: 'Token Gacha', coin: 1500, field: 'tokens' },
+token: { label: 'Token Gacha', coin: 1500, field: 'gachaTokens' },
+tokens: { label: 'Token Gacha', coin: 1500, field: 'gachaTokens' },
 };
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -41,6 +41,7 @@ user.diamond = Number(user.diamond || 0);
 user.health = Math.min(100, Math.max(0, Number(user.health || 0)));
 user.pickaxedurability = Math.min(100, Math.max(0, Number(user.pickaxedurability || 0)));
 user.tokens = Number(user.tokens || 0);
+user.gachaTokens = Number(user.gachaTokens || 0);
 
 if (!action || !['comprar', 'vender', 'buy', 'sell'].includes(action)) {
 return conn.reply(m.chat, buildHelp(usedPrefix, command, m.moneda), m);
