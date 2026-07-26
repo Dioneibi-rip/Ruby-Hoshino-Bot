@@ -36,7 +36,6 @@
     "qrcode": "^1.5.1",
     "syntax-error": "^1.4.0",
     "ws": "^8.18.0",
-    "yt-search": "^2.10.3",
-    "cheerio": "^1.0.0"
+    "yt-search": "^2.10.3"
   }
 }
