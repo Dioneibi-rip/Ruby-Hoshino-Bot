@@ -1,13 +1,13 @@
 import { promises as fsPromises } from "fs"
 import path, { join } from 'path'
 import ws from 'ws'
-const { proto, generateWAMessageFromContent, prepareWAMessageMedia, jidNormalizedUser } = (await import("@whiskeysockets/baileys")).default
+const { proto, generateWAMessageFromContent, prepareWAMessageMedia } = (await import("@whiskeysockets/baileys")).default
 
 async function pathExists(file){
     try{
         await fsPromises.access(file)
         return true
-    } catch {
+    }catch{
         return false
     }
 }
@@ -76,33 +76,24 @@ let handler = async (m, { conn, command, usedPrefix, args, text, isOwner, partic
     else if (isShowBots) {
         const socketOpen = (sock) => sock?.user && sock?.ws?.socket && sock.ws.socket.readyState !== ws.CLOSED
         
-        // 1. Normalización robusta para evitar errores con variables nulas
-        const normalizeJid = (jid) => {
+        // EXTRACCIÓN DESTRUTIVA: Saca solo los números, ignorando cualquier sufijo.
+        const getRawNumber = (jid) => {
             if (!jid) return '';
-            const strJid = String(jid);
-            return jidNormalizedUser(strJid) || strJid.replace(/:\d+(?=@)/, '');
+            return String(jid).split('@')[0].split(':')[0].replace(/\D/g, '');
         }
 
-        const cleanPhone = (jid = '') => normalizeJid(jid).split('@')[0]
-        
-        const displayName = (sock) => {
-            const jid = sock?.subBotJid || sock?.user?.jid || sock?.user?.id || ''
-            return sock?.user?.name || sock?.user?.pushname || cleanPhone(jid) || toFancy('Sin Nombre')
-        }
+        // Convertimos todos los participantes del grupo en una lista pura de números
+        const participantNumbers = (participants || []).map(p => {
+            const id = typeof p === 'string' ? p : (p?.id || p?.jid || p?.lid || p?.phoneNumber || '');
+            return getRawNumber(id);
+        }).filter(Boolean);
 
-        // 2. Soporte dual: Extrae el JID sin importar si 'participants' es un array de Strings o de Objetos
-        const participantJids = new Set(
-            (participants || []).map(p => {
-                const jid = typeof p === 'string' ? p : (p?.id || p?.jid || p?.lid || '');
-                return normalizeJid(jid);
-            }).filter(Boolean)
-        );
-
-        // 3. Comparación exacta usando la variable 'subBotJid' inyectada desde tu gestor de sesiones
+        // La validación ahora compara números planos contra números planos.
         const isInCurrentGroup = (sock) => {
             if (!m.isGroup) return true;
-            const botJid = normalizeJid(sock?.subBotJid || sock?.user?.id || sock?.user?.jid);
-            return participantJids.has(botJid);
+            const botJid = sock?.subBotJid || sock?.user?.id || sock?.user?.jid;
+            const botNum = getRawNumber(botJid);
+            return participantNumbers.includes(botNum);
         }
 
         const wantsAll = /^all$/i.test((args?.[0] || text || '').trim())
@@ -118,8 +109,18 @@ let handler = async (m, { conn, command, usedPrefix, args, text, isOwner, partic
         const subCount = activeSockets.filter(({ type }) => type === 'Sub').length
         const scopedLabel = showAll ? 'Bots activos' : 'Bots en el grupo'
         
+        // Creamos el array de menciones como en el bot de referencia
+        const mentionedJid = scopedSockets.map(({ sock }) => {
+            const num = getRawNumber(sock?.subBotJid || sock?.user?.id || sock?.user?.jid);
+            return num ? `${num}@s.whatsapp.net` : '';
+        }).filter(Boolean);
+
         const botLines = scopedSockets.length
-            ? scopedSockets.map(({ sock, type }) => `- [${type} *Ruby*] › ${displayName(sock)}`).join('\n')
+            ? scopedSockets.map(({ sock, type }) => {
+                const num = getRawNumber(sock?.subBotJid || sock?.user?.id || sock?.user?.jid);
+                const name = sock?.user?.name || sock?.user?.pushname || 'Ruby AI';
+                return `- [${type} *${name}*] › @${num}`
+            }).join('\n')
             : `- ${showAll ? 'No hay bot activos.' : 'No hay bots activos en este grupo.'}`
             
         const headerText = [
@@ -172,6 +173,11 @@ let handler = async (m, { conn, command, usedPrefix, args, text, isOwner, partic
                 }
             }
         }, { quoted: m })
+
+        // Se inyecta 'mentionedJid' en el contextInfo para que las menciones @ funcionen
+        if (msg.message?.viewOnceMessage?.message?.interactiveMessage) {
+            msg.message.viewOnceMessage.message.interactiveMessage.contextInfo = { mentionedJid };
+        }
 
         await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id })
     }
