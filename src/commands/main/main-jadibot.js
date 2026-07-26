@@ -32,7 +32,7 @@ return str.split('').map(c => map[c] || c).join('')
 }
 
 const reportError = async (e) => {
-await m.reply(`⚠️ ${toFancy("Ocurrió un error inesperado, lo siento mucho...")}`)
+await m.reply(`> ⚠️ \`𝖮𝖼𝗎𝗋𝗋𝗂𝗈́ 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋 𝗂𝗇𝖾𝗌𝗉𝖾𝗋𝖺𝖽𝗈, 𝗅𝗈 𝗌𝗂𝖾𝗇𝗍𝗈 𝗆𝗎𝖼𝗁𝗈...\``)
 console.error(e)
 }
 
@@ -43,13 +43,13 @@ const dirPath = `./${jadi}/${uniqid}`
 
 if (!await pathExists(dirPath)) {
 return conn.sendMessage(m.chat, {
-text: `🚫 *${toFancy("Sesión no encontrada")}*\n\n✨ ${toFancy("No tienes una sesión activa.")}\n\n🔰 ${toFancy("Puedes crear una con:")}\n*${usedPrefix}qr*\n\n📦 ${toFancy("Obtener código:")}\n*${usedPrefix}code*`
+text: `> 🚫 𝖲𝖾𝗌𝗂𝗈́𝗇 𝗇𝗈 𝖾𝗇𝖼𝗈𝗇𝗍𝗋𝖺𝖽𝖺 💧\n> 🌨️ (っ- ‸ - ς) \`𝖭𝗈 𝗍𝗂𝖾𝗇𝖾𝗌 𝗎𝗇𝖺 𝗌𝖾𝗌𝗂𝗈́𝗇 𝖺𝖼𝗍𝗂𝗏𝖺...\`\n\n> 🔰 \`𝖯𝗎𝖾𝖽𝖾𝗌 𝖼𝗋𝖾𝖺𝗋 𝗎𝗇𝖺 𝖼𝗈𝗇:\` *${usedPrefix}qr*\n> 📦 \`𝖮𝖻𝗍𝖾𝗇𝖾𝗋 𝖼𝗈́𝖽𝗂𝗀𝗈:\` *${usedPrefix}code*`
 }, { quoted: m })
 }
 
 if (global.conn.user.jid !== conn.user.jid) {
 return conn.sendMessage(m.chat, {
-text: `💬 ${toFancy("Este comando solo puede usarse desde el Bot Principal.")}`,
+text: `> 💬 𝜗ৎ \`𝖤𝗌𝗍𝖾 𝖼𝗈𝗆𝖺𝗇𝖽𝗈 𝗌𝗈𝗅𝗈 𝗉𝗎𝖾𝖽𝖾 𝗎𝗌𝖺𝗋𝗌𝖾 𝖽𝖾𝗌𝖽𝖾 𝖾𝗅 𝖡𝗈𝗍 𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅.\``,
 }, { quoted: m })
 }
 
@@ -57,7 +57,7 @@ try {
 await m.react('🗑️')
 await fsPromises.rm(dirPath, { recursive: true, force: true })
 await conn.sendMessage(m.chat, {
-text: `🌈 ${toFancy("¡Todo limpio! Tu sesión ha sido eliminada con éxito.")}`
+text: `> 🌈 𝜗ৎ \`¡𝖳𝗈𝖽𝗈 𝗅𝗂𝗆𝗉𝗂𝗈! 𝖳𝗎 𝗌𝖾𝗌𝗂𝗈́𝗇 𝗁𝖺 𝗌𝗂𝖽𝗈 𝖾𝗅𝗂𝗆𝗂𝗇𝖺𝖽𝖺 𝖼𝗈𝗇 𝖾́𝗑𝗂𝗍𝗈.\` 🫧`
 }, { quoted: m })
 } catch (e) {
 reportError(e)
@@ -66,10 +66,10 @@ return false;
 }
 else if (isPauseBot) {
 if (global.conn.user.jid == conn.user.jid) {
-await conn.reply(m.chat, `🚫 ${toFancy("No puedes pausar el bot principal.")}`, m);
+await conn.reply(m.chat, `> 🧊 ¡𝖤𝗒! 𝖭𝗈 𝗉𝗎𝖾𝖽𝖾𝗌 𝗉𝖺𝗎𝗌𝖺𝗋 𝖺𝗅 𝖻𝗈𝗍 𝗉𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅 🪺`, m);
 return false;
 }
-await conn.reply(m.chat, `🔕 *${botname || 'Sub-Bot'} ${toFancy("ha sido pausado.")}*`, m)
+await conn.reply(m.chat, `> 🔕 𝜗ৎ \`${botname || 'Sub-Bot'} 𝗁𝖺 𝗌𝗂𝖽𝗈 𝗉𝖺𝗎𝗌𝖺𝖽𝗈.\` 💤`, m)
 conn.ws.close()
 }
 else if (isShowBots) {
@@ -130,18 +130,18 @@ const groupParticipants = rawParticipants.map(getParticipantId).filter(Boolean)
 const getAdminStatus = (jid) => {
 if (!m.isGroup) return ''
 const p = rawParticipants.find(v => getParticipantId(v) === jid)
-return p?.admin ? '👑 Admin' : '👤 Miembro'
+return p?.admin ? '👑 𝖠𝖽𝗆𝗂𝗇' : '👤 𝖬𝗂𝖾𝗆𝖻𝗋𝗈'
 }
 
 const wantsAll = /^all$/i.test((args?.[0] || text || '').trim())
 const showAll = Boolean(isOwner && wantsAll)
 const mainJid = normalizeBotJid(global.conn?.user?.id || global.conn?.user?.jid || conn?.user?.id || conn?.user?.jid)
-const mainSocket = socketOpen(global.conn) && mainJid ? [{ jid: mainJid, sock: global.conn, type: 'Principal' }] : []
+const mainSocket = socketOpen(global.conn) && mainJid ? [{ jid: mainJid, sock: global.conn, type: '𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅' }] : []
 const subFolderPath = global.rutaJadiBot || path.join(process.cwd(), global.jadi || jadi)
 const subBots = [...new Set(getBotsFromFolder(subFolderPath))].map((number) => {
 const jid = `${number}@s.whatsapp.net`
 const sock = (global.conns || []).find((socket) => normalizeBotJid(socket?.subBotJid || socket?.user?.id || socket?.user?.jid) === jid)
-return { jid, sock, type: 'SubBot' }
+return { jid, sock, type: '𝖲𝗎𝖻𝖡𝗈𝗍' }
 })
 const activeSockets = [...mainSocket, ...subBots]
 const isInCurrentGroup = ({ jid }) => !m.isGroup || groupParticipants.includes(jid)
@@ -149,7 +149,7 @@ const scopedSockets = showAll ? activeSockets : activeSockets.filter(isInCurrent
 
 const mainCount = mainSocket.length
 const subCount = subBots.length
-const scopedLabel = showAll ? 'Bots activos' : 'Bots en el grupo'
+const scopedLabel = showAll ? '𝖡𝗈𝗍𝗌 𝖺𝖼𝗍𝗂𝗏𝗈𝗌' : '𝖡𝗈𝗍𝗌 𝖾𝗇 𝖾𝗅 𝗀𝗋𝗎𝗉𝗈'
 
 const botLines = scopedSockets.length
 ? scopedSockets.map(({ jid, sock, type }) => {
@@ -157,20 +157,22 @@ const num = getRawNumber(jid)
 const settings = global.db?.get?.('settings', jid) || global.db?.data?.settings?.[jid] || {}
 const name = sock?.user?.name || sock?.user?.pushname || settings?.namebot2 || settings?.namebot || 'Ruby AI'
 const role = getAdminStatus(jid)
-const roleText = role ? ` | ${role}` : ''
-return `> [${type}] *${name}*\n> 📱 +${num}${roleText}\n`
+const roleText = role ? `𖹭 \`${role}\`` : ''
+return `  ּ             🦢⃞⃝░         𓈅    \`[${type}]\` \n  ּ             🦢⃞⃝░         𓋲    *${name}* \n  ּ             🦢⃞⃝░         𓋲    📱 +${num} ${roleText}\n`
 }).join('\n')
-: `> ${showAll ? 'No hay bots activos.' : 'No hay bots activos en este grupo.'}`
+: `> 💧 (っ- ‸ - ς) \`No hay bots activos aquí...\``
 
 const headerText = [
-`Sockets activos: *${activeSockets.length}*`,
-'',
-`- Principales: *${mainCount}*`,
-`- Subs: *${subCount}*`,
-'',
-`${scopedLabel}: *${scopedSockets.length}*`,
-'',
+`ᅟ *⣴⣿⵿ᩡᅟ⃛◢✹᳘ᅟ꯭͜︵᷼͝⏜ᰰ🌸ᩚ̸̷︪͞⏜᷼͝︵꯭͜ᅟ᳘✹▆ᅟ⃛ᩡ⣿⣦*`,
+`ᅟᅟᅟᅟᅟᅟׅ＼ׂׄᅟᅟᅟ｜ּᅟᅟᅟּׅ／ּ`,
+`ᅟᅟ \`𝖲𝗈𝖼𝗄𝖾𝗍𝗌 𝖠𝖼𝗍𝗂𝗏𝗈𝗌: ${activeSockets.length}\``,
+``,
+`> *┌᷒⣿̷̸⵿⃛⣦👑⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅𝖾𝗌:* \`${mainCount}\``,
+`> *┌᷒⣿̷̸⵿⃛⣦💝⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 𝖲𝗎𝖻𝖡𝗈𝗍𝗌:* \`${subCount}\``,
+`> *┌᷒⣿̷̸⵿⃛⣦☁️⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 ${scopedLabel}:* \`${scopedSockets.length}\``,
+``,
 botLines,
+`ᅟᅟ◢⃝ᩡ⣦꯭⏜͜͜❀ᅟ𝖲꯭𝖮꯭𝖢꯭𝖪꯭𝖤꯭𝖳꯭𝖲ᅟ⵿ᩚ̷ᅟ͜𑁘ࡄ▆ᩘ̫✹`
 ].join('\n')
 
 let mediaMessage = await prepareWAMessageMedia({
@@ -185,7 +187,7 @@ body: proto.Message.InteractiveMessage.Body.create({
 text: headerText
 }),
 footer: proto.Message.InteractiveMessage.Footer.create({
-text: showAll ? 'Vista global de sockets' : 'Vista del grupo actual'
+text: showAll ? toFancy('Vista global de sockets') : toFancy('Vista del grupo actual')
 }),
 header: proto.Message.InteractiveMessage.Header.create({
 hasMediaAttachment: true,
