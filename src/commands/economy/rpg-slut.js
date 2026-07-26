@@ -24,7 +24,7 @@ if (job.key === 'chef') { slutBonus = 1.15; slutWinChance = 0.05; }
 if (job.key === 'repartidor') { slutBonus = 1.05; }
 if (job.key === 'basurero') { slutBonus = 0.85; slutLossResist = 0.75; }
 
-let winChance = Math.min(0.87, 0.64 + (user.premium ? 0.06 : 0) + prof + slutWinChance);
+let winChance = Math.min(0.82, 0.76 + (user.premium ? 0.04 : 0) + prof + slutWinChance);
 let didWin = Math.random() < winChance;
 let useGeneric = Math.random() < 0.35;
 
@@ -33,7 +33,7 @@ let jobEmoji = job.emoji;
 let mentionStr = '@' + targetId.split('@')[0];
 
 if (didWin) {
-let baseAmount = Math.floor(Math.random() * 3500 + 2200);
+let baseAmount = Math.floor(Math.random() * 7000 + 6000);
 let amount = Math.floor(baseAmount * job.slutMultiplier * (user.premium ? 1.2 : 1) * slutBonus);
 user.coin = (user.coin || 0) + amount;
 await global.db.updateUser(senderId, { coin: user.coin });
@@ -45,9 +45,9 @@ let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐏
 return conn.sendMessage(m.chat, { text: texto, contextInfo: { mentionedJid: [targetId] } }, { quoted: m });
 }
 
-let amountLoss = Math.floor((Math.random() * 700 + 300) * job.slutLossMultiplier * slutLossResist);
+let amountLoss = Math.floor((Math.random() * 350 + 150) * job.slutLossMultiplier * slutLossResist);
 let loss = amountLoss;
-user.coin = Math.max(0, (Number(user.coin) || 0) - loss);
+user.coin = (Number(user.coin) || 0) - loss;
 user.bank = Math.max(0, Number(user.bank) || 0);
 await global.db.updateUser(senderId, { coin: user.coin, bank: user.bank });
 

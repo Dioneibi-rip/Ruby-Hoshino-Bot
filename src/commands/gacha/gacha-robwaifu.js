@@ -1,6 +1,6 @@
 import { loadHarem, saveHarem, isSameUserId } from '../../library/gacha-group.js'
 import { loadCharacters, findCharacterById } from '../../library/gacha-characters.js'
-import { isProtectionActive, getUserFunds, spendUserFunds, resetProtectionOnTransfer } from '../../library/gacha-protection.js'
+import { isProtectionActive, spendUserFunds, resetProtectionOnTransfer } from '../../library/gacha-protection.js'
 import { canUserClaimCharacter } from '../../library/gacha-restrictions.js'
 import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js'
 
@@ -10,11 +10,11 @@ const ROB_FAIL_PENALTY = 1100
 const ROB_SUCCESS_FEE = 900
 
 function getStealChance(thiefOwnedCount, victimOwnedCount) {
-let chance = 0.42
+let chance = 0.75
 if (thiefOwnedCount < 3) chance += 0.08
 if (thiefOwnedCount > victimOwnedCount) chance -= 0.07
 if (victimOwnedCount >= 8) chance += 0.05
-return Math.min(0.62, Math.max(0.25, chance))
+return Math.min(0.82, Math.max(0.70, chance))
 }
 
 let handler = async (m, { conn, participants = [] }) => {
@@ -44,13 +44,6 @@ return false;
 }
 
 const thief = global.db.getUser(userId)
-
-const funds = getUserFunds(thief)
-if (funds.total < ROB_ATTEMPT_COST) {
-await conn.reply(m.chat, `✘ Necesitas al menos *¥${ROB_ATTEMPT_COST.toLocaleString()} ${moneda}* para intentar un robo.\n` +
-`✧ Cartera: *¥${funds.coin.toLocaleString()} ${moneda}*\n✧ Banco: *¥${funds.bank.toLocaleString()} ${moneda}*`, m)
-return false;
-}
 
 try {
 const [harem, characters] = await Promise.all([loadHarem(), loadCharacters()])

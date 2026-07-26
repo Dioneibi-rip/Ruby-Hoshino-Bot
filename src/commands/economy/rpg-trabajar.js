@@ -15,7 +15,7 @@ return false;
 
 let premiumBoost = user.premium ? 1.25 : 1;
 let levelBoost = 1 + Math.min(0.35, Math.max(0, Number(user.level || 0)) * 0.01);
-let successChance = (user.premium ? 0.88 : 0.82) + Math.min(0.08, (user.jobXp || 0) / 200000);
+let successChance = (user.premium ? 0.92 : 0.86) + Math.min(0.08, (user.jobXp || 0) / 200000);
 let ok = Math.random() < successChance;
 let useGeneric = Math.random() < 0.35;
 
@@ -29,8 +29,8 @@ let jobName = job.name.toUpperCase();
 let jobEmoji = job.emoji;
 
 if (ok) {
-let baseAmount = randomInt(450, 900);
-let amount = Math.min(2500, Math.floor(baseAmount * job.workMultiplier * premiumBoost * jobBonus * levelBoost));
+let baseAmount = randomInt(1200, 2400);
+let amount = Math.min(8500, Math.floor(baseAmount * job.workMultiplier * premiumBoost * jobBonus * levelBoost));
 let xpEarned = Math.floor(amount * 0.075);
 const materialDrop = rollWorkMaterial(job);
 user.coin = (user.coin || 0) + amount;
@@ -49,9 +49,9 @@ return conn.reply(m.chat, texto, m);
 }
 
 let lossResist = (job.key === 'comerciante' || job.key === 'basurero') ? 0.7 : 1;
-let rawLoss = Math.floor((Math.random() * 900 + 600) * (user.premium ? 0.95 : 1.25) * lossResist);
+let rawLoss = Math.floor((Math.random() * 250 + 150) * (user.premium ? 0.85 : 1) * lossResist);
 let loss = rawLoss;
-user.coin = Math.max(0, (Number(user.coin) || 0) - loss);
+user.coin = (Number(user.coin) || 0) - loss;
 user.bank = Math.max(0, Number(user.bank) || 0);
 await global.db.updateUser(senderId, { coin: user.coin, bank: user.bank });
 

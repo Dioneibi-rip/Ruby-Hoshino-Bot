@@ -678,10 +678,10 @@ this._createUser(userId)
 const tx = this.sqlite.transaction(() => {
 let statement = this.statements.settleUserBet.get(field)
 if (!statement) {
-statement = this.sqlite.prepare(`UPDATE users SET ${q(field)} = COALESCE(${q(field)}, 0) - ? + ?, updated_at = unixepoch() WHERE id = ? AND COALESCE(${q(field)}, 0) >= ?`)
+statement = this.sqlite.prepare(`UPDATE users SET ${q(field)} = COALESCE(${q(field)}, 0) - ? + ?, updated_at = unixepoch() WHERE id = ?`)
 this.statements.settleUserBet.set(field, statement)
 }
-const result = statement.run(safeBet, safePayout, userId, safeBet)
+const result = statement.run(safeBet, safePayout, userId)
 if (!result.changes) return null
 const user = this._rowToUser(this.statements.getUserById.get(userId))
 if (user) this.userCache.set(userId, user)
