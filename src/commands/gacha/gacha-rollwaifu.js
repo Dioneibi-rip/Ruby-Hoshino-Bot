@@ -2,6 +2,7 @@ import { loadHarem, saveHarem, findClaim, isSameUserId } from '../../library/gac
 import { loadCharactersOptimized } from '../../library/gacha-cache-manager.js'
 import { normalizeCharacterId } from '../../library/gacha-characters.js'
 import { getExclusiveOwner } from '../../library/gacha-restrictions.js'
+import { calculateNextPity, isPityGuaranteed, renderPityBar } from '../../library/gacha-pity.js'
 
 const ROLL_TOKEN_COST = 1
 const RARITY_TIERS = [
@@ -43,8 +44,21 @@ if (roll <= 0) return tier
 return available[0]
 }
 
-function rollCharacterByRarity(characters = []) {
+function pickCharacterFromTierPool(pools, tierKeys = []) {
+for (const tierKey of tierKeys) {
+const tier = RARITY_TIERS.find(item => item.key === tierKey)
+const pool = pools.get(tierKey) || []
+if (tier && pool.length) return { character: pool[Math.floor(Math.random() * pool.length)], rarity: tier }
+}
+return null
+}
+
+function rollCharacterByRarity(characters = [], options = {}) {
 const { pools } = buildRarityPools(characters)
+if (options.guaranteedHighRarity) {
+const guaranteed = pickCharacterFromTierPool(pools, ['mythic', 'legendary', 'epic'])
+if (guaranteed) return guaranteed
+}
 const tier = pickWeightedTier(pools)
 const pool = pools.get(tier.key) || characters
 const character = pool[Math.floor(Math.random() * pool.length)]
@@ -84,6 +98,7 @@ const user = global.db.getUser(userId)
 if (!user) return false
 user.tokens = Number(user.tokens || 0)
 user.gachaTokens = Number(user.gachaTokens || 0)
+user.gachaPity = Number(user.gachaPity || 0)
 if (user.gachaTokens < ROLL_TOKEN_COST) {
 await conn.reply(m.chat, `✘ Necesitas *1 Token Gacha* para tirar el gacha. Puedes comprarlo con *#tienda comprar token*.`, m)
 return false
@@ -97,7 +112,9 @@ try {
 const characters = await loadCharactersOptimized()
 if (!characters.length) throw new Error('❀ No hay personajes disponibles para el gacha.')
 
-const { character: randomCharacter, rarity } = rollCharacterByRarity(characters)
+const pityBefore = Number(user.gachaPity || 0)
+const guaranteedPity = isPityGuaranteed(pityBefore)
+const { character: randomCharacter, rarity } = rollCharacterByRarity(characters, { guaranteedHighRarity: guaranteedPity })
 randomCharacter.id = normalizeCharacterId(randomCharacter.id)
 
 const imageList = Array.isArray(randomCharacter.img) ? randomCharacter.img : []
@@ -120,6 +137,9 @@ else if (exclusiveOwner) ownerName = await conn.getName(exclusiveOwner).catch(()
 
 const statusText = claimedInGroup ? '🚫 Ocupado' : (exclusiveOwner ? '🔒 Exclusivo' : '✅ Libre')
 user.gachaTokens = Math.max(0, Number(user.gachaTokens || 0) - ROLL_TOKEN_COST)
+user.gachaPity = calculateNextPity(pityBefore, rarity.key, { guaranteed: guaranteedPity })
+const pityStatus = `${renderPityBar(user.gachaPity)} ${user.gachaPity}%`
+const pityNote = guaranteedPity ? ' ✦ Garantía activada' : ''
 
 if (!claimedInGroup) {
 const rollOwner = exclusiveOwner || userId
@@ -149,6 +169,9 @@ const message = `
 ╰┈➤ 📖 ${randomCharacter.source}
 
 ┉͜┄͜─┈┉⃛┄─꒰֟፝͡ 🅸🅳: ${randomCharacter.id} ꒱─┄⃨┉┈─͡┄͡┉
+▓𓏴𓏴 ۪ ֹ 🄿꯭🄸꯭🅃꯭🅈 :
+╰┈➤ ${pityStatus}${pityNote}
+
 ▓𓏴𓏴 ۪ ֹ 🅃꯭🄾꯭🄺꯭🄴꯭🄽꯭🅂 :
 ╰┈➤ 🎟️ ${Number(user.gachaTokens || 0)} restantes
 

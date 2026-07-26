@@ -2,6 +2,7 @@ import { loadHarem, isSameUserId } from '../../library/gacha-group.js';
 import { normalizeIdentityJid, buildParticipantsByLid, resolveIdentityName } from '../../core/identity-utils.js';
 import { loadCharacters } from '../../library/gacha-characters.js';
 import { getCooldownKey, isRedisReady, redis } from '../../library/redis.js';
+import { normalizePity, renderPityBar } from '../../library/gacha-pity.js';
 
 const cooldownAliases = {
 rollwaifu: ['rw', 'rollwaifu'],
@@ -73,6 +74,9 @@ const allCharacters = Array.isArray(allCharactersRaw) ? allCharactersRaw : [];
 const charactersById = new Map(allCharacters.map(character => [String(character?.id || '').trim(), character]).filter(([id]) => id));
 const haremRaw = await loadHarem();
 const harem = Array.isArray(haremRaw) ? haremRaw : [];
+const userData = global.db.getUser(userId);
+const pityPercent = normalizePity(userData?.gachaPity || 0);
+const pityBar = renderPityBar(pityPercent);
 const userCharacters = harem.filter(character => character?.groupId === groupId && isSameUserId(character?.userId, userId));
 const claimedCount = userCharacters.length;
 const totalCharacters = allCharacters.length;
@@ -87,6 +91,7 @@ return sum + (Number(character?.value) || 0);
 const response = '*❀ Usuario `<' + `${userName}` + '>`*\n\n' +
 `ⴵ RollWaifu » *${rwStatus || 'Ahora.'}*\n` +
 `ⴵ Claim » *${claimStatus || 'Ahora.'}*\n` +
+`ⴵ Pity » *${pityBar} ${pityPercent}%*\n` +
 `ⴵ Vote » *${voteStatus || 'Ahora.'}*\n\n` +
 `♡ Personajes reclamados » *${claimedCount}*\n` +
 `✰ Valor total » *${totalValue}*\n` +
