@@ -69,7 +69,7 @@ if (!userId) continue;
 const targetJid = normalizeMentionJid(userId) || normalizeMentionJid(m.sender)
 if (!targetJid) continue
 try {
-const pp = await conn.profilePictureUrl(targetJid, 'image').catch(() => 'https://i.pinimg.com/736x/40/5a/17/405a170d05df4de50e01e8c5cd2a7250.jpg')
+const pp = await conn.profilePictureUrl(targetJid, 'image').catch(() => 'https://i.postimg.cc/JncFB7JG/Gemini-Generated-Image-fle7fifle7fifle7.png')
 const username = mentionLabel(targetJid)
 const groupName = groupMetadata?.subject || 'este grupo'
 const desc = groupMetadata?.desc?.toString() || 'Sin descripción'
