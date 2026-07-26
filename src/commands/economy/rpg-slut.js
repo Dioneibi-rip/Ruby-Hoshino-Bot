@@ -41,7 +41,7 @@ await global.db.updateUser(senderId, { coin: user.coin });
 let phraseList = useGeneric ? frasesSlutGenericas.success : (frasesSlutPorTrabajo[job.key]?.success || frasesSlutGenericas.success);
 let phrase = pickRandom(phraseList).replace(/\{user\}/g, mentionStr);
 
-let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐏𝐚𝐠𝐨: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}`;
+let texto = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\n ֶָ֢ ✻̸ ➪ 𝐏𝐚𝐠𝐨: *${toNum(amount)}* ( *${amount}* ) ${m.moneda}`;
 return conn.sendMessage(m.chat, { text: texto, contextInfo: { mentionedJid: [targetId] } }, { quoted: m });
 }
 
@@ -54,7 +54,7 @@ await global.db.updateUser(senderId, { coin: user.coin, bank: user.bank });
 let phraseList = useGeneric ? frasesSlutGenericas.fail : (frasesSlutPorTrabajo[job.key]?.fail || frasesSlutGenericas.fail);
 let phrase = pickRandom(phraseList).replace(/\{user\}/g, mentionStr);
 
-let textoLoss = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐏𝐞𝐫𝐝𝐢𝐬𝐭𝐞: *${toNum(loss)}* ( *${loss}* ) ${m.moneda}`;
+let textoLoss = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\n ֶָ֢ ✻̸ ➪ 𝐏𝐞𝐫𝐝𝐢𝐬𝐭𝐞: *${toNum(loss)}* ( *${loss}* ) ${m.moneda}`;
 return conn.sendMessage(m.chat, { text: textoLoss, contextInfo: { mentionedJid: [targetId] } }, { quoted: m });
 };
 
