@@ -157,19 +157,18 @@ const num = getRawNumber(jid)
 const settings = global.db?.get?.('settings', jid) || global.db?.data?.settings?.[jid] || {}
 const name = sock?.user?.name || sock?.user?.pushname || settings?.namebot2 || settings?.namebot || 'Ruby AI'
 const role = getAdminStatus(jid)
-const roleText = role ? `𖹭 \`${role}\`` : ''
-return `  ּ             🦢⃞⃝░         𓈅    \`[${type}]\` \n  ּ             🦢⃞⃝░         𓋲    *${name}* \n  ּ             🦢⃞⃝░         𓋲    📱 +${num} ${roleText}\n`
-}).join('\n')
+const roleText = role ? `𓋲  *${role}*` : ''
+return `> ┌᷒⣿̷̸⵿⃛⣦💝⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 [${type}]\n> ִ \`${name}\`\n> 📱 +${num} ${roleText}`
+}).join('\n\n')
 : `> 💧 (っ- ‸ - ς) \`No hay bots activos aquí...\``
 
 const headerText = [
-`ᅟ *⣴⣿⵿ᩡᅟ⃛◢✹᳘ᅟ꯭͜︵᷼͝⏜ᰰ🌸ᩚ̸̷︪͞⏜᷼͝︵꯭͜ᅟ᳘✹▆ᅟ⃛ᩡ⣿⣦*`,
-`ᅟᅟᅟᅟᅟᅟׅ＼ׂׄᅟᅟᅟ｜ּᅟᅟᅟּׅ／ּ`,
+`ᅟᅟᅟ＼ׂׄᅟᅟᅟ｜ּᅟᅟᅟּׅ／ּ`,
 `ᅟᅟ \`𝖲𝗈𝖼𝗄𝖾𝗍𝗌 𝖠𝖼𝗍𝗂𝗏𝗈𝗌: ${activeSockets.length}\``,
 ``,
-`> *┌᷒⣿̷̸⵿⃛⣦👑⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅𝖾𝗌:* \`${mainCount}\``,
-`> *┌᷒⣿̷̸⵿⃛⣦💝⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 𝖲𝗎𝖻𝖡𝗈𝗍𝗌:* \`${subCount}\``,
-`> *┌᷒⣿̷̸⵿⃛⣦☁️⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 ${scopedLabel}:* \`${scopedSockets.length}\``,
+`> *┌᷒👑⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅𝖾𝗌:* \`${mainCount}\``,
+`> *┌᷒💝⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 𝖲𝗎𝖻𝖡𝗈𝗍𝗌:* \`${subCount}\``,
+`> *┌᷒☁️⃞᷒ᩥ͜𑂳̸◢꯭⣦❀ 𝄦𝕝 ${scopedLabel}:* \`${scopedSockets.length}\``,
 ``,
 botLines,
 `ᅟᅟ◢⃝ᩡ⣦꯭⏜͜͜❀ᅟ𝖲꯭𝖮꯭𝖢꯭𝖪꯭𝖤꯭𝖳꯭𝖲ᅟ⵿ᩚ̷ᅟ͜𑁘ࡄ▆ᩘ̫✹`
