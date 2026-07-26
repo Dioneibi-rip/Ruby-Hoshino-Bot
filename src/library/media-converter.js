@@ -1,4 +1,5 @@
 import { promises } from 'fs'
+import { randomUUID } from 'crypto'
 import { join } from 'path'
 import { spawn } from 'child_process'
 
@@ -11,9 +12,11 @@ async function removeTempFile(filename) {
 
 function runProcess(command, args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args)
+    let stderr = ''
+    const child = spawn(command, args, { stdio: ['ignore', 'ignore', 'pipe'] })
+    child.stderr?.on('data', chunk => { stderr += chunk.toString() })
     child.on('error', reject)
-    child.on('close', code => code === 0 ? resolve() : reject(new Error(`${command} terminó con código ${code}`)))
+    child.on('close', code => code === 0 ? resolve() : reject(new Error(stderr.trim() || `${command} terminó con código ${code}`)))
   })
 }
 
@@ -24,7 +27,7 @@ async function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
   try {
     const tmpDir = join(process.cwd(), 'tmp')
     await promises.mkdir(tmpDir, { recursive: true })
-    tmp = join(tmpDir, `${Date.now()}.${ext}`)
+    tmp = join(tmpDir, `${Date.now()}-${randomUUID()}.${ext || 'bin'}`)
     out = `${tmp}.${ext2}`
     await promises.writeFile(tmp, buffer)
     await runProcess('ffmpeg', ['-y', '-i', tmp, ...args, out])
@@ -84,6 +87,27 @@ async function ezgifConvert(source, type, selector) {
 }
 
 const webp2mp4 = source => ezgifConvert(source, 'webp-to-mp4', 'div#output > p.outfile > video > source')
-const webp2png = source => ezgifConvert(source, 'webp-to-png', 'div#output > p.outfile > img')
+
+async function webp2png(source) {
+  if (typeof source === 'string' && /^https?:\/\//.test(source)) return ezgifConvert(source, 'webp-to-png', 'div#output > p.outfile > img')
+  let tmp
+  let out
+  try {
+    const tmpDir = join(process.cwd(), 'tmp')
+    await promises.mkdir(tmpDir, { recursive: true })
+    tmp = join(tmpDir, `${Date.now()}-${randomUUID()}.webp`)
+    out = `${tmp}.png`
+    await promises.writeFile(tmp, source)
+    try {
+      await runProcess('dwebp', [tmp, '-o', out])
+    } catch {
+      await runProcess('ffmpeg', ['-y', '-i', tmp, out])
+    }
+    return await promises.readFile(out)
+  } finally {
+    await removeTempFile(tmp)
+    await removeTempFile(out)
+  }
+}
 
 export { toAudio, toPTT, toVideo, ffmpeg, resizeImage, generateProfilePicture, webp2mp4, webp2png }
