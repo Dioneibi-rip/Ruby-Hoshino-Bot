@@ -3,6 +3,39 @@ import path, { join } from 'path'
 import ws from 'ws'
 const { proto, generateWAMessageFromContent, prepareWAMessageMedia } = (await import("@whiskeysockets/baileys")).default
 
+let menuThumbPromise = null;
+
+async function getMenuThumb() {
+if (!menuThumbPromise) {
+menuThumbPromise = fetch('https://i.postimg.cc/XqsLDBQ4/Ruby-Hoshino-Trailer-season-3.jpg')
+.then(res => res.ok ? res.arrayBuffer() : null)
+.then(buffer => buffer ? Buffer.from(buffer) : null)
+.catch(() => null);
+}
+return menuThumbPromise;
+}
+
+async function getMenuQuoted(fallback) {
+const thumb2 = await getMenuThumb();
+if (!thumb2) return fallback;
+return {
+key: { participant: '0@s.whatsapp.net', remoteJid: 'status@broadcast', fromMe: false, id: 'Halo' },
+message: {
+productMessage: {
+product: {
+productImage: { jpegThumbnail: thumb2 },
+title: 'INFO • SUBBOTS',
+description: ' =͟͟͞͞(꒪ᗜ꒪ ‧̣̥̇) THE BEST IDOL',
+retailerId: 'INFO • ESTADO',
+productImageCount: 1
+},
+businessOwnerJid: '0@s.whatsapp.net'
+}
+},
+participant: '0@s.whatsapp.net'
+};
+}
+
 async function pathExists(file){
 try{
 await fsPromises.access(file)
@@ -17,6 +50,7 @@ let handler = async (m, { conn, command, usedPrefix, args, text, isOwner, partic
 const isDeleteSession = /^(deletesesion|deletebot|deletesession|deletesesaion)$/i.test(command)
 const isPauseBot = /^(stop|pausarai|pausarbot)$/i.test(command)
 const isShowBots = /^(bots|sockets|socket)$/i.test(command)
+const quotedMsg = await getMenuQuoted(m)
 
 const toFancy = (str) => {
 const map = {
@@ -44,13 +78,13 @@ const dirPath = `./${jadi}/${uniqid}`
 if (!await pathExists(dirPath)) {
 return conn.sendMessage(m.chat, {
 text: `> 🚫 𝖲𝖾𝗌𝗂𝗈́𝗇 𝗇𝗈 𝖾𝗇𝖼𝗈𝗇𝗍𝗋𝖺𝖽𝖺 💧\n> 🌨️ (っ- ‸ - ς) \`𝖭𝗈 𝗍𝗂𝖾𝗇𝖾𝗌 𝗎𝗇𝖺 𝗌𝖾𝗌𝗂𝗈́𝗇 𝖺𝖼𝗍𝗂𝗏𝖺...\`\n\n> 🔰 \`𝖯𝗎𝖾𝖽𝖾𝗌 𝖼𝗋𝖾𝖺𝗋 𝗎𝗇𝖺 𝖼𝗈𝗇:\` *${usedPrefix}qr*\n> 📦 \`𝖮𝖻𝗍𝖾𝗇𝖾𝗋 𝖼𝗈́𝖽𝗂𝗀𝗈:\` *${usedPrefix}code*`
-}, { quoted: m })
+}, { quoted: quotedMsg })
 }
 
 if (global.conn.user.jid !== conn.user.jid) {
 return conn.sendMessage(m.chat, {
 text: `> 💬 𝜗ৎ \`𝖤𝗌𝗍𝖾 𝖼𝗈𝗆𝖺𝗇𝖽𝗈 𝗌𝗈𝗅𝗈 𝗉𝗎𝖾𝖽𝖾 𝗎𝗌𝖺𝗋𝗌𝖾 𝖽𝖾𝗌𝖽𝖾 𝖾𝗅 𝖡𝗈𝗍 𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅.\``,
-}, { quoted: m })
+}, { quoted: quotedMsg })
 }
 
 try {
@@ -58,7 +92,7 @@ await m.react('🗑️')
 await fsPromises.rm(dirPath, { recursive: true, force: true })
 await conn.sendMessage(m.chat, {
 text: `> 🌈 𝜗ৎ \`¡𝖳𝗈𝖽𝗈 𝗅𝗂𝗆𝗉𝗂𝗈! 𝖳𝗎 𝗌𝖾𝗌𝗂𝗈́𝗇 𝗁𝖺 𝗌𝗂𝖽𝗈 𝖾𝗅𝗂𝗆𝗂𝗇𝖺𝖽𝖺 𝖼𝗈𝗇 𝖾́𝗑𝗂𝗍𝗈.\` 🫧`
-}, { quoted: m })
+}, { quoted: quotedMsg })
 } catch (e) {
 reportError(e)
 return false;
@@ -66,10 +100,10 @@ return false;
 }
 else if (isPauseBot) {
 if (global.conn.user.jid == conn.user.jid) {
-await conn.reply(m.chat, `> 🧊 ¡𝖤𝗒! 𝖭𝗈 𝗉𝗎𝖾𝖽𝖾𝗌 𝗉𝖺𝗎𝗌𝖺𝗋 𝖺𝗅 𝖻𝗈𝗍 𝗉𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅 🪺`, m);
+await conn.reply(m.chat, `> 🧊 ¡𝖤𝗒! 𝖭𝗈 𝗉𝗎𝖾𝖽𝖾𝗌 𝗉𝖺𝗎𝗌𝖺𝗋 𝖺𝗅 𝖻𝗈𝗍 𝗉𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅 🪺`, quotedMsg);
 return false;
 }
-await conn.reply(m.chat, `> 🔕 𝜗ৎ \`${botname || 'Sub-Bot'} 𝗁𝖺 𝗌𝗂𝖽𝗈 𝗉𝖺𝗎𝗌𝖺𝖽𝗈.\` 💤`, m)
+await conn.reply(m.chat, `> 🔕 𝜗ৎ \`${botname || 'Sub-Bot'} 𝗁𝖺 𝗌𝗂𝖽𝗈 𝗉𝖺𝗎𝗌𝖺𝖽𝗈.\` 💤`, quotedMsg)
 conn.ws.close()
 }
 else if (isShowBots) {
@@ -213,7 +247,7 @@ id: `${usedPrefix}code`
 })
 }
 }
-}, { quoted: m })
+}, { quoted: quotedMsg })
 
 await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id })
 }
