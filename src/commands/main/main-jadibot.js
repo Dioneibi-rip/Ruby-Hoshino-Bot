@@ -149,7 +149,7 @@ const scopedSockets = showAll ? activeSockets : activeSockets.filter(isInCurrent
 
 const mainCount = mainSocket.length
 const subCount = subBots.length
-const scopedLabel = showAll ? '𝖲𝗈𝖼𝗄𝖾𝗍𝗌 𝗀𝗅𝗈𝖻𝖺𝗅𝖾𝗌' : '𝖲𝗈𝖼𝗄𝖾𝗍𝗌 𝖽𝗂𝗌𝗉𝗈𝗇𝗂𝖻𝗅𝖾𝗌 𝖾𝗇 𝖾𝗅 𝗀𝗋𝗎𝗉𝗈'
+const scopedLabel = showAll ? '𝖡𝗈𝗍𝗌 𝖺𝖼𝗍𝗂𝗏𝗈𝗌' : '𝖡𝗈𝗍𝗌 𝖾𝗇 𝖾𝗅 𝗀𝗋𝗎𝗉𝗈'
 
 const botLines = scopedSockets.length
 ? scopedSockets.map(({ jid, sock, type }) => {
