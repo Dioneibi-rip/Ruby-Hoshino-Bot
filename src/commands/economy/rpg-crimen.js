@@ -30,7 +30,7 @@ user.extras.jailUntil = jailUntil;
 const jailFine = Math.max(750, Math.floor(Math.max(0, Number(user.coin) || 0) * 0.15));
 user.coin = (Number(user.coin) || 0) - jailFine;
 await global.db.updateUser(senderId, { coin: user.coin, extras: { jailUntil } });
-let textoJail = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\n ֶָ֢ ✻̸ ➪ 𝐂𝐨𝐧𝐝𝐞𝐧𝐚: *30 Minutos Preso*\nㅤㅤ    ֶָ֢ ✻̸ ➪ 𝐌𝐮𝐥𝐭𝐚: *${toNum(jailFine)}* ${m.moneda}`;
+let textoJail = `❪❨̶  ֶָ֢ ✻̸ ${phrase}\n\n ֶָ֢ ✻̸ ➪ 𝐂𝐨𝐧𝐝𝐞𝐧𝐚: *30 Minutos Preso*\n ֶָ֢ ✻̸ ➪ 𝐌𝐮𝐥𝐭𝐚: *${toNum(jailFine)}* ${m.moneda}`;
 return conn.reply(m.chat, textoJail, m);
 }
 if (roll < jailChance + successChance) {
