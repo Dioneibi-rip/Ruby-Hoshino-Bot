@@ -9,7 +9,7 @@ const user = typeof global.db.getUserAsync === 'function'
 : global.db.getUser(m.sender)
 const wallet = Math.max(0, Math.trunc(Number(user.coin) || 0))
 
-const amount = input === 'all' ? wallet : Math.trunc(Number(input))
+const amount = input === 'all' ? wallet : (/^\d+$/.test(input) ? Number.parseInt(input, 10) : NaN)
 if (input === 'all' && amount === 0) return m.reply(`${emoji2} No tienes nada en tu cartera para depositar.`)
 if (!Number.isSafeInteger(amount) || amount <= 0) {
 return m.reply(`${emoji2} Debes ingresar una cantidad válida para depositar.

@@ -48,8 +48,6 @@ const texto = `
 > ✦ Cobra intereses diarios por ahorrar en el banco.
 ൃ⵿꤬ᩚ̸̷͠ᩘ👑̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#premiumbonus • #bonopremium*
 > ✦ Bonus exclusivo para usuarios premium cada 8h.
-ൃ⵿꤬ᩚ̸̷͠ᩘ💼̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#premiumpack • #packpremium*
-> ✦ Pack diario premium con monedas, diamantes y EXP.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🥡̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#monthly • #mensual*
 > ✦ Reclama tu recompensa mensual.
 ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#steal • #robar • #rob*

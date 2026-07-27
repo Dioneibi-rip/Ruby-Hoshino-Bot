@@ -5,23 +5,24 @@ const CASINO_TAX_RATE = 0.08
 
 let handler = async (m, { conn, args, usedPrefix, command, DevMode }) => {
 const user = global.db.getUser(m.sender)
-let win = Math.random() < 0.78
+let win = Math.random() < 0.45
 let Aku = win ? 48 : 52
 let Kamu = win ? 96 : 13
 let count = args[0]
 let who = await resolveInteractionTarget(m, conn)
 let username = await resolveIdentityName(conn, who, { fallback: `@${String(who).split('@')[0]}` })
-count = count ? (/all/i.test(count) ? Math.min(MAX_BET, Math.max(1, Math.floor(Number(user.coin) || 0))) : Math.floor(Number(count))) : 1
-if (!Number.isFinite(count) || count <= 0) return m.reply(`${emoji2} Ingresa una apuesta válida mayor que cero.`)
+const countText = count
+count = count ? (/all/i.test(count) ? Math.min(MAX_BET, Math.max(1, Math.trunc(Number(user.coin) || 0))) : Number.parseInt(count, 10)) : 1
+if ((countText && !/all/i.test(countText) && !/^\d+$/.test(String(countText))) || !Number.isSafeInteger(count) || count <= 0) return m.reply(`${emoji2} Ingresa una apuesta válida mayor que cero.`)
 if (count > MAX_BET) return m.reply(`${emoji2} La apuesta máxima es ${formatNumber(MAX_BET)} ${m.moneda}.`)
 if (args.length < 1) {
 await conn.reply(m.chat, `${emoji} Ingresa la cantidad de ` + `💸 *${m.moneda}*` + ' que deseas aportar contra' + ` *${botname}*` + `\n\n` + '`Ejemplo:`\n' + `> *${usedPrefix + command}* 100`, m);
 return false;
 }
 const casinoTax = win ? Math.floor(count * CASINO_TAX_RATE) : 0
-const loss = Math.max(1, Math.floor(count * 0.15))
-const payout = win ? Math.max(0, (count * 3) - casinoTax) : 0
-const settledBet = win ? count : loss
+const loss = count
+const payout = win ? Math.max(0, (count * 2) - casinoTax) : 0
+const settledBet = count
 const updated = await global.db.settleUserBet(m.sender, { field: 'coin', bet: settledBet, payout })
 if (!updated) return m.reply(`${emoji2} Tu saldo cambió antes de completar la apuesta. Vuelve a intentarlo.`)
 if (!win) {

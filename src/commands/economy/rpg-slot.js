@@ -3,17 +3,19 @@ import { delay } from "@whiskeysockets/baileys";
 
 const handler = async (m, { args, usedPrefix, command, conn }) => {
 const fa = `${emoji} Por favor, ingresa la cantidad que desea apostar.`.trim();
-if (!args[0] || isNaN(args[0]) || parseInt(args[0]) <= 0) throw fa;
+if (!args[0] || !/^\d+$/.test(String(args[0])) || Number.parseInt(args[0], 10) <= 0) throw fa;
 
-const apuesta = Math.floor(Number(args[0]));
+const apuesta = Number.parseInt(args[0], 10);
 const users = global.db.getUser(m.sender);
-if (!Number.isFinite(apuesta) || apuesta < 100) throw `${emoji2} El minimo para apostar es de 100 XP.`;
+if (!Number.isSafeInteger(apuesta) || apuesta < 100) throw `${emoji2} El minimo para apostar es de 100 XP.`;
 const maxBet = 50000;
 if (apuesta > maxBet) throw `${emoji2} La apuesta máxima es de ${maxBet.toLocaleString()} XP.`;
-users.exp = Number(users.exp || 0) - apuesta;
+const saldoXp = Math.max(0, Math.trunc(Number(users.exp) || 0));
+if (saldoXp < apuesta) throw `${emoji2} No tienes suficiente XP para apostar.`;
+users.exp = saldoXp - apuesta;
 
 const emojis = ['💴', '💵', '💶'];
-const forcedWin = Math.random() < 0.78;
+const forcedWin = Math.random() < 0.35;
 const getRandomEmojis = () => {
 const x = Array.from({ length: 3 }, () => emojis[Math.floor(Math.random() * emojis.length)]);
 const y = Array.from({ length: 3 }, () => emojis[Math.floor(Math.random() * emojis.length)]);
@@ -46,15 +48,14 @@ if (forcedWin) y[0] = x[0], z[0] = x[0];
 let end;
 if (x[0] === y[0] && y[0] === z[0]) {
 const tax = Math.floor(apuesta * 0.08);
-const payout = Math.max(0, apuesta * 3 - tax);
+const payout = Math.max(0, apuesta * 2 - tax);
 end = `${emoji} Ganaste! 🎁 +${payout} XP. Impuesto casino destruido: ${tax} XP.`;
 users.exp = Number(users.exp || 0) + payout;
 } else if (x[0] === y[0] || x[0] === z[0] || y[0] === z[0]) {
 end = `${emoji2} Casi lo logras!, recuperas la mitad de tu apuesta.`;
-users.exp = Number(users.exp || 0) + Math.floor(apuesta * 0.85);
+users.exp = Number(users.exp || 0) + Math.floor(apuesta * 0.5);
 } else {
-const perdida = Math.max(1, Math.floor(apuesta * 0.15));
-users.exp = Number(users.exp || 0) + (apuesta - perdida);
+const perdida = apuesta;
 end = `${emoji4} Perdiste -${perdida} XP`;
 }
 

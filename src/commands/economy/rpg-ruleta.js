@@ -15,10 +15,10 @@ Ejemplo: *${usedPrefix + command} 1500 red*`, m);
 return false;
 }
 
-const bet = Number(args[0]);
+const bet = Number.parseInt(args[0], 10);
 const color = args[1].toLowerCase();
 
-if (!Number.isInteger(bet) || bet < 200) {
+if (!/^\d+$/.test(args[0]) || !Number.isSafeInteger(bet) || bet < 200) {
 await conn.reply(m.chat, `《✧》La apuesta mínima es *200 ${m.moneda}*.`, m);
 return false;
 }

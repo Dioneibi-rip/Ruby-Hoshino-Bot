@@ -6,8 +6,9 @@ if(!who)return m.reply(`${emoji} ᥱ𝗍і𝗊ᥙᥱ𝗍ᥲ ᥆ rᥱs⍴᥆ᥒ�
 let senderJid=await normalizeIdentityJid(conn,m.sender,participantsByLid)
 let targetJid=await normalizeIdentityJid(conn,who,participantsByLid)
 const amountText=args.find(arg=>!arg.startsWith('@')&&isNumber(arg))
-if(!amountText||!Number.isFinite(Number(amountText))||Number(amountText)<=0)return m.reply(`(๑•̌ . •̑๑)ˀ̣ˀ̣  ძᥱᑲᥱs ᥱs⍴ᥱᥴі𝖿іᥴᥲr ᥣᥲ ᥴᥲᥒ𝗍іძᥲძ ძᥱ ${m.moneda} 𝗊ᥙᥱ 𝗊ᥙіᥱrᥱs transferir.\n> *ᥱȷᥱm⍴ᥣ᥆:* ${usedPrefix+command} 1000 @usuario`)
-const count=Math.min(Number.MAX_SAFE_INTEGER,Math.floor(Number(amountText)))
+const parsedAmount=amountText?Number.parseInt(amountText,10):NaN
+if(!amountText||!Number.isSafeInteger(parsedAmount)||parsedAmount<=0)return m.reply(`(๑•̌ . •̑๑)ˀ̣ˀ̣  ძᥱᑲᥱs ᥱs⍴ᥱᥴі𝖿іᥴᥲr ᥣᥲ ᥴᥲᥒ𝗍іძᥲძ ძᥱ ${m.moneda} 𝗊ᥙᥱ 𝗊ᥙіᥱrᥱs transferir.\n> *ᥱȷᥱm⍴ᥣ᥆:* ${usedPrefix+command} 1000 @usuario`)
+const count=Math.min(Number.MAX_SAFE_INTEGER,parsedAmount)
 const tax=Math.floor(count*0.05)
 const received=count-tax
 const type='coin'
@@ -28,5 +29,5 @@ handler.register=true
 export default handler
 function isNumber(x){
 if(typeof x==='string')x=x.trim()
-return !isNaN(x)&&x!==''
+return /^\d+$/.test(x)
 }

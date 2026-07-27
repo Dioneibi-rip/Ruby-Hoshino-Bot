@@ -3,10 +3,9 @@ const user = global.db.getUser(m.sender);
 text = (text || '').toLowerCase().trim();
 
 const plans = {
-dia: { duration: 1, cost: 120000, bonusRate: 0.2 },
-semana: { duration: 7, cost: 620000, bonusRate: 0.3 },
-mes: { duration: 30, cost: 2200000, bonusRate: 0.45 },
-elite: { duration: 90, cost: 5600000, bonusRate: 0.6 },
+dia: { duration: 1, cost: 120000, bonusRate: 0.10 },
+semana: { duration: 7, cost: 620000, bonusRate: 0.15 },
+mes: { duration: 30, cost: 2200000, bonusRate: 0.20 },
 };
 
 if (!text || !plans[text]) {
@@ -19,7 +18,6 @@ response += `\n*Beneficios premium:*\n`;
 response += `- Mejor cooldown en #rob y #crime\n`;
 response += `- Multiplicadores en #daily, #weekly y #mensual\n`;
 response += `- Acceso a #premiumbonus cada 8h\n`;
-response += `- Nuevo comando: #premiumpack cada 24h\n`;
 response += `- Mejor rentabilidad en #interes\n\n`;
 response += `💡 *¿Cómo comprar?*\n`;
 response += `Escribe el comando seguido del plan que deseas. Por ejemplo:\n`;
@@ -29,6 +27,10 @@ return conn.reply(m.chat, response, m);
 }
 
 const selectedPlan = plans[text];
+
+if (user.premium === true && Number(user.premiumTime || 0) > Date.now()) {
+return conn.reply(m.chat, `❌ Ya posees Premium activo. No puedes comprarlo nuevamente hasta que termine tu beneficio actual.`, m);
+}
 
 if (Number(user.coin || 0) < selectedPlan.cost) {
 return conn.reply(
