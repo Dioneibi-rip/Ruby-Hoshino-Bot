@@ -1,3 +1,4 @@
+import { nsfwWarning } from '../../library/respuesta.js';
 import baileys from '@whiskeysockets/baileys';
 import { enqueueMediaJob, getMediaQueueConnection } from '../../library/queue.js';
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -46,8 +47,8 @@ const handler = async (m, { conn, args, command, usedPrefix }) => {
 const rwait = global.rwait || "⏳";
 const done = global.done || "✅";
 const error = global.error || "❌";
-if (!db.data.chats[m.chat].nsfw && m.isGroup) {
-return m.reply("> (っ- ‸ - ς) 𝖤𝗅 𝖼𝗈𝗇𝗍𝖾𝗇𝗂𝖽𝗈 𝖭𝖲𝖥𝖶 𝖾𝗌𝗍⍺́ 𝖽𝖾𝗌⍺𝖼𝗍𝗂𝗏⍺𝖽𝗈 𝖾𝗇 𝖾𝗌𝗍𝖾 𝗀𝗋𝗎𝗉𝗈... 🌸");
+if (m.isGroup && !global.db.getChat(m.chat).nsfw) {
+return m.reply(nsfwWarning());
 }
 if (!args[0]) {
 return conn.reply(m.chat, `> ꒰ঌ(˶ˆᗜˆ˵)໒꒱ 𝖣𝖾𝖻𝖾𝗌 𝖾𝗌𝖼𝗋𝗂𝖻𝗂𝗋 𝗎𝗇 𝗍⍺𝗀 𝗉⍺𝗋⍺ 𝖻𝗎𝗌𝖼⍺𝗋... ⍺𝗌𝗂́:\n> 💌 \`${usedPrefix}${command} yor_forger\``, m);

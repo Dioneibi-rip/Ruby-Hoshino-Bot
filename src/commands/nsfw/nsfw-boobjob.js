@@ -1,11 +1,12 @@
+import { nsfwWarning } from '../../library/respuesta.js';
 import { resolveInteractionTarget } from '../../core/identity-utils.js'
 
 import fs from 'fs';
 import path from 'path';
 
 let handler = async (m, { conn, usedPrefix }) => {
-if (!global.db.getChat(m.chat).nsfw && m.isGroup) {
-return m.reply(`${emoji} El contenido *NSFW* está desactivado en este grupo.\n> Un administrador puede activarlo con el comando » *#nsfw on*`);
+if (m.isGroup && !global.db.getChat(m.chat).nsfw) {
+return m.reply(nsfwWarning());
 }
 
 let who = await resolveInteractionTarget(m, conn);

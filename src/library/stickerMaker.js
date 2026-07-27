@@ -110,7 +110,9 @@ export function injectExif(webpBuffer, exifBuffer) {
   const riff = Buffer.alloc(8)
   riff.write('RIFF', 0, 4, 'ascii')
   riff.writeUInt32LE(body.length, 4)
-  return Buffer.concat([riff, body])
+  const finalBuffer = Buffer.concat([riff, body])
+  finalBuffer.writeUInt32LE(finalBuffer.length - 8, 4)
+  return finalBuffer
 }
 
 export async function convertToWebp(buffer, type) {
@@ -120,7 +122,7 @@ export async function convertToWebp(buffer, type) {
   await fs.writeFile(input, buffer)
   try {
     const vf = 'scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos,pad=512:512:-1:-1:color=0x00000000,fps=15'
-    await runFfmpeg(['-hide_banner', '-loglevel', 'error', '-y', '-i', input, '-vf', vf, '-loop', '0', '-an', '-vsync', '0', '-c:v', 'libwebp', '-lossless', '0', '-compression_level', '6', '-q:v', buffer.length > MAX_INPUT_BYTES ? '55' : '70', output])
+    await runFfmpeg(['-hide_banner', '-loglevel', 'error', '-y', '-i', input, '-vf', vf, '-loop', '0', '-an', '-vsync', '0', '-c:v', 'libwebp', '-lossless', '0', '-compression_level', '6', '-q:v', buffer.length > MAX_INPUT_BYTES ? '55' : '70', '-f', 'webp', output])
     return await fs.readFile(output)
   } finally {
     await fs.rm(input, { force: true }).catch(() => {})
