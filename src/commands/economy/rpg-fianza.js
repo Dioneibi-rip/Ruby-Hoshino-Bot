@@ -7,7 +7,8 @@ if (!user) return false;
 user.extras = user.extras && typeof user.extras === 'object' && !Array.isArray(user.extras) ? user.extras : {};
 const jailUntil = Number(user.extras.jailUntil || 0);
 if (!jailUntil || jailUntil <= Date.now()) {
-await global.db.updateUser(m.sender, { extras: { jailUntil: 0 } });
+user.crime = 0;
+await global.db.updateUser(m.sender, { crime: 0, extras: { jailUntil: 0 } });
 return conn.reply(m.chat, '✅ No estás en la cárcel. No necesitas pagar fianza.', m);
 }
 
@@ -19,7 +20,8 @@ return conn.reply(m.chat, `❌ Fondos insuficientes. Necesitas ${bail.toLocaleSt
 
 user.bank = Math.max(0, bank - bail);
 user.extras.jailUntil = 0;
-await global.db.updateUser(m.sender, { bank: user.bank, extras: { jailUntil: 0 } });
+user.crime = 0;
+await global.db.updateUser(m.sender, { bank: user.bank, crime: 0, extras: { jailUntil: 0 } });
 return conn.reply(m.chat, `🔓 Fianza pagada.\n💸 Se destruyeron *${bail.toLocaleString()} ${m.moneda}* de tu banco.\n✅ Ya estás libre.`, m);
 };
 
