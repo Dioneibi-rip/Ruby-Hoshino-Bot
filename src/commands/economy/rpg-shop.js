@@ -1,10 +1,13 @@
 const xppercoin = 60;
 const handler = async (m, { conn, command, args }) => {
 let count = command.replace(/^buy/i, '');
-count = count ? /all/i.test(count) ? Math.floor(global.db.getUser(m.sender).exp / xppercoin) : parseInt(count) : args[0] ? parseInt(args[0]) : 1;
-count = Math.max(1, count);
-
 const user = global.db.getUser(m.sender);
+const countInput = count || args[0] || '1';
+if (/all/i.test(countInput)) count = Math.floor(Number(user.exp || 0) / xppercoin);
+else if (/^\d+$/.test(String(countInput).trim())) count = Number.parseInt(String(countInput).trim(), 10);
+else return conn.reply(m.chat, `${emoji2} Lo siento, no tienes suficiente *XP* para comprar *0* ${m.moneda} 💸`, m);
+if (!Number.isSafeInteger(count) || count <= 0) return conn.reply(m.chat, `${emoji2} Lo siento, no tienes suficiente *XP* para comprar *0* ${m.moneda} 💸`, m);
+
 const bonus = user.premium ? 1.3 : 1;
 const finalCoins = Math.floor(count * bonus);
 

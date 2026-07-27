@@ -29,22 +29,24 @@ if (!venta) return m.reply('✘ No se encontró ese personaje en venta en este g
 }
 
 if (isSameUserId(venta.vendedor, m.sender)) return m.reply('✘ No puedes comprarte a ti mismo.')
-
-let comprador = global.db.getUser(m.sender)
-
 let precio = Number.parseInt(venta.precio, 10)
 if (!Number.isSafeInteger(precio) || precio < 1) return m.reply('✘ Esta venta tiene un precio inválido.')
 let impuesto = Math.floor(precio * 0.10)
 let total = precio + impuesto
-if ((comprador.coin || 0) < total)
-return m.reply(`✘ Dinero insuficiente.\nNecesitas *¥${total.toLocaleString()} ${m.moneda}* (precio *¥${precio.toLocaleString()}* + IVA *¥${impuesto.toLocaleString()}*)`)
 
+if (typeof global.db.buyGachaMarketSale === 'function') {
+const result = global.db.buyGachaMarketSale({ groupId, characterId: venta.id, buyerId: m.sender, sellerId: venta.vendedor, price: precio, tax: impuesto })
+if (!result) return m.reply(`✘ Dinero insuficiente o la venta ya no está disponible.
+Necesitas *¥${total.toLocaleString()} ${m.moneda}* (precio *¥${precio.toLocaleString()}* + IVA *¥${impuesto.toLocaleString()}*)`)
+} else {
+let comprador = global.db.getUser(m.sender)
+if ((comprador.coin || 0) < total)
+return m.reply(`✘ Dinero insuficiente.
+Necesitas *¥${total.toLocaleString()} ${m.moneda}* (precio *¥${precio.toLocaleString()}* + IVA *¥${impuesto.toLocaleString()}*)`)
 let vendedor = global.db.getUser(venta.vendedor)
 if (!vendedor) vendedor = global.db.getUser(venta.vendedor)
-
 comprador.coin = (comprador.coin || 0) - total
 vendedor.coin = (vendedor.coin || 0) + precio
-
 let harem = await loadHarem()
 const existingClaim = harem.find(c => c.groupId === groupId && String(c.characterId) === String(venta.id))
 if (existingClaim) {
@@ -54,12 +56,13 @@ resetProtectionOnTransfer(existingClaim, { now: Date.now(), reason: 'market' })
 addOrUpdateClaim(harem, groupId, m.sender, venta.id)
 }
 await saveHarem(harem)
-
 ventas = ventas.filter(v => !(v.groupId === groupId && v.id === venta.id))
 await saveVentas(ventas)
 global.db.updateUser(m.sender, { coin: comprador.coin })
 global.db.updateUser(venta.vendedor, { coin: vendedor.coin })
 await global.db.write()
+}
+
 let personaje = findCharacterById(personajes, venta.id)
 let nombrePersonaje = personaje?.name || venta.name || venta.id
 let valorOriginal = personaje?.value || 'Desconocido'

@@ -115,7 +115,11 @@ resetProtectionOnTransfer(existingClaim, { now, reason: 'claim_absent_owner' });
 } else {
 addOrUpdateClaim(haremBefore, groupId, userId, id);
 }
+if (typeof global.db?.upsertHaremClaim === 'function') {
+global.db.upsertHaremClaim(existingClaim || { groupId, userId, characterId: String(id), lastClaimTime: now })
+} else {
 await saveHarem(haremBefore);
+}
 
 if (global.activeRolls && global.activeRolls[`${groupId}:${id}`]) {
 delete global.activeRolls[`${groupId}:${id}`];
