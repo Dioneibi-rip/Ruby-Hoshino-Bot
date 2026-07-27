@@ -16,8 +16,8 @@ if (!ventasGrupo.length) return m.reply('✘ No hay waifus en venta en este grup
 let venta
 let input = args.join(' ').trim()
 
-if (!isNaN(input)) {
-let index = Number(input) - 1
+if (/^\d+$/.test(input)) {
+let index = Number.parseInt(input, 10) - 1
 if (!ventasGrupo[index]) return m.reply('✘ Número inválido.')
 venta = ventasGrupo[index]
 } else {
@@ -32,7 +32,8 @@ if (isSameUserId(venta.vendedor, m.sender)) return m.reply('✘ No puedes compra
 
 let comprador = global.db.getUser(m.sender)
 
-let precio = Number(venta.precio) || 0
+let precio = Number.parseInt(venta.precio, 10)
+if (!Number.isSafeInteger(precio) || precio < 1) return m.reply('✘ Esta venta tiene un precio inválido.')
 let impuesto = Math.floor(precio * 0.10)
 let total = precio + impuesto
 if ((comprador.coin || 0) < total)

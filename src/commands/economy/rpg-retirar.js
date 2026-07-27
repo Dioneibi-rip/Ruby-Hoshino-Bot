@@ -7,7 +7,7 @@ const user = typeof global.db.getUserAsync === 'function'
 ? await global.db.getUserAsync(m.sender, { bypassCache: true })
 : global.db.getUser(m.sender)
 const bank = Math.max(0, Math.trunc(Number(user.bank) || 0))
-const amount = input === 'all' ? bank : Math.trunc(Number(input))
+const amount = input === 'all' ? bank : (/^\d+$/.test(input) ? Number.parseInt(input, 10) : NaN)
 
 if (input === 'all' && amount === 0) return m.reply(`${emoji2} No tienes suficientes *${m.moneda}* en el banco.`)
 if (!Number.isSafeInteger(amount) || amount <= 0) return m.reply(`${emoji2} Debes retirar una cantidad válida.

@@ -41,8 +41,8 @@ const userId = await normalizeIdentityJid(conn, m.sender, buildParticipantsByLid
 const groupId = m.chat
 const { character, priceInput, error } = await resolveCharacter(m, args)
 if (error) return m.reply(error)
-const price = Number.parseInt(priceInput)
-if (!Number.isFinite(price) || price < 1) return m.reply('✧ Ingresa un precio válido. Ejemplo: *#vender Rem 5000*')
+const price = Number.parseInt(priceInput, 10)
+if (!/^\d+$/.test(String(priceInput || '')) || !Number.isSafeInteger(price) || price < 1) return m.reply('✧ Ingresa un precio válido. Ejemplo: *#vender Rem 5000*')
 const harem = await loadHarem()
 const claim = harem.find(entry => entry.groupId === groupId && String(entry.characterId) === String(character.id) && isSameUserId(entry.userId, userId))
 const user = global.db.getUser(userId)
