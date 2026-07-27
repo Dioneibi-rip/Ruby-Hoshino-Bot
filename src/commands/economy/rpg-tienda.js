@@ -19,13 +19,13 @@ ring: { field: 'anillo', label: 'Anillo', price: 15000 },
 };
 
 const BUY_CATALOG = {
-pocion: { label: 'Poción', coin: 7500, heal: 50 },
-poción: { label: 'Poción', coin: 7500, heal: 50 },
-pico: { label: 'Pico', coin: 18000, iron: 20, durability: 100 },
+pocion: { label: 'Poción', coin: 6000, heal: 50 },
+poción: { label: 'Poción', coin: 6000, heal: 50 },
+pico: { label: 'Pico', coin: 14500, iron: 20, durability: 100 },
 talisman: { label: 'Talismán', diamond: 35, coin: 50000, field: 'talisman' },
 talismán: { label: 'Talismán', diamond: 35, coin: 50000, field: 'talisman' },
-token: { label: 'Token Gacha', coin: 12000, field: 'gachaTokens' },
-tokens: { label: 'Token Gacha', coin: 12000, field: 'gachaTokens' },
+token: { label: 'Token Gacha', coin: 9500, field: 'gachaTokens' },
+tokens: { label: 'Token Gacha', coin: 9500, field: 'gachaTokens' },
 };
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -34,7 +34,8 @@ if (!user) return false;
 
 const action = normalize(args[0]);
 const itemKey = normalize(args[1]);
-const quantity = parseQuantity(args[2]);
+const quantityData = parseQuantity(args[2]);
+const quantity = quantityData.value;
 
 user.coin = Number(user.coin || 0);
 user.diamond = Number(user.diamond || 0);
@@ -49,6 +50,10 @@ return conn.reply(m.chat, buildHelp(usedPrefix, command, m.moneda), m);
 
 if (!itemKey) {
 return conn.reply(m.chat, `✦ Indica un objeto. Ejemplo: *${usedPrefix}${command} ${action} pocion 1*`, m);
+}
+
+if (!quantityData.ok) {
+return conn.reply(m.chat, `✘ Cantidad inválida. Usa solo números enteros mayores que cero.`, m);
 }
 
 if (action === 'vender' || action === 'sell') {
@@ -139,8 +144,11 @@ ${totalCoin ? `✦ Costo coins: *${totalCoin.toLocaleString()} ${m.moneda}*\n` :
 }
 
 function parseQuantity(value) {
-const quantity = Math.floor(Number(value || 1));
-return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
+if (typeof value === 'undefined' || value === null || String(value).trim() === '') return { ok: true, value: 1 };
+const input = String(value).trim();
+if (!/^\d+$/.test(input)) return { ok: false, value: 0 };
+const quantity = Number.parseInt(input, 10);
+return Number.isSafeInteger(quantity) && quantity > 0 ? { ok: true, value: quantity } : { ok: false, value: 0 };
 }
 
 function normalize(value = '') {
@@ -157,10 +165,10 @@ return `╭━〔 🏪 Tienda RPG 〕⬣
 ┃ • *${usedPrefix}${command} vender anillo 1*
 ┃
 ┃ Comprar:
-┃ • pocion: 7,500 ${moneda} → +50 salud
-┃ • pico: 18,000 ${moneda} + 20 hierro → pico 100/100
+┃ • pocion: 6,000 ${moneda} → +50 salud
+┃ • pico: 14,500 ${moneda} + 20 hierro → pico 100/100
 ┃ • talismán: 50,000 coins + 35 diamantes → seguro de vida
-┃ • token: 12,000 ${moneda} → 1 intento de rollwaifu
+┃ • token: 9,500 ${moneda} → 1 intento de rollwaifu
 ┃
 ┃ Vender materiales:
 ┃ • piedra: 5 ${moneda}

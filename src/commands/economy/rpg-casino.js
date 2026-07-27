@@ -2,10 +2,12 @@ import { resolveInteractionTarget, resolveIdentityName } from '../../core/identi
 
 const MAX_BET = 75000
 const CASINO_TAX_RATE = 0.08
+const WIN_RATE = 0.47
+const WIN_MULTIPLIER = 2
 
 let handler = async (m, { conn, args, usedPrefix, command, DevMode }) => {
 const user = global.db.getUser(m.sender)
-let win = Math.random() < 0.45
+let win = Math.random() < WIN_RATE
 let Aku = win ? 48 : 52
 let Kamu = win ? 96 : 13
 let count = args[0]
@@ -21,7 +23,7 @@ return false;
 }
 const casinoTax = win ? Math.floor(count * CASINO_TAX_RATE) : 0
 const loss = count
-const payout = win ? Math.max(0, (count * 2) - casinoTax) : 0
+const payout = win ? Math.max(0, Math.floor(count * WIN_MULTIPLIER) - casinoTax) : 0
 const settledBet = count
 const updated = await global.db.settleUserBet(m.sender, { field: 'coin', bet: settledBet, payout })
 if (!updated) return m.reply(`${emoji2} Tu saldo cambió antes de completar la apuesta. Vuelve a intentarlo.`)

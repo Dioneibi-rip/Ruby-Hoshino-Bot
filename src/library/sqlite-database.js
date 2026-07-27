@@ -467,7 +467,7 @@ addUserActivity: this.sqlite.prepare('UPDATE users SET exp = COALESCE(exp, 0) + 
 
 
 _bindPublicApi() {
-for (const name of ['topUsers', 'getTopUsers', 'userRank', 'countUsers', 'countRegisteredUsers', 'getUserAsync', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'updateUserAsync', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'incrementUserActivity', 'transferBetweenUsers', 'settleUserBet', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
+for (const name of ['topUsers', 'getTopUsers', 'userRank', 'countUsers', 'countRegisteredUsers', 'getUserAsync', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'updateUserAsync', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'incrementUserActivity', 'transferBetweenUsers', 'settleUserBet', 'buyGachaMarketSale', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
 this[name] = this[name].bind(this)
 }
 }
@@ -865,6 +865,34 @@ const row = this.sqlite.prepare('SELECT * FROM gacha_market WHERE group_id=? AND
 if (!row) return null
 this.sqlite.prepare('DELETE FROM gacha_market WHERE id_sale=?').run(row.id_sale)
 return { idSale: row.id_sale, id: row.character_id, characterId: row.character_id, vendedor: row.seller_jid, sellerJid: row.seller_jid, precio: Number(row.price) || 0, price: Number(row.price) || 0, groupId: row.group_id, fecha: Number(row.created_at) || 0, createdAt: Number(row.created_at) || 0 }
+}
+buyGachaMarketSale({ groupId, characterId, buyerId, sellerId, price, tax = 0 } = {}) {
+const group = String(groupId || '')
+const character = String(characterId || '')
+const buyer = normalizeJid(buyerId)
+const seller = normalizeJid(sellerId)
+const safePrice = Math.trunc(Number(price) || 0)
+const safeTax = Math.trunc(Number(tax) || 0)
+const total = safePrice + safeTax
+if (!group || !character || !buyer || !seller || buyer === seller) return null
+if (safePrice <= 0 || safeTax < 0 || total <= 0) throw new TypeError('buyGachaMarketSale requiere cantidades válidas')
+this._createUser(buyer)
+this._createUser(seller)
+const tx = this.sqlite.transaction(() => {
+const sale = this.sqlite.prepare('SELECT * FROM gacha_market WHERE group_id=? AND character_id=? AND seller_jid=? AND price=?').get(group, character, seller, safePrice)
+if (!sale) return null
+const debit = this.sqlite.prepare('UPDATE users SET coin = COALESCE(coin, 0) - ?, updated_at = unixepoch() WHERE id = ? AND COALESCE(coin, 0) >= ?').run(total, buyer, total)
+if (!debit.changes) return null
+this.sqlite.prepare('UPDATE users SET coin = COALESCE(coin, 0) + ?, updated_at = unixepoch() WHERE id = ?').run(safePrice, seller)
+this.sqlite.prepare('INSERT INTO harem(group_id,character_id,user_id,last_claim_time,protection_json) VALUES(?,?,?,?,?) ON CONFLICT(group_id,character_id) DO UPDATE SET user_id=excluded.user_id,last_claim_time=excluded.last_claim_time,protection_json=excluded.protection_json').run(group, character, buyer, now(), '{}')
+this.sqlite.prepare('DELETE FROM gacha_market WHERE id_sale=?').run(sale.id_sale)
+const buyerRow = this._rowToUser(this.statements.getUserById.get(buyer))
+const sellerRow = this._rowToUser(this.statements.getUserById.get(seller))
+if (buyerRow) this.userCache.set(buyer, buyerRow)
+if (sellerRow) this.userCache.set(seller, sellerRow)
+return { buyer: this.getUser(buyer), seller: this.getUser(seller), sale: { idSale: sale.id_sale, id: sale.character_id, characterId: sale.character_id, vendedor: sale.seller_jid, sellerJid: sale.seller_jid, precio: Number(sale.price) || 0, price: Number(sale.price) || 0, groupId: sale.group_id, fecha: Number(sale.created_at) || 0, createdAt: Number(sale.created_at) || 0 } }
+})
+return tx()
 }
 getSection(section) { if (section === 'sticker') return this.getStickerCommands(); if (section === 'users') return this.listUsers(); if (section === 'groups') return this.listGroups(); if (section === 'chats' || section === 'settings') { const out = {}; for (const r of this.sqlite.prepare(`SELECT id,value FROM ${section}`).all()) out[r.id] = parseJSON(r.value, {}); return out } if (section === 'marriages') return this.getMarriages(); if (section === 'harem') return Object.fromEntries(this.getHarem().map(e => [`${e.groupId}:${e.characterId}`, e])); if (section === 'waifus_venta' || section === 'gacha_market') return Object.fromEntries(this.getGachaMarket().map(e => [`${e.groupId}:${e.id}`, e])); if (section === 'claim_config') return Object.fromEntries(this.sqlite.prepare('SELECT user_id,message FROM claim_config').all().map(r => [r.user_id, r.message])); if (section === 'character_favorites') return Object.fromEntries(this.sqlite.prepare('SELECT user_id,character_id FROM character_favorites').all().map(r => [r.user_id, r.character_id])); const out = {}; for (const r of this.statements.allJson.all(section)) out[r.id] = parseJSON(r.value, {}); return out }
 replaceSection(section, values = {}) { if (section === 'sticker') return this.replaceStickerCommands(values); if (section === 'marriages') return this.replaceMarriages(values); if (section === 'harem') return this.replaceHarem(Object.values(values)); if (section === 'waifus_venta' || section === 'gacha_market') return this.replaceGachaMarket(Object.values(values)); if (section === 'users') { const tx = this.sqlite.transaction(entries => { for (const [id, value] of entries) this.updateUser(id, value || {}) }); return tx(Object.entries(values || {})) } if (section === 'groups') { const tx = this.sqlite.transaction(entries => { this.sqlite.prepare('DELETE FROM groups').run(); for (const [id, value] of entries) this.upsertGroupMetadata(id, value || {}) }); return tx(Object.entries(values || {})) } if (section === 'chats' || section === 'settings') { const tx = this.sqlite.transaction(obj => { this.sqlite.prepare(`DELETE FROM ${section}`).run(); const st = this._jsonSectionUpsertStatement(section); for (const [id, val] of Object.entries(obj || {})) st.run(this._jsonSectionPayload(section, id, val)) }); return tx(values) } if (section === 'claim_config') { const tx = this.sqlite.transaction(obj => { this.sqlite.prepare('DELETE FROM claim_config').run(); const st = this.sqlite.prepare('INSERT INTO claim_config(user_id,message,updated_at) VALUES(?,?,?)'); for (const [k, v] of Object.entries(obj)) st.run(k, String(v), now()) }); return tx(values) } if (section === 'character_favorites') { const tx = this.sqlite.transaction(obj => { this.sqlite.prepare('DELETE FROM character_favorites').run(); const st = this.sqlite.prepare('INSERT INTO character_favorites(user_id,character_id,updated_at) VALUES(?,?,?)'); for (const [k, v] of Object.entries(obj)) st.run(k, String(v), now()) }); return tx(values) } const tx = this.sqlite.transaction(obj => { this.sqlite.prepare('DELETE FROM json_records WHERE section=?').run(section); for (const [id, val] of Object.entries(obj || {})) this.statements.upsertJson.run(section, id, stringify(val)) }); tx(values) }
