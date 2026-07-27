@@ -1,3 +1,4 @@
+import { getPersonalStickerCommand } from '../../core/sticker-command-utils.js'
 const {
 proto,
 generateWAMessage,
@@ -8,7 +9,8 @@ export async function all(m, chatUpdate) {
 if (m.__stickerCommandHydrated || m.isBaileys || !m.message || !m.msg?.fileSha256) return
 
 const sha = Buffer.from(m.msg.fileSha256).toString('base64')
-const hash = global.db.getStickerCommand?.(sha) || global.db.getSection('sticker')[sha]
+const record = global.db.getStickerCommand?.(sha) || global.db.getSection('sticker')[sha]
+const hash = getPersonalStickerCommand(record, m.sender)
 if (!hash) return
 
 const { text, mentionedJid } = hash

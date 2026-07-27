@@ -27,8 +27,9 @@ import messageQueue from '../core/message-queue.js'
 import { normalizeIdentityJid, normalizeJid } from '../core/identity-utils.js'
 import { getMessageDeletePayload, isUserMutedInChat, messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
 import { getGroupMetadataOnDemand } from '../library/global-cache.js'
+import { getPersonalStickerCommand } from '../core/sticker-command-utils.js'
 import { TTLCache } from '../library/native-utils.js'
-import { getInteractiveResponseText, getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageText, getRawStickerHash, unwrapMessageContent } from './raw-filter.js'
+import { getInteractiveResponseText, getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageSender, getRawMessageText, getRawStickerHash, unwrapMessageContent } from './raw-filter.js'
 import { executePlugin } from './plugin-executor.js'
 import { isBotSender, pluginRequiresGroupParticipants } from './permission-guard.js'
 
@@ -255,7 +256,7 @@ return buildRawFastPath(conn, message, { maxAgeMs: SYSTEM_MESSAGE_MAX_AGE_MS, ge
 }
 
 function getMessageQueuePriority(message = {}) {
-const command = getRawCommandName(getRawMessageText(message) || getStickerCommandText(getRawStickerHash(message)))
+const command = getRawCommandName(getRawMessageText(message) || getStickerCommandText(getRawStickerHash(message), getRawMessageSender(message)))
 if (!command) return 'normal'
 const entry = commandsMap.get(command)
 const name = String(entry?.name || '')
@@ -431,7 +432,7 @@ return false
 }
 
 function isCelestialCommandMessage(message = {}) {
-const text = getRawMessageText(message) || getStickerCommandText(getRawStickerHash(message))
+const text = getRawMessageText(message) || getStickerCommandText(getRawStickerHash(message), getRawMessageSender(message))
 return isCelestialCommandText(text)
 }
 
@@ -470,11 +471,12 @@ return ''
 }
 }
 
-function getStickerCommandText(hash = '') {
-if (!hash) return ''
+function getStickerCommandText(hash = '', sender = '') {
+if (!hash || !sender) return ''
 try {
 const record = global.db?.getStickerCommand?.(hash) || global.db?.getSection?.('sticker')?.[hash] || global.db?.data?.sticker?.[hash]
-return typeof record?.text === 'string' ? record.text.trim() : ''
+const personal = getPersonalStickerCommand(record, sender)
+return typeof personal?.text === 'string' ? personal.text.trim() : ''
 } catch (error) {
 console.error('[sticker-cmd] no se pudo consultar el comando del sticker', error)
 return ''
@@ -483,7 +485,7 @@ return ''
 
 function hydrateStickerCommandText(m = {}) {
 if (m.text) return false
-const text = getStickerCommandText(getStickerHashFromMessage(m))
+const text = getStickerCommandText(getStickerHashFromMessage(m), m.sender)
 if (!text) return false
 m.text = text
 m.body = text
