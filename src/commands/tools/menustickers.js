@@ -6,6 +6,10 @@ const texto = `
 > ✦ Crea stickers de (imagen/video).
 🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#setmeta*
 > ✦ Establece un pack y autor para los stickers.
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#setcmd <texto>*
+> ✦ Asigna un comando personal a un sticker.
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#delcmd • #cmdrm*
+> ✦ Borra tu comando personal de un sticker.
 🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#delmeta*
 > ✦ Elimina tu pack de stickers.
 🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#pfp • #getpic*

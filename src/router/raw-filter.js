@@ -15,6 +15,10 @@ export function getRawMessageChat(message = {}) {
 return message?.key?.remoteJid || message?.chat || message?.remoteJid || ''
 }
 
+export function getRawMessageSender(message = {}) {
+return message?.key?.participant || message?.participant || message?.key?.remoteJid || message?.sender || ''
+}
+
 export function getInteractiveResponseText(content = {}) {
 const nativeFlow = content?.interactiveResponseMessage?.nativeFlowResponseMessage
 const paramsJson = nativeFlow?.paramsJson
@@ -78,7 +82,7 @@ const chat = conn?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(
 if (!chat || chat === 'status@broadcast') return null
 if (!isFreshRawMessage(message, maxAgeMs)) return null
 const rawText = getRawMessageText(message)
-const stickerText = rawText ? '' : getStickerCommandText(getRawStickerHash(message))
+const stickerText = rawText ? '' : getStickerCommandText(getRawStickerHash(message), getRawMessageSender(message))
 const text = rawText || stickerText || ''
 const trimmed = String(text || '').trim()
 const prefixMatch = trimmed ? getPrefixMatch(conn, {}, trimmed) : null
