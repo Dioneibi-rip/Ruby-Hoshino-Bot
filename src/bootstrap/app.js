@@ -3,14 +3,13 @@ import { createRequire } from 'module'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { platform } from 'process'
 import { watchFile, unwatchFile, readdirSync, statSync, unlinkSync, existsSync, mkdirSync, rmSync, watch, readFileSync } from 'fs'
-import { readdir, readFile, access, stat, unlink } from 'fs/promises'
+import { readdir, access, stat, unlink } from 'fs/promises'
 import * as ws from 'ws'
 import path, { join, dirname } from 'path'
 import { parseArgv } from '../library/parseArgsCompat.js'
 import { spawn } from 'child_process'
 import { lodash as lodash } from '../library/nativeStubs.js'
 import chalk from '../library/ansi.js'
-import syntaxerror from 'syntax-error'
 import { tmpdir } from 'os'
 import { format } from 'util'
 import pino from '../library/logger.js'
@@ -542,15 +541,8 @@ if (filename in global.plugins) {
 try { await access(dir); conn.logger.info(`✨ Plugin actualizado: '${filename}'`) }
 catch { conn.logger.warn(`🗑️ Plugin eliminado: '${filename}'`); delete global.plugins[filename]; unregisterPluginCommands(filename); return }
 } else conn.logger.info(`✨ Nuevo plugin: '${filename}'`);
-const source = await readFile(dir).catch(error => { conn.logger.error(error); return null })
-if (!source) return
-const err = syntaxerror(source, filename, { sourceType: 'module', allowAwaitOutsideFunction: true, });
-if (err) conn.logger.error(`❌ Error sintaxis: '${filename}'
-${format(err)}`)
-else {
 try { const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`)); global.plugins[filename] = module.default || module; registerPluginCommands(filename, global.plugins[filename]) } catch (e) { conn.logger.error(`❌ Error sintaxis: '${filename}
-${format(e)}'`); unregisterPluginCommands(filename) } finally { global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => (b.startsWith('enable/') - a.startsWith('enable/')) || a.localeCompare(b))); rebuildCommandsMap(global.plugins) }
-}
+${format(e?.stack || e?.message || e)}'`); unregisterPluginCommands(filename) } finally { global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => (b.startsWith('enable/') - a.startsWith('enable/')) || a.localeCompare(b))); rebuildCommandsMap(global.plugins) }
 }
 }
 Object.freeze(global.reload)

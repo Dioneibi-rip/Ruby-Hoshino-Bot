@@ -9,7 +9,8 @@ export async function all(m, chatUpdate) {
 if (m.__stickerCommandHydrated || m.isBaileys || !m.message || !m.msg?.fileSha256) return
 
 const sha = Buffer.from(m.msg.fileSha256).toString('base64')
-const record = global.db.getStickerCommand?.(sha) || global.db.getSection('sticker')[sha]
+const stickerSection = global.db.getSection('sticker') || {}
+const record = stickerSection[sha]
 const hash = getPersonalStickerCommand(record, m.sender)
 if (!hash) return
 

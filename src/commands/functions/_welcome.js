@@ -1,4 +1,6 @@
 import { WAMessageStubType } from '@whiskeysockets/baileys'
+import fs from 'fs'
+import path from 'path'
 const newsletterJid = '120363335626706839@newsletter';
 const newsletterName = '𖥔ᰔᩚ⋆｡˚ ꒰🍒 ʀᴜʙʏ-ʜᴏꜱʜɪɴᴏ | ᴄʜᴀɴɴᴇʟ-ʙᴏᴛ 💫꒱࣭';
 
@@ -25,7 +27,7 @@ return normalized ? `@${normalized.split('@')[0].split(':')[0]}` : '@usuario'
 }
 
 
-async function sendWelcomeMessage(conn, chatId, targetJid, imageUrl, text) {
+async function sendWelcomeMessage(conn, chatId, targetJid, imagePath, text) {
 const contextInfo = {
 mentionedJid: [targetJid].filter(Boolean),
 isForwarded: true,
@@ -33,7 +35,7 @@ forwardingScore: 9999999,
 forwardedNewsletterMessageInfo: { newsletterJid: newsletterJid, newsletterName: newsletterName, serverMessageId: -1 }
 }
 try {
-await conn.sendMessage(chatId, { image: { url: imageUrl }, caption: text, contextInfo }, { quoted: null })
+await conn.sendMessage(chatId, { image: fs.readFileSync(imagePath), caption: text, contextInfo }, { quoted: null })
 } catch (error) {
 console.error('[welcome] error generando/enviando imagen de bienvenida', error)
 await conn.sendMessage(chatId, { text, mentions: [targetJid].filter(Boolean), contextInfo }, { quoted: null })
@@ -69,7 +71,8 @@ if (!userId) continue;
 const targetJid = normalizeMentionJid(userId) || normalizeMentionJid(m.sender)
 if (!targetJid) continue
 try {
-const pp = await conn.profilePictureUrl(targetJid, 'image').catch(() => 'https://i.postimg.cc/JncFB7JG/Gemini-Generated-Image-fle7fifle7fifle7.png')
+const greetingAssetsDir = path.join(process.cwd(), 'src', 'assets', 'greetings')
+const greetingImage = isWelcome ? path.join(greetingAssetsDir, 'welcome_card.jpg') : path.join(greetingAssetsDir, 'leave_card.jpg')
 const username = mentionLabel(targetJid)
 const groupName = groupMetadata?.subject || 'este grupo'
 const desc = groupMetadata?.desc?.toString() || 'Sin descripción'
@@ -101,7 +104,7 @@ _*/𝐓𝐞𝐧𝐞𝐦𝐨𝐬 𝐦𝐮𝐜𝐡𝐨 𝐩𝐨𝐫 𝐥𝐨 𝐜�
 
 > establece un mensaje de bienvenida con #setwelcome`.trim()
 }
-await sendWelcomeMessage(conn, m.chat, targetJid, pp, text)
+await sendWelcomeMessage(conn, m.chat, targetJid, greetingImage, text)
 } else if (isBye) {
 let text
 if (chat.byeText) {
@@ -130,7 +133,7 @@ text = `
 
 > establece un mensaje de despedida con #setbye`.trim()
 }
-await sendWelcomeMessage(conn, m.chat, targetJid, pp, text)
+await sendWelcomeMessage(conn, m.chat, targetJid, greetingImage, text)
 }
 } catch (error) {
 console.error('[welcome] error procesando participante', error);
