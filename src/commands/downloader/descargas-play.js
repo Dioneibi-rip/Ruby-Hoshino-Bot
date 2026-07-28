@@ -1,10 +1,105 @@
 import { enqueueMediaJob, getMediaQueueConnection } from '../../library/queue.js'
 import { ytmp3, ytmp4 } from '../../library/youtubedl.js'
 import { assertRemoteFileSize, replyIfMediaTooLarge } from '../../library/media-size.js'
-import yts from 'yt-search'
 import fs from 'fs'
 import { execFile as execFileCb } from 'child_process'
 import { join } from 'path'
+
+function getText(value) {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  if (value.simpleText) return value.simpleText
+  if (Array.isArray(value.runs)) return value.runs.map(run => run.text || '').join('')
+  return ''
+}
+
+function parseDurationSeconds(duration) {
+  if (!duration || typeof duration !== 'string') return 0
+  return duration.split(':').map(Number).reduce((total, part) => (total * 60) + (Number.isFinite(part) ? part : 0), 0)
+}
+
+function parseViews(viewsText) {
+  if (!viewsText) return 0
+  const normalized = viewsText.replace(/,/g, '').replace(/\./g, '')
+  const match = normalized.match(/\d+/)
+  return match ? Number(match[0]) : 0
+}
+
+function extractVideoRenderer(item) {
+  if (!item) return null
+  if (item.videoRenderer) return item.videoRenderer
+  if (item.compactVideoRenderer) return item.compactVideoRenderer
+  if (item.richItemRenderer?.content?.videoRenderer) return item.richItemRenderer.content.videoRenderer
+  return null
+}
+
+function collectVideoRenderers(contents = []) {
+  const videos = []
+  for (const item of contents) {
+    const video = extractVideoRenderer(item)
+    if (video?.videoId) videos.push(video)
+  }
+  return videos
+}
+
+function mapYoutubeVideo(video) {
+  const videoId = video.videoId
+  const title = getText(video.title)
+  const timestamp = getText(video.lengthText) || getText(video.thumbnailOverlays?.find(overlay => overlay.thumbnailOverlayTimeStatusRenderer)?.thumbnailOverlayTimeStatusRenderer?.text)
+  const viewsText = getText(video.viewCountText) || getText(video.shortViewCountText)
+  const authorName = getText(video.ownerText) || getText(video.longBylineText) || getText(video.shortBylineText)
+  const thumbnails = video.thumbnail?.thumbnails || []
+  const thumbnail = thumbnails.at(-1)?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+
+  return {
+    type: 'video',
+    title,
+    videoId,
+    url: `https://youtu.be/${videoId}`,
+    timestamp,
+    duration: {
+      timestamp,
+      seconds: parseDurationSeconds(timestamp)
+    },
+    seconds: parseDurationSeconds(timestamp),
+    views: parseViews(viewsText),
+    ago: getText(video.publishedTimeText) || 'No disponible',
+    author: { name: authorName || 'Desconocido' },
+    thumbnail
+  }
+}
+
+async function nativeYoutubeSearch(query) {
+  const response = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, {
+    headers: {
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+      'accept-language': 'es-ES,es;q=0.9,en;q=0.8'
+    }
+  })
+  if (!response.ok) throw new Error(`YouTube respondió con estado ${response.status}`)
+
+  const html = await response.text()
+  const match = html.match(/var ytInitialData = ({.*?});<\/script>/s)
+  if (!match?.[1]) throw new Error('No se pudo extraer ytInitialData')
+
+  const data = JSON.parse(match[1])
+  const sections = data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents || []
+  const videos = []
+  for (const section of sections) {
+    const contents = section.itemSectionRenderer?.contents || section.richSectionRenderer?.content?.richShelfRenderer?.contents || []
+    videos.push(...collectVideoRenderers(contents))
+  }
+
+  const all = videos.map(mapYoutubeVideo).filter(video => video.title && video.videoId)
+  return { all, videos: all }
+}
+
+
+
+async function nativeYoutubeSearchByVideoId(videoId) {
+  const result = await nativeYoutubeSearch(`https://youtu.be/${videoId}`)
+  return result.all.find(video => video.videoId === videoId) || result.all[0]
+}
 
 async function pathExists(file) {
   try {
@@ -74,13 +169,13 @@ global.queueHandlers.set('youtube', async (data, ctx = {}) => {
 
     if (match) {
       try {
-        searchResult = await yts({ videoId: match[1] })
+        searchResult = await nativeYoutubeSearchByVideoId(match[1])
       } catch (e) {
-        const s = await yts(data.text)
+        const s = await nativeYoutubeSearch(data.text)
         searchResult = s.all[0]
       }
     } else {
-      const s = await yts(data.text)
+      const s = await nativeYoutubeSearch(data.text)
       searchResult = s.all.find(v => v.type === 'video') || s.all[0]
     }
 
