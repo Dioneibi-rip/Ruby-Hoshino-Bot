@@ -32,6 +32,10 @@ return false;
 const user = global.db.getUser(m.sender);
 if (!user) return false;
 const saldo = Number(user.coin || 0);
+if (saldo <= 0) {
+await m.reply(`${emoji2} ︵‿୨♡୧‿︵ No tienes fondos suficientes para apostar. Debes saldar tu deuda o conseguir ${m.moneda} primero.`);
+return false;
+}
 if (saldo < cantidad) {
 await m.reply(`${emoji2} No tienes suficientes ${m.moneda} para apostar. Tienes *¥${saldo.toLocaleString()}* y necesitas *¥${cantidad.toLocaleString()}*.`);
 return false;

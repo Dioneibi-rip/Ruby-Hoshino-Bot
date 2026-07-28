@@ -7,6 +7,7 @@ const WIN_MULTIPLIER = 2
 
 let handler = async (m, { conn, args, usedPrefix, command, DevMode }) => {
 const user = global.db.getUser(m.sender)
+if ((Number(user?.coin) || 0) <= 0) return m.reply(`${emoji2} ︵‿୨♡୧‿︵ No tienes fondos suficientes para apostar. Debes saldar tu deuda o conseguir ${m.moneda} primero.`)
 let win = Math.random() < WIN_RATE
 let Aku = win ? 48 : 52
 let Kamu = win ? 96 : 13
