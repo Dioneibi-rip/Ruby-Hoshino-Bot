@@ -474,7 +474,8 @@ return ''
 function getStickerCommandText(hash = '', sender = '') {
 if (!hash || !sender) return ''
 try {
-const record = global.db?.getStickerCommand?.(hash) || global.db?.getSection?.('sticker')?.[hash] || global.db?.data?.sticker?.[hash]
+const stickerSection = global.db?.getSection?.('sticker') || global.db?.data?.sticker || {}
+const record = stickerSection[hash]
 const personal = getPersonalStickerCommand(record, sender)
 return typeof personal?.text === 'string' ? personal.text.trim() : ''
 } catch (error) {

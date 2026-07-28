@@ -25,20 +25,42 @@ function parseViews(viewsText) {
   return match ? Number(match[0]) : 0
 }
 
-function extractVideoRenderer(item) {
-  if (!item) return null
-  if (item.videoRenderer) return item.videoRenderer
-  if (item.compactVideoRenderer) return item.compactVideoRenderer
-  if (item.richItemRenderer?.content?.videoRenderer) return item.richItemRenderer.content.videoRenderer
-  return null
+function extractYtInitialData(html = '') {
+  const marker = 'ytInitialData'
+  const markerIndex = html.indexOf(marker)
+  if (markerIndex < 0) throw new Error('No se pudo extraer ytInitialData')
+  const start = html.indexOf('{', markerIndex)
+  if (start < 0) throw new Error('No se pudo extraer ytInitialData')
+  let depth = 0
+  let inString = false
+  let escaped = false
+  for (let i = start; i < html.length; i++) {
+    const char = html[i]
+    if (inString) {
+      if (escaped) escaped = false
+      else if (char === '\\') escaped = true
+      else if (char === '"') inString = false
+      continue
+    }
+    if (char === '"') inString = true
+    else if (char === '{') depth++
+    else if (char === '}') {
+      depth--
+      if (depth === 0) return JSON.parse(html.slice(start, i + 1))
+    }
+  }
+  throw new Error('ytInitialData incompleto')
 }
 
-function collectVideoRenderers(contents = []) {
-  const videos = []
-  for (const item of contents) {
-    const video = extractVideoRenderer(item)
-    if (video?.videoId) videos.push(video)
+function collectVideoRenderers(node, videos = []) {
+  if (!node || typeof node !== 'object') return videos
+  if (Array.isArray(node)) {
+    for (const item of node) collectVideoRenderers(item, videos)
+    return videos
   }
+  const video = node.videoRenderer || node.compactVideoRenderer || node.richItemRenderer?.content?.videoRenderer
+  if (video?.videoId) videos.push(video)
+  for (const value of Object.values(node)) collectVideoRenderers(value, videos)
   return videos
 }
 
@@ -79,18 +101,15 @@ async function nativeYoutubeSearch(query) {
   if (!response.ok) throw new Error(`YouTube respondió con estado ${response.status}`)
 
   const html = await response.text()
-  const match = html.match(/var ytInitialData = ({.*?});<\/script>/s)
-  if (!match?.[1]) throw new Error('No se pudo extraer ytInitialData')
-
-  const data = JSON.parse(match[1])
-  const sections = data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents || []
-  const videos = []
-  for (const section of sections) {
-    const contents = section.itemSectionRenderer?.contents || section.richSectionRenderer?.content?.richShelfRenderer?.contents || []
-    videos.push(...collectVideoRenderers(contents))
-  }
-
-  const all = videos.map(mapYoutubeVideo).filter(video => video.title && video.videoId)
+  const data = extractYtInitialData(html)
+  const seen = new Set()
+  const all = collectVideoRenderers(data)
+    .map(mapYoutubeVideo)
+    .filter(video => {
+      if (!video.title || !video.videoId || seen.has(video.videoId)) return false
+      seen.add(video.videoId)
+      return true
+    })
   return { all, videos: all }
 }
 
@@ -110,7 +129,7 @@ async function pathExists(file) {
   }
 }
 
-const youtubeRegexID = /(?:http:\/\/googleusercontent\.com\/youtube\.com\/0)([a-zA-Z0-9_-]{11})/
+const youtubeRegexID = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|http:\/\/googleusercontent\.com\/youtube\.com\/0)([a-zA-Z0-9_-]{11})/
 
 const newsletterJid = '120363335626706839@newsletter'
 const newsletterName = '𖥔ᰔᩚ⋆｡˚ ꒰🍒 ʀᴜʙʏ-ʜᴏꜱʜɪɴᴏ | ᴄʜᴀɴɴᴇʟ-ʙᴏᴛ 💫꒱࣭'
@@ -200,44 +219,19 @@ global.queueHandlers.set('youtube', async (data, ctx = {}) => {
 
 𐙚 🪵 ｡ Preparando tu descarga... ˙𐙚`.trim()
 
-    // Extraemos la portada y la convertimos a Base64 para el jpegThumbnail
-    let b64 = ''
-    try {
-      const thumbRes = await conn.getFile(thumbnail)
-      b64 = thumbRes.data.toString('base64')
-    } catch (e) {
-      console.log('Error al procesar la miniatura:', e)
-    }
-
-    // Nuevo método usando relayMessage con extendedTextMessage y el preview "shadow"
-    await conn.relayMessage(
-      data.chat,
-      {
-        extendedTextMessage: {
-          text: infoMessage,
-          matchedText: url, // Vinculamos el texto de coincidencia al link real de YouTube
-          description: `Duración: ${timestamp} • Canal: ${canal}`, // Descripción que aparecerá en el cuadro
-          title: title, // Usamos el nombre del video como título
-          previewType: 'shadow',
-          jpegThumbnail: b64, // Pasamos el buffer en string de la portada
-          contextInfo: {
-            quotedMessage: m.message,
-            participant: m.sender,
-            stanzaId: m.key.id, // Aseguramos usar m.key.id (el ID real de baileys)
-            remoteJid: data.chat,
-            // Conservamos tu configuración del canal/newsletter
-            isForwarded: true,
-            forwardingScore: 999,
-            forwardedNewsletterMessageInfo: {
-              newsletterJid: newsletterJid,
-              newsletterName: newsletterName,
-              serverMessageId: -1
-            }
-          }
+    await conn.sendMessage(data.chat, {
+      image: { url: thumbnail },
+      caption: infoMessage,
+      contextInfo: {
+        isForwarded: true,
+        forwardingScore: 999,
+        forwardedNewsletterMessageInfo: {
+          newsletterJid: newsletterJid,
+          newsletterName: newsletterName,
+          serverMessageId: -1
         }
-      },
-      { quoted: m }
-    )
+      }
+    }, { quoted: m })
 
     if (['play', 'yta', 'ytmp3', 'playaudio', 'playdoc'].includes(data.command)) {
       try {

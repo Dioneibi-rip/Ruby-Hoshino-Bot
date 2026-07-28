@@ -1,7 +1,15 @@
 import { prepareWAMessageMedia, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
+import fs from 'fs';
+import path from 'path';
 
 const menuMediaCache = new WeakMap();
 let menuThumbPromise = null;
+
+const localCatalogoPath = path.join(process.cwd(), 'src', 'catalogo.jpg');
+
+function getLocalCatalogoBuffer() {
+return fs.readFileSync(localCatalogoPath);
+}
 
 const defaultMenu = {
 before: `𝙃𝙤𝙡𝙖 *%name*-san ${ucapan()}
@@ -144,10 +152,7 @@ export default handler;
 
 async function getMenuThumb() {
 if (!menuThumbPromise) {
-menuThumbPromise = fetch('https://i.postimg.cc/XqsLDBQ4/Ruby-Hoshino-Trailer-season-3.jpg')
-.then(res => res.ok ? res.arrayBuffer() : null)
-.then(buffer => buffer ? Buffer.from(buffer) : null)
-.catch(() => null);
+menuThumbPromise = Promise.resolve().then(() => getLocalCatalogoBuffer()).catch(() => null);
 }
 return menuThumbPromise;
 }
@@ -176,7 +181,7 @@ participant: '0@s.whatsapp.net'
 async function getMenuMedia(conn) {
 const cached = menuMediaCache.get(conn);
 if (cached) return cached;
-const media = await prepareWAMessageMedia({ image: { url: 'https://files.catbox.moe/yenx0h.png' } }, { upload: conn.waUploadToServer });
+const media = await prepareWAMessageMedia({ image: getLocalCatalogoBuffer() }, { upload: conn.waUploadToServer });
 menuMediaCache.set(conn, media);
 return media;
 }
