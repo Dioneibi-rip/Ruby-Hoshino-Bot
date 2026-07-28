@@ -179,8 +179,7 @@ return ''
 function getPairingErrorMessage(error) {
 return error?.output?.payload?.message || error?.output?.message || error?.message || String(error || 'Error desconocido')
 }
-if (global.conns instanceof Array) console.log()
-else global.conns = []
+if (!(global.conns instanceof Array)) global.conns = []
 startSubBotSupervisor()
 if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
 const subBotConnectionStates = global.subBotConnectionStates || (global.subBotConnectionStates = new Map())
@@ -635,7 +634,6 @@ copy_code: rawCode
 await conn.relayMessage(m.chat, interactivePayload.message, { messageId: interactivePayload.key.id })
 pairingCodeMessageKey = interactivePayload.key
 pairingCodeRequests.set(subBotId, { ts: now, key: pairingCodeMessageKey })
-console.log(`Código de vinculación enviado: ${rawCode}`)
 if (pairingCodeMessageKey) {
 pairingCodeTimer = setTimeout(() => {
 conn.sendMessage(m.chat, { delete: pairingCodeMessageKey }).catch(() => {})
@@ -657,8 +655,14 @@ return scheduleSafeReconnect(closeReason, reconnectFn)
 if (connection === 'close') {
 if (FATAL_RECONNECT_REASONS.has(reason)) {
 console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La sesión (+${path.basename(pathRubyJadiBot)}) se ha cerrado permanentemente.\n╰⟡┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄╯`))
-const ownerChat = m?.chat || subBotJid
-if (ownerChat) await conn.sendMessage(ownerChat, { text: '✦ Tu sesión de Sub-Bot ha sido cerrada o revocada. Vuelve a solicitar un código.' }).catch(() => {})
+const ownerChat = normalizeSubBotJid(subBotJid || sock?.user?.jid || sock?.authState?.creds?.me?.jid || m?.sender)
+const ownerNumber = cleanPhoneNumber(ownerChat)
+const ownerDm = ownerNumber ? `${ownerNumber}@s.whatsapp.net` : ''
+if (ownerDm) {
+await conn.sendMessage(ownerDm, { text: '❀ Su sesión de Sub-Bot ha sido desconectada. Por favor, vuelva a vincularse.' }).catch(() => {})
+} else if (m?.chat) {
+await conn.sendMessage(m.chat, { text: `❀ @${cleanPhoneNumber(m.sender)}, su sesión de Sub-Bot ha sido desconectada. Por favor, vuelva a vincularse.`, mentions: [m.sender] }, { quoted: m }).catch(() => {})
+}
 await destroySock({ removeSession: true })
 return
 }

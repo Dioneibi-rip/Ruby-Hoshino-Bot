@@ -1,5 +1,9 @@
 const handler = async (m, { conn, text, command, usedPrefix }) => {
 const user = global.db.getUser(m.sender);
+if ((Number(user?.coin) || 0) <= 0) {
+await conn.reply(m.chat, `《✧》No tienes fondos suficientes para apostar. Debes saldar tu deuda o conseguir ${m.moneda} primero.`, m);
+return false;
+}
 
 if (!text) {
 await conn.reply(m.chat, `《✧》Uso correcto:
