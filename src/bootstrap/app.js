@@ -212,7 +212,8 @@ global.authCredsFlushers.add(debouncedSaveCreds.flush)
 global.authManagerDb = await createManagerDatabase({ dbPath: `./${global.Rubysessions}/system.db`, tableName: 'bot_registry' })
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = createMessageRetryCache()
-const { version } = await fetchLatestBaileysVersion();
+const { version, isLatest } = await fetchLatestBaileysVersion();
+console.log(chalk.cyan(`🌐 WhatsApp Web version: ${version.join('.')} (${isLatest ? 'latest' : 'fallback'})`))
 let phoneNumber = global.botNumber
 const methodCodeQR = process.argv.includes("qr")
 const methodCode = !!phoneNumber || process.argv.includes("code")
@@ -257,6 +258,33 @@ const cappedExponential = Math.min(RECONNECT_MAX_DELAY_MS, RECONNECT_BASE_DELAY_
 const fullJitter = Math.floor(Math.random() * Math.max(RECONNECT_JITTER_MS, cappedExponential))
 return Math.min(RECONNECT_MAX_DELAY_MS, Math.max(Number(upstreamDelay) || 0, rateLimitDelay, cappedExponential + fullJitter))
 }
+const describeDisconnectStatus = (statusCode) => {
+const numericStatus = Number(statusCode)
+switch (numericStatus) {
+case 401: return 'Sesión inválida o cerrada desde WhatsApp. Borra la sesión y vuelve a vincular.'
+case 403: return 'Conexión baneada, rechazada o sin permisos para vincular esta cuenta.'
+case 408: return 'Timeout de conexión. WhatsApp no respondió a tiempo.'
+case 428: return 'Conexión cerrada por WhatsApp antes de completar el handshake.'
+case 429: return 'Rate limit de WhatsApp. Demasiados intentos de conexión o pairing.'
+case 440: return 'Sesión reemplazada por otra conexión activa.'
+case 500: return 'Error interno del servidor de WhatsApp/Baileys.'
+case 503: return 'Servicio de WhatsApp temporalmente no disponible.'
+default: return 'Motivo de desconexión no catalogado. Revisa el mensaje original de Baileys.'
+}
+}
+const getBoomStatusCode = (error) => new Boom(error)?.output?.statusCode
+const logDisconnectError = (lastDisconnect, fallbackStatusCode) => {
+const error = lastDisconnect?.error
+const statusCode = getBoomStatusCode(error) || error?.output?.statusCode || error?.statusCode || fallbackStatusCode || DisconnectReason.connectionClosed
+const message = error?.message || 'WhatsApp cerró la conexión sin mensaje explícito.'
+console.log(chalk.red.bold('╭─ ❌ DESCONEXIÓN DE WHATSAPP DETECTADA'))
+console.log(chalk.red(`│ Código de estado: ${statusCode}`))
+console.log(chalk.red(`│ Motivo: ${describeDisconnectStatus(statusCode)}`))
+console.log(chalk.red(`│ Mensaje original: ${message}`))
+if (error?.stack) console.log(chalk.gray(`│ Stack: ${error.stack.split('\n').slice(0, 3).join(' | ')}`))
+console.log(chalk.red.bold('╰────────────────────────────────────'))
+return statusCode
+}
 let connectionOptions = {
 logger: pino({ level: 'silent' }),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
@@ -282,6 +310,8 @@ shouldReconnect: ({ statusCode }) => !DISCONNECT_AUTH_STATUS.has(statusCode) && 
 }
 connectionOptions = alignSocketTelemetry(connectionOptions, { version })
 const pairingRequested = !state.creds?.registered && (opcion === '2' || methodCode)
+let pairingCodeTimer
+let pairingCodeInFlight = false
 global.conn = await makeWASocket(connectionOptions, { skipStoreBind: pairingRequested });
 setMediaQueueConnection(global.conn)
 startMediaWorker(global.conn)
@@ -302,23 +332,33 @@ if (!phoneNumber.startsWith('+')) { phoneNumber = `+${phoneNumber}` }
 } while (!await isValidPhoneNumber(phoneNumber))
 rl.close()
 addNumber = phoneNumber.replace(/\D/g, '')
-setTimeout(async () => {
+pairingCodeTimer = setTimeout(async () => {
+pairingCodeTimer = undefined
+if (pairingCodeInFlight) return
+pairingCodeInFlight = true
 try {
 if (conn?.ws?.socket?.readyState !== ws.OPEN) {
-if (typeof conn?.connectionUpdate === 'function') conn.connectionUpdate({ connection: 'close', lastDisconnect: { error: new Boom('Socket cerrado antes de solicitar código', { statusCode: DisconnectReason.connectionClosed }) } }).catch(() => {})
+console.error(chalk.red.bold('❌ No se solicitó Pairing Code: el socket se cerró antes de generar el código.'))
 return
 }
-let codeBot = await conn.requestPairingCode(addNumber);
-codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
+let codeBot = await conn.requestPairingCode(addNumber)
+codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot
 console.log(chalk.bold.white(' Codigo : ') + chalk.bold.bgMagenta(` ${codeBot} `))
 if (process.env.RUBY_SMOKE_PAIRING_CODE) await shutdownDatabaseAndExit(0)
 } catch (error) {
+const statusCode = getBoomStatusCode(error) || error?.output?.statusCode || error?.statusCode || 'sin código'
+console.error(chalk.red.bold('╭─ ❌ ERROR GENERANDO PAIRING CODE'))
+console.error(chalk.red(`│ Código de estado: ${statusCode}`))
+console.error(chalk.red(`│ Mensaje original: ${error?.message || error}`))
+console.error(chalk.red(`│ Diagnóstico: ${describeDisconnectStatus(statusCode)}`))
+if (error?.stack) console.error(chalk.gray(`│ Stack: ${error.stack.split('\n').slice(0, 3).join(' | ')}`))
+console.error(chalk.red.bold('╰────────────────────────────────'))
 if (process.env.RUBY_SMOKE_PAIRING_CODE) throw error
-if (conn?.ws?.socket?.readyState !== ws.OPEN && typeof conn?.connectionUpdate === 'function') {
-conn.connectionUpdate({ connection: 'close', lastDisconnect: { error } }).catch(() => {})
-}
+} finally {
+pairingCodeInFlight = false
 }
 }, Number(process.env.RUBY_SMOKE_PAIRING_CODE ? 10 : 3000))
+pairingCodeTimer.unref?.()
 }
 }
 }
@@ -361,7 +401,11 @@ console.log(chalk.bold.hex('#00FF00')('୭ৎ֮֮ BOT CONECTADO CORRECTAMENTE �
 console.log('\n')
 }
 if (connection === 'close') {
-const statusCode = (lastDisconnect?.error)?.output?.statusCode || (lastDisconnect?.error)?.statusCode || DisconnectReason.connectionClosed
+if (pairingCodeTimer) {
+clearTimeout(pairingCodeTimer)
+pairingCodeTimer = undefined
+}
+const statusCode = logDisconnectError(lastDisconnect, DisconnectReason.connectionClosed)
 const show = (color, text, icon) => console.log(`${icon} ${color(text)}`)
 if (DISCONNECT_AUTH_STATUS.has(statusCode)) {
 show(chalk.red, `👋 SESION INVALIDA ${statusCode}. BORRE LA CARPETA ${global.Rubysessions} Y VINCULE DE NUEVO`, '🚪')
