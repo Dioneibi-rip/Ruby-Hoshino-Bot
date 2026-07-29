@@ -303,21 +303,10 @@ if (!phoneNumber.startsWith('+')) { phoneNumber = `+${phoneNumber}` }
 rl.close()
 addNumber = phoneNumber.replace(/\D/g, '')
 setTimeout(async () => {
-try {
-if (conn?.ws?.socket?.readyState !== ws.OPEN) {
-if (typeof conn?.connectionUpdate === 'function') conn.connectionUpdate({ connection: 'close', lastDisconnect: { error: new Boom('Socket cerrado antes de solicitar código', { statusCode: DisconnectReason.connectionClosed }) } }).catch(() => {})
-return
-}
 let codeBot = await conn.requestPairingCode(addNumber);
 codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
 console.log(chalk.bold.white(' Codigo : ') + chalk.bold.bgMagenta(` ${codeBot} `))
 if (process.env.RUBY_SMOKE_PAIRING_CODE) await shutdownDatabaseAndExit(0)
-} catch (error) {
-if (process.env.RUBY_SMOKE_PAIRING_CODE) throw error
-if (conn?.ws?.socket?.readyState !== ws.OPEN && typeof conn?.connectionUpdate === 'function') {
-conn.connectionUpdate({ connection: 'close', lastDisconnect: { error } }).catch(() => {})
-}
-}
 }, Number(process.env.RUBY_SMOKE_PAIRING_CODE ? 10 : 3000))
 }
 }
