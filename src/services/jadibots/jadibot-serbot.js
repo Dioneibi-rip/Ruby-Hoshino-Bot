@@ -387,7 +387,7 @@ return
 return false;
 }
 let { version, isLatest } = await getCachedBaileysVersion()
-const subSocketCfg = global.baileysSocketConfig || {}
+const subSocketCfg = global.subBotBaileysSocketConfig || global.baileysSocketConfig || {}
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = createMessageRetryCache()
 const liteMsgStore = createBoundedSubBotMessageStore(SUBBOT_MSG_STORE_LIMIT)
@@ -410,11 +410,11 @@ waWebSocketUrl: subSocketCfg.waWebSocketUrl ?? 'wss://web.whatsapp.com/ws/chat',
 connectTimeoutMs: subSocketCfg.connectTimeoutMs ?? 20000,
 keepAliveIntervalMs: subSocketCfg.keepAliveIntervalMs ?? 30000,
 retryRequestDelayMs: subSocketCfg.retryRequestDelayMs ?? 250,
-markOnlineOnConnect: subSocketCfg.markOnlineOnConnect ?? true,
-syncFullHistory: subSocketCfg.syncFullHistory ?? true,
+markOnlineOnConnect: subSocketCfg.markOnlineOnConnect ?? false,
+syncFullHistory: subSocketCfg.syncFullHistory ?? false,
 shouldSyncHistoryMessage: subSocketCfg.shouldSyncHistoryMessage ?? (({ syncType } = {}) => syncType !== proto.HistorySync.HistorySyncType.FULL),
-fireInitQueries: subSocketCfg.fireInitQueries ?? true,
-emitOwnEvents: subSocketCfg.emitOwnEvents ?? true,
+fireInitQueries: subSocketCfg.fireInitQueries ?? false,
+emitOwnEvents: subSocketCfg.emitOwnEvents ?? false,
 getMessage: async key => liteMsgStore.get(key) || ''
 };
 connectionOptions = alignSocketTelemetry(connectionOptions, { version })

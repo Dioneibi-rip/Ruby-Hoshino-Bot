@@ -59,4 +59,6 @@ handler.tags = ['group']
 handler.command = ['topmensajes', 'topmsg', 'topmsgs', 'rankingmensajes', 'mensajesgrupo', 'topactividad', 'actividadgrupo']
 handler.group = true
 
+handler.needsParticipants = true
+
 export default handler

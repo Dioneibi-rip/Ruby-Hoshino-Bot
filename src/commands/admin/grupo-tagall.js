@@ -54,4 +54,6 @@ handler.command = ['todos', 'invocar', 'tagall'];
 handler.admin = true;
 handler.group = true;
 
+handler.needsParticipants = true
+
 export default handler;

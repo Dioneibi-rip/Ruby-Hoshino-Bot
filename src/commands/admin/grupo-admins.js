@@ -21,4 +21,6 @@ handler.customPrefix = /a|@/i;
 handler.command = /^(admins|@admins|dmins)$/i;
 handler.group = true;
 
+handler.needsParticipants = true
+
 export default handler;

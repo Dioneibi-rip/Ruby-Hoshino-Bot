@@ -140,4 +140,4 @@ console.error('[welcome] error procesando participante', error);
 }
 }
 }
-export default { before }
+export default { before, needsParticipants: true }

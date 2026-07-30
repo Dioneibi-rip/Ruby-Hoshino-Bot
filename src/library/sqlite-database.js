@@ -173,6 +173,70 @@ if (NUMERIC_FIELDS.has(name)) return Number(value) || 0
 return value ?? ''
 }
 
+
+class LruTtlCache extends Map {
+constructor({ max = 10000, ttlMs = 30 * 60 * 1000, onEvict = null, shouldEvict = null } = {}) {
+super()
+this.max = Math.max(1, Number(max) || 10000)
+this.ttlMs = Math.max(0, Number(ttlMs) || 0)
+this.onEvict = typeof onEvict === 'function' ? onEvict : null
+this.shouldEvict = typeof shouldEvict === 'function' ? shouldEvict : null
+this.hits = 0
+this.misses = 0
+}
+_now() { return Date.now() }
+_isExpired(entry, now = this._now()) { return Boolean(entry && this.ttlMs > 0 && now - entry.touchedAt > this.ttlMs) }
+_evict(key, entry) {
+super.delete(key)
+try { this.onEvict?.(key, entry?.value) } catch {}
+}
+get(key) {
+const entry = super.get(key)
+if (!entry) { this.misses++; return undefined }
+const now = this._now()
+if (this._isExpired(entry, now) && this._canEvict(key, entry.value)) { this._evict(key, entry); this.misses++; return undefined }
+entry.touchedAt = now
+super.delete(key)
+super.set(key, entry)
+this.hits++
+return entry.value
+}
+set(key, value) {
+const entry = { value, touchedAt: this._now() }
+if (super.has(key)) super.delete(key)
+super.set(key, entry)
+this.prune()
+return this
+}
+has(key) { return typeof this.get(key) !== 'undefined' }
+delete(key) {
+const entry = super.get(key)
+const deleted = super.delete(key)
+if (deleted) { try { this.onEvict?.(key, entry?.value) } catch {} }
+return deleted
+}
+_canEvict(key, value) { return !this.shouldEvict || this.shouldEvict(key, value) !== false }
+prune() {
+const now = this._now()
+for (const [key, entry] of super.entries()) {
+if (!this._isExpired(entry, now)) continue
+if (!this._canEvict(key, entry.value)) { entry.touchedAt = now; continue }
+this._evict(key, entry)
+}
+while (this.size > this.max) {
+const oldest = super.entries().next()
+if (oldest.done) break
+const [key, entry] = oldest.value
+if (!this._canEvict(key, entry.value)) { super.delete(key); super.set(key, entry); break }
+this._evict(key, entry)
+}
+}
+entries() { return Array.from(super.entries(), ([key, entry]) => [key, entry.value])[Symbol.iterator]() }
+values() { return Array.from(super.values(), entry => entry.value)[Symbol.iterator]() }
+keys() { return super.keys() }
+[Symbol.iterator]() { return this.entries() }
+}
+
 export class SQLiteDatabase {
 constructor(filename = './src/database/database.sqlite') {
 this.filename = filename
@@ -185,10 +249,18 @@ this.sqlite.pragma('temp_store = MEMORY')
 this.sqlite.pragma('mmap_size = 3000000000')
 this.sqlite.pragma('busy_timeout = 5000')
 this.sqlite.pragma('foreign_keys = ON')
-this.userCache = new Map()
-this.userProxyCache = new Map()
-this.recordProxyCache = new Map()
 this.dirtyUsers = new Set()
+this.userProxyCache = new LruTtlCache({
+  max: Number(process.env.SQLITE_USER_PROXY_CACHE_MAX || process.env.SQLITE_USER_CACHE_MAX || 10000),
+  ttlMs: Number(process.env.SQLITE_USER_CACHE_TTL_MS || 30 * 60 * 1000)
+})
+this.userCache = new LruTtlCache({
+  max: Number(process.env.SQLITE_USER_CACHE_MAX || 10000),
+  ttlMs: Number(process.env.SQLITE_USER_CACHE_TTL_MS || 30 * 60 * 1000),
+  shouldEvict: id => !this.dirtyUsers.has(id),
+  onEvict: id => this.userProxyCache.delete(id)
+})
+this.recordProxyCache = new Map()
 this.userWriteLocks = new Map()
 this.positionalUpdateUserRow = null
 this.flushIntervalMs = 60_000
@@ -713,11 +785,20 @@ setEconomy(id, field, value) { return this.updateUser(id, { [field]: value }) }
 incrementUserActivity(id, { exp = 0, coin = 0, messages = 1 } = {}) {
 const userId = normalizeJid(id)
 if (!userId) throw new TypeError('incrementUserActivity requiere un id de usuario válido')
-this._createUser(userId)
-this.statements.addUserActivity.run(Number(exp) || 0, Number(coin) || 0, Math.trunc(Number(messages) || 0), userId)
-const user = this._rowToUser(this.statements.getUserById.get(userId))
-if (user) this.userCache.set(userId, user)
-return this.getUser(userId)
+const safeExp = Number(exp) || 0
+const safeCoin = Number(coin) || 0
+const safeMessages = Math.trunc(Number(messages) || 0)
+this.statements.insertUser.run(userId)
+this.statements.addUserActivity.run(safeExp, safeCoin, safeMessages, userId)
+const cached = this.userCache.get(userId)
+if (cached) {
+  cached.exp = (Number(cached.exp) || 0) + safeExp
+  cached.coin = (Number(cached.coin) || 0) + safeCoin
+  cached.msg_count = (Number(cached.msg_count) || 0) + safeMessages
+  cached.updated_at = Math.floor(Date.now() / 1000)
+  this.userCache.set(userId, cached)
+}
+return this._userProxy(userId)
 }
 
 topUsers({ field = 'coin', limit = 10, offset = 0 } = {}) {

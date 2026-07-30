@@ -57,3 +57,5 @@ console.error('Error al expulsar infractor en antilink:', e)
 m.__pluginHalt = true
 return !0
 }
+
+export const needsParticipants = true

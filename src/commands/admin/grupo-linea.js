@@ -69,4 +69,6 @@ handler.command = ['listonline', 'online', 'linea', 'enlinea']
 handler.group = true
 handler.fail = null
 
+handler.needsParticipants = true
+
 export default handler

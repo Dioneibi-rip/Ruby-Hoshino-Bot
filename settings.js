@@ -45,6 +45,12 @@ global.jadi = 'RubyJadiBots'
 global.RubyJadibts = true
 global.subbotlimitt = 22
 
+const envBool = (name, fallback) => {
+  const value = process.env[name]
+  if (typeof value === 'undefined') return fallback
+  return !/^(?:0|false|no|off)$/i.test(String(value).trim())
+}
+
 global.baileysSocketConfig = {
   // Valores alineados con DEFAULT_CONNECTION_CONFIG del upstream Baileys estable.
   connectTimeoutMs: 20000,
@@ -60,6 +66,18 @@ global.baileysSocketConfig = {
   reconnectJitterMs: 5000
 }
 
+global.subBotLiteMode = envBool('SUBBOT_LITE_MODE', true)
+global.subBotBaileysSocketConfig = {
+  ...global.baileysSocketConfig,
+  markOnlineOnConnect: envBool('SUBBOT_MARK_ONLINE', global.subBotLiteMode ? false : (global.baileysSocketConfig.markOnlineOnConnect ?? true)),
+  syncFullHistory: envBool('SUBBOT_SYNC_FULL_HISTORY', global.subBotLiteMode ? false : (global.baileysSocketConfig.syncFullHistory ?? true)),
+  fireInitQueries: envBool('SUBBOT_FIRE_INIT_QUERIES', global.subBotLiteMode ? false : (global.baileysSocketConfig.fireInitQueries ?? true)),
+  emitOwnEvents: envBool('SUBBOT_EMIT_OWN_EVENTS', global.subBotLiteMode ? false : (global.baileysSocketConfig.emitOwnEvents ?? true)),
+  generateHighQualityLinkPreview: envBool('SUBBOT_HIGH_QUALITY_LINK_PREVIEW', false)
+}
+
+global.rubyPluginWatch = envBool('RUBY_PLUGIN_WATCH', process.env.NODE_ENV !== 'production')
+
 // Límites de concurrencia y anti-spam interno para proteger el Event Loop bajo ráfagas.
 global.messageQueueMaxConcurrency = Number(process.env.MESSAGE_QUEUE_MAX_CONCURRENCY || 8)
 global.messageQueueMaxUserQueue = Number(process.env.MESSAGE_QUEUE_MAX_USER_QUEUE || 100)
@@ -68,6 +86,13 @@ global.messageQueueUserRateWindowMs = Number(process.env.MESSAGE_QUEUE_USER_RATE
 global.messageQueueUserRateMax = Number(process.env.MESSAGE_QUEUE_USER_RATE_MAX || 8)
 global.messageQueueChatRateWindowMs = Number(process.env.MESSAGE_QUEUE_CHAT_RATE_WINDOW_MS || 10000)
 global.messageQueueChatRateMax = Number(process.env.MESSAGE_QUEUE_CHAT_RATE_MAX || 40)
+global.messageQueueTaskTimeoutMs = Number(process.env.MESSAGE_QUEUE_TASK_TIMEOUT_MS || 120000)
+global.messageQueueEntryMaxAgeMs = Number(process.env.MESSAGE_QUEUE_ENTRY_MAX_AGE_MS || 60000)
+global.rubyMetricsLogMs = Number(process.env.RUBY_METRICS_LOG_MS || 300000)
+global.chatActivityMaxUsers = Number(process.env.CHAT_ACTIVITY_MAX_USERS || 500)
+global.chatActivityTtlDays = Number(process.env.CHAT_ACTIVITY_TTL_DAYS || 30)
+global.strictParticipantMetadata = envBool('RUBY_STRICT_PARTICIPANT_METADATA', false)
+global.participantIndexTtlMs = Number(process.env.RUBY_PARTICIPANT_INDEX_TTL_MS || 30000)
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
