@@ -180,25 +180,8 @@ console.error(error)
 }, 60000)
 databaseAutosaveInterval.unref?.()
 let metricsLogInterval = null
-if (Number(global.rubyMetricsLogMs) > 0) {
-metricsLogInterval = setInterval(() => {
-try {
-  const memory = process.memoryUsage()
-  const queue = typeof global.getQueueStats === 'function' ? global.getQueueStats() : null
-  console.log('[ruby-metrics]', JSON.stringify({
-    rssMB: Number((memory.rss / 1024 / 1024).toFixed(1)),
-    heapMB: Number((memory.heapUsed / 1024 / 1024).toFixed(1)),
-    subBots: Array.isArray(global.conns) ? global.conns.length : 0,
-    userCache: global.db?.userCache?.size ?? 0,
-    userProxyCache: global.db?.userProxyCache?.size ?? 0,
-    queue
-  }))
-} catch (error) {
-  console.error('[ruby-metrics]', error)
-}
-}, Number(global.rubyMetricsLogMs))
-metricsLogInterval.unref?.()
-}
+// Métricas crudas desactivadas: la consola de producción debe conservar solo
+// los logs nativos/decorados para BOT INFO y USER INFO.
 async function shutdownDatabaseAndExit(code, error) {
 if (databaseShutdownStarted) return
 databaseShutdownStarted = true

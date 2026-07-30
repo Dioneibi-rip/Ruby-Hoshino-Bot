@@ -708,23 +708,39 @@ await conn.reply(m.chat, `🥀 No pude generar el código de vinculación. Detal
 }
 }
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+const SUBBOT_REGISTRY_BUSY_CODES = new Set(['SQLITE_BUSY', 'SQLITE_LOCKED'])
+const SUBBOT_REGISTRY_RETRY_DELAYS_MS = [75, 150, 300, 600, 1000]
+
+function enqueueSubBotRegistryWrite(db, task) {
+if (!db) return Promise.resolve()
+const previous = db.__rubySubBotRegistryWriteQueue || Promise.resolve()
+const next = previous.catch(() => {}).then(task)
+db.__rubySubBotRegistryWriteQueue = next.finally(() => {
+if (db.__rubySubBotRegistryWriteQueue === next) db.__rubySubBotRegistryWriteQueue = null
+})
+return next
+}
 
 async function upsertSubBotAuthRegistry(id, sock, status, metadata = {}) {
 const db = global.authManagerDb
 if (!db) return
 const jid = normalizeSubBotJid(metadata.jid || sock?.user?.jid || sock?.authState?.creds?.me?.jid || `${id}@s.whatsapp.net`)
 const payload = JSON.stringify({ ...metadata, jid })
-for (let attempt = 0; attempt < 3; attempt++) {
+return enqueueSubBotRegistryWrite(db, async () => {
+const statement = db.__rubySubBotRegistryUpsertStatement ||= db.prepare('INSERT OR REPLACE INTO bot_registry (id, jid, status, metadata) VALUES (?, ?, ?, ?)')
+for (let attempt = 0; attempt <= SUBBOT_REGISTRY_RETRY_DELAYS_MS.length; attempt++) {
 try {
-await db.prepare('INSERT OR REPLACE INTO bot_registry (id, jid, status, metadata) VALUES (?, ?, ?, ?)').runAsync(id, jid, status, payload)
+statement.run(id, jid, status, payload)
 return
 } catch (error) {
-if (!['SQLITE_BUSY', 'SQLITE_LOCKED'].includes(error?.code) || attempt === 2) {
+if (!SUBBOT_REGISTRY_BUSY_CODES.has(error?.code) || attempt === SUBBOT_REGISTRY_RETRY_DELAYS_MS.length) {
 console.error(`Error actualizando registro SQLite del Sub-Bot ${id}:`, error)
 return
 }
+await delay(SUBBOT_REGISTRY_RETRY_DELAYS_MS[attempt])
 }
 }
+})
 }
 
 function sleep(ms) {
