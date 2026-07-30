@@ -173,6 +173,79 @@ if (NUMERIC_FIELDS.has(name)) return Number(value) || 0
 return value ?? ''
 }
 
+
+class LruTtlCache extends Map {
+constructor({ max = 10000, ttlMs = 30 * 60 * 1000, onEvict = null, shouldEvict = null } = {}) {
+super()
+this.max = Math.max(1, Number(max) || 10000)
+this.ttlMs = Math.max(0, Number(ttlMs) || 0)
+this.onEvict = typeof onEvict === 'function' ? onEvict : null
+this.shouldEvict = typeof shouldEvict === 'function' ? shouldEvict : null
+this.hits = 0
+this.misses = 0
+}
+_now() { return Date.now() }
+_isExpired(entry, now = this._now()) { return Boolean(entry && this.ttlMs > 0 && now - entry.touchedAt > this.ttlMs) }
+_evict(key, entry) {
+super.delete(key)
+try { this.onEvict?.(key, entry?.value) } catch {}
+}
+get(key) {
+const entry = super.get(key)
+if (!entry) { this.misses++; return undefined }
+const now = this._now()
+if (this._isExpired(entry, now) && this._canEvict(key, entry.value)) { this._evict(key, entry); this.misses++; return undefined }
+entry.touchedAt = now
+super.delete(key)
+super.set(key, entry)
+this.hits++
+return entry.value
+}
+set(key, value) {
+const entry = { value, touchedAt: this._now() }
+if (super.has(key)) super.delete(key)
+super.set(key, entry)
+this.prune()
+return this
+}
+has(key) { return typeof this.get(key) !== 'undefined' }
+delete(key) {
+const entry = super.get(key)
+const deleted = super.delete(key)
+if (deleted) { try { this.onEvict?.(key, entry?.value) } catch {} }
+return deleted
+}
+_canEvict(key, value) { return !this.shouldEvict || this.shouldEvict(key, value) !== false }
+prune() {
+const now = this._now()
+for (const [key, entry] of super.entries()) {
+if (!this._isExpired(entry, now)) continue
+if (!this._canEvict(key, entry.value)) { entry.touchedAt = now; continue }
+this._evict(key, entry)
+}
+let guard = this.size
+while (this.size > this.max && guard-- > 0) {
+const oldest = super.entries().next()
+if (oldest.done) break
+const [key, entry] = oldest.value
+if (!this._canEvict(key, entry.value)) {
+  super.delete(key)
+  super.set(key, entry)
+  continue
+}
+this._evict(key, entry)
+}
+}
+clear() {
+for (const [key, entry] of super.entries()) this._evict(key, entry)
+return undefined
+}
+entries() { return Array.from(super.entries(), ([key, entry]) => [key, entry.value])[Symbol.iterator]() }
+values() { return Array.from(super.values(), entry => entry.value)[Symbol.iterator]() }
+keys() { return super.keys() }
+[Symbol.iterator]() { return this.entries() }
+}
+
 export class SQLiteDatabase {
 constructor(filename = './src/database/database.sqlite') {
 this.filename = filename
@@ -185,10 +258,18 @@ this.sqlite.pragma('temp_store = MEMORY')
 this.sqlite.pragma('mmap_size = 3000000000')
 this.sqlite.pragma('busy_timeout = 5000')
 this.sqlite.pragma('foreign_keys = ON')
-this.userCache = new Map()
-this.userProxyCache = new Map()
-this.recordProxyCache = new Map()
 this.dirtyUsers = new Set()
+this.userProxyCache = new LruTtlCache({
+  max: Number(process.env.SQLITE_USER_PROXY_CACHE_MAX || process.env.SQLITE_USER_CACHE_MAX || 10000),
+  ttlMs: Number(process.env.SQLITE_USER_CACHE_TTL_MS || 30 * 60 * 1000)
+})
+this.userCache = new LruTtlCache({
+  max: Number(process.env.SQLITE_USER_CACHE_MAX || 10000),
+  ttlMs: Number(process.env.SQLITE_USER_CACHE_TTL_MS || 30 * 60 * 1000),
+  shouldEvict: id => !this.dirtyUsers.has(id),
+  onEvict: id => this.userProxyCache.delete(id)
+})
+this.recordProxyCache = new Map()
 this.userWriteLocks = new Map()
 this.positionalUpdateUserRow = null
 this.flushIntervalMs = 60_000
@@ -200,6 +281,12 @@ this.flushTimer.unref?.()
 this.tempCleanupIntervalMs = Number(process.env.SQLITE_TEMP_CLEANUP_INTERVAL_MS || 60 * 60 * 1000)
 this.tempCleanupTimer = setInterval(() => this.cleanupExpiredTemporaryStates(), this.tempCleanupIntervalMs)
 this.tempCleanupTimer.unref?.()
+this.userCacheGcIntervalMs = Number(process.env.SQLITE_USER_CACHE_GC_INTERVAL_MS || 5 * 60 * 1000)
+this.userCacheGcTimer = setInterval(() => {
+  this.userCache.prune()
+  this.userProxyCache.prune()
+}, this.userCacheGcIntervalMs)
+this.userCacheGcTimer.unref?.()
 this._prepareSchema()
 this._prepareStatements()
 this._migrateJsonSectionsToTables()
@@ -467,7 +554,7 @@ addUserActivity: this.sqlite.prepare('UPDATE users SET exp = COALESCE(exp, 0) + 
 
 
 _bindPublicApi() {
-for (const name of ['topUsers', 'getTopUsers', 'userRank', 'countUsers', 'countRegisteredUsers', 'getUserAsync', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'updateUserAsync', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'incrementUserActivity', 'transferBetweenUsers', 'settleUserBet', 'buyGachaMarketSale', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
+for (const name of ['topUsers', 'getTopUsers', 'userRank', 'countUsers', 'countRegisteredUsers', 'getUserAsync', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'updateUserAsync', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'incrementUserActivity', 'incrementUserActivityFast', 'transferBetweenUsers', 'settleUserBet', 'buyGachaMarketSale', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
 this[name] = this[name].bind(this)
 }
 }
@@ -710,11 +797,30 @@ return this.getUser(userId)
 }
 setEconomy(id, field, value) { return this.updateUser(id, { [field]: value }) }
 
+incrementUserActivityFast(id, { exp = 0, coin = 0, messages = 1 } = {}) {
+const userId = normalizeJid(id)
+if (!userId) throw new TypeError('incrementUserActivityFast requiere un id de usuario válido')
+const safeExp = Number(exp) || 0
+const safeCoin = Number(coin) || 0
+const safeMessages = Math.trunc(Number(messages) || 0)
+this.statements.insertUser.run(userId)
+this.statements.addUserActivity.run(safeExp, safeCoin, safeMessages, userId)
+const cached = this.userCache.get(userId)
+if (cached) {
+  const next = { ...cached }
+  next.exp = (Number(next.exp) || 0) + safeExp
+  next.coin = (Number(next.coin) || 0) + safeCoin
+  next.msg_count = (Number(next.msg_count) || 0) + safeMessages
+  next.updated_at = Math.floor(Date.now() / 1000)
+  this.userCache.set(userId, next)
+}
+return this._userProxy(userId)
+}
+
 incrementUserActivity(id, { exp = 0, coin = 0, messages = 1 } = {}) {
 const userId = normalizeJid(id)
 if (!userId) throw new TypeError('incrementUserActivity requiere un id de usuario válido')
-this._createUser(userId)
-this.statements.addUserActivity.run(Number(exp) || 0, Number(coin) || 0, Math.trunc(Number(messages) || 0), userId)
+this.incrementUserActivityFast(userId, { exp, coin, messages })
 const user = this._rowToUser(this.statements.getUserById.get(userId))
 if (user) this.userCache.set(userId, user)
 return this.getUser(userId)
@@ -1020,7 +1126,7 @@ for (const id of ids) this.dirtyUsers.delete(id)
 }
 }
 forceSave() { return this.write() }
-close() { if (this.flushTimerHandle) clearTimeout(this.flushTimerHandle); this.flush(); if (this.flushTimer) clearInterval(this.flushTimer); if (this.tempCleanupTimer) clearInterval(this.tempCleanupTimer); this.sqlite.pragma('wal_checkpoint(PASSIVE)'); this.sqlite.close() } snapshot() { return { users: this.getSection('users'), marriages: this.getSection('marriages'), harem: this.getSection('harem'), gacha_market: this.getSection('gacha_market'), claim_config: this.getSection('claim_config'), character_favorites: this.getSection('character_favorites') } }
+close() { if (this.flushTimerHandle) clearTimeout(this.flushTimerHandle); this.flush(); if (this.flushTimer) clearInterval(this.flushTimer); if (this.tempCleanupTimer) clearInterval(this.tempCleanupTimer); if (this.userCacheGcTimer) clearInterval(this.userCacheGcTimer); this.sqlite.pragma('wal_checkpoint(PASSIVE)'); this.sqlite.close() } snapshot() { return { users: this.getSection('users'), marriages: this.getSection('marriages'), harem: this.getSection('harem'), gacha_market: this.getSection('gacha_market'), claim_config: this.getSection('claim_config'), character_favorites: this.getSection('character_favorites') } }
 }
 export { SQLiteDatabase as DbManager }
 export default SQLiteDatabase

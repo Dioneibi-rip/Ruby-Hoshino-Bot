@@ -47,4 +47,6 @@ handler.command = ['hidetag', 'notificar', 'notify', 'tag']
 handler.group = true
 handler.admin = true
 
+handler.needsParticipants = true
+
 export default handler

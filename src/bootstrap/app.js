@@ -179,12 +179,33 @@ console.error(error)
 }
 }, 60000)
 databaseAutosaveInterval.unref?.()
+let metricsLogInterval = null
+if (Number(global.rubyMetricsLogMs) > 0) {
+metricsLogInterval = setInterval(() => {
+try {
+  const memory = process.memoryUsage()
+  const queue = typeof global.getQueueStats === 'function' ? global.getQueueStats() : null
+  console.log('[ruby-metrics]', JSON.stringify({
+    rssMB: Number((memory.rss / 1024 / 1024).toFixed(1)),
+    heapMB: Number((memory.heapUsed / 1024 / 1024).toFixed(1)),
+    subBots: Array.isArray(global.conns) ? global.conns.length : 0,
+    userCache: global.db?.userCache?.size ?? 0,
+    userProxyCache: global.db?.userProxyCache?.size ?? 0,
+    queue
+  }))
+} catch (error) {
+  console.error('[ruby-metrics]', error)
+}
+}, Number(global.rubyMetricsLogMs))
+metricsLogInterval.unref?.()
+}
 async function shutdownDatabaseAndExit(code, error) {
 if (databaseShutdownStarted) return
 databaseShutdownStarted = true
 if (error) console.error(error)
 try {
 clearInterval(databaseAutosaveInterval)
+if (metricsLogInterval) clearInterval(metricsLogInterval)
 sqliteMaintenance.stop?.()
 await Promise.all([...global.authCredsFlushers].map(flush => flush()))
 await global.saveDatabase()
@@ -451,7 +472,7 @@ let subBotsStartupStarted = false
 async function startSubBotsAfterReady() {
 if (subBotsStartupStarted) return
 subBotsStartupStarted = true
-if (global.RubyJadibts || true) {
+if (global.RubyJadibts && process.env.RUBY_LOAD_SUBBOTS !== 'false') {
 if (!existsSync(global.rutaJadiBot)) {
 mkdirSync(global.rutaJadiBot, { recursive: true });
 console.log(chalk.bold.cyan(`✅ Carpeta de sub-Bots creada`))
@@ -546,7 +567,8 @@ ${format(e?.stack || e?.message || e)}'`); unregisterPluginCommands(filename) } 
 }
 }
 Object.freeze(global.reload)
-watchPluginTree(pluginFolder).catch(console.error)
+if (global.rubyPluginWatch) watchPluginTree(pluginFolder).catch(console.error)
+else console.log(chalk.bold.yellow('🔕 Watchers de plugins desactivados'))
 async function isValidPhoneNumber(number) {
 const digits = String(number || '').replace(/\D/g, '')
 return digits.length >= 8 && digits.length <= 15

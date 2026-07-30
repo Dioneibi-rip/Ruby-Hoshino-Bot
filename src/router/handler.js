@@ -51,6 +51,10 @@ global.__rubyPrimaryBotCache = new TTLCache({ stdTTL: PRIMARY_BOT_CACHE_TTL_SECO
 }
 const PRIMARY_BOT_CACHE = global.__rubyPrimaryBotCache
 const PRIMARY_BOT_EMPTY = ''
+const CHAT_ACTIVITY_DEFAULT_MAX_USERS = Number(global.chatActivityMaxUsers || process.env.CHAT_ACTIVITY_MAX_USERS || 500)
+const CHAT_ACTIVITY_DEFAULT_TTL_MS = Number(global.chatActivityTtlDays || process.env.CHAT_ACTIVITY_TTL_DAYS || 30) * 24 * 60 * 60 * 1000
+const PARTICIPANT_INDEX_TTL_SECONDS = Math.max(5, Math.ceil(Number(global.participantIndexTtlMs || process.env.RUBY_PARTICIPANT_INDEX_TTL_MS || 30000) / 1000))
+const PARTICIPANT_INDEX_MAX = Number(process.env.RUBY_PARTICIPANT_INDEX_MAX || 2000)
 
 const TIMELOCK_COOLDOWN_SCOPE = 'timelock_cooldown'
 const TIMELOCK_COOLDOWN_MS = 24 * 60 * 60 * 1000
@@ -375,6 +379,53 @@ if (!chat?.endsWith?.('@g.us')) return ''
 return message?.key?.participant || message?.participant || message?.sender || ''
 }
 
+function pruneChatActivityUsers(users = {}, now = Date.now(), { maxUsers = CHAT_ACTIVITY_DEFAULT_MAX_USERS, ttlMs = CHAT_ACTIVITY_DEFAULT_TTL_MS } = {}) {
+if (!users || typeof users !== 'object') return {}
+const entries = Object.entries(users).filter(([jid, data]) => {
+  if (!jid || !data || typeof data !== 'object') return false
+  const lastActive = Number(data.lastMessageTime || data.lastMsg || data.updatedAt || 0)
+  return !ttlMs || !lastActive || now - lastActive <= ttlMs
+})
+if (entries.length > maxUsers) {
+  entries.sort((a, b) => Number(b[1]?.lastMessageTime || b[1]?.lastMsg || 0) - Number(a[1]?.lastMessageTime || a[1]?.lastMsg || 0))
+  entries.length = maxUsers
+}
+return Object.fromEntries(entries)
+}
+
+function isMediaOrInteractiveMessage(m = {}, rawMessage = {}) {
+const msg = m.message || rawMessage.message || {}
+const content = unwrapMessageContent(msg) || msg
+const keys = Object.keys(content || {})
+return keys.some(key => /image|video|audio|sticker|document|interactive|buttons|list|template|reaction|poll/i.test(key)) || Boolean(m.quoted || m.isBaileys || m.message?.buttonsResponseMessage || m.message?.listResponseMessage || m.message?.interactiveResponseMessage)
+}
+
+function shouldRunBeforeHook(plugin = {}, m = {}, rawMessage = {}, parsed = null) {
+if (!plugin || plugin.disabled) return false
+if (plugin.skipSimpleText !== true && plugin.needsMedia !== true) return true
+const hasCommand = Boolean(parsed?.command)
+const mediaOrInteractive = isMediaOrInteractiveMessage(m, rawMessage)
+if (plugin.needsMedia === true && !mediaOrInteractive) return false
+if (plugin.skipSimpleText === true && !hasCommand && !mediaOrInteractive) return false
+return true
+}
+
+async function getParticipantContext(conn, chat, { requireParticipants = false, force = false } = {}) {
+if (!requireParticipants || !chat) return { groupMetadata: {}, participants: [], participantsByLid: null }
+if (!(conn.__rubyParticipantIndexCache instanceof TTLCache)) conn.__rubyParticipantIndexCache = new TTLCache({ stdTTL: PARTICIPANT_INDEX_TTL_SECONDS, checkperiod: Math.max(5, PARTICIPANT_INDEX_TTL_SECONDS), useClones: false, max: PARTICIPANT_INDEX_MAX })
+const cacheKey = `${chat}:participants`
+if (!force) {
+  const cached = conn.__rubyParticipantIndexCache.get(cacheKey)
+  if (cached) return cached
+}
+const groupMetadata = await getGroupMetadataOnDemand(conn, chat, { requireParticipants: true, force })
+const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
+const participantsByLid = createParticipantIndex(participants)
+const context = { groupMetadata: groupMetadata || {}, participants, participantsByLid }
+conn.__rubyParticipantIndexCache.set(cacheKey, context)
+return context
+}
+
 function trackLocalGroupActivity(conn, mOrRaw = {}, sender = '', { isCommand = false, countMessage = true } = {}) {
 try {
 if (!conn || !mOrRaw || typeof mOrRaw !== 'object') return null
@@ -398,6 +449,7 @@ if (isCommand) next.cmdCount = (Number(next.cmdCount) || 0) + 1
 next.lastMessageTime = now
 next.lastMsg = now
 chat.users[jid] = next
+chat.users = pruneChatActivityUsers(chat.users, now)
 chat.activityUpdatedAt = now
 global.db?.updateChat?.(chatId, { users: chat.users, activityUpdatedAt: chat.activityUpdatedAt })
 return next
@@ -682,7 +734,7 @@ const deletePayload = getMessageDeletePayload(m, sender)
 if (deletePayload) conn.sendMessage?.(m.chat, { delete: deletePayload }).catch(() => {})
 }
 if (sender) {
-if (typeof global.db?.incrementUserActivity === 'function') await global.db.incrementUserActivity(sender, {
+if (typeof global.db?.incrementUserActivityFast === 'function') await global.db.incrementUserActivityFast(sender, {
 exp: m.exp || 0,
 coin: -((m.coin || 0) * 1),
 messages: 1
@@ -771,9 +823,10 @@ const rawCommand = fastPath.rawCommand || getRawCommandName(m.text)
 if (rawCommand === 'resetbot') {
 sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
 if (!sender) return
-const groupMetadata = m.isGroup ? await getGroupMetadataOnDemand(this, m.chat, { requireParticipants: true }) : {}
-const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
-const participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
+const resetContext = m.isGroup ? await getParticipantContext(this, m.chat, { requireParticipants: true, force: true }) : { groupMetadata: {}, participants: [], participantsByLid: null }
+const groupMetadata = resetContext.groupMetadata
+const participants = resetContext.participants
+const participantsByLid = resetContext.participantsByLid
 await forceResetBotState(this, m, sender, participantsByLid, participants)
 return
 }
@@ -784,11 +837,12 @@ const commandEntry = fastPath.commandEntry || (parsed?.command ? commandsMap.get
 sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
 if (!sender) return
 m.__deleteKey = m.key ? { ...m.key } : null
-const needsParticipants = Boolean(m.isGroup && (fastPath.needsModeration || pluginRequiresGroupParticipants(commandEntry?.plugin) || (global.beforeHooks || beforeHooks || []).some(({ plugin } = {}) => typeof plugin?.before === 'function')))
-const requiresFreshAdminMetadata = Boolean(commandEntry?.plugin?.admin || commandEntry?.plugin?.botAdmin || commandEntry?.plugin?.needsParticipants)
-let groupMetadata = needsParticipants ? await getGroupMetadataOnDemand(this, m.chat, { requireParticipants: true, force: requiresFreshAdminMetadata }) : {}
-let participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
-let participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
+const strictParticipantMetadata = Boolean(global.strictParticipantMetadata || process.env.RUBY_STRICT_PARTICIPANT_METADATA === 'true')
+const activeBeforeHooks = global.beforeHooks || beforeHooks || []
+const beforeHooksNeedParticipants = activeBeforeHooks.some(({ plugin } = {}) => typeof plugin?.before === 'function' && (!strictParticipantMetadata || plugin?.needsParticipants === true))
+const needsParticipants = Boolean(m.isGroup && (fastPath.needsModeration || pluginRequiresGroupParticipants(commandEntry?.plugin) || beforeHooksNeedParticipants))
+const requiresFreshAdminMetadata = Boolean(commandEntry?.plugin?.admin || commandEntry?.plugin?.botAdmin || commandEntry?.plugin?.needsParticipants || fastPath.needsModeration)
+let { groupMetadata, participants, participantsByLid } = needsParticipants ? await getParticipantContext(this, m.chat, { requireParticipants: true, force: requiresFreshAdminMetadata }) : { groupMetadata: {}, participants: [], participantsByLid: null }
 sender = normalizeLidReferences(m, sender, participantsByLid)
 sender = await normalizeMessageIdentifiers(this, m, sender, participantsByLid)
 if (needsParticipants && (!participants.length || !participants.some((participant) => {
@@ -796,9 +850,7 @@ const ids = [participant?.jid, participant?.id, participant?.lid].filter(Boolean
 const senderNumber = String(this.decodeJid?.(sender) || sender).split('@')[0]
 return senderNumber && ids.includes(senderNumber)
 }))) {
-groupMetadata = await getGroupMetadataOnDemand(this, m.chat, { requireParticipants: true, force: true })
-participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
-participantsByLid = m.isGroup ? createParticipantIndex(participants) : null
+({ groupMetadata, participants, participantsByLid } = await getParticipantContext(this, m.chat, { requireParticipants: true, force: true }))
 sender = normalizeLidReferences(m, sender, participantsByLid)
 sender = await normalizeMessageIdentifiers(this, m, sender, participantsByLid)
 }
@@ -842,11 +894,11 @@ const baseContext = { chatUpdate, __dirname: pluginDir, __filename }
 await runPluginHooks(this, plugin, name, m, baseContext)
 if (m.__pluginHalt) return
 }
-for (const hook of global.beforeHooks || beforeHooks || []) {
+for (const hook of activeBeforeHooks) {
 const chatDataForAdminMode = m.isGroup ? getFreshChatRecord(m.chat) : null
 if (parsed?.command && prefixMatch?.[0]?.[0] && chatDataForAdminMode?.modoadmin && !isAdmin && !isOwner && !isROwner) return
 const { name, plugin } = hook || {}
-if (!plugin || plugin.disabled) continue
+if (!shouldRunBeforeHook(plugin, m, rawMessage, parsed)) continue
 if (!opts.restrict && plugin.tags?.includes?.('admin')) continue
 const __filename = join(pluginDir, name)
 const match = getPrefixMatch(this, plugin, m.text)

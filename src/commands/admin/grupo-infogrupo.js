@@ -40,4 +40,6 @@ handler.command = ['infogrupo', 'gp'];
 handler.register = true
 handler.group = true;
 
+handler.needsParticipants = true
+
 export default handler;
