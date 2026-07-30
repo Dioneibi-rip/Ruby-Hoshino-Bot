@@ -223,13 +223,22 @@ if (!this._isExpired(entry, now)) continue
 if (!this._canEvict(key, entry.value)) { entry.touchedAt = now; continue }
 this._evict(key, entry)
 }
-while (this.size > this.max) {
+let guard = this.size
+while (this.size > this.max && guard-- > 0) {
 const oldest = super.entries().next()
 if (oldest.done) break
 const [key, entry] = oldest.value
-if (!this._canEvict(key, entry.value)) { super.delete(key); super.set(key, entry); break }
+if (!this._canEvict(key, entry.value)) {
+  super.delete(key)
+  super.set(key, entry)
+  continue
+}
 this._evict(key, entry)
 }
+}
+clear() {
+for (const [key, entry] of super.entries()) this._evict(key, entry)
+return undefined
 }
 entries() { return Array.from(super.entries(), ([key, entry]) => [key, entry.value])[Symbol.iterator]() }
 values() { return Array.from(super.values(), entry => entry.value)[Symbol.iterator]() }
@@ -272,6 +281,12 @@ this.flushTimer.unref?.()
 this.tempCleanupIntervalMs = Number(process.env.SQLITE_TEMP_CLEANUP_INTERVAL_MS || 60 * 60 * 1000)
 this.tempCleanupTimer = setInterval(() => this.cleanupExpiredTemporaryStates(), this.tempCleanupIntervalMs)
 this.tempCleanupTimer.unref?.()
+this.userCacheGcIntervalMs = Number(process.env.SQLITE_USER_CACHE_GC_INTERVAL_MS || 5 * 60 * 1000)
+this.userCacheGcTimer = setInterval(() => {
+  this.userCache.prune()
+  this.userProxyCache.prune()
+}, this.userCacheGcIntervalMs)
+this.userCacheGcTimer.unref?.()
 this._prepareSchema()
 this._prepareStatements()
 this._migrateJsonSectionsToTables()
@@ -539,7 +554,7 @@ addUserActivity: this.sqlite.prepare('UPDATE users SET exp = COALESCE(exp, 0) + 
 
 
 _bindPublicApi() {
-for (const name of ['topUsers', 'getTopUsers', 'userRank', 'countUsers', 'countRegisteredUsers', 'getUserAsync', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'updateUserAsync', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'incrementUserActivity', 'transferBetweenUsers', 'settleUserBet', 'buyGachaMarketSale', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
+for (const name of ['topUsers', 'getTopUsers', 'userRank', 'countUsers', 'countRegisteredUsers', 'getUserAsync', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'updateUserAsync', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'incrementUserActivity', 'incrementUserActivityFast', 'transferBetweenUsers', 'settleUserBet', 'buyGachaMarketSale', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
 this[name] = this[name].bind(this)
 }
 }
@@ -782,9 +797,9 @@ return this.getUser(userId)
 }
 setEconomy(id, field, value) { return this.updateUser(id, { [field]: value }) }
 
-incrementUserActivity(id, { exp = 0, coin = 0, messages = 1 } = {}) {
+incrementUserActivityFast(id, { exp = 0, coin = 0, messages = 1 } = {}) {
 const userId = normalizeJid(id)
-if (!userId) throw new TypeError('incrementUserActivity requiere un id de usuario válido')
+if (!userId) throw new TypeError('incrementUserActivityFast requiere un id de usuario válido')
 const safeExp = Number(exp) || 0
 const safeCoin = Number(coin) || 0
 const safeMessages = Math.trunc(Number(messages) || 0)
@@ -792,13 +807,23 @@ this.statements.insertUser.run(userId)
 this.statements.addUserActivity.run(safeExp, safeCoin, safeMessages, userId)
 const cached = this.userCache.get(userId)
 if (cached) {
-  cached.exp = (Number(cached.exp) || 0) + safeExp
-  cached.coin = (Number(cached.coin) || 0) + safeCoin
-  cached.msg_count = (Number(cached.msg_count) || 0) + safeMessages
-  cached.updated_at = Math.floor(Date.now() / 1000)
-  this.userCache.set(userId, cached)
+  const next = { ...cached }
+  next.exp = (Number(next.exp) || 0) + safeExp
+  next.coin = (Number(next.coin) || 0) + safeCoin
+  next.msg_count = (Number(next.msg_count) || 0) + safeMessages
+  next.updated_at = Math.floor(Date.now() / 1000)
+  this.userCache.set(userId, next)
 }
 return this._userProxy(userId)
+}
+
+incrementUserActivity(id, { exp = 0, coin = 0, messages = 1 } = {}) {
+const userId = normalizeJid(id)
+if (!userId) throw new TypeError('incrementUserActivity requiere un id de usuario válido')
+this.incrementUserActivityFast(userId, { exp, coin, messages })
+const user = this._rowToUser(this.statements.getUserById.get(userId))
+if (user) this.userCache.set(userId, user)
+return this.getUser(userId)
 }
 
 topUsers({ field = 'coin', limit = 10, offset = 0 } = {}) {
@@ -1101,7 +1126,7 @@ for (const id of ids) this.dirtyUsers.delete(id)
 }
 }
 forceSave() { return this.write() }
-close() { if (this.flushTimerHandle) clearTimeout(this.flushTimerHandle); this.flush(); if (this.flushTimer) clearInterval(this.flushTimer); if (this.tempCleanupTimer) clearInterval(this.tempCleanupTimer); this.sqlite.pragma('wal_checkpoint(PASSIVE)'); this.sqlite.close() } snapshot() { return { users: this.getSection('users'), marriages: this.getSection('marriages'), harem: this.getSection('harem'), gacha_market: this.getSection('gacha_market'), claim_config: this.getSection('claim_config'), character_favorites: this.getSection('character_favorites') } }
+close() { if (this.flushTimerHandle) clearTimeout(this.flushTimerHandle); this.flush(); if (this.flushTimer) clearInterval(this.flushTimer); if (this.tempCleanupTimer) clearInterval(this.tempCleanupTimer); if (this.userCacheGcTimer) clearInterval(this.userCacheGcTimer); this.sqlite.pragma('wal_checkpoint(PASSIVE)'); this.sqlite.close() } snapshot() { return { users: this.getSection('users'), marriages: this.getSection('marriages'), harem: this.getSection('harem'), gacha_market: this.getSection('gacha_market'), claim_config: this.getSection('claim_config'), character_favorites: this.getSection('character_favorites') } }
 }
 export { SQLiteDatabase as DbManager }
 export default SQLiteDatabase

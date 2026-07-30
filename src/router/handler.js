@@ -734,7 +734,7 @@ const deletePayload = getMessageDeletePayload(m, sender)
 if (deletePayload) conn.sendMessage?.(m.chat, { delete: deletePayload }).catch(() => {})
 }
 if (sender) {
-if (typeof global.db?.incrementUserActivity === 'function') await global.db.incrementUserActivity(sender, {
+if (typeof global.db?.incrementUserActivityFast === 'function') await global.db.incrementUserActivityFast(sender, {
 exp: m.exp || 0,
 coin: -((m.coin || 0) * 1),
 messages: 1
