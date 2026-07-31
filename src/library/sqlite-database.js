@@ -580,10 +580,6 @@ if (typeof statement.getAsync === 'function') return this._rowToUser(await state
 return this._rowToUser(statement.get(id))
 }
 async _runUserRowAsync(id, user) {
-// Las builds nativas usadas por el bot exponen runAsync(), pero algunas no
-// propagan correctamente los parámetros nombrados. Para perfiles/economía
-// priorizamos persistencia transaccional: el mutex mantiene el flujo async y
-// el commit real se hace con run(), igual que el resto del motor SQLite.
 return this._writeUserRow(id, user)
 }
 _withUserWriteLock(id, task) {
@@ -901,14 +897,6 @@ if (typeof chat.welcome === 'undefined') chat.welcome = true
 if (typeof chat.antiLink === 'undefined') chat.antiLink = true
 if (typeof chat.antilink === 'undefined') chat.antilink = true
 if (typeof chat.detect === 'undefined') chat.detect = true
-const primary = chat.primaryBot ?? chat.botPrimario ?? null
-if (primary) {
-chat.primaryBot = primary
-chat.botPrimario = primary
-} else {
-if (typeof chat.primaryBot === 'undefined') chat.primaryBot = null
-if (typeof chat.botPrimario === 'undefined') chat.botPrimario = null
-}
 if (!chat.botSettings || typeof chat.botSettings !== 'object' || Array.isArray(chat.botSettings)) chat.botSettings = {}
 if (chat.isBanned === true) chat.isBanned = { '*': true }
 else if (!chat.isBanned || typeof chat.isBanned !== 'object') chat.isBanned = {}
@@ -918,7 +906,6 @@ chat.botSettings[jid] ||= {}
 if (typeof chat.botSettings[jid].isBanned === 'undefined') chat.botSettings[jid].isBanned = true
 }
 }
-chat.bannedBots = Object.entries(chat.botSettings).filter(([, value]) => value?.isBanned === true).map(([jid]) => jid)
 return chat
 }
 getChat(id) { if (!id || typeof id !== 'string') throw new TypeError('getChat requiere un id de chat válido'); const row = this.sqlite.prepare('SELECT value FROM chats WHERE id=?').get(id); return this.normalizeChatDefaults(parseJSON(row?.value, {})) }
@@ -927,8 +914,6 @@ const args = { id: sanitizeSqliteArg(id), patch: sanitizeSqliteArg(patch, { json
 try {
 const chat = this.normalizeChatDefaults({ ...this.getChat(id), ...(patch || {}) })
 this.set('chats', id, chat)
-const primary = chat.primaryBot || chat.botPrimario || ''
-global.__rubyPrimaryBotCache?.set?.(id, primary ? String(primary).toLowerCase() : '')
 return chat
 } catch (error) {
 console.error('[sqlite] no se pudo actualizar chat', { args, error })

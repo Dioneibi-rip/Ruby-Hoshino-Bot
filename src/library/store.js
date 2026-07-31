@@ -128,7 +128,7 @@ function startMessagePruner() {
   return pruneTimer
 }
 function pruneStoreMessages() {
-  const stores = [instance, global.conn?.store, global.conn?.baileysStore, ...(Array.isArray(global.conns) ? global.conns.map(conn => conn?.store || conn?.baileysStore) : [])].filter(Boolean)
+  const stores = [instance, global.conn?.store, global.conn?.baileysStore].filter(Boolean)
   for (const currentStore of new Set(stores)) pruneMemoryStore(currentStore)
 }
 function pruneMemoryStore(currentStore) {

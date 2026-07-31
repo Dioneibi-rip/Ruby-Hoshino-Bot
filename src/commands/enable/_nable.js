@@ -17,10 +17,6 @@ return text.split('').map(char => fancyFontMap[char] || char).join('');
 const chatFeatureKeys = {
 antibot: 'antiBot',
 antibots: 'antiBot',
-antisubbots: 'antiBot2',
-antisub: 'antiBot2',
-antisubot: 'antiBot2',
-antibot2: 'antiBot2',
 antilink: 'antiLink',
 antidelete: 'delete',
 antieliminar: 'delete',
@@ -36,8 +32,6 @@ restringir: 'restrict',
 antispam: 'antiSpam',
 antiSpam: 'antiSpam',
 antispamosos: 'antiSpam',
-jadibotmd: 'jadibotmd',
-modejadibot: 'jadibotmd'
 };
 
 const featureNames = {
@@ -50,14 +44,12 @@ const featureNames = {
 'audios': 'Audios',
 'autosticker': 'Auto Sticker',
 'antibot': 'Anti-Bot', 'antibots': 'Anti-Bot',
-'antisubbots': 'Anti-Sub Bots', 'antisub': 'Anti-Sub Bots', 'antisubot': 'Anti-Sub Bots', 'antibot2': 'Anti-Sub Bots',
 'modoadmin': 'Modo Admin', 'soloadmin': 'Modo Admin', 'onlyadmin': 'Modo Admin',
 'autoread': 'Auto Leer', 'autoleer': 'Auto Leer', 'autover': 'Auto Leer',
 'reaction': 'Reacción', 'reaccion': 'Reacción', 'emojis': 'Reacción',
 'nsfw': 'NSFW', 'nsfwhot': 'NSFW', 'nsfwhorny': 'NSFW',
 'antispam': 'Anti-Spam', 'antiSpam': 'Anti-Spam', 'antispamosos': 'Anti-Spam',
 'antidelete': 'Anti-Eliminar', 'antieliminar': 'Anti-Eliminar',
-'jadibotmd': 'Modo Jadibot', 'modejadibot': 'Modo Jadibot',
 'detect': 'Detección', 'configuraciones': 'Detección', 'avisodegp': 'Detección',
 'detect2': 'Detección 2', 'avisos': 'Detección 2', 'eventos': 'Detección 2',
 'antilink': 'Anti-Enlaces'
@@ -181,18 +173,6 @@ throw false;
 }
 chat.antiBot = isEnable;
 break;
-case 'antisubbots':
-case 'antisub':
-case 'antisubot':
-case 'antibot2':
-if (m.isGroup) {
-if (!(isAdmin || isOwner)) {
-global.dfail('admin', m, conn);
-throw false;
-}
-}
-chat.antiBot2 = isEnable;
-break;
 case 'modoadmin':
 case 'soloadmin':
 case 'onlyadmin':
@@ -261,15 +241,6 @@ throw false;
 }
 }
 chat.delete = isEnable;
-break;
-case 'jadibotmd':
-case 'modejadibot':
-isAll = true;
-if (!isOwner) {
-global.dfail('rowner', m, conn);
-throw false;
-}
-bot.jadibotmd = isEnable;
 break;
 case 'detect':
 case 'configuraciones':
@@ -367,9 +338,9 @@ await global.db.save?.();
 await conn.reply(m.chat, replyText, fkontak || m);
 };
 
-handler.help = ['welcome', 'audios', 'antiPorno', 'bv', 'bienvenida', 'antiprivado', 'antipriv', 'antiprivate', 'antigrupos', 'antigroup', 'antigrupo', 'restrict', 'restringir', 'autolevelup', 'autonivel', 'autosticker', 'antibot', 'antibots', 'antisubbots', 'antisub', 'antisubot', 'antibot2', 'modoadmin', 'soloadmin', 'onlyadmin', 'autoread', 'autoleer', 'autover', 'reaction', 'reaccion', 'emojis', 'nsfw', 'nsfwhot', 'nsfwhorny', 'antispam', 'antiSpam', 'antispamosos', 'antidelete', 'antieliminar', 'jadibotmd', 'modejadibot', 'subbots', 'detect', 'configuraciones', 'avisodegp', 'detect2', 'avisos', 'eventos', 'antilink', 'antitoxic', 'antitoxicos'];
+handler.help = ['welcome', 'audios', 'antiPorno', 'bv', 'bienvenida', 'antiprivado', 'antipriv', 'antiprivate', 'antigrupos', 'antigroup', 'antigrupo', 'restrict', 'restringir', 'autolevelup', 'autonivel', 'autosticker', 'antibot', 'antibots', 'modoadmin', 'soloadmin', 'onlyadmin', 'autoread', 'autoleer', 'autover', 'reaction', 'reaccion', 'emojis', 'nsfw', 'nsfwhot', 'nsfwhorny', 'antispam', 'antiSpam', 'antispamosos', 'antidelete', 'antieliminar', 'detect', 'configuraciones', 'avisodegp', 'detect2', 'avisos', 'eventos', 'antilink', 'antitoxic', 'antitoxicos'];
 handler.tags = ['nable'];
 handler.needsParticipants = true;
-handler.command = ['welcome', 'audios', 'bv', 'bienvenida', 'antiprivado', 'antipriv', 'antiprivate', 'antigrupos', 'antigroup', 'antigrupo', 'antigrupos', 'antigroup', 'antigrupo', 'restrict', 'restringir', 'autolevelup', 'autonivel', 'autosticker', 'antibot', 'antibots', 'antisubbots', 'antisubbots', 'antisub', 'antisubot', 'antibot2', 'modoadmin', 'soloadmin', 'onlyadmin', 'autoread', 'autoleer', 'autover', 'reaction', 'reaccion', 'emojis', 'nsfw', 'nsfwhot', 'nsfwhorny', 'antispam', 'antiSpam', 'antispamosos', 'antidelete', 'antieliminar', 'jadibotmd', 'modejadibot', 'subbots', 'detect', 'configuraciones', 'avisodegp', 'detect2', 'avisos', 'eventos', 'antilink'];
+handler.command = ['welcome', 'audios', 'bv', 'bienvenida', 'antiprivado', 'antipriv', 'antiprivate', 'antigrupos', 'antigroup', 'antigrupo', 'antigrupos', 'antigroup', 'antigrupo', 'restrict', 'restringir', 'autolevelup', 'autonivel', 'autosticker', 'antibot', 'antibots', 'modoadmin', 'soloadmin', 'onlyadmin', 'autoread', 'autoleer', 'autover', 'reaction', 'reaccion', 'emojis', 'nsfw', 'nsfwhot', 'nsfwhorny', 'antispam', 'antiSpam', 'antispamosos', 'antidelete', 'antieliminar', 'detect', 'configuraciones', 'avisodegp', 'detect2', 'avisos', 'eventos', 'antilink'];
 
 export default handler;

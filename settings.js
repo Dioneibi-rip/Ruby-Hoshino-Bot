@@ -4,21 +4,17 @@ import fs from 'fs'
 const chalk = { redBright: text => `\x1b[91m${text}\x1b[0m` }
 import axios from './src/library/http.js'
 
-//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.botNumber = ''
 
-//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.owner = [
-// <-- Número @s.whatsapp.net -->
   ['18093519169', '⏤͟͞ू⃪ ፝͜⁞𝘿𝙞𝙤𝙣𝙚𝙞𝙗𝙞-ʳⁱᵖ ִֶ ࣪˖ ִֶָ🐇་༘', true],
   ['84898436221', '⏤͟͞ू⃪ ፝͜𝐅ꫀl͟𝐢𝘅 o͜͡𝗳𝐜⁞་༘', true],
   ['18096758983', '⟆⃝༉⃟⸙ ᯽ N͙e͙v͙i͙-D͙e͙v͙ ⌗⚙️࿐', true],
   ['5216671548329', 'ू⃪ ꒰˘͈ᵕ ˘͈ 𝑳𝒆𝒈𝒏𝒂-𝒄𝒉𝒂𝒏 🪽 ꒱𖦹', true],
   ['573114910796', 'Arlette 🎀', true],
 
-// <-- Número @lid -->
   ['122544745111646', 'Dioneibi', true],
   ['236391074132098', 'NEOTOKIO', true],
   ['260081845334105', 'nevi', true],
@@ -26,13 +22,11 @@ global.owner = [
   ['177266856313074', 'speed3xz', true]
 ]
 
-//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.mods = []
 global.suittag = ['18093519169']
 global.prems = []
 
-//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.libreria = 'Baileys'
 global.baileys = 'V 6.7.16'
@@ -41,9 +35,6 @@ global.vs = '2.2.0'
 global.nameqr = 'Ruby-Hoshino-Bot-MD'
 global.namebot = '꒰ 🥥 ꒱ؘ 𝙍𝙪𝙗𝙮-𝙃𝙤𝙨𝙝𝙞𝙣𝙤-𝘽𝙤𝙩 ♪ ࿐ ࿔*:･ﾟ'
 global.Rubysessions = 'RubySessions'
-global.jadi = 'RubyJadiBots'
-global.RubyJadibts = true
-global.subbotlimitt = 22
 
 const envBool = (name, fallback) => {
   const value = process.env[name]
@@ -52,7 +43,6 @@ const envBool = (name, fallback) => {
 }
 
 global.baileysSocketConfig = {
-  // Valores alineados con DEFAULT_CONNECTION_CONFIG del upstream Baileys estable.
   connectTimeoutMs: 20000,
   keepAliveIntervalMs: 30000,
   retryRequestDelayMs: 250,
@@ -66,19 +56,8 @@ global.baileysSocketConfig = {
   reconnectJitterMs: 5000
 }
 
-global.subBotLiteMode = envBool('SUBBOT_LITE_MODE', true)
-global.subBotBaileysSocketConfig = {
-  ...global.baileysSocketConfig,
-  markOnlineOnConnect: envBool('SUBBOT_MARK_ONLINE', global.subBotLiteMode ? false : (global.baileysSocketConfig.markOnlineOnConnect ?? true)),
-  syncFullHistory: envBool('SUBBOT_SYNC_FULL_HISTORY', global.subBotLiteMode ? false : (global.baileysSocketConfig.syncFullHistory ?? true)),
-  fireInitQueries: envBool('SUBBOT_FIRE_INIT_QUERIES', global.subBotLiteMode ? false : (global.baileysSocketConfig.fireInitQueries ?? true)),
-  emitOwnEvents: envBool('SUBBOT_EMIT_OWN_EVENTS', global.subBotLiteMode ? false : (global.baileysSocketConfig.emitOwnEvents ?? true)),
-  generateHighQualityLinkPreview: envBool('SUBBOT_HIGH_QUALITY_LINK_PREVIEW', false)
-}
-
 global.rubyPluginWatch = envBool('RUBY_PLUGIN_WATCH', process.env.NODE_ENV !== 'production')
 
-// Límites de concurrencia y anti-spam interno para proteger el Event Loop bajo ráfagas.
 global.messageQueueMaxConcurrency = Number(process.env.MESSAGE_QUEUE_MAX_CONCURRENCY || 8)
 global.messageQueueMaxUserQueue = Number(process.env.MESSAGE_QUEUE_MAX_USER_QUEUE || 100)
 global.messageQueueMaxTotalQueue = Number(process.env.MESSAGE_QUEUE_MAX_TOTAL_QUEUE || 3000)
@@ -94,7 +73,6 @@ global.chatActivityTtlDays = Number(process.env.CHAT_ACTIVITY_TTL_DAYS || 30)
 global.strictParticipantMetadata = envBool('RUBY_STRICT_PARTICIPANT_METADATA', false)
 global.participantIndexTtlMs = Number(process.env.RUBY_PARTICIPANT_INDEX_TTL_MS || 30000)
 
-//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.packname = '⏤̛̣̣̣̣̣̣̣̣̣̣̣͟͟͞͞⏤͟͟͞͞🍭𝐑υׁׅ𝐛𝐲 𝐇ᨵׁׅׅ𝐬𝐡𝐢𝐧ᨵׁׅׅ ૮(˶ᵔᵕᵔ˶)ა'
 global.botname = ' ࣪☀ ࣭𝗥𝘂𝗯𝘆 𝗛𝗼𝘀𝗵𝗶𝗻𝗼 𝗕𝗼𝘁࣪ 𝟹𝟹 ✿'
@@ -104,11 +82,9 @@ global.dev = '⌬ Modified by: Dioneibi-rip ⚙️💻 '
 global.textbot = '⏤͟͞ू⃪ 𝑹𝒖𝒃𝒚-𝐻𝒐𝒔𝒉𝒊𝒏𝒐🌸⃝𖤐 • 𝗣𝗼𝘄𝗲𝗿𝗲𝗱 𝗕𝘆 ᴰⁱᵒⁿᵉⁱᵇⁱ⁻ʳⁱᵖ'
 global.etiqueta = 'ˑ 𓈒 𐔌 D͙i͙o͙n͙e͙i͙b͙i͙-r͙i͙p͙ ͡꒱ ۫'
 
-//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.catalogo = fs.readFileSync('./src/catalogo.jpg')
 
-//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.gp1 = 'https://chat.whatsapp.com/D070oCPt4it7M2MohvYoOn'
 global.comunidad1 = 'https://chat.whatsapp.com/BjlcnMjRlYhEL1uUBEWTNg'
@@ -119,7 +95,6 @@ global.correo = 'nimierdalopondre@gmail.com'
 global.cn = 'https://whatsapp.com/channel/0029VakLbM76mYPPFL0IFI3P'
 global.ch = { ch1: '120363335626706839@newsletter' }
 
-//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.estilo = { key: { fromMe: false, participant: `0@s.whatsapp.net`, ...(false ? { remoteJid: "5219992095479-1625305606@g.us" } : {}) }, message: { orderMessage: { itemCount : -999999, status: 1, surface : 1, message: packname, orderTitle: 'Bang', thumbnail: catalogo, sellerJid: '0@s.whatsapp.net'}}}
 
@@ -158,7 +133,6 @@ global.fakeIconUrls = [
   'https://files.catbox.moe/fe6pw6.jpeg'
 ]
 
-//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.creador = 'Wa.me/18093519169'
 global.asistencia = 'Wa.me/18093519169'
@@ -191,7 +165,6 @@ global.readMore = String.fromCharCode(8206).repeat(850)
 global.packsticker = global.packsticker || global.botname
 global.packsticker2 = '𝚁𝚄𝙱𝚈 𝙱𝙾𝚃 𝙼𝙳 ˃ 𖥦 ˂'
 
-//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.getRandomChannel = function getRandomChannel() {
   const ids = global.canalIdM || []
@@ -239,7 +212,6 @@ global.updateMessageGlobals = async function updateMessageGlobals(m = {}, conn =
   global.taguser = '@' + String(sender).split('@')[0]
 }
 
-//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 const imagenes = [
   "https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/%F0%9F%A4%8D%20(1).jpeg",
@@ -338,7 +310,6 @@ global.saludo = global.getSaludo()
 global.nombre = 'Anónimo'
 global.taguser = '@0'
 
-//*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 let file = fileURLToPath(import.meta.url)
 watchFile(file, () => {
