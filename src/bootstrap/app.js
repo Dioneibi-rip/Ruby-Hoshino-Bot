@@ -462,7 +462,11 @@ console.log(chalk.bold.cyan(`✅ Carpeta de sub-Bots creada`))
 } else {
 console.log(chalk.bold.cyan(`✨ Cargando sub-Bots...`))
 }
-const subBotPaths = limpiarSubBots()
+let subBotPaths = limpiarSubBots()
+const shardIndex = Number(process.env.SUBBOT_SHARD_INDEX || 0)
+const shardCount = Math.max(1, Number(process.env.SUBBOT_SHARD_COUNT || 1))
+const workerCapacity = Math.max(1, Number(process.env.SUBBOT_WORKER_CAPACITY || subBotPaths.length || 1))
+if (shardCount > 1) subBotPaths = subBotPaths.filter((_, index) => index % shardCount === shardIndex).slice(0, workerCapacity)
 if (subBotPaths.length > 0) {
 const batchSize = Math.max(1, Number(global.subBotLoadBatch || process.env.SUBBOT_LOAD_BATCH || 1))
 const loadDelayMs = Math.max(250, Number(global.subBotLoadDelayMs || process.env.SUBBOT_LOAD_DELAY_MS || 2500))

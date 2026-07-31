@@ -16,7 +16,8 @@
     "eslintfix": "eslint --fix .",
     "qr": "node index.js qr",
     "start": "node index.js",
-    "test": "node --check index.js && node --check src/bootstrap/app.js && node --check src/router/handler.js"
+    "test": "node --check index.js && node --check src/bootstrap/app.js && node --check src/router/handler.js",
+    "master": "node master.js"
   },
   "author": {
     "name": "Dioneibi-rip"
