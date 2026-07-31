@@ -205,10 +205,11 @@ if (!(global.conns instanceof Array)) global.conns = []
 startSubBotSupervisor()
 if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
 const subBotConnectionStates = global.subBotConnectionStates || (global.subBotConnectionStates = new Map())
-global.subBotPool ||= new Map()
-global.primaryConns ||= []
+global.SUBBOTSESSIONS ||= new Map()
+const subBotReconnectAttempts = global.subBotReconnectAttempts || (global.subBotReconnectAttempts = Object.create(null))
+const subBotCommandFlags = global.subBotCommandFlags || (global.subBotCommandFlags = Object.create(null))
 const SUBBOT_CONNECTING_TTL_MS = 120000
-const FATAL_RECONNECT_REASONS = new Set([DisconnectReason.loggedOut, 401, 403, 405])
+const FATAL_RECONNECT_REASONS = new Set([DisconnectReason.loggedOut, 405])
 const SUBBOT_MSG_STORE_LIMIT = Number(process.env.SUBBOT_MSG_STORE_LIMIT || 120)
 const SUBBOT_VERSION_TTL_MS = Number(process.env.SUBBOT_VERSION_TTL_MS || 3600000)
 let subBotVersionCache = null
@@ -264,7 +265,7 @@ return state
 function setSubBotConnectionState(id, status, metadata = {}) {
 const state = { ...(subBotConnectionStates.get(id) || {}), ...metadata, status, ts: Date.now() }
 subBotConnectionStates.set(id, state)
-void global.subBotManager?.setState?.(id, status, metadata).catch(error => console.error(`Error persistiendo estado Sub-Bot ${id}:`, error))
+void upsertSubBotAuthRegistry(id, null, status, metadata)
 return state
 }
 
@@ -292,6 +293,27 @@ try { sock.__msgRetryCache?.flushAll?.() } catch (error) { console.error('Error 
 try { sock.chats = {} } catch {}
 }
 
+function cleanupSessionPathInBackground(sessionPath, id = '') {
+if (!sessionPath) return Promise.resolve(false)
+const run = async () => {
+const target = `${sessionPath}.deleted-${Date.now()}-${Math.random().toString(16).slice(2)}`
+let removePath = target
+try {
+await fs.promises.rename(sessionPath, target)
+} catch (error) {
+if (error?.code === 'ENOENT') return false
+removePath = sessionPath
+}
+await fs.promises.rm(removePath, { recursive: true, force: true, maxRetries: 8, retryDelay: 500 })
+return true
+}
+const job = run().catch(error => {
+console.error(`Error eliminando sesión Sub-Bot ${id}:`, error)
+return false
+})
+return job
+}
+
 async function cleanupSubBotSession({ id, jid, sessionPath, sock, reason = 'manual' } = {}) {
 const normalizedJid = normalizeSubBotJid(jid || sock?.subBotJid || sock?.user?.jid || sock?.authState?.creds?.me?.jid || '')
 const sessionId = id || sock?.subBotId || subBotSessionId(normalizedJid)
@@ -303,8 +325,7 @@ try { sock?.ws?.close?.() } catch (error) { console.error(`Error cerrando websoc
 }
 try { sock?.ev?.removeAllListeners?.() } catch (error) { console.error(`Error quitando listeners del Sub-Bot ${sessionId}:`, error) }
 if (sock) clearSubBotMemoryRefs(sock)
-const manager = await getSubBotManager()
-manager.unregister(sessionId, sock)
+if (global.SUBBOTSESSIONS instanceof Map) global.SUBBOTSESSIONS.delete(sessionId)
 if (Array.isArray(global.conns)) {
 global.conns = global.conns.filter(conn => conn && conn !== sock && conn.subBotId !== sessionId && normalizeSubBotJid(conn.subBotJid || conn.user?.jid || conn.authState?.creds?.me?.jid || '') !== normalizedJid)
 }
@@ -312,7 +333,7 @@ if (global.subBotRegistry instanceof Map) global.subBotRegistry.delete(sessionId
 clearSubBotConnectionState(sessionId)
 if (sock) cleanupSessionState(sock)
 for (const targetPath of pathsToRemove) {
-manager.cleanupSessionInBackground(targetPath, sessionId)
+cleanupSessionPathInBackground(targetPath, sessionId)
 }
 try {
 await manager.deleteRegistry(sessionId, normalizedJid)
@@ -330,8 +351,7 @@ return false
 
 async function cleanupExistingSubBotForPairing({ id, jid, sessionPath } = {}) {
 const normalizedJid = normalizeSubBotJid(jid)
-const manager = await getSubBotManager()
-const pooledMatches = manager.findByJid(normalizedJid).map(([, item]) => item.sock)
+const pooledMatches = global.SUBBOTSESSIONS instanceof Map ? [...global.SUBBOTSESSIONS.values()].filter(conn => normalizeSubBotJid(conn?.subBotJid || conn?.user?.jid || conn?.authState?.creds?.me?.jid || '') === normalizedJid) : []
 const matches = [...new Set([...(Array.isArray(global.conns) ? global.conns.filter(conn => conn?.subBotId === id || normalizeSubBotJid(conn?.subBotJid || conn?.user?.jid || conn?.authState?.creds?.me?.jid || '') === normalizedJid) : []), ...pooledMatches])]
 for (const sock of matches) {
 await cleanupSubBotSession({ id, jid: normalizedJid, sessionPath: sock?.session?.path || sessionPath, sock, reason: 'overwrite' })
@@ -342,8 +362,7 @@ void cleanupSubBotSession({ id, jid: normalizedJid, sessionPath, reason: 'overwr
 }
 let handler = async (m, { conn, args = [], usedPrefix, command, isOwner }) => {
 const limiteSubBots = global.subbotlimitt || 26;
-const manager = await getSubBotManager()
-const activeConns = [...manager.pool.values()].map(item => item.sock).filter(Boolean)
+const activeConns = global.SUBBOTSESSIONS instanceof Map ? [...global.SUBBOTSESSIONS.values()].filter(Boolean) : (Array.isArray(global.conns) ? global.conns : [])
 const subBots = [...new Set(activeConns.filter((c) => c?.user && c?.ws?.socket && c.ws.socket.readyState !== ws.CLOSED))]
 const subBotsCount = subBots.length
 if (subBotsCount >= limiteSubBots) {
@@ -373,6 +392,7 @@ setSubBotConnectionState(id, 'connecting', { jid: subBotJid, path: pathRubyJadiB
 if (!await pathExists(pathRubyJadiBot)){
 await fs.promises.mkdir(pathRubyJadiBot, { recursive: true })
 }
+subBotCommandFlags[m.sender] = true
 const options = { pathRubyJadiBot, subBotJid, subBotId: id, m, conn, args: Array.isArray(args) ? [...args] : String(args || '').split(/\s+/).filter(Boolean), usedPrefix, command, fromCommand: true }
 try {
 await RubyJadiBot(options)
@@ -469,7 +489,15 @@ let pairingCodeMessageKey = null
 let pairingCodeTimer = null
 let qrMessageSent = false
 const removeSockFromPool = (targetSock = sock) => {
-manager.unregister(targetSock?.subBotId || subBotId, targetSock)
+const key = targetSock?.subBotId || subBotId
+if (global.SUBBOTSESSIONS instanceof Map) {
+const current = global.SUBBOTSESSIONS.get(key)
+if (!current || current === targetSock) global.SUBBOTSESSIONS.delete(key)
+}
+if (Array.isArray(global.conns)) {
+const index = global.conns.indexOf(targetSock)
+if (index >= 0) global.conns.splice(index, 1)
+}
 }
 const clearReconnectTimer = () => {
 if (reconnectTimer) clearTimeout(reconnectTimer)
@@ -535,7 +563,8 @@ sock.subBotId = subBotId
 sock.subBotJid = subBotJid
 attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.jid || 'primary', path: pathRubyJadiBot })
 isInit = true
-manager.register(subBotId, sock, { reconnecting: true, ts: Date.now() })
+global.SUBBOTSESSIONS.set(subBotId, sock)
+if (!global.conns.includes(sock)) global.conns.push(sock)
 registerSubBot(global.subBotRegistry, subBotId, { sock, reconnecting: true, ts: Date.now() })
 setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot })
 void upsertSubBotAuthRegistry(subBotId, sock, 'reconnecting', { path: pathRubyJadiBot, jid: subBotJid })
@@ -590,7 +619,7 @@ setTimeout(() => { conn.sendMessage(m.chat, { delete: txtQR.key }).catch(() => {
 return
 }
 if (qr && mcode) {
-if (!m?.chat || pairingCodeSent) return
+if (!m?.chat || pairingCodeSent || (m?.sender && subBotCommandFlags[m.sender] === false)) return
 const now = Date.now()
 const activeRequest = pairingCodeRequests.get(subBotId)
 if (activeRequest && now - activeRequest.ts < PAIRING_CODE_COOLDOWN_MS) {
@@ -661,6 +690,7 @@ copy_code: rawCode
 await conn.relayMessage(m.chat, interactivePayload.message, { messageId: interactivePayload.key.id })
 pairingCodeMessageKey = interactivePayload.key
 pairingCodeRequests.set(subBotId, { ts: now, key: pairingCodeMessageKey })
+if (m?.sender) delete subBotCommandFlags[m.sender]
 if (pairingCodeMessageKey) {
 pairingCodeTimer = setTimeout(() => {
 conn.sendMessage(m.chat, { delete: pairingCodeMessageKey }).catch(() => {})
@@ -680,6 +710,20 @@ const scheduleReconnect = async (closeReason, reconnectFn) => {
 return scheduleSafeReconnect(closeReason, reconnectFn)
 }
 if (connection === 'close') {
+if ([401, 403].includes(Number(reason))) {
+const botId = normalizeSubBotJid(sock?.subBotJid || sock?.user?.jid || sock?.authState?.creds?.me?.jid || subBotId) || subBotId
+const attempts = subBotReconnectAttempts[botId] || 0
+subBotReconnectAttempts[botId] = attempts + 1
+if (attempts < 3) {
+setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot, lastReason: reason, attempts: attempts + 1 })
+return scheduleSafeReconnect(reason, async () => {
+await creloadHandler(true)
+})
+}
+delete subBotReconnectAttempts[botId]
+await destroySock({ removeSession: true })
+return
+}
 if (FATAL_RECONNECT_REASONS.has(reason)) {
 console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La sesión (+${path.basename(pathRubyJadiBot)}) se ha cerrado permanentemente.\n╰⟡┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄╯`))
 const ownerChat = normalizeSubBotJid(subBotJid || sock?.user?.jid || sock?.authState?.creds?.me?.jid || m?.sender)
@@ -713,9 +757,11 @@ userJid = sock.authState.creds.me.jid || `${path.basename(pathRubyJadiBot)}@s.wh
 console.log(chalk.bold.cyanBright(`\n❒⸺⸺⸺⸺【• SUB-BOT •】⸺⸺⸺⸺❒\n│\n│ 🟢 ${userName} (+${path.basename(pathRubyJadiBot)}) conectado exitosamente.\n│\n❒⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺⸺❒`))
 sock.isInit = true
 reconnectAttempts = 0
+delete subBotReconnectAttempts[normalizeSubBotJid(sock?.subBotJid || sock?.user?.jid || sock?.authState?.creds?.me?.jid || subBotId) || subBotId]
 clearReconnectTimer()
 setSubBotConnectionState(subBotId, 'online', { jid: subBotJid, path: pathRubyJadiBot, connectedAt: Date.now() })
-manager.register(subBotId, sock, { connectedAt: Date.now() })
+global.SUBBOTSESSIONS.set(subBotId, sock)
+if (!global.conns.includes(sock)) global.conns.push(sock)
 registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() })
 void upsertSubBotAuthRegistry(subBotId, sock, 'online', { path: pathRubyJadiBot, jid: subBotJid, connectedAt: Date.now() })
 clearPairingCodeLock()
