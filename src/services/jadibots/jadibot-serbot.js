@@ -47,6 +47,7 @@ const PAIRING_CODE_COOLDOWN_MS = 60000
 const SUBBOT_GROUP_PREFETCH_ON_CONNECT = process.env.SUBBOT_GROUP_PREFETCH_ON_CONNECT === 'true'
 const subBotPairingLocks = global.subBotPairingLocks || (global.subBotPairingLocks = new Map())
 const SUBBOT_PAIRING_LOCK_TTL_MS = Number(process.env.SUBBOT_PAIRING_LOCK_TTL_MS || 120000)
+const REQUEST_PAIRING_CODE_TIMEOUT_MS = Number(process.env.REQUEST_PAIRING_CODE_TIMEOUT_MS || 15000)
 
 async function refreshSubBotGroups(sock, { retry = true } = {}) {
 try {
@@ -179,6 +180,25 @@ return ''
 }
 function getPairingErrorMessage(error) {
 return error?.output?.payload?.message || error?.output?.message || error?.message || String(error || 'Error desconocido')
+}
+function createTimeoutError(ms) {
+const error = new Error(`Baileys no entregó el código de vinculación en ${Math.round(ms / 1000)} segundos`)
+error.code = 'PAIRING_CODE_TIMEOUT'
+return error
+}
+function withTimeout(promise, ms) {
+let timer
+const timeout = new Promise((_, reject) => {
+timer = setTimeout(() => reject(createTimeoutError(ms)), ms)
+timer.unref?.()
+})
+return Promise.race([promise, timeout]).finally(() => {
+if (timer) clearTimeout(timer)
+})
+}
+async function requestPairingCodeWithTimeout(sock, phone, label = 'RUBYCHAN') {
+if (!sock || typeof sock.requestPairingCode !== 'function' || !sock.ws) throw new Error('El socket de Baileys no está inicializado')
+return withTimeout(sock.requestPairingCode(phone, label), REQUEST_PAIRING_CODE_TIMEOUT_MS)
 }
 if (!(global.conns instanceof Array)) global.conns = []
 startSubBotSupervisor()
@@ -574,10 +594,11 @@ return conn.reply(m.chat, `🥀 Envía un número válido para generar el códig
 }
 let rawCode
 try {
-rawCode = await sock.requestPairingCode(pairingPhone, "RUBYCHAN")
+rawCode = await requestPairingCodeWithTimeout(sock, pairingPhone, "RUBYCHAN")
 } catch (error) {
 pairingCodeSent = false
 clearPairingCodeLock()
+await destroySock({ removeSession: true })
 return conn.reply(m.chat, `🥀 Baileys rechazó la solicitud del código para +${pairingPhone}. Detalle: ${getPairingErrorMessage(error)}`, m)
 }
 const formattedCode = rawCode.match(/.{1,4}/g)?.join("-") || rawCode
