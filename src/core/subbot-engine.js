@@ -5,6 +5,7 @@ import { makeWASocket } from '../library/simple.js'
 import { useOptimizedAuthState } from '../library/sqliteAuthState.js'
 import { attachSessionState, createMessageRetryCache } from './session-manager.js'
 import { alignSocketTelemetry, getStandardBrowserProfile } from './socket-telemetry.js'
+import { getBaileysExport, getSignalKeyStore } from './baileys-compat.js'
 import { normalizeSessionJid } from './session-utils.js'
 import { countActiveSubbots, deleteSubbotRecord, listSubbots, updateSubbot, upsertSubbot } from './subbot-store.js'
 import { readSubbotLimit } from '../config/subbot-limit.js'
@@ -31,7 +32,7 @@ return INVALID_SESSION_STATUS.has(code) || /logged\s*out|invalid|expired|corrupt
 }
 
 async function resolveBaileysVersion(baileys) {
-const fetchVersion = baileys?.fetchLatestBaileysVersion || baileys?.default?.fetchLatestBaileysVersion
+const fetchVersion = getBaileysExport(baileys, 'fetchLatestBaileysVersion')
 if (typeof fetchVersion !== 'function') return DEFAULT_BAILEYS_VERSION
 try {
 const result = await fetchVersion()
@@ -84,7 +85,7 @@ const current = managed.get(sessionId)
 if (current?.sock) return current.sock
 const { state, saveCreds } = await useOptimizedAuthState(sessionPath, { dbName: 'auth.db', cleanOldFiles: true, sessionId })
 const baileys = global.baileys || await import('@whiskeysockets/baileys')
-const { makeCacheableSignalKeyStore, DisconnectReason } = baileys
+const DisconnectReason = getBaileysExport(baileys, 'DisconnectReason')
 const version = await resolveBaileysVersion(baileys)
 let attempt = 0
 let sock
@@ -93,7 +94,7 @@ const options = alignSocketTelemetry({
 logger: pino({ level: 'silent' }),
 printQRInTerminal: mode === 'qr',
 browser: getStandardBrowserProfile(),
-auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'fatal' })) },
+auth: { creds: state.creds, keys: getSignalKeyStore(baileys, state.keys, pino({ level: 'fatal' })) },
 markOnlineOnConnect: true,
 generateHighQualityLinkPreview: false,
 msgRetryCounterCache: createMessageRetryCache(),

@@ -26,7 +26,7 @@ if (removeSession) await import('../../core/subbot-engine.js').then(mod => mod.d
 }
 let rawCode
 try {
-rawCode = await requestPairingCodeWithTimeout(sock, pairingPhone, "RUBYCHAN")
+rawCode = await requestPairingCodeWithTimeout(sock, pairingPhone, "RUBYCHAN", 12000)
 } catch (error) {
 pairingCodeSent = false
 clearPairingCodeLock()
@@ -61,7 +61,7 @@ text: [
 ].join('\n')
 }),
 footer: proto.Message.InteractiveMessage.Footer.create({
-text: "🌸 𝖤𝗌𝗍𝖾 𝖼𝗈́𝖽𝗂𝗀𝗈 𝖾𝗑𝗉𝗂𝗋⍺𝗋⍺́ 𝖾𝗇 𝟦𝟧 𝗌𝖾𝗀𝗎𝗇𝖽𝗈𝗌... ✨"
+text: "🌸 𝖤𝗌𝗍𝖾 𝖼𝗈́𝖽𝗂𝗀𝗈 𝖾𝗑𝗉𝗂𝗋⍺𝗋⍺́ 𝖾𝗇 𝟣𝟤 𝗌𝖾𝗀𝗎𝗇𝖽𝗈𝗌... ✨"
 }),
 header: proto.Message.InteractiveMessage.Header.create({
 hasMediaAttachment: true,
