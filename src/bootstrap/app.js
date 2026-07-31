@@ -40,6 +40,7 @@ import { attachSessionState, createMessageRetryCache } from '../core/session-man
 import { alignSocketTelemetry, getStandardBrowserProfile } from '../core/socket-telemetry.js'
 import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from '../router/handler-utils.js'
 import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from '../library/queue.js'
+import { restoreSubbots } from '../core/subbot-engine.js'
 EventEmitter.defaultMaxListeners = 100
 const baileysModule = await import('@whiskeysockets/baileys')
 global.baileys = baileysModule
@@ -410,6 +411,7 @@ isInit = false
 return true
 };
 await global.reloadHandler(false)
+await restoreSubbots().catch(console.error)
 const pluginFolder = global.__dirname(join(__dirname, '../commands/index'))
 const pluginFilter = (filename) => /\.js$/.test(filename)
 global.plugins = {}
