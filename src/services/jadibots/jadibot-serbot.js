@@ -27,6 +27,7 @@ import { makeWASocket } from '../../library/simple.js'
 import { attachSessionState, cleanupSessionState, createMessageRetryCache, registerSubBot } from '../../core/session-manager.js'
 import { alignSocketTelemetry, getStandardBrowserProfile } from '../../core/socket-telemetry.js'
 import { startSubBotSupervisor } from '../../core/subbot-supervisor.js'
+import { getSubBotManager } from './subbot-manager.js'
 import { enqueueSubBotSocketStart, getSubBotReconnectDelayMs } from '../../core/subbot-reconnect-delay-manager.js'
 import * as sharedHandlerModule from '../../router/handler.js'
 import { getCachedParticipatingGroups } from '../../library/baileys-group-cache.js'
@@ -47,7 +48,7 @@ const PAIRING_CODE_COOLDOWN_MS = 60000
 const SUBBOT_GROUP_PREFETCH_ON_CONNECT = process.env.SUBBOT_GROUP_PREFETCH_ON_CONNECT === 'true'
 const subBotPairingLocks = global.subBotPairingLocks || (global.subBotPairingLocks = new Map())
 const SUBBOT_PAIRING_LOCK_TTL_MS = Number(process.env.SUBBOT_PAIRING_LOCK_TTL_MS || 120000)
-const REQUEST_PAIRING_CODE_TIMEOUT_MS = Number(process.env.REQUEST_PAIRING_CODE_TIMEOUT_MS || 15000)
+const REQUEST_PAIRING_CODE_TIMEOUT_MS = Number(process.env.REQUEST_PAIRING_CODE_TIMEOUT_MS || 12000)
 
 async function refreshSubBotGroups(sock, { retry = true } = {}) {
 try {
@@ -204,6 +205,8 @@ if (!(global.conns instanceof Array)) global.conns = []
 startSubBotSupervisor()
 if (!(global.subBotRegistry instanceof Map)) global.subBotRegistry = new Map()
 const subBotConnectionStates = global.subBotConnectionStates || (global.subBotConnectionStates = new Map())
+global.subBotPool ||= new Map()
+global.primaryConns ||= []
 const SUBBOT_CONNECTING_TTL_MS = 120000
 const FATAL_RECONNECT_REASONS = new Set([DisconnectReason.loggedOut, 401, 403, 405])
 const SUBBOT_MSG_STORE_LIMIT = Number(process.env.SUBBOT_MSG_STORE_LIMIT || 120)
@@ -247,10 +250,12 @@ store.clear()
 }
 
 function getSubBotConnectionState(id) {
-const state = subBotConnectionStates.get(id)
+const managerState = global.subBotManager?.getState?.(id)
+const state = managerState || subBotConnectionStates.get(id)
 if (!state) return null
 if (state.status === 'connecting' && Date.now() - state.ts > SUBBOT_CONNECTING_TTL_MS) {
 subBotConnectionStates.delete(id)
+global.subBotManager?.clearState?.(id)
 return null
 }
 return state
@@ -259,11 +264,13 @@ return state
 function setSubBotConnectionState(id, status, metadata = {}) {
 const state = { ...(subBotConnectionStates.get(id) || {}), ...metadata, status, ts: Date.now() }
 subBotConnectionStates.set(id, state)
+void global.subBotManager?.setState?.(id, status, metadata).catch(error => console.error(`Error persistiendo estado Sub-Bot ${id}:`, error))
 return state
 }
 
 function clearSubBotConnectionState(id) {
 subBotConnectionStates.delete(id)
+global.subBotManager?.clearState?.(id)
 }
 
 function clearSubBotMemoryRefs(sock) {
@@ -296,6 +303,8 @@ try { sock?.ws?.close?.() } catch (error) { console.error(`Error cerrando websoc
 }
 try { sock?.ev?.removeAllListeners?.() } catch (error) { console.error(`Error quitando listeners del Sub-Bot ${sessionId}:`, error) }
 if (sock) clearSubBotMemoryRefs(sock)
+const manager = await getSubBotManager()
+manager.unregister(sessionId, sock)
 if (Array.isArray(global.conns)) {
 global.conns = global.conns.filter(conn => conn && conn !== sock && conn.subBotId !== sessionId && normalizeSubBotJid(conn.subBotJid || conn.user?.jid || conn.authState?.creds?.me?.jid || '') !== normalizedJid)
 }
@@ -303,9 +312,10 @@ if (global.subBotRegistry instanceof Map) global.subBotRegistry.delete(sessionId
 clearSubBotConnectionState(sessionId)
 if (sock) cleanupSessionState(sock)
 for (const targetPath of pathsToRemove) {
-try { await fs.promises.rm(targetPath, { recursive: true, force: true }) } catch (error) { console.error(`Error borrando credenciales del Sub-Bot ${sessionId}:`, error) }
+manager.cleanupSessionInBackground(targetPath, sessionId)
 }
 try {
+await manager.deleteRegistry(sessionId, normalizedJid)
 await global.authManagerDb?.prepare?.('DELETE FROM bot_registry WHERE id = ? OR jid = ?')?.runAsync(sessionId, normalizedJid)
 } catch (error) {
 console.error(`Error borrando registro SQLite del Sub-Bot ${sessionId}:`, error)
@@ -320,17 +330,20 @@ return false
 
 async function cleanupExistingSubBotForPairing({ id, jid, sessionPath } = {}) {
 const normalizedJid = normalizeSubBotJid(jid)
-const matches = Array.isArray(global.conns) ? global.conns.filter(conn => conn?.subBotId === id || normalizeSubBotJid(conn?.subBotJid || conn?.user?.jid || conn?.authState?.creds?.me?.jid || '') === normalizedJid) : []
+const manager = await getSubBotManager()
+const pooledMatches = manager.findByJid(normalizedJid).map(([, item]) => item.sock)
+const matches = [...new Set([...(Array.isArray(global.conns) ? global.conns.filter(conn => conn?.subBotId === id || normalizeSubBotJid(conn?.subBotJid || conn?.user?.jid || conn?.authState?.creds?.me?.jid || '') === normalizedJid) : []), ...pooledMatches])]
 for (const sock of matches) {
 await cleanupSubBotSession({ id, jid: normalizedJid, sessionPath: sock?.session?.path || sessionPath, sock, reason: 'overwrite' })
 }
 if (getSubBotConnectionState(id) || await pathExists(sessionPath)) {
-await cleanupSubBotSession({ id, jid: normalizedJid, sessionPath, reason: 'overwrite' })
+void cleanupSubBotSession({ id, jid: normalizedJid, sessionPath, reason: 'overwrite' })
 }
 }
 let handler = async (m, { conn, args = [], usedPrefix, command, isOwner }) => {
 const limiteSubBots = global.subbotlimitt || 26;
-const activeConns = Array.isArray(global.conns) ? global.conns : []
+const manager = await getSubBotManager()
+const activeConns = [...manager.pool.values()].map(item => item.sock).filter(Boolean)
 const subBots = [...new Set(activeConns.filter((c) => c?.user && c?.ws?.socket && c.ws.socket.readyState !== ws.CLOSED))]
 const subBotsCount = subBots.length
 if (subBotsCount >= limiteSubBots) {
@@ -436,6 +449,7 @@ emitOwnEvents: subSocketCfg.emitOwnEvents ?? false,
 getMessage: async key => liteMsgStore.get(key) || ''
 };
 connectionOptions = alignSocketTelemetry(connectionOptions, { version })
+const manager = await getSubBotManager()
 let sock = await enqueueSubBotSocketStart(() => makeWASocket(connectionOptions))
 sock.__msgRetryCache = msgRetryCache
 sock.__liteMsgStore = liteMsgStore
@@ -455,10 +469,7 @@ let pairingCodeMessageKey = null
 let pairingCodeTimer = null
 let qrMessageSent = false
 const removeSockFromPool = (targetSock = sock) => {
-const i = global.conns.indexOf(targetSock)
-if (i >= 0) {
-global.conns.splice(i, 1)
-}
+manager.unregister(targetSock?.subBotId || subBotId, targetSock)
 }
 const clearReconnectTimer = () => {
 if (reconnectTimer) clearTimeout(reconnectTimer)
@@ -524,6 +535,7 @@ sock.subBotId = subBotId
 sock.subBotJid = subBotJid
 attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.jid || 'primary', path: pathRubyJadiBot })
 isInit = true
+manager.register(subBotId, sock, { reconnecting: true, ts: Date.now() })
 registerSubBot(global.subBotRegistry, subBotId, { sock, reconnecting: true, ts: Date.now() })
 setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot })
 void upsertSubBotAuthRegistry(subBotId, sock, 'reconnecting', { path: pathRubyJadiBot, jid: subBotJid })
@@ -703,7 +715,7 @@ sock.isInit = true
 reconnectAttempts = 0
 clearReconnectTimer()
 setSubBotConnectionState(subBotId, 'online', { jid: subBotJid, path: pathRubyJadiBot, connectedAt: Date.now() })
-if (!global.conns.includes(sock)) global.conns.push(sock)
+manager.register(subBotId, sock, { connectedAt: Date.now() })
 registerSubBot(global.subBotRegistry, subBotId, { sock, connectedAt: Date.now() })
 void upsertSubBotAuthRegistry(subBotId, sock, 'online', { path: pathRubyJadiBot, jid: subBotJid, connectedAt: Date.now() })
 clearPairingCodeLock()
