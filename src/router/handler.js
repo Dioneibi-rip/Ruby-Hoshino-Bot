@@ -32,6 +32,7 @@ import { TTLCache } from '../library/native-utils.js'
 import { getInteractiveResponseText, getRawCommandName, getRawFastPath as buildRawFastPath, getRawMessageChat, getRawMessageSender, getRawMessageText, getRawStickerHash, unwrapMessageContent } from './raw-filter.js'
 import { executePlugin } from './plugin-executor.js'
 import { isBotSender, pluginRequiresGroupParticipants } from './permission-guard.js'
+import { getDbWorkerClient } from '../database/db-client.js'
 
 global.uptimeStart = Date.now()
 
@@ -292,6 +293,44 @@ content.conversation
 || fallback
 || ''
 ).trim()
+}
+
+function hasModerationLinkText(text = '') {
+return /(?:https?:\/\/|chat\.whatsapp\.com\/|wa\.me\/|whatsapp\.com\/channel\/|t\.me\/|discord\.gg\/)/i.test(String(text || ''))
+}
+
+function isKnownFastPathUser(sender = '') {
+if (!sender) return false
+try {
+if (global.db?.userCache?.has?.(sender)) return true
+if (global.db?.data?.users && Object.prototype.hasOwnProperty.call(global.db.data.users, sender)) return true
+return false
+} catch {
+return false
+}
+}
+
+function shouldUsePassiveFastPath(conn, rawMessage = {}, fastPath = {}) {
+const chat = conn?.decodeJid?.(getRawMessageChat(rawMessage)) || getRawMessageChat(rawMessage)
+if (!chat?.endsWith?.('@g.us')) return false
+const text = String(fastPath.text || getRawMessageText(rawMessage) || '')
+if (fastPath.rawCommand || getRawCommandName(text)) return false
+if (hasModerationLinkText(text) || messageHasModeratedLink(rawMessage)) return false
+const sender = normalizeJid(conn?.decodeJid?.(rawMessage?.key?.participant || rawMessage?.participant || rawMessage?.sender || '') || rawMessage?.key?.participant || rawMessage?.participant || rawMessage?.sender || '')
+if (!isKnownFastPathUser(sender)) return false
+return true
+}
+
+function recordPassiveFastPath(conn, rawMessage = {}, fastPath = {}) {
+try {
+const chatId = conn?.decodeJid?.(getRawMessageChat(rawMessage)) || getRawMessageChat(rawMessage)
+const rawSender = rawMessage?.key?.participant || rawMessage?.participant || rawMessage?.sender || ''
+const jid = normalizeJid(conn?.decodeJid?.(rawSender) || rawSender)
+if (!chatId || !jid) return
+getDbWorkerClient().fire('incrementChatActivity', { chatId, jid, name: rawMessage?.pushName || fastPath.pushName || '', now: Date.now(), isCommand: false })
+} catch (error) {
+console.error('[fast-path]', error?.message || error)
+}
 }
 
 function parseCommand(rawText = '', prefix = '') {
@@ -795,6 +834,11 @@ try { return shouldProcessRawGroupMessage(this, message) } catch (error) { conso
 if (!liveMessages.length) return
 this.pushMessage?.(liveMessages).catch(error => console.error('[messages.upsert] pushMessage falló', error))
 for (const rawMessage of liveMessages) {
+const fastPath = rawMessage.__rubyFastPath || getRawFastPath(this, rawMessage)
+if (shouldUsePassiveFastPath(this, rawMessage, fastPath)) {
+recordPassiveFastPath(this, rawMessage, fastPath)
+continue
+}
 const key = getQueueKey(rawMessage)
 const priority = getMessageQueuePriority(rawMessage)
 messageQueue.enqueue(key, () => processMessage.call(this, chatUpdate, rawMessage), { chatKey: getQueueChatKey(rawMessage), priority })
