@@ -27,6 +27,7 @@ import { makeWASocket } from '../../library/simple.js'
 import { attachSessionState, cleanupSessionState, createMessageRetryCache, registerSubBot } from '../../core/session-manager.js'
 import { alignSocketTelemetry, getStandardBrowserProfile } from '../../core/socket-telemetry.js'
 import { startSubBotSupervisor } from '../../core/subbot-supervisor.js'
+import { enqueueSubBotSocketStart, getSubBotReconnectDelayMs } from '../../core/subbot-reconnect-delay-manager.js'
 import * as sharedHandlerModule from '../../router/handler.js'
 import { getCachedParticipatingGroups } from '../../library/baileys-group-cache.js'
 import { getGroupMetadataOnDemand } from '../../library/global-cache.js'
@@ -186,9 +187,6 @@ const subBotConnectionStates = global.subBotConnectionStates || (global.subBotCo
 const SUBBOT_CONNECTING_TTL_MS = 120000
 const FATAL_RECONNECT_REASONS = new Set([DisconnectReason.loggedOut, 401, 403, 405])
 const SUBBOT_MSG_STORE_LIMIT = Number(process.env.SUBBOT_MSG_STORE_LIMIT || 120)
-const SUBBOT_RECONNECT_MAX_DELAY_MS = Number(process.env.SUBBOT_RECONNECT_MAX_DELAY_MS || 120000)
-const SUBBOT_RECONNECT_JITTER_MS = Number(process.env.SUBBOT_RECONNECT_JITTER_MS || 5000)
-const SUBBOT_RECONNECT_MIN_DELAY_MS = Number(process.env.SUBBOT_RECONNECT_MIN_DELAY_MS || 3000)
 const SUBBOT_VERSION_TTL_MS = Number(process.env.SUBBOT_VERSION_TTL_MS || 3600000)
 let subBotVersionCache = null
 let subBotVersionPromise = null
@@ -418,7 +416,7 @@ emitOwnEvents: subSocketCfg.emitOwnEvents ?? false,
 getMessage: async key => liteMsgStore.get(key) || ''
 };
 connectionOptions = alignSocketTelemetry(connectionOptions, { version })
-let sock = await makeWASocket(connectionOptions)
+let sock = await enqueueSubBotSocketStart(() => makeWASocket(connectionOptions))
 sock.__msgRetryCache = msgRetryCache
 sock.__liteMsgStore = liteMsgStore
 await patchSubBotGroupMetadata(sock)
@@ -429,7 +427,6 @@ attachSessionState(sock, { id: subBotId, type: 'subbot', parentId: conn?.user?.j
 sock.isInit = false
 let isInit = true
 const MAX_RECONNECT_ATTEMPTS = options.startupLoad ? 3 : subSocketCfg.maxReconnectAttempts ?? 6
-const RECONNECT_BASE_DELAY_MS = subSocketCfg.reconnectBaseDelayMs ?? 1500
 let reconnectAttempts = 0
 let reconnectTimer = null
 
@@ -480,13 +477,10 @@ return false
 if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) reconnectAttempts = Math.max(1, MAX_RECONNECT_ATTEMPTS - 1)
 reconnectAttempts += 1
 setSubBotConnectionState(subBotId, 'reconnecting', { jid: subBotJid, path: pathRubyJadiBot, lastReason: closeReason, attempts: reconnectAttempts })
-const rateLimitDelay = String(closeReason || '').includes('429') || String(closeReason || '').includes('rate') ? 30000 : 0
-const cappedExponential = Math.min(SUBBOT_RECONNECT_MAX_DELAY_MS, Math.max(SUBBOT_RECONNECT_MIN_DELAY_MS, RECONNECT_BASE_DELAY_MS * (2 ** (reconnectAttempts - 1))))
-const fullJitter = Math.floor(Math.random() * Math.max(SUBBOT_RECONNECT_JITTER_MS, cappedExponential))
-const waitMs = Math.min(SUBBOT_RECONNECT_MAX_DELAY_MS, Math.max(rateLimitDelay, cappedExponential + fullJitter))
+const waitMs = getSubBotReconnectDelayMs(reconnectAttempts, closeReason)
 reconnectTimer = setTimeout(async () => {
 reconnectTimer = null
-try { await (reconnectFn || (() => creloadHandler(true)))() }
+try { await enqueueSubBotSocketStart(reconnectFn || (() => creloadHandler(true))) }
 catch (error) {
 console.error(`Error reconectando +${subBotId}:`, error)
 scheduleSafeReconnect(closeReason, reconnectFn).catch(() => {})
@@ -502,7 +496,7 @@ const oldChats = sock.chats
 removeSockFromPool(sock)
 try { sock.ws.close() } catch (e) { }
 try { sock.ev.removeAllListeners() } catch (e) {}
-sock = await makeWASocket(connectionOptions, { chats: oldChats })
+sock = await enqueueSubBotSocketStart(() => makeWASocket(connectionOptions, { chats: oldChats }))
 sock.__msgRetryCache = msgRetryCache
 sock.__liteMsgStore = liteMsgStore
 await patchSubBotGroupMetadata(sock)
