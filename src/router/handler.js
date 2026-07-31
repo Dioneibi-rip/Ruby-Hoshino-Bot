@@ -42,7 +42,15 @@ const CELESTIAL_COMMANDS = new Set(['unbanchat', 'desbanearchat'])
 const REALTIME_EVENT_GRACE_MS = 15_000
 const REALTIME_EVENT_MAX_AGE_MS = 60_000
 const READ_MESSAGE_MIN_INTERVAL_MS = 1_500
-
+const TIMELOCK_COOLDOWN_MS = 12 * 60 * 60 * 1000
+const TIMELOCK_COOLDOWN_SCOPE = 'timelock_cooldowns'
+const TIMELOCK_GUARD_PATCH = Symbol.for('ruby.timelockGuardPatch')
+const CHAT_ACTIVITY_DEFAULT_MAX_USERS = 500
+const CHAT_ACTIVITY_DEFAULT_TTL_MS = 30 * 24 * 60 * 60 * 1000
+const PARTICIPANT_INDEX_TTL_SECONDS = 300
+const PARTICIPANT_INDEX_MAX = 500
+const READ_MESSAGE_CACHE_TTL_SECONDS = 300
+const READ_MESSAGE_CACHE_MAX = 1000
 
 const PRESENCE_STATES = new Set(['available', 'unavailable', 'composing', 'recording', 'paused'])
 
