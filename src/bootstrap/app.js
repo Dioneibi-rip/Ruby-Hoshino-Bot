@@ -214,7 +214,7 @@ global.authCredsFlushers.add(debouncedSaveCreds.flush)
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = createMessageRetryCache()
 const fetchBaileysVersion = baileysModule.fetchLatestBaileysVersion || baileysModule.default?.fetchLatestBaileysVersion
-const { version = [2, 3000, 1015901307] } = typeof fetchBaileysVersion === 'function' ? await fetchBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] })) : { version: [2, 3000, 1015901307] };
+const { version = [2, 3000, 1043857760] } = typeof fetchBaileysVersion === 'function' ? await fetchBaileysVersion().catch(() => ({ version: [2, 3000, 1043857760] })) : { version: [2, 3000, 1043857760] };
 let phoneNumber = global.botNumber
 const methodCodeQR = process.argv.includes("qr")
 const methodCode = !!phoneNumber || process.argv.includes("code")
