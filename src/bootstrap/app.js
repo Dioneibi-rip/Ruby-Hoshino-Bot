@@ -3,7 +3,7 @@ import { createRequire } from 'module'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { platform } from 'process'
 import { watchFile, unwatchFile, readdirSync, statSync, unlinkSync, existsSync, mkdirSync, rmSync, watch, readFileSync } from 'fs'
-import { readdir, access, stat, unlink } from 'fs/promises'
+import { readdir, access, stat, unlink, rm, mkdir, readFile } from 'fs/promises'
 import * as ws from 'ws'
 import path, { join, dirname } from 'path'
 import { parseArgv } from '../library/parseArgsCompat.js'
@@ -415,41 +415,59 @@ return true
 };
 await global.reloadHandler(false)
 global.rutaJadiBot = join(__dirname, '../../RubyJadiBots')
-function hasValidSubBotCredentials(sessionPath) {
+async function hasValidSubBotCredentials(sessionPath) {
 try {
 const credsPath = join(sessionPath, 'creds.json')
 const authDbPath = join(sessionPath, 'auth.db')
-if (existsSync(credsPath)) {
-const parsed = JSON.parse(readFileSync(credsPath, 'utf8'))
+try {
+const parsed = JSON.parse(await readFile(credsPath, 'utf8'))
 return Boolean(parsed?.me || parsed?.registered || parsed?.noiseKey || parsed?.signedIdentityKey)
+} catch (error) {
+if (error?.code !== 'ENOENT') throw error
 }
-if (existsSync(authDbPath)) return statSync(authDbPath).size > 0
+try {
+return (await stat(authDbPath)).size > 0
+} catch (error) {
+if (error?.code !== 'ENOENT') throw error
 return false
+}
 } catch (error) {
 console.error(`Credenciales inválidas en ${sessionPath}:`, error)
 return false
 }
 }
-function limpiarSubBots() {
-const jadiDir = global.rutaJadiBot
-if (!existsSync(jadiDir)) return []
-const validPaths = []
-for (const entry of readdirSync(jadiDir)) {
-const sessionPath = join(jadiDir, entry)
+async function removeSubBotDirectory(sessionPath, entry, reason) {
 try {
-if (!statSync(sessionPath).isDirectory()) continue
-if (!hasValidSubBotCredentials(sessionPath)) {
-rmSync(sessionPath, { recursive: true, force: true })
-console.log(chalk.yellow(`🧹 Sub-Bot huérfano eliminado al inicio: ${entry}`))
-continue
-}
-validPaths.push(sessionPath)
+await rm(sessionPath, { recursive: true, force: true, maxRetries: 3, retryDelay: 250 })
+console.log(chalk.yellow(`🧹 Sub-Bot ${reason} eliminado al inicio: ${entry}`))
 } catch (error) {
-console.error(`Error evaluando Sub-Bot ${entry}:`, error)
-try { rmSync(sessionPath, { recursive: true, force: true }) } catch (removeError) { console.error(`No pude borrar Sub-Bot corrupto ${entry}:`, removeError) }
+setImmediate(() => rm(sessionPath, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 }).catch(removeError => console.error(`No pude borrar Sub-Bot ${entry}:`, removeError)))
 }
 }
-return validPaths
+async function limpiarSubBots() {
+const jadiDir = global.rutaJadiBot
+try {
+await access(jadiDir)
+} catch {
+return []
+}
+const entries = await readdir(jadiDir, { withFileTypes: true })
+const results = await Promise.all(entries.map(async entry => {
+const sessionPath = join(jadiDir, entry.name)
+try {
+if (!entry.isDirectory()) return null
+if (!await hasValidSubBotCredentials(sessionPath)) {
+await removeSubBotDirectory(sessionPath, entry.name, 'huérfano')
+return null
+}
+return sessionPath
+} catch (error) {
+console.error(`Error evaluando Sub-Bot ${entry.name}:`, error)
+await removeSubBotDirectory(sessionPath, entry.name, 'corrupto')
+return null
+}
+}))
+return results.filter(Boolean)
 }
 let subBotsStartupStarted = false
 async function startSubBotsAfterReady() {
@@ -457,12 +475,12 @@ if (subBotsStartupStarted) return
 subBotsStartupStarted = true
 if (global.RubyJadibts && process.env.RUBY_LOAD_SUBBOTS !== 'false') {
 if (!existsSync(global.rutaJadiBot)) {
-mkdirSync(global.rutaJadiBot, { recursive: true });
+await mkdir(global.rutaJadiBot, { recursive: true });
 console.log(chalk.bold.cyan(`✅ Carpeta de sub-Bots creada`))
 } else {
 console.log(chalk.bold.cyan(`✨ Cargando sub-Bots...`))
 }
-let subBotPaths = limpiarSubBots()
+let subBotPaths = await limpiarSubBots()
 const shardIndex = Number(process.env.SUBBOT_SHARD_INDEX || 0)
 const shardCount = Math.max(1, Number(process.env.SUBBOT_SHARD_COUNT || 1))
 const workerCapacity = Math.max(1, Number(process.env.SUBBOT_WORKER_CAPACITY || subBotPaths.length || 1))
