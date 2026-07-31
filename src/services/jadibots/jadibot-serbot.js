@@ -27,6 +27,7 @@ import { makeWASocket } from '../../library/simple.js'
 import { attachSessionState, cleanupSessionState, createMessageRetryCache, registerSubBot } from '../../core/session-manager.js'
 import { alignSocketTelemetry, getStandardBrowserProfile } from '../../core/socket-telemetry.js'
 import { startSubBotSupervisor } from '../../core/subbot-supervisor.js'
+import { getSubBotManager } from './subbot-manager.js'
 import { enqueueSubBotSocketStart, getSubBotReconnectDelayMs } from '../../core/subbot-reconnect-delay-manager.js'
 import * as sharedHandlerModule from '../../router/handler.js'
 import { getCachedParticipatingGroups } from '../../library/baileys-group-cache.js'
@@ -250,10 +251,12 @@ store.clear()
 }
 
 function getSubBotConnectionState(id) {
-const state = subBotConnectionStates.get(id)
+const managerState = global.subBotManager?.getState?.(id)
+const state = managerState || subBotConnectionStates.get(id)
 if (!state) return null
 if (state.status === 'connecting' && Date.now() - state.ts > SUBBOT_CONNECTING_TTL_MS) {
 subBotConnectionStates.delete(id)
+global.subBotManager?.clearState?.(id)
 return null
 }
 return state
@@ -268,6 +271,7 @@ return state
 
 function clearSubBotConnectionState(id) {
 subBotConnectionStates.delete(id)
+global.subBotManager?.clearState?.(id)
 }
 
 function clearSubBotMemoryRefs(sock) {
@@ -332,6 +336,7 @@ for (const targetPath of pathsToRemove) {
 cleanupSessionPathInBackground(targetPath, sessionId)
 }
 try {
+await manager.deleteRegistry(sessionId, normalizedJid)
 await global.authManagerDb?.prepare?.('DELETE FROM bot_registry WHERE id = ? OR jid = ?')?.runAsync(sessionId, normalizedJid)
 } catch (error) {
 console.error(`Error borrando registro SQLite del Sub-Bot ${sessionId}:`, error)
@@ -464,6 +469,7 @@ emitOwnEvents: subSocketCfg.emitOwnEvents ?? false,
 getMessage: async key => liteMsgStore.get(key) || ''
 };
 connectionOptions = alignSocketTelemetry(connectionOptions, { version })
+const manager = await getSubBotManager()
 let sock = await enqueueSubBotSocketStart(() => makeWASocket(connectionOptions))
 sock.__msgRetryCache = msgRetryCache
 sock.__liteMsgStore = liteMsgStore
