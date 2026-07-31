@@ -12,7 +12,8 @@ import { readSubbotLimit } from '../config/subbot-limit.js'
 
 const managed = new Map()
 const reconnecting = new Set()
-const baseDir = path.join(process.cwd(), 'sessions', 'subbots')
+export const subbotBaseDir = path.join(process.cwd(), 'Rubyjadibot')
+const baseDir = subbotBaseDir
 const DEFAULT_BAILEYS_VERSION = [2, 3000, 1015901307]
 const INVALID_SESSION_STATUS = new Set([401, 403, 440, 515])
 
@@ -42,11 +43,12 @@ return DEFAULT_BAILEYS_VERSION
 }
 }
 
-function scheduleInvalidSessionCleanup({ botJid, sessionId, sessionPath, error }) {
+function scheduleInvalidSessionCleanup({ botJid, sessionId, sessionPath, sock, error }) {
 const label = botJid || sessionId || sessionPath
 console.log(`[subbot-cleanup] sesión inválida detectada para ${label}: ${getPairingErrorMessage(error)}`)
 setImmediate(async () => {
 try {
+try { sock?.end?.() || sock?.ws?.close?.() } catch {}
 managed.delete(sessionId)
 deleteSubbotRecord(botJid, sessionId)
 await rm(sessionPath, { recursive: true, force: true })
@@ -72,15 +74,15 @@ export function activeSubbotRuntimeList() {
 return [...managed.values()].map(item => ({ botJid: item.botJid, ownerJid: item.ownerJid, status: item.status, sessionPath: item.sessionPath }))
 }
 
-export async function createSubbotSocket({ ownerJid, sessionId, pairingPhone, mode = 'code', parentConn, onPairingCode } = {}) {
+export async function createSubbotSocket({ ownerJid, sessionId, pairingPhone, mode = 'code', parentConn, onPairingCode, onQr } = {}) {
 if (countActiveSubbots() >= readSubbotLimit()) throw new Error(`Límite de Sub-Bots alcanzado (${readSubbotLimit()})`)
 const safeId = String(sessionId || ownerJid || Date.now()).replace(/[^a-zA-Z0-9_.@-]/g, '_')
 const sessionPath = path.join(baseDir, safeId)
 upsertSubbot({ botJid: `pending:${safeId}`, ownerJid, sessionId: safeId, sessionPath, status: 'connecting' })
-return startSubbot({ ownerJid, sessionId: safeId, sessionPath, pairingPhone, mode, parentConn, onPairingCode })
+return startSubbot({ ownerJid, sessionId: safeId, sessionPath, pairingPhone, mode, parentConn, onPairingCode, onQr })
 }
 
-export async function startSubbot({ ownerJid, sessionId, sessionPath, pairingPhone, mode = 'restore', parentConn, onPairingCode } = {}) {
+export async function startSubbot({ ownerJid, sessionId, sessionPath, pairingPhone, mode = 'restore', parentConn, onPairingCode, onQr } = {}) {
 const current = managed.get(sessionId)
 if (current?.sock) return current.sock
 const { state, saveCreds } = await useOptimizedAuthState(sessionPath, { dbName: 'auth.db', cleanOldFiles: true, sessionId })
@@ -92,7 +94,7 @@ let sock
 const connect = async () => {
 const options = alignSocketTelemetry({
 logger: pino({ level: 'silent' }),
-printQRInTerminal: mode === 'qr',
+printQRInTerminal: false,
 browser: getStandardBrowserProfile(),
 auth: { creds: state.creds, keys: getSignalKeyStore(baileys, state.keys, pino({ level: 'fatal' })) },
 markOnlineOnConnect: true,
@@ -116,6 +118,7 @@ sock.ev.on('messages.update', sock.messagesUpdate)
 sock.ev.on('group-participants.update', sock.participantsUpdate)
 sock.ev.on('groups.update', sock.groupsUpdate)
 sock.ev.on('connection.update', async update => {
+if (update.qr && mode === 'qr') await onQr?.(update.qr, sock, parentConn)
 if (update.connection === 'open') {
 attempt = 0
 const botJid = normalizeSessionJid(sock.user?.jid || sock.authState?.creds?.me?.jid)
@@ -131,7 +134,7 @@ runtime.status = 'close'
 updateSubbot(runtime.botJid, { status: 'close' })
 try { sock.ws?.close?.() } catch {}
 managed.delete(sessionId)
-if (isInvalidSessionError(error) || statusCode === DisconnectReason?.loggedOut) return scheduleInvalidSessionCleanup({ botJid: runtime.botJid, sessionId, sessionPath, error })
+if (statusCode === 401 || statusCode === 403 || isInvalidSessionError(error) || statusCode === DisconnectReason?.loggedOut) return scheduleInvalidSessionCleanup({ botJid: runtime.botJid, sessionId, sessionPath, sock, error })
 const wait = delayFor(attempt++, update.reconnectDelayMs)
 console.log(`[subbot] reconectando ${runtime.botJid || sessionId} en ${Math.ceil(wait / 1000)}s`)
 setTimeout(() => startSubbot({ ownerJid, sessionId, sessionPath, mode: 'restore' }).catch(error => {
@@ -144,7 +147,7 @@ if (mode === 'code' && pairingPhone && !state.creds?.registered) await onPairing
 return sock
 }
 return connect().catch(error => {
-if (isInvalidSessionError(error)) scheduleInvalidSessionCleanup({ botJid: `pending:${sessionId}`, sessionId, sessionPath, error })
+if (isInvalidSessionError(error)) scheduleInvalidSessionCleanup({ botJid: `pending:${sessionId}`, sessionId, sessionPath, sock, error })
 throw error
 })
 }
@@ -161,6 +164,21 @@ if (isInvalidSessionError(error)) scheduleInvalidSessionCleanup({ botJid: bot.bo
 else console.error(`[subbot-startup] error al reconectar ${bot.bot_jid}:`, error)
 }).finally(() => reconnecting.delete(bot.session_id)))
 }
+}
+
+export async function destroySubbotSession(ownerJid, sessionId = ownerJid) {
+const jid = normalizeSessionJid(ownerJid)
+const safeId = String(sessionId || ownerJid || '').replace(/[^a-zA-Z0-9_.@-]/g, '_')
+const bot = listSubbots().find(item => item.owner_jid === jid || item.session_id === safeId)
+const id = bot?.session_id || safeId
+const sessionPath = bot?.session_path || path.join(baseDir, id)
+const runtime = managed.get(id)
+try { runtime?.sock?.end?.() || runtime?.sock?.ws?.close?.() } catch {}
+managed.delete(id)
+if (bot) deleteSubbotRecord(bot.bot_jid, bot.session_id)
+else deleteSubbotRecord(`pending:${id}`, id)
+await rm(sessionPath, { recursive: true, force: true })
+return Boolean(bot || id)
 }
 
 export async function stopSubbotByOwner(ownerJid) {

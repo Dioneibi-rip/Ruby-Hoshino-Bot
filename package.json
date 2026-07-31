@@ -33,6 +33,7 @@
   "dependencies": {
     "@whiskeysockets/baileys": "github:Dioneibi-rip/Ruby-Baileys",
     "better-sqlite3": "github:Dioneibi-rip/sqlite3",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "qrcode": "^1.5.4"
   }
 }

@@ -64,7 +64,7 @@ ensure()
 const botJid = normalizeSessionJid(data.botJid || data.bot_jid || '') || `pending:${data.sessionId}`
 const ownerJid = normalizeSessionJid(data.ownerJid || data.owner_jid || '')
 const sessionId = String(data.sessionId || data.session_id || botJid).replace(/[^a-zA-Z0-9_.@-]/g, '_')
-const sessionPath = data.sessionPath || data.session_path || path.join(process.cwd(), 'sessions', 'subbots', sessionId)
+const sessionPath = data.sessionPath || data.session_path || path.join(process.cwd(), 'Rubyjadibot', sessionId)
 const status = data.status || 'connecting'
 const paused = data.paused ? 1 : 0
 const currency = String(data.currency || 'coin').slice(0, 40)
