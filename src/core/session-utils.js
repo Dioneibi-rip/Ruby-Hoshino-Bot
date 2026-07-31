@@ -18,30 +18,15 @@ return chat.botSettings[jid]
 }
 
 export function getChatBannedBots(chat = {}) {
-return Object.entries(chat?.botSettings || {})
-.filter(([, value]) => value?.isBanned === true)
-.map(([jid]) => jid)
+return chat?.isBanned === true ? ['primary'] : []
 }
 
 export function isChatBannedForBot(chat = {}, botJid = '') {
-const jid = normalizeSessionJid(botJid)
-if (!chat || !jid) return false
-const botSettings = chat.botSettings?.[jid]
-if (botSettings?.isBanned === true) return true
-if (botSettings?.isBanned === false) return false
-if (chat.isBanned && typeof chat.isBanned === 'object') return chat.isBanned[jid] === true || chat.isBanned['*'] === true
-if (Array.isArray(chat.bannedBots) && chat.bannedBots.includes(jid)) return true
-return chat.isBanned === true
+return chat?.isBanned === true
 }
 
 export function setChatBannedForBot(chat = {}, botJid = '', banned = true) {
-const jid = normalizeSessionJid(botJid)
-if (!jid) return false
-const botSettings = getChatBotSettings(chat, jid)
-botSettings.isBanned = Boolean(banned)
-if (!chat.isBanned || typeof chat.isBanned !== 'object') chat.isBanned = {}
-delete chat.isBanned[jid]
-chat.bannedBots = getChatBannedBots(chat)
+chat.isBanned = Boolean(banned)
 return true
 }
 
@@ -52,32 +37,8 @@ if (value === 'ignore' || value === 2) return 'ignore'
 return 'off'
 }
 
-export function getPrimaryBotJid(chat = {}) {
-const value = chat?.primaryBot || chat?.botPrimario || ''
-return normalizeSessionJid(value)
-}
-
-export function getPrimaryAliases(chat = {}) {
-const aliases = chat?.primaryBotAliases
-if (Array.isArray(aliases)) return aliases.filter(Boolean)
-if (aliases && typeof aliases === 'object') return Object.values(aliases).filter(Boolean)
-return []
-}
-
-export function getPrimaryBotJids(chat = {}) {
-const primary = getPrimaryBotJid(chat)
-const aliases = getPrimaryAliases(chat)
-return [...new Set([primary, ...aliases.map(alias => normalizeSessionJid(alias))].filter(Boolean))]
-}
-
-export function isPrimaryBotForChat(chat = {}, connOrJid = '') {
-const primaryBots = getPrimaryBotJids(chat)
-if (!primaryBots.length) return true
-return primaryBots.includes(normalizeSessionJid(connOrJid))
-}
-
 export function shouldSilenceChatForBot(chat = {}, connOrJid = '') {
-return isChatBannedForBot(chat, connOrJid) || !isPrimaryBotForChat(chat, connOrJid)
+return isChatBannedForBot(chat, connOrJid)
 }
 
 export function isGlobalOwner(sender = '') {
@@ -96,14 +57,6 @@ return isGlobalOwner(sender) || isBotCreator(sender, connOrJid)
 
 export function resetChatBotRouting(chat = {}) {
 if (!chat || typeof chat !== 'object') return chat
-chat.primaryBot = null
-chat.botPrimario = null
-chat.primaryBotAliases = []
-chat.isBanned = {}
-chat.bannedBots = []
-if (!chat.botSettings || typeof chat.botSettings !== 'object' || Array.isArray(chat.botSettings)) chat.botSettings = {}
-for (const settings of Object.values(chat.botSettings)) {
-if (settings && typeof settings === 'object') settings.isBanned = false
-}
+chat.isBanned = false
 return chat
 }

@@ -98,7 +98,6 @@ return schedule
 }
 
 function authCategory(type = '') {
-// Baileys puede emitir familias nuevas; los tokens críticos deben persistirse sin filtrado.
 return CRITICAL_BAILEYS_KEY_TYPES.has(type) ? type : String(type || '')
 }
 
@@ -294,27 +293,6 @@ close: closeAuthDb
 }
 }
 
-export async function createManagerDatabase({ dbPath = './sessions/system.db', tableName = 'bot_registry' } = {}) {
-if (!/^[A-Za-z0-9_]+$/.test(tableName)) throw new Error('tableName inválido para createManagerDatabase')
-const dir = path.dirname(dbPath)
-if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
-const sqlite = new Database(dbPath)
-sqlite.pragma('journal_mode = WAL')
-sqlite.pragma('synchronous = NORMAL')
-sqlite.pragma('busy_timeout = 5000')
-sqlite.pragma('temp_store = MEMORY')
-sqlite.pragma('cache_size = -20000')
-sqlite.pragma('mmap_size = 268435456')
-sqlite.pragma('wal_autocheckpoint = 1000')
-await sqlite.execAsync(`CREATE TABLE IF NOT EXISTS ${tableName} (
-  id TEXT PRIMARY KEY,
-  jid TEXT NOT NULL DEFAULT '',
-  status TEXT NOT NULL DEFAULT 'offline',
-  metadata TEXT NOT NULL DEFAULT '{}',
-  updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
-)`)
-return sqlite
-}
 
 export default useSQLiteAuthState
 

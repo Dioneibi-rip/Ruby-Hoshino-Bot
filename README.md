@@ -5,7 +5,6 @@
 <div align="center">
   <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=E91E63&center=true&vCenter=true&width=435&lines=WELCOME+TO+THE+REPOSITORY;RUBY+HOSHINO+BOT;THE+ULTIMATE+WHATSAPP+IDOL;CREATED+WITH+%E2%9D%A4%EF%B8%8F+BY+DIONEIBI;THE+CUTEST+BOT!+%F0%9F%92%96" alt="Typing SVG">
 
-**Bot de WhatsApp Multi Device con SQLite local y soporte multi-instancia.**
 
 <p>
   <a href="https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot"><img src="https://img.shields.io/github/stars/Dioneibi-rip/Ruby-Hoshino-Bot?style=for-the-badge&logo=github&color=ff4081" alt="GitHub stars"></a>
@@ -44,7 +43,6 @@
 | Pilar | Qué aporta |
 | :--- | :--- |
 | 🗄️ **SQLite puro** | No necesitas MongoDB, Redis obligatorio, cuentas externas ni paneles de base de datos. Los datos viven en `src/database/`. |
-| 🤖 **Multi-instancia / JadiBots** | Permite ejecutar sub-bots desde la misma base del proyecto mediante sesiones en `RubyJadiBots`. |
 | 👑 **Bot Primario** | Soporte para definir un bot principal por chat y evitar respuestas duplicadas cuando hay varias sesiones activas. |
 | 🧩 **Funciones de comunidad** | Administración de grupos, bienvenidas, stickers, descargas, juegos, economía, búsquedas y herramientas de entretenimiento. |
 | 🔐 **Sesiones locales** | Las sesiones de Baileys se guardan localmente para un reinicio más estable. |
@@ -352,18 +350,15 @@ npm start
 
 ---
 
-## 🧬 Multi-instancia: JadiBots y Bot Primario
 
 Ruby Hoshino puede trabajar con múltiples sesiones:
 
 - **Bot principal:** sesión estándar guardada en `RubySessions`.
-- **JadiBots:** sub-bots o sesiones secundarias guardadas en `RubyJadiBots`.
 - **Bot Primario por chat:** ayuda a decidir qué instancia responde en un grupo para reducir duplicados cuando hay más de un bot conectado.
 
 Consejos operativos:
 
 - No compartas carpetas de sesión públicamente.
-- Haz respaldos antes de borrar `RubySessions`, `RubyJadiBots` o `src/database/`.
 - Si varias instancias responden a la vez, revisa la configuración del bot primario del chat.
 
 ---

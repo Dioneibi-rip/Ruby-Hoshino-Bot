@@ -1,5 +1,4 @@
 import { smsg } from '../library/simple.js'
-import * as ws from 'ws'
 import { join } from 'path'
 import { fileURLToPath } from 'url'
 import { unwatchFile, watchFile } from 'fs'
@@ -21,7 +20,7 @@ isNumber,
 normalizeLidReferences,
 runMaintenance,
 } from './handler-utils.js'
-import { canManageBotSecurity, getAntiPrivateState, getPrimaryBotJid, isChatBannedForBot, isPrimaryBotForChat, normalizeSessionJid, resetChatBotRouting, shouldSilenceChatForBot } from '../core/session-utils.js'
+import { canManageBotSecurity, getAntiPrivateState, isChatBannedForBot, normalizeSessionJid, resetChatBotRouting, shouldSilenceChatForBot } from '../core/session-utils.js'
 import { attachSessionState, cleanupSessionState } from '../core/session-manager.js'
 import messageQueue from '../core/message-queue.js'
 import { normalizeIdentityJid, normalizeJid } from '../core/identity-utils.js'
@@ -38,29 +37,11 @@ global.uptimeStart = Date.now()
 
 const SYSTEM_MESSAGE_MAX_AGE_MS = 60_000
 const IGNORED_BAILEYS_IDS = [/^NJX-/, /^BAE5.{12}$/, /^B24E.{16}$/]
-const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js', 'enable/grupo-unbanchat.js', 'grupo-resetbot.js', 'enable/grupo-resetbot.js']
-const CELESTIAL_COMMANDS = new Set(['resetbot', 'unbanchat', 'desbanearchat'])
+const UNBAN_COMMAND_FILES = ['grupo-unbanchat.js', 'enable/grupo-unbanchat.js']
+const CELESTIAL_COMMANDS = new Set(['unbanchat', 'desbanearchat'])
 const REALTIME_EVENT_GRACE_MS = 15_000
 const REALTIME_EVENT_MAX_AGE_MS = 60_000
 const READ_MESSAGE_MIN_INTERVAL_MS = 1_500
-const PRIMARY_BOT_CACHE_TTL_SECONDS = Number(process.env.RUBY_PRIMARY_BOT_CACHE_TTL_SECONDS || 30 * 60)
-const PRIMARY_BOT_CACHE_MAX = Number(process.env.RUBY_PRIMARY_BOT_CACHE_MAX || 5000)
-const READ_MESSAGE_CACHE_TTL_SECONDS = Number(process.env.RUBY_READ_MESSAGE_CACHE_TTL_SECONDS || 2 * 60)
-const READ_MESSAGE_CACHE_MAX = Number(process.env.RUBY_READ_MESSAGE_CACHE_MAX || 10000)
-if (!(global.__rubyPrimaryBotCache instanceof TTLCache)) {
-global.__rubyPrimaryBotCache = new TTLCache({ stdTTL: PRIMARY_BOT_CACHE_TTL_SECONDS, checkperiod: 120, useClones: false, max: PRIMARY_BOT_CACHE_MAX })
-}
-const PRIMARY_BOT_CACHE = global.__rubyPrimaryBotCache
-const PRIMARY_BOT_EMPTY = ''
-const CHAT_ACTIVITY_DEFAULT_MAX_USERS = Number(global.chatActivityMaxUsers || process.env.CHAT_ACTIVITY_MAX_USERS || 500)
-const CHAT_ACTIVITY_DEFAULT_TTL_MS = Number(global.chatActivityTtlDays || process.env.CHAT_ACTIVITY_TTL_DAYS || 30) * 24 * 60 * 60 * 1000
-const PARTICIPANT_INDEX_TTL_SECONDS = Math.max(5, Math.ceil(Number(global.participantIndexTtlMs || process.env.RUBY_PARTICIPANT_INDEX_TTL_MS || 30000) / 1000))
-const PARTICIPANT_INDEX_MAX = Number(process.env.RUBY_PARTICIPANT_INDEX_MAX || 2000)
-
-const TIMELOCK_COOLDOWN_SCOPE = 'timelock_cooldown'
-const TIMELOCK_COOLDOWN_MS = 24 * 60 * 60 * 1000
-const TIMELOCK_GUARD_PATCH = Symbol.for('ruby.timelockGuard.sendMessagePatch')
-const PRIMARY_BOT_EGRESS_GUARD_PATCH = Symbol.for('ruby.primaryBot.egressGuardPatch')
 
 
 const PRESENCE_STATES = new Set(['available', 'unavailable', 'composing', 'recording', 'paused'])
@@ -138,67 +119,6 @@ return false
 }
 }
 
-function getGuardedGroupChat(conn, jid = '') {
-const chat = conn?.decodeJid?.(jid) || jid
-return typeof chat === 'string' && chat.endsWith('@g.us') ? chat : ''
-}
-
-function getEgressText(content = {}) {
-if (typeof content === 'string') return content
-return String(content?.text || content?.caption || content?.extendedTextMessage?.text || content?.conversation || '')
-}
-
-function isPrimaryBotControlEgress(content = {}) {
-const text = getEgressText(content)
-return /Estado de bots restablecido|Bot primario actualizado/i.test(text)
-}
-
-function canUsePrimaryBotEgress(conn, jid = '', content = {}) {
-const chatId = getGuardedGroupChat(conn, jid)
-if (!chatId || isPrimaryBotControlEgress(content)) return true
-return !shouldBlockForPrimaryBot(conn, chatId)
-}
-
-function canPatchConnectionMethod(conn, name) {
-if (!conn || typeof conn[name] !== 'function') return false
-let target = conn
-while (target) {
-const descriptor = Object.getOwnPropertyDescriptor(target, name)
-if (descriptor) return descriptor.writable !== false || typeof descriptor.set === 'function'
-target = Object.getPrototypeOf(target)
-}
-return true
-}
-
-function patchConnectionMethod(conn, name, wrapper) {
-if (!canPatchConnectionMethod(conn, name)) return false
-try {
-const original = conn[name].bind(conn)
-conn[name] = wrapper(original)
-return true
-} catch (error) {
-console.error(`[primary-bot] no se pudo blindar ${name}`, error?.message || error)
-return false
-}
-}
-
-function installPrimaryBotEgressGuard(conn) {
-if (!conn || conn[PRIMARY_BOT_EGRESS_GUARD_PATCH]) return
-patchConnectionMethod(conn, 'sendMessage', original => async (jid, content, options = {}) => {
-if (!canUsePrimaryBotEgress(conn, jid, content)) return null
-return original(jid, content, options)
-})
-patchConnectionMethod(conn, 'relayMessage', original => async (jid, message, options = {}) => {
-if (!canUsePrimaryBotEgress(conn, jid, message)) return null
-return original(jid, message, options)
-})
-patchConnectionMethod(conn, 'sendFile', original => async (jid, ...args) => {
-if (!canUsePrimaryBotEgress(conn, jid, args[3])) return null
-return original(jid, ...args)
-})
-conn[PRIMARY_BOT_EGRESS_GUARD_PATCH] = true
-}
-
 function installTimelockGuard(conn) {
 if (!conn?.sendMessage || conn[TIMELOCK_GUARD_PATCH]) return
 const originalSendMessage = conn.sendMessage.bind(conn)
@@ -269,7 +189,7 @@ const plugin = entry?.plugin || {}
 const tags = Array.isArray(plugin.tags) ? plugin.tags.map(tag => String(tag).toLowerCase()) : []
 const haystack = `${name} ${tags.join(' ')} ${command}`.toLowerCase()
 if (/(sticker|descargas|downloader|download|convertidor|tiktok|instagram|facebook|twitter|spotify|mediafire|mega|terabox|play|youtubedl|youtube|pinterest|xvideos|xnxx|pornhub|hentai|ai-|chatgpt|gemini|copilot|\bia\b|\bai\b)/.test(haystack)) return 'low'
-if (/(admin|owner|grupo|enable|main|info|ping|runtime|speed|estado|sistema|menu|staff|unban|resetbot|ban|kick|promote|demote)/.test(haystack)) return 'high'
+if (/(admin|owner|grupo|enable|main|info|ping|runtime|speed|estado|sistema|menu|staff|unban|ban|kick|promote|demote)/.test(haystack)) return 'high'
 return 'normal'
 }
 
@@ -531,27 +451,6 @@ function canBypassSilencedChat(message = {}) {
 return isCelestialCommandMessage(message)
 }
 
-async function forceResetBotState(conn, m, sender, participantsByLid = null, participants = []) {
-let normalizedSender = sender
-if (m?.isGroup && participantsByLid) normalizedSender = normalizeLidReferences(m, normalizedSender, participantsByLid)
-normalizedSender = await normalizeMessageIdentifiers(conn, m, normalizedSender, participantsByLid)
-const permissionContext = buildPermissionContext(conn, m, normalizedSender, participants)
-if (m?.isGroup && !(permissionContext.isAdmin || permissionContext.isOwner || permissionContext.isROwner || canManageBotSecurity(normalizedSender, conn))) return true
-if (!m?.isGroup && !isAuthorizedOwner(normalizedSender)) return true
-const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
-if (!chat) return true
-resetChatBotRouting(chat)
-forgetPrimaryBot(m.chat)
-rememberPrimaryBot(m.chat, chat)
-global.db?.updateChat?.(m.chat, chat)
-await global.db?.write?.()
-cleanupSessionState(conn)
-if(Array.isArray(global.conns))for(const sub of global.conns)cleanupSessionState(sub)
-global.__rubyPrimaryBotCache?.set?.(m.chat,'')
-await conn.reply?.(m.chat, '✅ Estado de bots restablecido: sin bot primario y con todos los sub-bots habilitados en este grupo.', m)
-return true
-}
-
 function getStickerHashFromMessage(m = {}) {
 const sha = m?.msg?.fileSha256 || m?.message?.stickerMessage?.fileSha256 || m?.message?.imageMessage?.fileSha256
 if (!sha) return ''
@@ -592,7 +491,7 @@ const chat = conn?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(
 if (!chat?.endsWith?.('@g.us')) return true
 if (canBypassSilencedChat(message)) return true
 const chatData = getFreshChatRecord(chat)
-if (shouldBlockForPrimaryBot(conn, chat)) return false
+if (shouldBlockForInactiveRouting(conn, chat)) return false
 const hasActiveAntiLink = Boolean(chatData?.antiLink || chatData?.antilink)
 if (hasActiveAntiLink && messageHasModeratedLink(message)) return true
 return !shouldSilenceChatForBot(chatData, normalizeConnectionJid(conn))
@@ -661,32 +560,7 @@ return IGNORED_BAILEYS_IDS.some((pattern) => pattern.test(id))
 }
 
 function normalizeConnectionJid(conn) {
-return normalizeSessionJid(conn?.subBotJid || conn?.authState?.creds?.me?.jid || conn?.authState?.creds?.me?.id || conn?.user?.jid || conn?.user?.id || conn?.session?.id || conn)
-}
-
-function rememberPrimaryBot(chatId = '', chat = null) {
-if (!chatId) return PRIMARY_BOT_EMPTY
-const primaryBot = getPrimaryBotJid(chat)
-PRIMARY_BOT_CACHE.set(chatId, primaryBot || PRIMARY_BOT_EMPTY)
-return primaryBot
-}
-
-function forgetPrimaryBot(chatId = '') {
-if (chatId) PRIMARY_BOT_CACHE.delete(chatId)
-}
-
-function getCachedPrimaryBot(chatId = '') {
-if (!chatId) return PRIMARY_BOT_EMPTY
-const cached = PRIMARY_BOT_CACHE.get(chatId)
-if (cached !== undefined) return cached || PRIMARY_BOT_EMPTY
-const chat = global.db?.data?.chats?.[chatId] || null
-return rememberPrimaryBot(chatId, chat)
-}
-
-function isCurrentBotPrimaryForCachedChat(conn, chatId = '') {
-const primaryBot = getCachedPrimaryBot(chatId)
-if (!primaryBot) return true
-return normalizeConnectionJid(conn) === primaryBot
+return normalizeSessionJid(conn?.authState?.creds?.me?.jid || conn?.authState?.creds?.me?.id || conn?.user?.jid || conn?.user?.id || conn?.session?.id || conn)
 }
 
 function getFreshChatRecord(chatId = '') {
@@ -694,40 +568,20 @@ if (!chatId) return null
 try {
 const chat = global.db?.getChat?.(chatId)
 if (chat) {
-rememberPrimaryBot(chatId, chat)
 return chat
 }
 } catch (error) {
-console.error('[primary-bot] no se pudo consultar el chat en SQLite', error)
+console.error('[bot] no se pudo consultar el chat en SQLite', error)
 }
 const chat = global.db?.data?.chats?.[chatId] || null
-rememberPrimaryBot(chatId, chat)
 return chat
 }
 
-function shouldBlockForPrimaryBot(conn, chatId = '') {
-if (!chatId) return false
-const chat = getFreshChatRecord(chatId)
-const primaryBot = getPrimaryBotJid(chat)
-if (!primaryBot) return false
-PRIMARY_BOT_CACHE.set(chatId, primaryBot)
-return !isPrimaryBotForChat(chat, normalizeConnectionJid(conn))
+function shouldBlockForInactiveRouting(conn, chatId = '') {
+return false
 }
 
-function enforcePrimaryBotMiddleware(conn, m = {}) {
-if (!m?.isGroup || isCelestialCommandText(m?.text || '')) return false
-const chat = getFreshChatRecord(m.chat)
-const primaryBot = getPrimaryBotJid(chat)
-if (!primaryBot) return false
-PRIMARY_BOT_CACHE.set(m.chat, primaryBot)
-const currentBot = normalizeConnectionJid(conn)
-if (!currentBot || !isPrimaryBotForChat(chat, currentBot)) return true
-if (chat && typeof chat === 'object') {
-if (chat.primaryBot !== primaryBot) chat.primaryBot = primaryBot
-if (chat.botPrimario !== primaryBot) chat.botPrimario = primaryBot
-rememberPrimaryBot(m.chat, chat)
-global.db?.updateChat?.(m.chat, chat)
-}
+function enforceSingleBotMiddleware(conn, m = {}) {
 return false
 }
 
@@ -807,7 +661,6 @@ stat.lastSuccess = now
 
 export async function handler(chatUpdate) {
 try {
-installPrimaryBotEgressGuard(this)
 installTimelockGuard(this)
 attachSessionState(this)
 runMaintenance(this)
@@ -818,7 +671,7 @@ const fastMessages = []
 for (const message of messages) {
 try {
 const rawChat = this?.decodeJid?.(getRawMessageChat(message)) || getRawMessageChat(message)
-if (rawChat?.endsWith?.('@g.us') && shouldBlockForPrimaryBot(this, rawChat) && !canBypassSilencedChat(message)) continue
+if (rawChat?.endsWith?.('@g.us') && shouldBlockForInactiveRouting(this, rawChat) && !canBypassSilencedChat(message)) continue
 const fastPath = getRawFastPath(this, message)
 if (!fastPath) continue
 message.__rubyFastPath = fastPath
@@ -864,17 +717,6 @@ if (!m.body && plainText) m.body = plainText
 trackLocalGroupActivity(this, m, m.isGroup ? (m.key?.participant || m.sender) : '', { countMessage: true, isCommand: false })
 
 const rawCommand = fastPath.rawCommand || getRawCommandName(m.text)
-if (rawCommand === 'resetbot') {
-sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
-if (!sender) return
-const resetContext = m.isGroup ? await getParticipantContext(this, m.chat, { requireParticipants: true, force: true }) : { groupMetadata: {}, participants: [], participantsByLid: null }
-const groupMetadata = resetContext.groupMetadata
-const participants = resetContext.participants
-const participantsByLid = resetContext.participantsByLid
-await forceResetBotState(this, m, sender, participantsByLid, participants)
-return
-}
-
 const prefixMatch = fastPath.usedPrefix ? [[fastPath.usedPrefix], null] : getPrefixMatch(this, {}, m.text)
 const parsed = fastPath.parsed || (prefixMatch?.[0]?.[0] ? parseCommand(m.text, prefixMatch[0][0]) : null)
 const commandEntry = fastPath.commandEntry || (parsed?.command ? commandsMap.get(parsed.command) : null)
@@ -903,7 +745,7 @@ m.exp = 0
 m.coin = false
 const { user: _user, settings } = hydrateDatabaseForMessage(this, m, sender)
 await clearAfkBeforePrefix(this,m,sender)
-if (enforcePrimaryBotMiddleware(this, m)) return
+if (enforceSingleBotMiddleware(this, m)) return
 
 await global.updateMessageGlobals?.(m, this)
 hydrateStickerCommandText(m)
@@ -1044,8 +886,6 @@ const chat = this.decodeJid?.(update.id) || update.id
 if (!chat || !chat.endsWith('@g.us')) return
 if (update.participants === undefined || !Array.isArray(update.participants) || !update.participants.length) return
 if (this.ev === undefined) return
-// Baileys forks may omit timestamps on live participant updates;
-// isRealtimeGroupEvent already rejects stale events when timestamps exist.
 if (!isRealtimeGroupEvent(this, update)) return
 const action = String(update.action || '').toLowerCase()
 const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null
@@ -1077,12 +917,6 @@ const file = typeof global.__filename === 'function' ? global.__filename(import.
 watchFile(file, async () => {
 unwatchFile(file)
 console.log(chalk.green('Actualizando "handler.js"'))
-if (global.conns?.length > 0) {
-const users = [...new Set(global.conns.filter((conn) => conn.user && conn.ws?.socket && conn.ws.socket.readyState !== ws.CLOSED))]
-for (const userr of users) {
-try { userr.subreloadHandler(false) } catch {}
-}
-}
 })
 
 export default { handler }

@@ -49,10 +49,6 @@ const texto = `
 > ✦ Banear al Bot en un chat o grupo.
 ᪄🧛🏼‍♀️᮫ᮣᮭᮡᩪᩬᩧᩦᩥ᪃ ؉ ᩡᩡ *#unbanchat*
 > ✦ Desbanear al Bot del chat o grupo.
-᪄🧛🏼‍♀️᮫ᮣᮭᮡᩪᩬᩧᩦᩥ᪃ ؉ ᩡᩡ *#setprimary • #botprimario • #setbot* [@bot]
-> ✦ Define qué Sub-Bot será el bot primario del grupo.
-᪄🧛🏼‍♀️᮫ᮣᮭᮡᩪᩬᩧᩦᩥ᪃ ؉ ᩡᩡ *#resetbot*
-> ✦ Restablece el bot primario y habilita todos los Sub-Bots.
 ᪄🧛🏼‍♀️᮫ᮣᮭᮡᩪᩬᩧᩦᩥ᪃ ؉ ᩡᩡ *#mute* [mención / etiquetar]
 > ✦ El Bot elimina los mensajes del usuario.
 ᪄🧛🏼‍♀️᮫ᮣᮭᮡᩪᩬᩧᩦᩥ᪃ ؉ ᩡᩡ *#unmute* [mención / etiquetar]

@@ -50,9 +50,6 @@ export async function before(m, { conn, participants = [], groupMetadata = {} } 
 if (!m.messageStubType || !m.isGroup) return true
 const chat = global.db.getChat(m.chat)
 if (!chat || !chat.welcome) return true
-const botJid = conn.user.jid.split('@')[0]
-const primaryBot = chat.botPrimario ? chat.botPrimario.split('@')[0] : null
-if (primaryBot && botJid !== primaryBot) return true
 const isWelcome = [
 WAMessageStubType.GROUP_PARTICIPANT_ADD,
 WAMessageStubType.GROUP_PARTICIPANT_INVITE,
