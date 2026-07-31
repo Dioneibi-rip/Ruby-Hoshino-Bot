@@ -6,15 +6,54 @@ import { useOptimizedAuthState } from '../library/sqliteAuthState.js'
 import { attachSessionState, createMessageRetryCache } from './session-manager.js'
 import { alignSocketTelemetry, getStandardBrowserProfile } from './socket-telemetry.js'
 import { normalizeSessionJid } from './session-utils.js'
-import { countActiveSubbots, listSubbots, updateSubbot, upsertSubbot } from './subbot-store.js'
+import { countActiveSubbots, deleteSubbotRecord, listSubbots, updateSubbot, upsertSubbot } from './subbot-store.js'
 import { readSubbotLimit } from '../config/subbot-limit.js'
 
 const managed = new Map()
+const reconnecting = new Set()
 const baseDir = path.join(process.cwd(), 'sessions', 'subbots')
+const DEFAULT_BAILEYS_VERSION = [2, 3000, 1015901307]
+const INVALID_SESSION_STATUS = new Set([401, 403, 440, 515])
 
-function delayFor(attempt = 0) {
+function delayFor(attempt = 0, override = 0) {
 const base = Math.min(300000, 2500 * (2 ** Math.min(attempt, 7)))
-return base + Math.floor(Math.random() * Math.min(base, 30000))
+return Math.max(Number(override) || 0, base + Math.floor(Math.random() * Math.min(base, 30000)))
+}
+
+function statusCodeFrom(error) {
+return Number(error?.output?.statusCode || error?.data?.statusCode || error?.statusCode || error?.reason || 0)
+}
+
+function isInvalidSessionError(error) {
+const code = statusCodeFrom(error)
+const text = String(error?.message || error?.output?.payload?.message || error || '').toLowerCase()
+return INVALID_SESSION_STATUS.has(code) || /logged\s*out|invalid|expired|corrupt|bad\s*mac|decrypt|auth|creds|session/i.test(text)
+}
+
+async function resolveBaileysVersion(baileys) {
+const fetchVersion = baileys?.fetchLatestBaileysVersion || baileys?.default?.fetchLatestBaileysVersion
+if (typeof fetchVersion !== 'function') return DEFAULT_BAILEYS_VERSION
+try {
+const result = await fetchVersion()
+return Array.isArray(result?.version) ? result.version : DEFAULT_BAILEYS_VERSION
+} catch {
+return DEFAULT_BAILEYS_VERSION
+}
+}
+
+function scheduleInvalidSessionCleanup({ botJid, sessionId, sessionPath, error }) {
+const label = botJid || sessionId || sessionPath
+console.log(`[subbot-cleanup] sesión inválida detectada para ${label}: ${getPairingErrorMessage(error)}`)
+setImmediate(async () => {
+try {
+managed.delete(sessionId)
+deleteSubbotRecord(botJid, sessionId)
+await rm(sessionPath, { recursive: true, force: true })
+console.log(`[subbot-cleanup] sesión eliminada: ${label}`)
+} catch (cleanupError) {
+console.error(`[subbot-cleanup] no se pudo limpiar ${label}:`, cleanupError)
+}
+})
 }
 
 export function requestPairingCodeWithTimeout(sock, phone, code = 'RUBYCHAN', timeoutMs = 45000) {
@@ -45,8 +84,8 @@ const current = managed.get(sessionId)
 if (current?.sock) return current.sock
 const { state, saveCreds } = await useOptimizedAuthState(sessionPath, { dbName: 'auth.db', cleanOldFiles: true, sessionId })
 const baileys = global.baileys || await import('@whiskeysockets/baileys')
-const { fetchLatestBaileysVersion, makeCacheableSignalKeyStore, DisconnectReason } = baileys
-const { version } = await fetchLatestBaileysVersion()
+const { makeCacheableSignalKeyStore, DisconnectReason } = baileys
+const version = await resolveBaileysVersion(baileys)
 let attempt = 0
 let sock
 const connect = async () => {
@@ -82,25 +121,44 @@ const botJid = normalizeSessionJid(sock.user?.jid || sock.authState?.creds?.me?.
 runtime.botJid = botJid
 runtime.status = 'open'
 upsertSubbot({ botJid, ownerJid, sessionId, sessionPath, status: 'open', lastSeenAt: Date.now() })
+console.log(`[subbot] conectado ${botJid}`)
 }
 if (update.connection === 'close') {
-const statusCode = update.lastDisconnect?.error?.output?.statusCode || update.lastDisconnect?.error?.statusCode
+const error = update.lastDisconnect?.error
+const statusCode = statusCodeFrom(error)
 runtime.status = 'close'
 updateSubbot(runtime.botJid, { status: 'close' })
-if (statusCode === DisconnectReason?.loggedOut || statusCode === 401) return
-const wait = delayFor(attempt++)
-setTimeout(() => startSubbot({ ownerJid, sessionId, sessionPath, mode: 'restore' }).catch(console.error), wait).unref?.()
+try { sock.ws?.close?.() } catch {}
+managed.delete(sessionId)
+if (isInvalidSessionError(error) || statusCode === DisconnectReason?.loggedOut) return scheduleInvalidSessionCleanup({ botJid: runtime.botJid, sessionId, sessionPath, error })
+const wait = delayFor(attempt++, update.reconnectDelayMs)
+console.log(`[subbot] reconectando ${runtime.botJid || sessionId} en ${Math.ceil(wait / 1000)}s`)
+setTimeout(() => startSubbot({ ownerJid, sessionId, sessionPath, mode: 'restore' }).catch(error => {
+if (isInvalidSessionError(error)) scheduleInvalidSessionCleanup({ botJid: runtime.botJid, sessionId, sessionPath, error })
+else console.error(`[subbot] error al reconectar ${runtime.botJid || sessionId}:`, error)
+}), wait).unref?.()
 }
 })
 if (mode === 'code' && pairingPhone && !state.creds?.registered) await onPairingCode?.(sock, pairingPhone, parentConn)
 return sock
 }
-return connect()
+return connect().catch(error => {
+if (isInvalidSessionError(error)) scheduleInvalidSessionCleanup({ botJid: `pending:${sessionId}`, sessionId, sessionPath, error })
+throw error
+})
 }
 
 export async function restoreSubbots() {
-for (const bot of listSubbots().filter(item => !item.paused)) {
-startSubbot({ ownerJid: bot.owner_jid, sessionId: bot.session_id, sessionPath: bot.session_path, mode: 'restore' }).catch(console.error)
+const bots = listSubbots({ activeOnly: true })
+console.log(`[subbot-startup] ${bots.length} Sub-Bot(s) activos encontrados en SQLite`)
+for (const bot of bots) {
+if (reconnecting.has(bot.session_id)) continue
+reconnecting.add(bot.session_id)
+console.log(`[subbot-startup] reconectando ${bot.bot_jid} (${bot.session_id})`)
+setImmediate(() => startSubbot({ ownerJid: bot.owner_jid, sessionId: bot.session_id, sessionPath: bot.session_path, mode: 'restore' }).catch(error => {
+if (isInvalidSessionError(error)) scheduleInvalidSessionCleanup({ botJid: bot.bot_jid, sessionId: bot.session_id, sessionPath: bot.session_path, error })
+else console.error(`[subbot-startup] error al reconectar ${bot.bot_jid}:`, error)
+}).finally(() => reconnecting.delete(bot.session_id)))
 }
 }
 
@@ -123,6 +181,6 @@ const runtime = managed.get(bot.session_id)
 try { runtime?.sock?.ws?.close?.() } catch {}
 managed.delete(bot.session_id)
 await rm(bot.session_path, { recursive: true, force: true })
-global.db.sqlite.prepare('DELETE FROM subbots WHERE bot_jid=?').run(bot.bot_jid)
+deleteSubbotRecord(bot.bot_jid, bot.session_id)
 return true
 }

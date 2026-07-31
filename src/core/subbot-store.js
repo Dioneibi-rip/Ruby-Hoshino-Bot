@@ -92,6 +92,15 @@ const sql = activeOnly ? "SELECT * FROM subbots WHERE status IN ('connecting','o
 return db().prepare(sql).all().map(row)
 }
 
+
+export function deleteSubbotRecord(botJid, sessionId) {
+ensure()
+const normalized = normalizeSessionJid(botJid)
+if (normalized) db().prepare('DELETE FROM subbots WHERE bot_jid=?').run(normalized)
+if (sessionId) db().prepare('DELETE FROM subbots WHERE session_id=?').run(sessionId)
+return true
+}
+
 export function deleteSubbotByOwner(ownerJid) {
 ensure()
 const jid = normalizeSessionJid(ownerJid)

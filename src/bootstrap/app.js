@@ -46,7 +46,7 @@ const baileysModule = await import('@whiskeysockets/baileys')
 global.baileys = baileysModule
 global.Baileys = baileysModule
 const { proto } = baileysModule.default
-const { DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, Browsers } = baileysModule
+const { DisconnectReason, makeCacheableSignalKeyStore, jidNormalizedUser, Browsers } = baileysModule
 const { CONNECTING } = ws
 global.__filename = function filename(pathURL = import.meta.url, rmPrefix = platform !== 'win32') { return rmPrefix ? /file:\/\/\//.test(pathURL) ? fileURLToPath(pathURL) : pathURL : pathToFileURL(pathURL).toString(); };
 global.__dirname = function dirname(pathURL) { return path.dirname(global.__filename(pathURL, true)) };
@@ -213,7 +213,8 @@ const debouncedSaveCreds = createDebouncedSaveCreds(() => saveCreds.call(global.
 global.authCredsFlushers.add(debouncedSaveCreds.flush)
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = createMessageRetryCache()
-const { version } = await fetchLatestBaileysVersion();
+const fetchBaileysVersion = baileysModule.fetchLatestBaileysVersion || baileysModule.default?.fetchLatestBaileysVersion
+const { version = [2, 3000, 1015901307] } = typeof fetchBaileysVersion === 'function' ? await fetchBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] })) : { version: [2, 3000, 1015901307] };
 let phoneNumber = global.botNumber
 const methodCodeQR = process.argv.includes("qr")
 const methodCode = !!phoneNumber || process.argv.includes("code")

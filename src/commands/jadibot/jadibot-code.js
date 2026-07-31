@@ -6,9 +6,9 @@ function clearPairingCodeLock() {
 pairingCodeSent = false
 }
 
-let handler = async (m, { conn, text }) => {
-const pairingPhone = String(text || '').replace(/\D/g, '')
-if (!pairingPhone) return conn.reply(m.chat, '🥀 Usa: #code <número con código de país>', m)
+let handler = async (m, { conn }) => {
+const pairingPhone = String(conn.decodeJid?.(m.sender) || m.sender || '').split('@')[0].replace(/\D/g, '')
+if (!pairingPhone) return conn.reply(m.chat, '🥀 No pude detectar tu número automáticamente. Intenta enviar #code desde tu chat de WhatsApp.', m)
 if (pairingCodeSent) return conn.reply(m.chat, '⏳ Ya hay una solicitud de vinculación en proceso.', m)
 pairingCodeSent = true
 let destroySock = async () => {}
@@ -90,7 +90,7 @@ clearPairingCodeLock()
 return conn.reply(m.chat, `🥀 No se pudo iniciar el código: ${error.message}`, m)
 }
 }
-handler.help = ['code <numero>']
+handler.help = ['code']
 handler.tags = ['jadibot']
 handler.command = ['code']
 export default handler
