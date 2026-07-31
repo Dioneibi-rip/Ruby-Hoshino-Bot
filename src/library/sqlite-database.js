@@ -319,6 +319,10 @@ CREATE TABLE IF NOT EXISTS json_records (section TEXT NOT NULL, id TEXT NOT NULL
 CREATE TABLE IF NOT EXISTS sticker_cmds (hash TEXT PRIMARY KEY, value TEXT NOT NULL DEFAULT '{}', updated_at INTEGER NOT NULL DEFAULT (unixepoch()));
 CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS temporary_states (scope TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL DEFAULT '{}', expire_at INTEGER NOT NULL, updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000), PRIMARY KEY(scope, key));
+CREATE TABLE IF NOT EXISTS subbots (bot_jid TEXT PRIMARY KEY, owner_jid TEXT NOT NULL, session_id TEXT NOT NULL UNIQUE, session_path TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'stopped', paused INTEGER NOT NULL DEFAULT 0, currency TEXT NOT NULL DEFAULT 'coin', created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000), updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000), last_seen_at INTEGER NOT NULL DEFAULT 0, meta_json TEXT NOT NULL DEFAULT '{}');
+CREATE TABLE IF NOT EXISTS group_routing (chat_id TEXT PRIMARY KEY, primary_bot_jid TEXT NOT NULL, updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000));
+CREATE TABLE IF NOT EXISTS bot_chat_bans (bot_jid TEXT NOT NULL, chat_id TEXT NOT NULL, banned INTEGER NOT NULL DEFAULT 1, updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000), PRIMARY KEY(bot_jid, chat_id));
+CREATE TABLE IF NOT EXISTS subbot_config (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000));
 CREATE TABLE IF NOT EXISTS timelock_cooldown (jid TEXT PRIMARY KEY, expires_at INTEGER NOT NULL, value TEXT NOT NULL DEFAULT '{}', updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000));
 CREATE INDEX IF NOT EXISTS idx_users_jid ON users(id);
 CREATE INDEX IF NOT EXISTS idx_users_level ON users(level);
@@ -336,6 +340,9 @@ CREATE INDEX IF NOT EXISTS idx_settings_updated_at ON settings(updated_at);
 CREATE INDEX IF NOT EXISTS idx_json_records_section_updated_at ON json_records(section, updated_at);
 CREATE INDEX IF NOT EXISTS idx_sticker_cmds_updated_at ON sticker_cmds(updated_at);
 CREATE INDEX IF NOT EXISTS idx_temporary_states_expire_at ON temporary_states(expire_at);
+CREATE INDEX IF NOT EXISTS idx_subbots_owner ON subbots(owner_jid);
+CREATE INDEX IF NOT EXISTS idx_subbots_status ON subbots(status, paused);
+CREATE INDEX IF NOT EXISTS idx_bot_chat_bans_chat ON bot_chat_bans(chat_id);
 CREATE INDEX IF NOT EXISTS idx_timelock_cooldown_expires_at ON timelock_cooldown(expires_at);
 CREATE INDEX IF NOT EXISTS idx_marriages_partner ON marriages(group_id, partner_id);
 CREATE INDEX IF NOT EXISTS idx_harem_user ON harem(group_id, user_id);
@@ -906,9 +913,10 @@ chat.botSettings[jid] ||= {}
 if (typeof chat.botSettings[jid].isBanned === 'undefined') chat.botSettings[jid].isBanned = true
 }
 }
+chat.id ||= ''
 return chat
 }
-getChat(id) { if (!id || typeof id !== 'string') throw new TypeError('getChat requiere un id de chat válido'); const row = this.sqlite.prepare('SELECT value FROM chats WHERE id=?').get(id); return this.normalizeChatDefaults(parseJSON(row?.value, {})) }
+getChat(id) { if (!id || typeof id !== 'string') throw new TypeError('getChat requiere un id de chat válido'); const row = this.sqlite.prepare('SELECT value FROM chats WHERE id=?').get(id); return this.normalizeChatDefaults({ id, ...parseJSON(row?.value, {}) }) }
 updateChat(id, patch = {}) {
 const args = { id: sanitizeSqliteArg(id), patch: sanitizeSqliteArg(patch, { json: true }) }
 try {
