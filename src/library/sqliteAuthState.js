@@ -181,13 +181,12 @@ const last = Number(parse(lastRow?.value) || 0)
 if (now - last < intervalMs) return
 const cutoff = now - retentionMs
 await statements.cleanup.runAsync(cutoff)
-await sqlite.execAsync('VACUUM;')
+await sqlite.execAsync('PRAGMA incremental_vacuum;')
 await statements.setMeta.runAsync('last_cleanup_at', stringify(now), now, now, now)
 } catch (error) {
 console.error('[sqlite-auth] error en limpieza diaria:', error)
 }
 }
-void runCleanup()
 const timer = setInterval(runCleanup, intervalMs)
 timer.unref?.()
 cleanupTimers.set(dbPath, timer)

@@ -41,12 +41,15 @@ import { alignSocketTelemetry, getStandardBrowserProfile } from '../core/socket-
 import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from '../router/handler-utils.js'
 import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from '../library/queue.js'
 import { restoreSubbots } from '../core/subbot-engine.js'
+import { getBaileysExport, getBaileysProto, getSignalKeyStore } from '../core/baileys-compat.js'
 EventEmitter.defaultMaxListeners = 100
 const baileysModule = await import('@whiskeysockets/baileys')
 global.baileys = baileysModule
 global.Baileys = baileysModule
-const { proto } = baileysModule.default
-const { DisconnectReason, makeCacheableSignalKeyStore, jidNormalizedUser, Browsers } = baileysModule
+const proto = getBaileysProto(baileysModule)
+const DisconnectReason = getBaileysExport(baileysModule, 'DisconnectReason')
+const jidNormalizedUser = getBaileysExport(baileysModule, 'jidNormalizedUser')
+const Browsers = getBaileysExport(baileysModule, 'Browsers')
 const { CONNECTING } = ws
 global.__filename = function filename(pathURL = import.meta.url, rmPrefix = platform !== 'win32') { return rmPrefix ? /file:\/\/\//.test(pathURL) ? fileURLToPath(pathURL) : pathURL : pathToFileURL(pathURL).toString(); };
 global.__dirname = function dirname(pathURL) { return path.dirname(global.__filename(pathURL, true)) };
@@ -213,7 +216,7 @@ const debouncedSaveCreds = createDebouncedSaveCreds(() => saveCreds.call(global.
 global.authCredsFlushers.add(debouncedSaveCreds.flush)
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = createMessageRetryCache()
-const fetchBaileysVersion = baileysModule.fetchLatestBaileysVersion || baileysModule.default?.fetchLatestBaileysVersion
+const fetchBaileysVersion = getBaileysExport(baileysModule, 'fetchLatestBaileysVersion')
 const { version = [2, 3000, 1043857760] } = typeof fetchBaileysVersion === 'function' ? await fetchBaileysVersion().catch(() => ({ version: [2, 3000, 1043857760] })) : { version: [2, 3000, 1043857760] };
 let phoneNumber = global.botNumber
 const methodCodeQR = process.argv.includes("qr")
@@ -264,7 +267,7 @@ logger: pino({ level: 'silent' }),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile,
 browser: getStandardBrowserProfile(),
-auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })), },
+auth: { creds: state.creds, keys: getSignalKeyStore(baileysModule, state.keys, pino({ level: "fatal" }).child({ level: "fatal" })), },
 markOnlineOnConnect: socketCfg.markOnlineOnConnect ?? true,
 generateHighQualityLinkPreview: socketCfg.generateHighQualityLinkPreview ?? false,
 getMessage: async (clave) => { const jid = jidNormalizedUser(clave.remoteJid); const msg = await store.loadMessage(jid, clave.id); return msg?.message },
