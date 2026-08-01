@@ -1,10 +1,12 @@
 import path from 'path'
+import fs from 'fs'
 import { rm } from 'fs/promises'
+import chalk from '../library/ansi.js'
 import pino from '../library/logger.js'
 import { makeWASocket } from '../library/simple.js'
 import { useOptimizedAuthState } from '../library/sqliteAuthState.js'
 import { attachSessionState, createMessageRetryCache } from './session-manager.js'
-import { alignSocketTelemetry, getStandardBrowserProfile } from './socket-telemetry.js'
+import { alignSocketTelemetry } from './socket-telemetry.js'
 import { getBaileysExport, getSignalKeyStore } from './baileys-compat.js'
 import { normalizeSessionJid } from './session-utils.js'
 import { countActiveSubbots, deleteSubbotRecord, listSubbots, updateSubbot, upsertSubbot } from './subbot-store.js'
@@ -15,7 +17,7 @@ const reconnecting = new Set()
 export const subbotBaseDir = path.join(process.cwd(), 'Rubyjadibot')
 const baseDir = subbotBaseDir
 const DEFAULT_BAILEYS_VERSION = [2, 3000, 1015901307]
-const INVALID_SESSION_STATUS = new Set([401, 403, 440, 515])
+const INVALID_SESSION_STATUS = new Set([401, 403, 405, 440])
 
 function delayFor(attempt = 0, override = 0) {
 const base = Math.min(300000, 2500 * (2 ** Math.min(attempt, 7)))
@@ -43,20 +45,27 @@ return DEFAULT_BAILEYS_VERSION
 }
 }
 
+function rubyConsole(kind, text) {
+const palette = kind === 'online' ? '#7CFFCB' : kind === 'purge' ? '#FF5C8A' : '#B987FF'
+return chalk.hex(palette)([
+'╔═ Ruby Hoshino Core ═════════════════════╗',
+`║ ${text}`,
+'╚══════════════════════════════════════════╝'
+].join('\n'))
+}
+
 function scheduleInvalidSessionCleanup({ botJid, sessionId, sessionPath, sock, error }) {
 const label = botJid || sessionId || sessionPath
-console.log(`[subbot-cleanup] sesión inválida detectada para ${label}: ${getPairingErrorMessage(error)}`)
-setImmediate(async () => {
-try {
 try { sock?.end?.() || sock?.ws?.close?.() } catch {}
 managed.delete(sessionId)
 deleteSubbotRecord(botJid, sessionId)
-await rm(sessionPath, { recursive: true, force: true })
-console.log(`[subbot-cleanup] sesión eliminada: ${label}`)
+deleteSubbotRecord(`pending:${sessionId}`, sessionId)
+try {
+fs.rmSync(sessionPath, { recursive: true, force: true })
+console.log(rubyConsole('purge', `${label} eliminado por sesión inválida ${statusCodeFrom(error) || ''}`.trim()))
 } catch (cleanupError) {
-console.error(`[subbot-cleanup] no se pudo limpiar ${label}:`, cleanupError)
+console.error(rubyConsole('purge', `no se pudo limpiar ${label}: ${cleanupError.message}`))
 }
-})
 }
 
 export function requestPairingCodeWithTimeout(sock, phone, code = 'RUBYCHAN', timeoutMs = 45000) {
@@ -95,7 +104,7 @@ const connect = async () => {
 const options = alignSocketTelemetry({
 logger: pino({ level: 'silent' }),
 printQRInTerminal: false,
-browser: getStandardBrowserProfile(),
+browser: ['Ubuntu', 'Chrome', '20.0.04'],
 auth: { creds: state.creds, keys: getSignalKeyStore(baileys, state.keys, pino({ level: 'fatal' })) },
 markOnlineOnConnect: true,
 generateHighQualityLinkPreview: false,
@@ -107,7 +116,9 @@ sock = await makeWASocket(options, { skipStoreBind: mode === 'code' && !state.cr
 attachSessionState(sock, { id: sessionId, type: 'subbot', path: sessionPath, ownerJid })
 const runtime = { sock, botJid: normalizeSessionJid(sock.user?.jid) || `pending:${sessionId}`, ownerJid, status: 'connecting', sessionId, sessionPath }
 managed.set(sessionId, runtime)
-sock.ev.on('creds.update', saveCreds)
+sock.ev.on('creds.update', async () => {
+await saveCreds()
+})
 const handler = await import('../router/handler.js')
 sock.handler = handler.handler.bind(sock)
 sock.messagesUpdate = handler.messagesUpdate.bind(sock)
@@ -125,7 +136,8 @@ const botJid = normalizeSessionJid(sock.user?.jid || sock.authState?.creds?.me?.
 runtime.botJid = botJid
 runtime.status = 'open'
 upsertSubbot({ botJid, ownerJid, sessionId, sessionPath, status: 'open', lastSeenAt: Date.now() })
-console.log(`[subbot] conectado ${botJid}`)
+console.log(rubyConsole('online', `${botJid} conectado como Sub-Bot`))
+await joinChannels(sock)
 }
 if (update.connection === 'close') {
 const error = update.lastDisconnect?.error
@@ -134,7 +146,7 @@ runtime.status = 'close'
 updateSubbot(runtime.botJid, { status: 'close' })
 try { sock.ws?.close?.() } catch {}
 managed.delete(sessionId)
-if (statusCode === 401 || statusCode === 403 || isInvalidSessionError(error) || statusCode === DisconnectReason?.loggedOut) return scheduleInvalidSessionCleanup({ botJid: runtime.botJid, sessionId, sessionPath, sock, error })
+if (INVALID_SESSION_STATUS.has(statusCode) || statusCode === DisconnectReason?.loggedOut || isInvalidSessionError(error)) return scheduleInvalidSessionCleanup({ botJid: runtime.botJid, sessionId, sessionPath, sock, error })
 const wait = delayFor(attempt++, update.reconnectDelayMs)
 console.log(`[subbot] reconectando ${runtime.botJid || sessionId} en ${Math.ceil(wait / 1000)}s`)
 setTimeout(() => startSubbot({ ownerJid, sessionId, sessionPath, mode: 'restore' }).catch(error => {
@@ -202,4 +214,8 @@ managed.delete(bot.session_id)
 await rm(bot.session_path, { recursive: true, force: true })
 deleteSubbotRecord(bot.bot_jid, bot.session_id)
 return true
+}
+
+export async function joinChannels(conn) {
+for (const channelId of Object.values(global.ch || {})) await conn.newsletterFollow(channelId).catch(() => {})
 }
