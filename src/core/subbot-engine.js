@@ -42,9 +42,9 @@ return version
 function rubyConsole(kind, text) {
 const palette = kind === 'online' ? '#7CFFCB' : kind === 'purge' ? '#FF5C8A' : '#B987FF'
 return chalk.hex(palette)([
-'╔═ Ruby Hoshino Core ═════════════════════╗',
-`║ ${text}`,
-'╚══════════════════════════════════════════╝'
+'┏━━ ruby-hoshino.signal ━━━━━━━━━━━━━━━┓',
+`┃ ${text}`,
+'┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛'
 ].join('\n'))
 }
 
