@@ -77,6 +77,19 @@ export function activeSubbotRuntimeList() {
 return [...managed.values()].map(item => ({ botJid: item.botJid, ownerJid: item.ownerJid, status: item.status, sessionPath: item.sessionPath }))
 }
 
+function getSubbotMessageTime(message = {}) {
+const raw = Number(message.messageTimestamp || message?.message?.messageTimestamp || message.timestamp || 0)
+if (!raw) return 0
+return raw < 10_000_000_000 ? raw * 1000 : raw
+}
+
+function shouldProcessSubbotMessage(message = {}, botStartTime = Date.now()) {
+const timestamp = getSubbotMessageTime(message)
+if (!timestamp) return true
+if (timestamp < botStartTime) return false
+return Date.now() - timestamp <= 60_000
+}
+
 export async function createSubbotSocket({ ownerJid, sessionId, pairingPhone, mode = 'code', parentConn, onPairingCode, onQr } = {}) {
 if (countActiveSubbots() >= readSubbotLimit()) throw new Error(`Límite de Sub-Bots alcanzado (${readSubbotLimit()})`)
 const safeId = String(sessionId || ownerJid || Date.now()).replace(/[^a-zA-Z0-9_.@-]/g, '_')
@@ -94,6 +107,7 @@ const DisconnectReason = getBaileysExport(baileys, 'DisconnectReason')
 const version = await resolveBaileysVersion()
 let attempt = 0
 let sock
+const botStartTime = Date.now()
 const connect = async () => {
 const options = alignSocketTelemetry({
 logger: pino({ level: 'silent' }),
@@ -101,6 +115,7 @@ printQRInTerminal: false,
 browser: ['Ubuntu', 'Chrome', '20.0.04'],
 auth: { creds: state.creds, keys: getSignalKeyStore(baileys, state.keys, pino({ level: 'fatal' })) },
 markOnlineOnConnect: true,
+syncFullHistory: false,
 generateHighQualityLinkPreview: false,
 msgRetryCounterCache: createMessageRetryCache(),
 defaultQueryTimeoutMs: 60000,
@@ -115,10 +130,15 @@ await saveCreds()
 })
 const handler = await import('../router/handler.js')
 sock.handler = handler.handler.bind(sock)
+sock.subbotMessageGuard = update => {
+const list = Array.isArray(update?.messages) ? update.messages.filter(message => shouldProcessSubbotMessage(message, botStartTime)) : []
+if (!list.length) return
+return sock.handler({ ...update, messages: list })
+}
 sock.messagesUpdate = handler.messagesUpdate.bind(sock)
 sock.participantsUpdate = handler.participantsUpdate.bind(sock)
 sock.groupsUpdate = handler.groupsUpdate.bind(sock)
-sock.ev.on('messages.upsert', sock.handler)
+sock.ev.on('messages.upsert', sock.subbotMessageGuard)
 sock.ev.on('messages.update', sock.messagesUpdate)
 sock.ev.on('group-participants.update', sock.participantsUpdate)
 sock.ev.on('groups.update', sock.groupsUpdate)
@@ -131,8 +151,8 @@ runtime.botJid = botJid
 runtime.status = 'open'
 upsertSubbot({ botJid, ownerJid, sessionId, sessionPath, status: 'open', lastSeenAt: Date.now() })
 console.log(rubyConsole('online', `${botJid} conectado como Sub-Bot`))
-sock.ev.off('messages.upsert', sock.handler)
-sock.ev.on('messages.upsert', sock.handler)
+sock.ev.off('messages.upsert', sock.subbotMessageGuard)
+sock.ev.on('messages.upsert', sock.subbotMessageGuard)
 await joinChannels(sock)
 }
 if (update.connection === 'close') {

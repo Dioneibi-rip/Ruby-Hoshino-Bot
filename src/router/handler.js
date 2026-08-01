@@ -585,12 +585,31 @@ const chat = global.db?.data?.chats?.[chatId] || null
 return chat
 }
 
+function getConfiguredPrimaryBot(chat = {}, chatId = '') {
+let primary = chat?.primaryBot || chat?.botPrimario || chat?.primaryBotJid || ''
+if (!primary && chatId) {
+try { primary = global.db?.sqlite?.prepare('SELECT primary_bot_jid FROM group_routing WHERE chat_id=?').get(chatId)?.primary_bot_jid || '' } catch {}
+}
+return normalizeSessionJid(primary)
+}
+
 function shouldBlockForInactiveRouting(conn, chatId = '') {
-return false
+if (!chatId?.endsWith?.('@g.us')) return false
+const chatData = getFreshChatRecord(chatId) || {}
+const primary = getConfiguredPrimaryBot(chatData, chatId)
+if (!primary) return false
+const current = normalizeConnectionJid(conn)
+return Boolean(current && primary !== current)
 }
 
 function enforceSingleBotMiddleware(conn, m = {}) {
-return false
+if (!m?.isGroup || !m?.chat) return false
+if (isCelestialCommandText(String(m.text || m.body || ''))) return false
+const chatData = getFreshChatRecord(m.chat) || {}
+const primary = getConfiguredPrimaryBot(chatData, m.chat)
+if (!primary) return false
+const current = normalizeConnectionJid(conn)
+return Boolean(current && primary !== current)
 }
 
 async function normalizeJidForDatabase(conn, jid, participantsByLid = null) {
