@@ -12,20 +12,32 @@ import { getBaileysExport, getSignalKeyStore } from './baileys-compat.js'
 import { normalizeSessionJid } from './session-utils.js'
 import { countActiveSubbots, deleteSubbotRecord, listSubbots, updateSubbot, upsertSubbot } from './subbot-store.js'
 import { readSubbotLimit } from '../config/subbot-limit.js'
+import { subbotBootQueue } from './subbot-boot-queue.js'
+import { attachSubbotMemoryManager, sweepSubbotSocket } from './subbot-memory-manager.js'
 
 const managed = new Map()
 const reconnecting = new Set()
 export const subbotBaseDir = path.join(process.cwd(), 'Rubyjadibot')
 const baseDir = subbotBaseDir
 const INVALID_SESSION_STATUS = new Set([401, 403, 405, 440])
+const TRANSIENT_SESSION_STATUS = new Set([0, 408, 428, 429, 500, 502, 503, 504, 515])
+attachSubbotMemoryManager(() => [...managed.values()].map(item => item.sock).filter(Boolean), { key: 'subbot-engine' })
 
 function delayFor(attempt = 0, override = 0) {
 const base = Math.min(300000, 2500 * (2 ** Math.min(attempt, 7)))
-return Math.max(Number(override) || 0, base + Math.floor(Math.random() * Math.min(base, 30000)))
+const retryAfter = Number(override) || 0
+const jitter = Math.floor(Math.random() * Math.min(base, 30000))
+return Math.max(retryAfter, base + jitter)
 }
 
 function statusCodeFrom(error) {
 return Number(error?.output?.statusCode || error?.data?.statusCode || error?.statusCode || error?.reason || 0)
+}
+
+function isTransientSessionError(error) {
+const code = statusCodeFrom(error)
+const text = String(error?.message || error?.output?.payload?.message || error || '').toLowerCase()
+return TRANSIENT_SESSION_STATUS.has(code) || /timed?\s*out|econnreset|enotfound|etimedout|socket|stream|restart|required|unavailable|connection|network/i.test(text)
 }
 
 function isInvalidSessionError(error) {
@@ -50,6 +62,7 @@ return chalk.hex(palette)([
 
 function scheduleInvalidSessionCleanup({ botJid, sessionId, sessionPath, sock, error }) {
 const label = botJid || sessionId || sessionPath
+sweepSubbotSocket(sock)
 try { sock?.end?.() || sock?.ws?.close?.() } catch {}
 managed.delete(sessionId)
 deleteSubbotRecord(botJid, sessionId)
@@ -101,7 +114,7 @@ return startSubbot({ ownerJid, sessionId: safeId, sessionPath, pairingPhone, mod
 export async function startSubbot({ ownerJid, sessionId, sessionPath, pairingPhone, mode = 'restore', parentConn, onPairingCode, onQr } = {}) {
 const current = managed.get(sessionId)
 if (current?.sock) return current.sock
-const { state, saveCreds } = await useOptimizedAuthState(sessionPath, { dbName: 'auth.db', cleanOldFiles: true, sessionId })
+const { state, saveCreds, closeDb } = await useOptimizedAuthState(sessionPath, { dbName: 'auth.db', cleanOldFiles: true, sessionId, keyFlushDelayMs: 500, keyMaxFlushDelayMs: 2500, retentionMs: 3 * 24 * 60 * 60 * 1000 })
 const baileys = global.baileys || await import('@whiskeysockets/baileys')
 const DisconnectReason = getBaileysExport(baileys, 'DisconnectReason')
 const version = await resolveBaileysVersion()
@@ -114,16 +127,23 @@ logger: pino({ level: 'silent' }),
 printQRInTerminal: false,
 browser: ['Ubuntu', 'Chrome', '20.0.04'],
 auth: { creds: state.creds, keys: getSignalKeyStore(baileys, state.keys, pino({ level: 'fatal' })) },
-markOnlineOnConnect: true,
+markOnlineOnConnect: false,
 syncFullHistory: false,
+shouldSyncHistoryMessage: () => false,
+fireInitQueries: false,
+emitOwnEvents: false,
 generateHighQualityLinkPreview: false,
-msgRetryCounterCache: createMessageRetryCache(),
+msgRetryCounterCache: createMessageRetryCache({ max: 200 }),
+retryRequestDelayMs: 2500,
+maxMsgRetryCount: 3,
+connectTimeoutMs: 45000,
 defaultQueryTimeoutMs: 60000,
+keepAliveIntervalMs: 25000,
 version
 }, { version })
-sock = await makeWASocket(options, { skipStoreBind: mode === 'code' && !state.creds?.registered })
+sock = await makeWASocket(options, { skipStoreBind: true })
 attachSessionState(sock, { id: sessionId, type: 'subbot', path: sessionPath, ownerJid })
-const runtime = { sock, botJid: normalizeSessionJid(sock.user?.jid) || `pending:${sessionId}`, ownerJid, status: 'connecting', sessionId, sessionPath }
+const runtime = { sock, botJid: normalizeSessionJid(sock.user?.jid) || `pending:${sessionId}`, ownerJid, status: 'connecting', sessionId, sessionPath, closeDb }
 managed.set(sessionId, runtime)
 sock.ev.on('creds.update', async () => {
 await saveCreds()
@@ -160,12 +180,15 @@ const error = update.lastDisconnect?.error
 const statusCode = statusCodeFrom(error)
 runtime.status = 'close'
 updateSubbot(runtime.botJid, { status: 'close' })
+sweepSubbotSocket(sock)
+try { await closeDb?.() } catch (closeError) { console.error(`[subbot] error cerrando auth db ${runtime.botJid || sessionId}:`, closeError) }
 try { sock.ws?.close?.() } catch {}
 managed.delete(sessionId)
 if (INVALID_SESSION_STATUS.has(statusCode) || statusCode === DisconnectReason?.loggedOut || isInvalidSessionError(error)) return scheduleInvalidSessionCleanup({ botJid: runtime.botJid, sessionId, sessionPath, sock, error })
 const wait = delayFor(attempt++, update.reconnectDelayMs)
-console.log(`[subbot] reconectando ${runtime.botJid || sessionId} en ${Math.ceil(wait / 1000)}s`)
-setTimeout(() => startSubbot({ ownerJid, sessionId, sessionPath, mode: 'restore' }).catch(error => {
+const kind = isTransientSessionError(error) ? 'transitorio' : `código ${statusCode || 'desconocido'}`
+console.log(`[subbot] cierre ${kind}; reconectando ${runtime.botJid || sessionId} en ${Math.ceil(wait / 1000)}s`)
+setTimeout(() => subbotBootQueue.enqueue(() => startSubbot({ ownerJid, sessionId, sessionPath, mode: 'restore' }), { delayMs: 1 }).catch(error => {
 if (isInvalidSessionError(error)) scheduleInvalidSessionCleanup({ botJid: runtime.botJid, sessionId, sessionPath, error })
 else console.error(`[subbot] error al reconectar ${runtime.botJid || sessionId}:`, error)
 }), wait).unref?.()
@@ -186,11 +209,11 @@ console.log(`[subbot-startup] ${bots.length} Sub-Bot(s) activos encontrados en S
 for (const bot of bots) {
 if (reconnecting.has(bot.session_id)) continue
 reconnecting.add(bot.session_id)
-console.log(`[subbot-startup] reconectando ${bot.bot_jid} (${bot.session_id})`)
-setImmediate(() => startSubbot({ ownerJid: bot.owner_jid, sessionId: bot.session_id, sessionPath: bot.session_path, mode: 'restore' }).catch(error => {
+console.log(`[subbot-startup] encolando ${bot.bot_jid} (${bot.session_id})`)
+subbotBootQueue.enqueue(() => startSubbot({ ownerJid: bot.owner_jid, sessionId: bot.session_id, sessionPath: bot.session_path, mode: 'restore' })).catch(error => {
 if (isInvalidSessionError(error)) scheduleInvalidSessionCleanup({ botJid: bot.bot_jid, sessionId: bot.session_id, sessionPath: bot.session_path, error })
 else console.error(`[subbot-startup] error al reconectar ${bot.bot_jid}:`, error)
-}).finally(() => reconnecting.delete(bot.session_id)))
+}).finally(() => reconnecting.delete(bot.session_id))
 }
 }
 
@@ -201,6 +224,8 @@ const bot = listSubbots().find(item => item.owner_jid === jid || item.session_id
 const id = bot?.session_id || safeId
 const sessionPath = bot?.session_path || path.join(baseDir, id)
 const runtime = managed.get(id)
+sweepSubbotSocket(runtime?.sock)
+try { await runtime?.closeDb?.() } catch (error) { console.error(`[subbot] error cerrando auth db ${id}:`, error) }
 try { runtime?.sock?.end?.() || runtime?.sock?.ws?.close?.() } catch {}
 managed.delete(id)
 if (bot) deleteSubbotRecord(bot.bot_jid, bot.session_id)
@@ -214,6 +239,8 @@ const jid = normalizeSessionJid(ownerJid)
 const bot = listSubbots().find(item => item.owner_jid === jid)
 if (!bot) return false
 const runtime = managed.get(bot.session_id)
+sweepSubbotSocket(runtime?.sock)
+try { await runtime?.closeDb?.() } catch (error) { console.error(`[subbot] error cerrando auth db ${bot.session_id}:`, error) }
 try { runtime?.sock?.ws?.close?.() } catch {}
 managed.delete(bot.session_id)
 updateSubbot(bot.bot_jid, { status: 'paused', paused: true })
@@ -225,6 +252,8 @@ const jid = normalizeSessionJid(ownerJid)
 const bot = listSubbots().find(item => item.owner_jid === jid)
 if (!bot) return false
 const runtime = managed.get(bot.session_id)
+sweepSubbotSocket(runtime?.sock)
+try { await runtime?.closeDb?.() } catch (error) { console.error(`[subbot] error cerrando auth db ${bot.session_id}:`, error) }
 try { runtime?.sock?.ws?.close?.() } catch {}
 managed.delete(bot.session_id)
 await rm(bot.session_path, { recursive: true, force: true })
