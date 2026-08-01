@@ -5,6 +5,7 @@ import { commandLoader } from '../runtime/command-loader.js'
 import MiddlewarePipeline from '../runtime/middleware-pipeline.js'
 import { getGroupMetadataOnDemand } from '../library/global-cache.js'
 import { shouldSilenceChatForBot, normalizeSessionJid } from '../core/session-utils.js'
+import { executePlugin } from './plugin-executor.js'
 
 const registryReady = commandRegistry.init()
 const pipeline = new MiddlewarePipeline({ registry: commandRegistry })
@@ -92,7 +93,8 @@ ctx.m.plugin = ctx.commandMetadata.name
 ctx.m.moneda = ctx.dbState?.settings?.moneda || 'Coins'
 ctx.m.exp = Number(ctx.m.exp || 0) + Math.ceil(Math.random() * 10)
 const extra = buildExecutionContext(ctx)
-await withPresence(conn, ctx.m, () => command.call(conn, ctx.m, extra))
+if (!await pipeline.beforeCommand(ctx, command, extra)) return
+await withPresence(conn, ctx.m, () => executePlugin(conn, command, ctx.commandMetadata.name, ctx.m, extra, ctx.permissionContext || {}, ctx.sender, { chat: ctx.chatData || {}, user: ctx.user || ctx.dbState?.user || {} }))
 }
 
 export async function handler(chatUpdate = {}) {
