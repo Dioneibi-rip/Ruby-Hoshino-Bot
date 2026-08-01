@@ -16,7 +16,7 @@ const managed = new Map()
 const reconnecting = new Set()
 export const subbotBaseDir = path.join(process.cwd(), 'Rubyjadibot')
 const baseDir = subbotBaseDir
-const DEFAULT_BAILEYS_VERSION = [2, 3000, 1015901307]
+const DEFAULT_BAILEYS_VERSION = [2, 3000, 1043857760]
 const INVALID_SESSION_STATUS = new Set([401, 403, 405, 440])
 
 function delayFor(attempt = 0, override = 0) {
