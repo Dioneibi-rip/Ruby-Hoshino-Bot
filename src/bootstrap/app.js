@@ -21,6 +21,7 @@ import store, { getBaileysSQLite } from '../library/store.js'
 import { startSQLiteMaintenance } from '../library/sqlite-maintenance.js'
 import readline, { createInterface } from 'readline'
 import { EventEmitter } from 'events'
+import { fetchLatestBaileysVersion } from '@whiskeysockets/baileys'
 
 function loadEnvFile(file = '.env') {
 try {
@@ -216,8 +217,7 @@ const debouncedSaveCreds = createDebouncedSaveCreds(() => saveCreds.call(global.
 global.authCredsFlushers.add(debouncedSaveCreds.flush)
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = createMessageRetryCache()
-const fetchBaileysVersion = getBaileysExport(baileysModule, 'fetchLatestBaileysVersion')
-const { version = [2, 3000, 1043857760] } = typeof fetchBaileysVersion === 'function' ? await fetchBaileysVersion().catch(() => ({ version: [2, 3000, 1043857760] })) : { version: [2, 3000, 1043857760] };
+const { version } = await fetchLatestBaileysVersion()
 let phoneNumber = global.botNumber
 const methodCodeQR = process.argv.includes("qr")
 const methodCode = !!phoneNumber || process.argv.includes("code")
@@ -352,6 +352,8 @@ reconnectTimer = undefined
 }
 console.log('\n')
 console.log(chalk.bold.hex('#00FF00')('୭ৎ֮֮ BOT CONECTADO CORRECTAMENTE 🪼 ׄ'))
+conn.ev.off('messages.upsert', conn.handler)
+conn.ev.on('messages.upsert', conn.handler)
 console.log('\n')
 }
 if (connection === 'close') {

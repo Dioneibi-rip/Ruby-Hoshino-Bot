@@ -3,6 +3,7 @@ import fs from 'fs'
 import { rm } from 'fs/promises'
 import chalk from '../library/ansi.js'
 import pino from '../library/logger.js'
+import { fetchLatestBaileysVersion } from '@whiskeysockets/baileys'
 import { makeWASocket } from '../library/simple.js'
 import { useOptimizedAuthState } from '../library/sqliteAuthState.js'
 import { attachSessionState, createMessageRetryCache } from './session-manager.js'
@@ -16,7 +17,6 @@ const managed = new Map()
 const reconnecting = new Set()
 export const subbotBaseDir = path.join(process.cwd(), 'Rubyjadibot')
 const baseDir = subbotBaseDir
-const DEFAULT_BAILEYS_VERSION = [2, 3000, 1043857760]
 const INVALID_SESSION_STATUS = new Set([401, 403, 405, 440])
 
 function delayFor(attempt = 0, override = 0) {
@@ -34,15 +34,9 @@ const text = String(error?.message || error?.output?.payload?.message || error |
 return INVALID_SESSION_STATUS.has(code) || /logged\s*out|invalid|expired|corrupt|bad\s*mac|decrypt|auth|creds|session/i.test(text)
 }
 
-async function resolveBaileysVersion(baileys) {
-const fetchVersion = getBaileysExport(baileys, 'fetchLatestBaileysVersion')
-if (typeof fetchVersion !== 'function') return DEFAULT_BAILEYS_VERSION
-try {
-const result = await fetchVersion()
-return Array.isArray(result?.version) ? result.version : DEFAULT_BAILEYS_VERSION
-} catch {
-return DEFAULT_BAILEYS_VERSION
-}
+async function resolveBaileysVersion() {
+const { version } = await fetchLatestBaileysVersion()
+return version
 }
 
 function rubyConsole(kind, text) {
@@ -97,7 +91,7 @@ if (current?.sock) return current.sock
 const { state, saveCreds } = await useOptimizedAuthState(sessionPath, { dbName: 'auth.db', cleanOldFiles: true, sessionId })
 const baileys = global.baileys || await import('@whiskeysockets/baileys')
 const DisconnectReason = getBaileysExport(baileys, 'DisconnectReason')
-const version = await resolveBaileysVersion(baileys)
+const version = await resolveBaileysVersion()
 let attempt = 0
 let sock
 const connect = async () => {
@@ -137,6 +131,8 @@ runtime.botJid = botJid
 runtime.status = 'open'
 upsertSubbot({ botJid, ownerJid, sessionId, sessionPath, status: 'open', lastSeenAt: Date.now() })
 console.log(rubyConsole('online', `${botJid} conectado como Sub-Bot`))
+sock.ev.off('messages.upsert', sock.handler)
+sock.ev.on('messages.upsert', sock.handler)
 await joinChannels(sock)
 }
 if (update.connection === 'close') {
