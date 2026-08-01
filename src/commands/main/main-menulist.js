@@ -24,12 +24,15 @@ before: `𝙃𝙤𝙡𝙖 *%name*-san ${ucapan()}
 ┃ ◦ 💻 *Baileys:* Multi Device
 ┃ ◦ ⏰ *Tiempo Activa:* %uptime
 ┃ ◦ 👥 *Usuarios:* %totalreg
+┃ %botstatus
 ┗━━━━⏤͟͟͞͞★꙲⃝͟🌷❈┉━━━━━━┛`.trim(),
 };
 
 let handler = async (m, { conn, usedPrefix, __dirname }) => {
 try {
 const prefix = (typeof usedPrefix === 'string' ? usedPrefix : '.');
+const isMainBot = conn.user.jid === global.conn.user.jid;
+const botStatusText = isMainBot ? '> 👑 𝖤𝗌𝗍𝖺𝖽𝗈: *𝖡𝗈𝗍 𝖮𝖿𝗂𝖼𝗂𝖺𝗅 (𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅)*' : '> 💫 𝖤𝗌𝗍𝖺𝖽𝗈: *𝖲𝗎𝖻-𝖡𝗈𝗍 𝖠𝖼𝗍𝗂𝗏𝗈*';
 
 let { exp, level, role } = global.db.getUser(m.sender);
 let name = await conn.getName(m.sender);
@@ -91,7 +94,8 @@ bodyText = bodyText.replace(/%name/g, name)
 let beforeText = defaultMenu.before.replace(/%name/g, name)
 .replace(/%muptime/g, muptime)
 .replace(/%uptime/g, uptime)
-.replace(/%totalreg/g, totalreg);
+.replace(/%totalreg/g, totalreg)
+.replace(/%botstatus/g, botStatusText);
 
 const nativeButtons = [
 {

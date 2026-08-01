@@ -121,7 +121,7 @@ fail: async ({ fail, m, conn }) => { fail('group', m, conn); return false },
 },
 
 {
-condition: ({ plugin, isBotSelf, name, extra }) => !isBotSelf && pluginNeedsJob(plugin, name, extra.command) && !isJailWhitelistedCommand(extra.command),
+condition: ({ plugin, name, extra }) => pluginNeedsJob(plugin, name, extra.command) && !isJailWhitelistedCommand(extra.command),
 check: ({ user }) => Number(user?.extras?.jailUntil || 0) > Date.now(),
 fail: async ({ conn, m, user }) => {
 const remainingMs = Math.max(0, Number(user?.extras?.jailUntil || 0) - Date.now())
@@ -133,7 +133,7 @@ return false
 },
 },
 {
-condition: ({ plugin, isBotSelf, name, extra }) => !isBotSelf && pluginNeedsJob(plugin, name, extra.command),
+condition: ({ plugin, name, extra }) => pluginNeedsJob(plugin, name, extra.command),
 check: ({ user }) => !userHasJob(user),
 fail: async ({ conn, m, extra }) => { conn.reply(m.chat, `💼 Primero debes elegir una chamba. Usa *${extra.usedPrefix}trabajo lista* y luego *${extra.usedPrefix}trabajo elegir <trabajo>* para desbloquear la economía RPG.`, m); return false },
 },

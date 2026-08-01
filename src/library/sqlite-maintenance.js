@@ -20,10 +20,10 @@ export function runSQLiteMaintenance(candidate, label = 'sqlite') {
     sqlite.exec('PRAGMA wal_checkpoint(TRUNCATE);')
     sqlite.exec('VACUUM;')
     sqlite.exec('PRAGMA optimize;')
-    console.log(`[sqlite-maintenance] ${label}: WAL truncado y VACUUM completado.`)
+    if (process.env.RUBY_DEBUG_SQLITE === 'true') console.log(`[sqlite-maintenance] ${label}: WAL truncado y VACUUM completado.`)
     return true
   } catch (error) {
-    console.error(`[sqlite-maintenance] ${label}: no se pudo ejecutar mantenimiento:`, error?.message || error)
+    if (process.env.RUBY_DEBUG_SQLITE === 'true') console.error(`[sqlite-maintenance] ${label}: no se pudo ejecutar mantenimiento:`, error?.message || error)
     return false
   }
 }

@@ -1,9 +1,8 @@
-const DEFAULT_CHROME_VERSION = '131.0.0.0'
-const DEFAULT_PLATFORM_VERSION = '14.4.1'
-const DEFAULT_UA = `Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${DEFAULT_CHROME_VERSION} Safari/537.36`
+const DEFAULT_FIREFOX_VERSION = '120.0.0'
+const DEFAULT_UA = `Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:${DEFAULT_FIREFOX_VERSION}) Gecko/20100101 Firefox/${DEFAULT_FIREFOX_VERSION}`
 
 export function getStandardBrowserProfile() {
-return ['Mac OS', 'Chrome', DEFAULT_PLATFORM_VERSION]
+return ['Ubuntu', 'Firefox', DEFAULT_FIREFOX_VERSION]
 }
 
 export function getStandardWebSocketHeaders(overrides = {}) {

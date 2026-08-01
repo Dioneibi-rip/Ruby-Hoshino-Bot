@@ -1,3 +1,4 @@
+import { jidNormalizedUser } from '@whiskeysockets/baileys'
 import { smsg } from '../library/simple.js'
 import { join } from 'path'
 import { fileURLToPath } from 'url'
@@ -571,6 +572,23 @@ function normalizeConnectionJid(conn) {
 return normalizeSessionJid(conn?.authState?.creds?.me?.jid || conn?.authState?.creds?.me?.id || conn?.user?.jid || conn?.user?.id || conn?.session?.id || conn)
 }
 
+function normalizeOwnUserJid(conn) {
+const raw = conn?.user?.jid || conn?.user?.id || conn?.authState?.creds?.me?.jid || conn?.authState?.creds?.me?.id || ''
+if (!raw) return ''
+try { return normalizeSessionJid(jidNormalizedUser(raw)) } catch {}
+const local = String(raw).split('@')[0].split(':')[0]
+return local ? `${local}@s.whatsapp.net` : normalizeSessionJid(raw)
+}
+
+function isBotResponsible(conn, chatId = '') {
+if (!chatId?.endsWith?.('@g.us')) return true
+const chatData = getFreshChatRecord(chatId) || {}
+const primary = getConfiguredPrimaryBot(chatData, chatId)
+if (!primary) return true
+const current = normalizeConnectionJid(conn)
+return Boolean(current && primary === current)
+}
+
 function getFreshChatRecord(chatId = '') {
 if (!chatId) return null
 try {
@@ -747,7 +765,11 @@ const rawCommand = fastPath.rawCommand || getRawCommandName(m.text)
 const prefixMatch = fastPath.usedPrefix ? [[fastPath.usedPrefix], null] : getPrefixMatch(this, {}, m.text)
 const parsed = fastPath.parsed || (prefixMatch?.[0]?.[0] ? parseCommand(m.text, prefixMatch[0][0]) : null)
 const commandEntry = fastPath.commandEntry || (parsed?.command ? commandsMap.get(parsed.command) : null)
-sender = m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender)
+sender = m.fromMe ? normalizeOwnUserJid(this) : (m.isGroup ? (m.key?.participant || m.sender) : (m.key?.remoteJid || m.sender))
+if (m.fromMe && sender) {
+try { m.sender = sender } catch {}
+if (m.key) m.key.participant = sender
+}
 if (!sender) return
 m.__deleteKey = m.key ? { ...m.key } : null
 const strictParticipantMetadata = Boolean(global.strictParticipantMetadata || process.env.RUBY_STRICT_PARTICIPANT_METADATA === 'true')
@@ -918,7 +940,7 @@ const action = String(update.action || '').toLowerCase()
 const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null
 if (!messageStubType) return
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
-if (shouldSilenceChatForBot(chatData, normalizeConnectionJid(this))) return
+if (!isBotResponsible(this, chat)) return
 if (!chatData?.welcome) return
 const groupMetadata = await getGroupMetadataOnDemand(this, chat, { requireParticipants: true })
 const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
