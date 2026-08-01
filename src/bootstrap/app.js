@@ -470,7 +470,7 @@ unregisterPluginCommands(filename)
 if (i + batchSize < files.length) await new Promise(resolve => setImmediate(resolve))
 }
 }
-filesInit().then((_) => rebuildCommandsMap(global.plugins)).catch(console.error);
+import('../runtime/command-registry.js').then(({ commandRegistry }) => commandRegistry.load({ force: true })).catch(console.error);
 global.reload = async (_ev, filename) => {
 if (pluginFilter(filename)) {
 const dir = global.__filename(join(pluginFolder, filename), true);
