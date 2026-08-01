@@ -1,12 +1,61 @@
-import { resetGroupPrimaryBot } from '../../core/subbot-store.js'
-let handler = async (m, { conn }) => {
-if (!m.isGroup) return conn.reply(m.chat, '🥀 Este comando solo funciona en grupos.', m)
-resetGroupPrimaryBot(m.chat)
-return conn.reply(m.chat, '✅ Ruta de bots restablecida. Todos los Sub-Bots pueden responder de nuevo.', m)
+import { jidNormalizedUser } from '@whiskeysockets/baileys'
+
+const RESET_COMMANDS = ['resetbot', 'resetprimario', 'botreset']
+const resetLocks = global.__primaryBotResetLocks ||= new Map()
+
+function normalizeJid(jid = '') {
+return jidNormalizedUser(jid) || jid
 }
-handler.help = ['resetbot']
+
+function commandName(m = {}) {
+return m.text?.trim?.().toLowerCase().replace(/^[./#!]/, '').split(/\s+/)[0] || ''
+}
+
+function clearPrimaryBot(chatId = '') {
+const chat = global.db?.getChat?.(chatId) || global.db?.data?.chats?.[chatId] || {}
+chat.primaryBot = null
+chat.botPrimario = null
+chat.primaryBotAliases = []
+try { global.db?.sqlite?.prepare('DELETE FROM group_routing WHERE chat_id=?').run(chatId) } catch {}
+if (global.db?.updateChat) global.db.updateChat(chatId, chat)
+else if (global.db?.set) global.db.set('chats', chatId, chat)
+else if (global.db?.data?.chats) global.db.data.chats[chatId] = chat
+global.db?.scheduleFlush?.()
+return chat
+}
+
+async function resetPrimaryBot(m, conn, { silent = false } = {}) {
+const lockKey = `${m.chat}:${m.id || m.key?.id || Date.now()}`
+if (resetLocks.has(lockKey)) return true
+resetLocks.set(lockKey, Date.now())
+setTimeout(() => resetLocks.delete(lockKey), 30000).unref?.()
+const previous = normalizeJid((global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat] || {}).primaryBot || (global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat] || {}).botPrimario || '')
+clearPrimaryBot(m.chat)
+await global.db?.write?.()
+if (!silent) return m.reply(previous ? '✐ ¡Listo! Se ha restablecido la configuración.\n> A partir de ahora, todos los bots válidos responderán nuevamente en este grupo.' : '《✧》 No había ningún bot primario establecido, pero se limpió el enrutamiento del grupo.')
+return true
+}
+
+let handler = async (m, { conn, isAdmin, isOwner, isROwner }) => {
+if (!m.isGroup) return
+if (!RESET_COMMANDS.includes(commandName(m))) return
+if (!isAdmin && !isOwner && !isROwner) return m.reply('⚠️ Solo administradores pueden usar este comando.')
+return resetPrimaryBot(m, conn)
+}
+
+handler.before = async function (m, { conn, isAdmin, isOwner, isROwner }) {
+if (!m.isGroup) return false
+if (!RESET_COMMANDS.includes(commandName(m))) return false
+if (!isAdmin && !isOwner && !isROwner) {
+await m.reply('⚠️ Solo administradores pueden usar este comando.')
+return true
+}
+await resetPrimaryBot(m, conn, { silent: false })
+return true
+}
+handler.help = ['resetbot', 'resetprimario', 'botreset']
 handler.tags = ['jadibot']
+handler.command = RESET_COMMANDS
 handler.group = true
 handler.admin = true
-handler.command = ['resetbot']
 export default handler

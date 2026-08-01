@@ -1,38 +1,38 @@
-import { canManageBotSecurity, normalizeSessionJid, setChatBannedForBot } from '../../core/session-utils.js'
+import { normalizeSessionJid, setChatBannedForBot } from '../../core/session-utils.js'
 
-function getConnectionJids(conn) {
-return [...new Set([
-conn?.user?.jid,
-conn?.user?.id,
-conn?.decodeJid?.(conn?.user?.jid),
-conn?.decodeJid?.(conn?.user?.id),
-normalizeSessionJid(conn),
-].map(normalizeSessionJid).filter(Boolean))]
+function ownerNumber(value = '') {
+return String(Array.isArray(value) ? value[0] : value || '').split('@')[0].replace(/[^0-9]/g, '')
 }
 
-function canManageChatBot(m, conn, { isAdmin, isOwner, isROwner } = {}) {
-return Boolean(m.fromMe || isAdmin || isOwner || isROwner || canManageBotSecurity(m.sender, conn))
+function isGlobalOwner(sender = '') {
+const senderNumber = ownerNumber(sender)
+return Boolean(senderNumber && (global.owner || []).some(owner => ownerNumber(owner) === senderNumber))
 }
 
-let handler = async (m, { conn, isAdmin, isOwner, isROwner }) => {
-if (!canManageChatBot(m, conn, { isAdmin, isOwner, isROwner })) return m.react('❌')
-const chat = global.db.getChat(m.chat)
-const botJids = getConnectionJids(conn)
-let ok = false
-for (const botJid of botJids) ok = setChatBannedForBot(chat, botJid, false) || ok
-if (chat.isBanned && typeof chat.isBanned === 'object') delete chat.isBanned['*']
-if (chat.botSettings && typeof chat.botSettings === 'object') {
-for (const botJid of botJids) {
-if (chat.botSettings[botJid]) chat.botSettings[botJid].isBanned = false
+function currentBotJid(conn) {
+return normalizeSessionJid(conn?.user?.jid || conn?.user?.id || conn?.authState?.creds?.me?.jid || conn?.authState?.creds?.me?.id || conn) || 'primary'
 }
+
+async function reactSuccess(conn, m) {
+return conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } })
 }
-global.db.updateChat(m.chat, chat)
+
+let handler = async (m, { conn }) => {
+if (!m.fromMe && !isGlobalOwner(m.sender)) return conn.reply(m.chat, '⚠️ Solo el propio bot o un owner global pueden usar este comando.', m)
+const chat = global.db.getChat?.(m.chat) || global.db.data?.chats?.[m.chat] || { id: m.chat }
+chat.bannedBots = chat.bannedBots && typeof chat.bannedBots === 'object' && !Array.isArray(chat.bannedBots) ? chat.bannedBots : {}
+const botJid = currentBotJid(conn)
+delete chat.bannedBots[botJid]
+setChatBannedForBot(chat, botJid, false)
+if (chat.botSettings?.[botJid]) chat.botSettings[botJid].isBanned = false
+if (global.db.updateChat) global.db.updateChat(m.chat, chat)
+else if (global.db.set) global.db.set('chats', m.chat, chat)
+global.db.scheduleFlush?.()
 await global.db.write?.()
-await m.react(ok ? '✅' : '❌')
+await reactSuccess(conn, m)
 }
 handler.help = ['unbanchat']
 handler.tags = ['owner']
 handler.command = ['unbanchat', 'desbanearchat']
-handler.admin = true
 handler.group = true
 export default handler
