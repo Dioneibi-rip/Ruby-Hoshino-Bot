@@ -3,6 +3,8 @@ import { createSubbotSocket, destroySubbotSession, getPairingErrorMessage, reque
 
 const requestCooldown = new Map()
 const COOLDOWN_MS = 120000
+const PAIRING_EXPIRATION_MS = 45000
+const PAIRING_EXPIRATION_SECONDS = Math.floor(PAIRING_EXPIRATION_MS / 1000)
 
 function isCoolingDown(jid) {
 const until = requestCooldown.get(jid) || 0
@@ -32,7 +34,7 @@ parentConn: conn,
 onPairingCode: async sock => {
 let rawCode
 try {
-rawCode = await requestPairingCodeWithTimeout(sock, pairingPhone, 'RUBYCHAN', 45000)
+rawCode = await requestPairingCodeWithTimeout(sock, pairingPhone, 'RUBYCHAN', PAIRING_EXPIRATION_MS)
 } catch (error) {
 requestCooldown.delete(m.sender)
 await destroySubbotSession(m.sender).catch(() => false)
@@ -64,7 +66,7 @@ text: [
 ].join('\n')
 }),
 footer: proto.Message.InteractiveMessage.Footer.create({
-text: '🌸 𝖤𝗌𝗍𝖾 𝖼𝗈́𝖽𝗂𝗀𝗈 𝗌𝖾 𝗆⍺𝗇𝗍𝖾𝗇𝖽𝗋⍺́ ⍺𝖼𝗍𝗂𝗏𝗈 𝗆𝗂𝖾𝗇𝗍𝗋⍺𝗌 𝗅𝗈 𝗂𝗇𝗀𝗋𝖾𝗌⍺𝗌. ✨'
+text: `🌸 Tienes *${PAIRING_EXPIRATION_SECONDS} segundos* para introducir este código en tu WhatsApp antes de que expire.`
 }),
 header: proto.Message.InteractiveMessage.Header.create({
 hasMediaAttachment: true,
@@ -84,6 +86,7 @@ copy_code: rawCode
 }
 }, { quoted: m })
 await conn.relayMessage(m.chat, interactivePayload.message, { messageId: interactivePayload.key.id })
+setTimeout(() => conn.sendMessage(m.chat, { delete: interactivePayload.key }).catch(() => {}), PAIRING_EXPIRATION_MS).unref?.()
 }
 })
 } catch (error) {
