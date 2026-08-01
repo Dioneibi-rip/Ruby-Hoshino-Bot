@@ -1,4 +1,4 @@
-import { isAntiLinkEnabled } from '../../core/moderation-utils.js'
+import { isAntiLinkEnabled, isBotResponsible } from '../../core/moderation-utils.js'
 const WHATSAPP_LINK_REGEX = /(?:https?:\/\/)?(?:chat\.whatsapp\.com\/(?:invite\/)?[0-9A-Za-z]{16,}|(?:www\.)?whatsapp\.com\/channel\/[0-9A-Za-z]{16,})/i
 const WHATSAPP_TEXT_REGEX = /whatsapp/i
 
@@ -27,6 +27,7 @@ return getAllCandidateStrings(m).some(text => WHATSAPP_TEXT_REGEX.test(text))
 
 export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isROwner }) {
 if (!m.isGroup) return !0
+if (!isBotResponsible(conn, m.chat)) return !0
 
 const chat = global.db.data.chats[m.chat] || {}
 if (!isAntiLinkEnabled(chat)) return !0

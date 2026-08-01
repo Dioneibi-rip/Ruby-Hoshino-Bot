@@ -125,7 +125,7 @@ const connect = async () => {
 const options = alignSocketTelemetry({
 logger: pino({ level: 'silent' }),
 printQRInTerminal: false,
-browser: ['Ubuntu', 'Chrome', '20.0.04'],
+browser: ['Ubuntu', 'Firefox', '120.0.0'],
 auth: { creds: state.creds, keys: getSignalKeyStore(baileys, state.keys, pino({ level: 'fatal' })) },
 markOnlineOnConnect: false,
 syncFullHistory: false,

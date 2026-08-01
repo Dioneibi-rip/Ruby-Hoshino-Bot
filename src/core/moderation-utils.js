@@ -1,3 +1,5 @@
+import { normalizeSessionJid } from './session-utils.js'
+
 const GROUP_LINK_REGEX = /(?:https?:\/\/)?chat\.whatsapp\.com\/(?:invite\/)?[0-9A-Za-z]{16,}/i
 const CHANNEL_LINK_REGEX = /(?:https?:\/\/)?(?:www\.)?whatsapp\.com\/channel\/[0-9A-Za-z]{16,}/i
 const GENERIC_LINK_REGEX = /(?:https?:\/\/)?(?:www\.)?[\w-]+(?:\.[\w-]+)+(?:\/\S*)?/i
@@ -85,8 +87,21 @@ export function messageHasModeratedLink(value = '') {
 return Boolean(findModeratedLink(value))
 }
 
+export function isBotResponsible(conn, chatId = '') {
+if (!chatId?.endsWith?.('@g.us')) return true
+const current = normalizeSessionJid(conn?.authState?.creds?.me?.jid || conn?.authState?.creds?.me?.id || conn?.user?.jid || conn?.user?.id || conn)
+if (!current) return false
+let primary = ''
+const chat = global.db?.getChat?.(chatId) || global.db?.data?.chats?.[chatId] || {}
+primary = chat?.primaryBot || chat?.botPrimario || chat?.primaryBotJid || ''
+try { primary ||= global.db?.sqlite?.prepare('SELECT primary_bot_jid FROM group_routing WHERE chat_id=?').get(chatId)?.primary_bot_jid || '' } catch {}
+primary = normalizeSessionJid(primary)
+return !primary || primary === current
+}
+
 export async function enforceAntiLink(conn, m, sender, permissionContext = {}) {
 if (!m?.isGroup) return false
+if (!isBotResponsible(conn, m.chat)) return false
 const chat = global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat]
 if (!isAntiLinkEnabled(chat)) return false
 const { isAdmin, isOwner, isROwner, isBotAdmin } = permissionContext
