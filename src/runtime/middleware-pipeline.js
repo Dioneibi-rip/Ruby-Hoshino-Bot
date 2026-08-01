@@ -4,6 +4,7 @@ import { getPrefixMatch, hydrateDatabaseForMessage, buildPermissionContext } fro
 import { getGroupMetadataOnDemand } from '../library/global-cache.js'
 import { canManageBotSecurity, getAntiPrivateState, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
 import { messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
+import { buildGuardContext, pluginNeedsJob, runPluginGuards, userHasJob } from '../router/permission-guard.js'
 
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 3_000
 const DEFAULT_RATE_LIMIT_MAX = 6
@@ -37,7 +38,8 @@ this.registry = registry
 this.db = db
 this.rateLimitWindowMs = rateLimitWindowMs
 this.rateLimitMax = rateLimitMax
-this.stages = [this.normalize.bind(this), this.security.bind(this), this.rateLimit.bind(this), this.route.bind(this)]
+this.stages = [this.normalize.bind(this), this.security.bind(this), this.automoderation.bind(this), this.rateLimit.bind(this), this.route.bind(this)]
+this.cooldowns = new Map()
 }
 
 async run(input = {}) {
@@ -84,7 +86,7 @@ const opts = conn?.opts || global.opts || {}
 if (opts.nyimak || (!m.fromMe && opts.self) || (opts.swonly && m.chat !== 'status@broadcast')) ctx.halted = true
 if (ctx.halted) return
 const chatData = m.chat ? global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat] || {} : {}
-if (m.isGroup && shouldSilenceChatForBot(chatData, normalizeSessionJid(conn?.user?.jid || conn?.user?.id || '')) && !ctx.commandName) ctx.halted = true
+if (m.isGroup && shouldSilenceChatForBot(chatData, normalizeSessionJid(conn?.user?.jid || conn?.user?.id || '')) && !ctx.commandName && !messageHasModeratedLink(m)) ctx.halted = true
 if (ctx.halted) return
 if (!m.fromMe && !m.isGroup && !canManageBotSecurity(sender, conn)) {
 const antiPrivateState = getAntiPrivateState(ctx.dbState?.settings || {})
@@ -97,6 +99,16 @@ ctx.halted = true
 if (ctx.halted) return
 ctx.chatData = chatData
 ctx.needsModeration = Boolean(m.isGroup && messageHasModeratedLink(m))
+}
+
+async automoderation(ctx) {
+if (!ctx.needsModeration || !ctx.m?.isGroup) return
+const groupMetadata = await getGroupMetadataOnDemand(ctx.conn, ctx.m.chat, { requireParticipants: true }).catch(() => ({}))
+const participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
+ctx.participants = participants
+ctx.groupMetadata = groupMetadata || {}
+ctx.permissionContext = buildPermissionContext(ctx.conn, ctx.m, ctx.sender, participants)
+if (await runAutoModeration(ctx.conn, ctx.m, ctx.sender, ctx.permissionContext)) ctx.halted = true
 }
 
 async rateLimit(ctx) {
@@ -132,13 +144,14 @@ return
 }
 let participants = []
 let groupMetadata = {}
-if (ctx.m.isGroup && (permissions.admin || permissions.botAdmin || permissions.group || ctx.needsModeration)) {
+if (ctx.participants || ctx.groupMetadata) {
+participants = ctx.participants || []
+groupMetadata = ctx.groupMetadata || {}
+} else if (ctx.m.isGroup && (permissions.admin || permissions.botAdmin || permissions.group)) {
 groupMetadata = await getGroupMetadataOnDemand(ctx.conn, ctx.m.chat, { requireParticipants: true }).catch(() => ({}))
 participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
 }
-ctx.permissionContext = buildPermissionContext(ctx.conn, ctx.m, ctx.sender, participants)
-if (ctx.needsModeration && await runAutoModeration(ctx.conn, ctx.m, ctx.sender, ctx.permissionContext)) ctx.halted = true
-if (ctx.halted) return
+ctx.permissionContext ||= buildPermissionContext(ctx.conn, ctx.m, ctx.sender, participants)
 if (permissions.admin && !ctx.permissionContext.isAdmin && !ctx.permissionContext.isOwner) {
 await ctx.m.reply?.('Este comando requiere permisos de administrador.')
 ctx.halted = true
@@ -153,6 +166,75 @@ if (isChatBannedForBot(ctx.chatData, normalizeSessionJid(ctx.conn?.user?.jid || 
 ctx.participants = participants
 ctx.groupMetadata = groupMetadata
 }
+formatCooldownTime(ms = 0) {
+const totalSeconds = Math.max(1, Math.ceil(Number(ms || 0) / 1000))
+const hours = Math.floor(totalSeconds / 3600)
+const minutes = Math.floor((totalSeconds % 3600) / 60)
+const seconds = totalSeconds % 60
+if (hours) return `${hours}h ${minutes}m ${seconds}s`
+if (minutes) return `${minutes}m ${seconds}s`
+return `${seconds}s`
+}
+
+getCommandCooldownMs(command = {}) {
+const raw = command?.cooldown ?? command?.cooldownMs ?? command?.cooldownTime ?? 0
+const value = Number(raw) || 0
+if (value <= 0) return 0
+return value < 1000 ? value * 1000 : value
+}
+
+getCooldownMessage(command, remainingMs) {
+const seconds = Math.max(1, Math.ceil(remainingMs / 1000))
+const hms = this.formatCooldownTime(remainingMs)
+const custom = command?.cooldownMessage || command?.cooldownText || command?.cooldownReply
+if (typeof custom === 'function') return custom(seconds, hms, hms)
+if (typeof custom === 'string') return custom.replace(/%time%|%hms%/g, hms).replace(/%seconds%/g, String(seconds))
+return `⏳ La esfera de Ruby aún está sellada. Espera *${hms}* antes de invocar de nuevo este comando.`
+}
+
+async userGuards(ctx, command, extra = {}) {
+const sender = jidNormalizedUser(ctx.sender || ctx.m?.sender || '')
+ctx.sender = sender || ctx.sender
+const user = global.db?.getUser?.(ctx.sender) || ctx.dbState?.data?.users?.[ctx.sender] || ctx.dbState?.user || {}
+const needsJob = pluginNeedsJob(command, ctx.commandMetadata?.name, ctx.commandName) || command?.requiresJob || command?.requireJob || command?.requires?.includes?.('job') || command?.requires?.includes?.('work')
+if (needsJob && !userHasJob(user)) {
+await ctx.conn.reply?.(ctx.m.chat, `💼 Primero debes pactar una chamba con Ruby. Usa *${ctx.usedPrefix}trabajo lista* y luego *${ctx.usedPrefix}trabajo elegir <trabajo>* para abrir la economía RPG.`, ctx.m)
+ctx.halted = true
+return false
+}
+const guardContext = buildGuardContext({ conn: ctx.conn, plugin: command, name: ctx.commandMetadata?.name, m: ctx.m, extra, sender: ctx.sender, permissionContext: ctx.permissionContext || {}, chat: ctx.chatData || {}, user, isEconomyPremium: Boolean(user?.premium), fail: command.fail || global.dfail })
+const guardResult = await runPluginGuards(guardContext)
+if (guardResult.blocked) {
+ctx.halted = true
+return false
+}
+ctx.user = user
+return true
+}
+
+async cooldown(ctx, command) {
+if (ctx.isOwner) return true
+const cooldownMs = this.getCommandCooldownMs(command)
+if (!cooldownMs) return true
+const now = Date.now()
+const key = `${ctx.sender}:${ctx.commandName}`
+const expiresAt = Number(this.cooldowns.get(key) || 0)
+if (expiresAt > now) {
+await ctx.conn.reply?.(ctx.m.chat, this.getCooldownMessage(command, expiresAt - now), ctx.m)
+ctx.halted = true
+return false
+}
+this.cooldowns.set(key, now + cooldownMs)
+if (this.cooldowns.size > 10000) for (const [itemKey, itemExpiresAt] of this.cooldowns) if (itemExpiresAt <= now) this.cooldowns.delete(itemKey)
+return true
+}
+
+async beforeCommand(ctx, command, extra = {}) {
+if (!ctx.permissionContext) ctx.permissionContext = buildPermissionContext(ctx.conn, ctx.m, ctx.sender, ctx.participants || [])
+if (!await this.userGuards(ctx, command, extra)) return false
+return this.cooldown(ctx, command)
+}
+
 }
 
 export default MiddlewarePipeline
