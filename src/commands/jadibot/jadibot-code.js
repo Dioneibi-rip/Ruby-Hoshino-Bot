@@ -66,7 +66,7 @@ text: [
 ].join('\n')
 }),
 footer: proto.Message.InteractiveMessage.Footer.create({
-text: `🌸 Tienes *${PAIRING_EXPIRATION_SECONDS} segundos* para introducir este código en tu WhatsApp antes de que expire.`
+text: `🌸 Tienes *${PAIRING_EXPIRATION_SECONDS} segundos*.`
 }),
 header: proto.Message.InteractiveMessage.Header.create({
 hasMediaAttachment: true,
