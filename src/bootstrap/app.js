@@ -40,6 +40,7 @@ loadEnvFile()
 import { attachSessionState, createMessageRetryCache } from '../core/session-manager.js'
 import { alignSocketTelemetry, getStandardBrowserProfile } from '../core/socket-telemetry.js'
 import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from '../router/handler-utils.js'
+import { commandRegistry } from '../runtime/command-registry.js'
 import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from '../library/queue.js'
 import { restoreSubbots } from '../core/subbot-engine.js'
 import { getBaileysExport, getBaileysProto, getSignalKeyStore } from '../core/baileys-compat.js'
@@ -444,7 +445,7 @@ const watcher = watch(folder, (_ev, filename) => {
 if (filename) {
 const relativePath = join(folder.slice(base.length), filename.toString()).replace(/^\/+/, '').replace(/\\/g, '/')
 global.reload(_ev, relativePath)
-} else filesInit().then(() => Object.keys(global.plugins)).catch(console.error)
+} else commandRegistry.init({ force: true }).catch(console.error)
 })
 global.__rubyPluginWatchers.set(watcherKey, watcher)
 const entries = await readdir(folder, { withFileTypes: true })
@@ -470,7 +471,7 @@ unregisterPluginCommands(filename)
 if (i + batchSize < files.length) await new Promise(resolve => setImmediate(resolve))
 }
 }
-filesInit().then((_) => rebuildCommandsMap(global.plugins)).catch(console.error);
+commandRegistry.init({ force: true }).catch(console.error);
 global.reload = async (_ev, filename) => {
 if (pluginFilter(filename)) {
 const dir = global.__filename(join(pluginFolder, filename), true);
@@ -479,7 +480,7 @@ try { await access(dir); conn.logger.info(`✨ Plugin actualizado: '${filename}'
 catch { conn.logger.warn(`🗑️ Plugin eliminado: '${filename}'`); delete global.plugins[filename]; unregisterPluginCommands(filename); return }
 } else conn.logger.info(`✨ Nuevo plugin: '${filename}'`);
 try { const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`)); global.plugins[filename] = module.default || module; registerPluginCommands(filename, global.plugins[filename]) } catch (e) { conn.logger.error(`❌ Error sintaxis: '${filename}
-${format(e?.stack || e?.message || e)}'`); unregisterPluginCommands(filename) } finally { global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => (b.startsWith('enable/') - a.startsWith('enable/')) || a.localeCompare(b))); rebuildCommandsMap(global.plugins) }
+${format(e?.stack || e?.message || e)}'`); unregisterPluginCommands(filename) } finally { global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => (b.startsWith('enable/') - a.startsWith('enable/')) || a.localeCompare(b))); await commandRegistry.init({ force: true }); rebuildCommandsMap(global.plugins) }
 }
 }
 Object.freeze(global.reload)
