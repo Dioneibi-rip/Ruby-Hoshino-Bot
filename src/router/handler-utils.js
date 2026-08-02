@@ -267,30 +267,43 @@ cache.set(cacheKey, tester)
 return tester
 }
 
-export function getPrefixMatch(conn, plugin, text) {
-const str2Regex = (str) => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+export function getPrefixMatch(conn, plugin = {}, text = '') {
+const str2Regex = (str) => String(str || '').replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
 const prefixCache = getPrefixMatcherCache(conn)
-const _prefix = plugin.customPrefix || conn.prefix || global.prefix
-return (_prefix instanceof RegExp ? [[_prefix.exec(text), _prefix]]
-: Array.isArray(_prefix) ? _prefix.map((p) => {
-const cacheKey = p instanceof RegExp ? `re:${p.source}:${p.flags}` : `str:${p}`
-let re = prefixCache.get(cacheKey)
+const fallbackPrefix = /^[#/!.@]/
+const candidates = [plugin?.customPrefix, conn?.prefix, global.prefix, fallbackPrefix].filter(Boolean)
+const normalize = (prefix) => Array.isArray(prefix) ? prefix : [prefix]
+for (const source of candidates) {
+for (const item of normalize(source)) {
+try {
+let re
+if (item instanceof RegExp) {
+const flags = item.flags.replace('g', '')
+const cacheKey = `re:${item.source}:${flags}`
+re = prefixCache.get(cacheKey)
 if (!re) {
-re = p instanceof RegExp ? p : new RegExp(str2Regex(p))
+re = new RegExp(item.source, flags)
 prefixCache.set(cacheKey, re)
 }
-return [re.exec(text), re]
-})
-: typeof _prefix === 'string' ? (() => {
-const cacheKey = `str:${_prefix}`
-let re = prefixCache.get(cacheKey)
+} else if (typeof item === 'string' && item) {
+const cacheKey = `str:${item}`
+re = prefixCache.get(cacheKey)
 if (!re) {
-re = new RegExp(str2Regex(_prefix))
+re = new RegExp(`^${str2Regex(item)}`)
 prefixCache.set(cacheKey, re)
 }
-return [[re.exec(text), re]]
-})() : [[[], new RegExp()]])
-.find((p) => p[1])
+} else {
+continue
+}
+re.lastIndex = 0
+const match = re.exec(String(text || ''))
+if (match?.[0]) return [match, re]
+} catch (error) {
+console.error('[UPSERT ERROR]:', error)
+}
+}
+}
+return null
 }
 
 export function getPluginDirectory() {

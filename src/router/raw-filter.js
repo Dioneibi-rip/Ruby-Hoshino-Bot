@@ -1,7 +1,7 @@
 import { commandsMap, getPrefixMatch } from './handler-utils.js'
 import { messageHasModeratedLink } from '../core/moderation-utils.js'
 
-export const COMMAND_PREFIX_FALLBACK = /^[#!./\\]/
+export const COMMAND_PREFIX_FALLBACK = /^[#!./\\@]/
 
 export function unwrapMessageContent(content = {}) {
 return content?.ephemeralMessage?.message
@@ -67,7 +67,7 @@ return ''
 
 export function getRawCommandName(text = '') {
 const trimmed = String(text || '').trim()
-const match = trimmed.match(/^[#!./\\](\S+)/)
+const match = trimmed.match(/^[#!./\\@](\S+)/)
 return match?.[1]?.toLowerCase() || ''
 }
 

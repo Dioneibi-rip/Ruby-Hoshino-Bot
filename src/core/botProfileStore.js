@@ -251,10 +251,11 @@ if (conn?.user?.jid && !profile.botJid) profile.botJid = conn.user.jid
 if (conn) {
 conn.botProfile = profile
 try {
-conn.prefix = new RegExp('^[' + conn.botProfile.customPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ']')
-} catch {
+conn.prefix = [conn.botProfile.customPrefix || nativeProfile.customPrefix, /^[#/!.@]/]
+} catch (error) {
+console.error('[UPSERT ERROR]:', error)
 conn.botProfile = getNativeBotProfile(sessionId)
-conn.prefix = new RegExp('^[' + conn.botProfile.customPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ']')
+conn.prefix = [conn.botProfile.customPrefix || nativeProfile.customPrefix, /^[#/!.@]/]
 }
 }
 return profile
