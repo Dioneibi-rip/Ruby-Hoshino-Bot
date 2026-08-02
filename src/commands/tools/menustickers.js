@@ -22,7 +22,7 @@ const texto = `
 > ✦ Crea stickers con texto.
 🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#emojimix*
 > ✦ Funciona 2 emojis para crear un sticker.
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#stickerly • #spak • #stickerpack*
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#stickerly • #spack • #stickerpack*
 > ✦ Envía un paquete de stickers.
 🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#wm*
 > ✦ Cambia el nombre de los stickers.
