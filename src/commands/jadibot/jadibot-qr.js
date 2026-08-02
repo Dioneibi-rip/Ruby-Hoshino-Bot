@@ -1,4 +1,4 @@
-import QRCode from 'qrcode'
+import { renderNativeQr } from '../../utils/nativeQr.js'
 import { createSubbotSocket, destroySubbotSession } from '../../core/subbot-engine.js'
 
 const requestCooldown = new Map()
@@ -27,11 +27,8 @@ sessionId: m.sender,
 mode: 'qr',
 parentConn: conn,
 onQr: async qr => {
-const image = await QRCode.toBuffer(qr, { type: 'png', margin: 2, scale: 8 })
-await conn.sendMessage(m.chat, {
-image,
-caption: '🤖 Escanea este QR desde WhatsApp > Dispositivos vinculados > Vincular un dispositivo. Si expira, espera 2 minutos y solicita otro con #qr.'
-}, { quoted: m })
+const qrText = await renderNativeQr(qr)
+await conn.reply(m.chat, '🤖 Escanea este QR desde WhatsApp > Dispositivos vinculados > Vincular un dispositivo. Si expira, espera 2 minutos y solicita otro con #qr.\n\n```\n' + qrText + '\n```', m)
 }
 })
 } catch (error) {

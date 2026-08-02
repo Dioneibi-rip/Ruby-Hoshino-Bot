@@ -136,9 +136,9 @@ if (claimedInGroup) ownerName = await conn.getName(claimedInGroup.userId)
 else if (exclusiveOwner) ownerName = await conn.getName(exclusiveOwner).catch(() => `@${exclusiveOwner.split('@')[0]}`)
 
 const statusText = claimedInGroup ? '🚫 Ocupado' : (exclusiveOwner ? '🔒 Exclusivo' : '✅ Libre')
-user.gachaTokens = Math.max(0, Number(user.gachaTokens || 0) - ROLL_TOKEN_COST)
-user.gachaPity = calculateNextPity(pityBefore, rarity.key, { guaranteed: guaranteedPity })
-const pityStatus = `${renderPityBar(user.gachaPity)} ${user.gachaPity}%`
+const nextGachaTokens = Math.max(0, Number(user.gachaTokens || 0) - ROLL_TOKEN_COST)
+const nextGachaPity = calculateNextPity(pityBefore, rarity.key, { guaranteed: guaranteedPity })
+const pityStatus = `${renderPityBar(nextGachaPity)} ${nextGachaPity}%`
 const pityNote = guaranteedPity ? ' ✦ Garantía activada' : ''
 
 if (!claimedInGroup) {
@@ -173,12 +173,16 @@ const message = `
 ╰┈➤ ${pityStatus}${pityNote}
 
 ▓𓏴𓏴 ۪ ֹ 🅃꯭🄾꯭🄺꯭🄴꯭🄽꯭🅂 :
-╰┈➤ 🎟️ ${Number(user.gachaTokens || 0)} restantes
+╰┈➤ 🎟️ ${nextGachaTokens} restantes
 
 ㅤㅤㅤㅤㅤㅤ© ᑲ᥆𝗍 𝗀ɑᥴ꯭hɑ 𝗌𝗒sł꯭ᥱꭑ꒱
 `
 
 await conn.sendMessage(m.chat, { image: { url: randomImage }, mimetype: 'image/jpeg', caption: message }, { quoted: m })
+user.gachaTokens = nextGachaTokens
+user.gachaPity = nextGachaPity
+if (global.db.updateUser) global.db.updateUser(userId, { gachaTokens: user.gachaTokens, gachaPity: user.gachaPity })
+else global.db.scheduleFlush?.()
 } catch (error) {
 console.error(error)
 await conn.reply(m.chat, `✘ Error al cargar el personaje: ${error.message}`, m)

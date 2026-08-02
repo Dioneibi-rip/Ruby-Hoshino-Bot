@@ -99,8 +99,8 @@ await m.reply(`───│ ❌ ${friendlyMessage} ✉𓈒𓂂ׅ◝ׄ`)
 return false;
 }
 }
-handler.help = ['stickerly <texto/url>']
+handler.help = ['stickerly <texto/url>', 'spak <texto/url>', 'stickerpack <texto/url>']
 handler.tags = ['descargas']
-handler.command = ['stickerly', 'sl', 'dlsticker']
+handler.command = ['stickerly', 'sl', 'dlsticker', 'spak', 'stickerpack']
 handler.group = false
 export default handler
