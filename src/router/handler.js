@@ -177,7 +177,7 @@ const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
 if (!chatData?.detect || shouldSilenceChatForBot(chatData, normalizeSessionJid(this?.user?.jid || this?.user?.id || ''))) continue
 const stub = buildGroupUpdateStub({ ...update, id: chat })
 if (!stub) continue
-const plugin = (await import('../commands/enable/_autodetect.js')).default
+const plugin = (await import('../commands/uncategorized/_autodetect.js')).default
 const groupMetadata = await getGroupMetadataOnDemand(this, chat, { requireParticipants: true })
 await plugin.before.call(this, stub, { conn: this, participants: groupMetadata?.participants || [], groupMetadata: groupMetadata || {} })
 } catch (error) {
@@ -195,7 +195,7 @@ if (!chatData?.welcome) return
 const action = String(update.action || '').toLowerCase()
 const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null
 if (!messageStubType) return
-const plugin = (await import('../commands/functions/_welcome.js')).default
+const plugin = (await import('../commands/uncategorized/_welcome.js')).default
 const groupMetadata = await getGroupMetadataOnDemand(this, chat, { requireParticipants: true })
 await plugin.before.call(this, { chat, isGroup: true, sender: update.participants[0], messageStubType, messageStubParameters: update.participants }, { conn: this, participants: groupMetadata?.participants || [], groupMetadata: groupMetadata || {} })
 } catch (error) {

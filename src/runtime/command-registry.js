@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs'
+import fsSync, { promises as fs } from 'fs'
 import path from 'path'
 import { pathToFileURL } from 'url'
 
@@ -56,14 +56,13 @@ fileUrl: pathToFileURL(filePath).href
 }
 
 async function walkJavaScriptFiles(dir) {
-const entries = await fs.readdir(dir, { withFileTypes: true }).catch(() => [])
-const files = []
-for (const entry of entries) {
-const fullPath = path.join(dir, entry.name)
-if (entry.isDirectory()) files.push(...await walkJavaScriptFiles(fullPath))
-else if (entry.isFile() && entry.name.endsWith('.js') && !entry.name.startsWith('_')) files.push(fullPath)
+try {
+return fsSync.readdirSync(dir, { recursive: true, withFileTypes: true })
+.filter(entry => entry.isFile() && entry.name.endsWith('.js') && !entry.name.startsWith('_'))
+.map(entry => path.join(entry.parentPath || entry.path || dir, entry.name))
+} catch {
+return []
 }
-return files
 }
 
 export class CommandRegistry {
