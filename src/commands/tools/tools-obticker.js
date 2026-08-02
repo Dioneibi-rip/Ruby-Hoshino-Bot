@@ -101,6 +101,6 @@ return false;
 }
 handler.help = ['stickerly <texto/url>', 'spak <texto/url>', 'stickerpack <texto/url>']
 handler.tags = ['descargas']
-handler.command = ['stickerly', 'sl', 'dlsticker', 'spak', 'stickerpack']
+handler.command = ['stickerly', 'sl', 'dlsticker', 'spack', 'stickerpack']
 handler.group = false
 export default handler
