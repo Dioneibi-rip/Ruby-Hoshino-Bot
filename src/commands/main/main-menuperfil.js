@@ -1,39 +1,41 @@
 
-let handler = async (m, { conn }) => {
+let handler = async (m, { conn, usedPrefix }) => {
+const profile = conn.botProfile || {}
+const used = profile.customPrefix || usedPrefix || '#'
 const texto = `
 🆔⊹ 𝐌𝐄𝐍𝐔 𝐏𝐄𝐑𝐅𝐈𝐋 ⊹📇
 
-░ ⃝🌀ᩧ᳕ᬵ *#setname*
+░ ⃝🌀ᩧ᳕ᬵ *${used}setname*
 > ✦ Establece un nombre personalizado para tu perfil.
-░ ⃝🌀ᩧ᳕ᬵ *#setage • #edad*
+░ ⃝🌀ᩧ᳕ᬵ *${used}setage • ${used}edad*
 > ✦ Agrega o actualiza tu edad en el bot.
-░ ⃝🌀ᩧ᳕ᬵ *#unreg • #quitaregistro*
+░ ⃝🌀ᩧ᳕ᬵ *${used}unreg • ${used}quitaregistro*
 > ✦ Resetea tu cuenta y elimina tus datos guardados.
-░ ⃝🌀ᩧ᳕ᬵ *#profile • #perfil*
+░ ⃝🌀ᩧ᳕ᬵ *${used}profile • ${used}perfil*
 > ✦ Muestra tu perfil de usuario.
-░ ⃝🌀ᩧ᳕ᬵ *#marry* [mension / etiquetar]
+░ ⃝🌀ᩧ᳕ᬵ *${used}marry* [mension / etiquetar]
 > ✦ Propón matrimonio a otro usuario.
-░ ⃝🌀ᩧ᳕ᬵ *#divorce*
+░ ⃝🌀ᩧ᳕ᬵ *${used}divorce*
 > ✦ Divorciarte de tu pareja.
-░ ⃝🌀ᩧ᳕ᬵ *#setgenre • #setgenero*
+░ ⃝🌀ᩧ᳕ᬵ *${used}setgenre • ${used}setgenero*
 > ✦ Establece tu género en el perfil del bot.
-░ ⃝🌀ᩧ᳕ᬵ *#delgenre • #delgenero*
+░ ⃝🌀ᩧ᳕ᬵ *${used}delgenre • ${used}delgenero*
 > ✦ Elimina tu género del perfil del bot.
-░ ⃝🌀ᩧ᳕ᬵ *#setbirth • #setcumpleaños*
+░ ⃝🌀ᩧ᳕ᬵ *${used}setbirth • ${used}setcumpleaños*
 > ✦ Establece tu fecha de nacimiento en el perfil del bot.
-░ ⃝🌀ᩧ᳕ᬵ *#delbirth*
+░ ⃝🌀ᩧ᳕ᬵ *${used}delbirth*
 > ✦ Elimina tu fecha de nacimiento del perfil del bot.
-░ ⃝🌀ᩧ᳕ᬵ *#setdescription • #setdesc*
+░ ⃝🌀ᩧ᳕ᬵ *${used}setdescription • ${used}setdesc*
 > ✦ Establece una descripción en tu perfil del bot.
-░ ⃝🌀ᩧ᳕ᬵ *#deldescription • #deldesc*
+░ ⃝🌀ᩧ᳕ᬵ *${used}deldescription • ${used}deldesc*
 > ✦ Elimina la descripción de tu perfil del bot.
-░ ⃝🌀ᩧ᳕ᬵ *#lb • #lboard* + <Paginá>
+░ ⃝🌀ᩧ᳕ᬵ *${used}lb • ${used}lboard* + <Paginá>
 > ✦ Top de usuarios con más (experiencia y nivel).
-░ ⃝🌀ᩧ᳕ᬵ *#level • #lvl* + <@Mencion>
+░ ⃝🌀ᩧ᳕ᬵ *${used}level • ${used}lvl* + <@Mencion>
 > ✦ Ver tu nivel y experiencia actual.
-░ ⃝🌀ᩧ᳕ᬵ *#comprarpremium • #premium*
+░ ⃝🌀ᩧ᳕ᬵ *${used}comprarpremium • ${used}premium*
 > ✦ Compra un pase premium para usar el bot sin límites.
-░ ⃝🌀ᩧ᳕ᬵ *#confesiones • #confesar*
+░ ⃝🌀ᩧ᳕ᬵ *${used}confesiones • ${used}confesar*
 > ✦ Confiesa tus sentimientos a alguien de manera anonima.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅
 `.trim();
@@ -41,7 +43,7 @@ const texto = `
 await conn.sendMessage(
 m.chat,
 {
-image: { url: 'https://files.catbox.moe/a2cyzt.jpeg' },
+image: { url: profile.individualMenuImageUrl || 'https://files.catbox.moe/a2cyzt.jpeg' },
 caption: texto,
 contextInfo: {
 mentionedJid: [m.sender],

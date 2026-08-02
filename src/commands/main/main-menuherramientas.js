@@ -1,33 +1,35 @@
 
-let handler = async (m, { conn }) => {
+let handler = async (m, { conn, usedPrefix }) => {
+const profile = conn.botProfile || {}
+const used = profile.customPrefix || usedPrefix || '#'
 const texto = `
 🛠️⊹ 𝐌𝐄𝐍𝐔 𝐃𝐄 𝐇𝐄𝐑𝐑𝐀𝐌𝐈𝐄𝐍𝐓𝐀𝐒 ⊹⚙️
 
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#calcular • #calcular • #cal*
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *${used}calcular • ${used}calcular • ${used}cal*
 > ✦ Calcular todo tipo de ecuaciones.
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#horario*
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *${used}horario*
 > ✦ Ver el horario global de los países.
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#fake • #fakereply*
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *${used}fake • ${used}fakereply*
 > ✦ Crea un mensaje falso de un usuario.
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#enhance • #remini • #hd*
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *${used}enhance • ${used}remini • ${used}hd*
 > ✦ Mejora la calidad de una imagen.
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#letra*
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *${used}letra*
 > ✦ Cambia la fuente de las letras.
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#read • #readviewonce • #ver*
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *${used}read • ${used}readviewonce • ${used}ver*
 > ✦ Ver imágenes de una sola vista.
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#whatmusic • #shazam*
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *${used}whatmusic • ${used}shazam*
 > ✦ Descubre el nombre de canciones o vídeos.
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#ss • #ssweb*
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *${used}ss • ${used}ssweb*
 > ✦ Ver el estado de una página web.
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#length • #tamaño*
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *${used}length • ${used}tamaño*
 > ✦ Cambia el tamaño de imágenes y vídeos.
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#say • #decir* + [texto]
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *${used}say • ${used}decir* + [texto]
 > ✦ Repetir un mensaje.
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#todoc • #toducument*
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *${used}todoc • ${used}toducument*
 > ✦ Crea documentos de (audio, imágenes y vídeos).
-⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *#wiki • #wikipedia*
+⢷ ꉹᩙ  ִ ▒🎡ᩬ᷒ᰰ⃞  ˄᪲ *${used}wiki • ${used}wikipedia*
 > ✦ Consulta información en Wikipedia.
-⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *#logocorazon • #logopareja • #logogaming*
+⢷ ꉹᩙ  ִ ▒🎠ᩬ᷒ᰰ⃞  ˄᪲ *${used}logocorazon • ${used}logopareja • ${used}logogaming*
 > ✦ Crea logos con texto usando los generadores disponibles.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅,
 `.trim();
@@ -35,7 +37,7 @@ const texto = `
 await conn.sendMessage(
 m.chat,
 {
-image: { url: 'https://files.catbox.moe/wel1hf.jpeg' },
+image: { url: profile.individualMenuImageUrl || 'https://files.catbox.moe/wel1hf.jpeg' },
 caption: texto,
 contextInfo: {
 mentionedJid: [m.sender],

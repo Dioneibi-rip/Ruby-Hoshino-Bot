@@ -27,7 +27,7 @@ return normalized ? `@${normalized.split('@')[0].split(':')[0]}` : '@usuario'
 }
 
 
-async function sendWelcomeMessage(conn, chatId, targetJid, imagePath, text) {
+async function sendWelcomeMessage(conn, chatId, targetJid, imagePath, text, fallbackPath) {
 const contextInfo = {
 mentionedJid: [targetJid].filter(Boolean),
 isForwarded: true,
@@ -35,9 +35,14 @@ forwardingScore: 9999999,
 forwardedNewsletterMessageInfo: { newsletterJid: newsletterJid, newsletterName: newsletterName, serverMessageId: -1 }
 }
 try {
-await conn.sendMessage(chatId, { image: fs.readFileSync(imagePath), caption: text, contextInfo }, { quoted: null })
+const image = /^https?:\/\//i.test(String(imagePath)) ? { url: imagePath } : fs.readFileSync(imagePath)
+await conn.sendMessage(chatId, { image, caption: text, contextInfo }, { quoted: null })
 } catch (error) {
 console.error('[welcome] error generando/enviando imagen de bienvenida', error)
+try {
+const fallbackImage = fallbackPath ? fs.readFileSync(fallbackPath) : null
+if (fallbackImage) return await conn.sendMessage(chatId, { image: fallbackImage, caption: text, contextInfo }, { quoted: null })
+} catch {}
 await conn.sendMessage(chatId, { text, mentions: [targetJid].filter(Boolean), contextInfo }, { quoted: null })
 }
 }
@@ -69,7 +74,9 @@ const targetJid = normalizeMentionJid(userId) || normalizeMentionJid(m.sender)
 if (!targetJid) continue
 try {
 const greetingAssetsDir = path.join(process.cwd(), 'src', 'assets', 'greetings')
-const greetingImage = isWelcome ? path.join(greetingAssetsDir, 'welcome_card.jpg') : path.join(greetingAssetsDir, 'leave_card.jpg')
+const fallbackGreetingImage = isWelcome ? path.join(greetingAssetsDir, 'welcome_card.jpg') : path.join(greetingAssetsDir, 'leave_card.jpg')
+const profile = conn.botProfile || {}
+const greetingImage = isWelcome ? (profile.welcomeImageUrl || fallbackGreetingImage) : (profile.goodbyeImageUrl || fallbackGreetingImage)
 const username = mentionLabel(targetJid)
 const groupName = groupMetadata?.subject || 'este grupo'
 const desc = groupMetadata?.desc?.toString() || 'Sin descripción'
@@ -101,7 +108,7 @@ _*/𝐓𝐞𝐧𝐞𝐦𝐨𝐬 𝐦𝐮𝐜𝐡𝐨 𝐩𝐨𝐫 𝐥𝐨 𝐜�
 
 > establece un mensaje de bienvenida con #setwelcome`.trim()
 }
-await sendWelcomeMessage(conn, m.chat, targetJid, greetingImage, text)
+await sendWelcomeMessage(conn, m.chat, targetJid, greetingImage, text, fallbackGreetingImage)
 } else if (isBye) {
 let text
 if (chat.byeText) {
@@ -130,7 +137,7 @@ text = `
 
 > establece un mensaje de despedida con #setbye`.trim()
 }
-await sendWelcomeMessage(conn, m.chat, targetJid, greetingImage, text)
+await sendWelcomeMessage(conn, m.chat, targetJid, greetingImage, text, fallbackGreetingImage)
 }
 } catch (error) {
 console.error('[welcome] error procesando participante', error);

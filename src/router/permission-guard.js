@@ -15,6 +15,15 @@ const botJid = conn?.decodeJid?.(conn?.user?.jid) || conn?.user?.jid
 return Boolean(m?.fromMe || isSameJid(sender, botJid))
 }
 
+
+export function canManageBotProfile(sender, conn, permissionContext = {}) {
+const clean = value => String(value || '').split('@')[0].split(':')[0].replace(/\D/g, '')
+const from = clean(sender)
+const owner = clean(conn?.session?.ownerJid)
+const bot = clean(conn?.user?.jid || conn?.user?.id)
+return Boolean(permissionContext.isROwner || permissionContext.isOwner || from && (from === owner || from === bot))
+}
+
 export const JAIL_COMMAND_WHITELIST = ['fianza', 'depositar', 'retirar', 'dep', 'with', 'bal', 'inventario', 'perfil', 'menu']
 
 export function isJailWhitelistedCommand(command) {
@@ -78,6 +87,12 @@ return true
 {
 check: ({ adminMode, m, permissionContext, canBypassGroupRestrictions }) => Boolean(adminMode && m.isGroup && !permissionContext.isAdmin && !canBypassGroupRestrictions),
 fail: async () => true,
+},
+
+{
+condition: ({ plugin }) => plugin.botProfileOwner,
+check: ({ sender, conn, permissionContext, isBotSelf }) => !isBotSelf && !canManageBotProfile(sender, conn, permissionContext),
+fail: async ({ conn, m }) => { conn.reply(m.chat, '🥀 Solo el creador del Sub-Bot, el número del Sub-Bot o el Owner Global puede editar este perfil.', m); return false },
 },
 {
 condition: ({ plugin, canBypassGroupRestrictions }) => !canBypassGroupRestrictions && plugin.botAdmin,

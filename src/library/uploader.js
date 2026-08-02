@@ -1,50 +1,67 @@
 import { fileTypeFromBuffer } from './fileType.js'
 import { bufferToBlob } from './http.js'
 
-async function detectFile(buffer) {
-  return await fileTypeFromBuffer(buffer) || { ext: 'bin', mime: 'application/octet-stream' }
+async function detectFile(buffer, mime) {
+return await fileTypeFromBuffer(buffer) || { ext: String(mime || '').split('/')[1] || 'bin', mime: mime || 'application/octet-stream' }
 }
 
-export async function uploadImage(buffer) {
-  const { ext, mime } = await detectFile(buffer)
-  const form = new FormData()
-  form.append('files[]', bufferToBlob(buffer, mime), `tmp.${ext}`)
-  const res = await fetch('https://qu.ax/upload.php', { method: 'POST', body: form })
-  const result = await res.json()
-  if (result?.success && result.files?.[0]?.url) return result.files[0].url
-  throw new Error('Failed to upload the file to qu.ax')
+function pickUrl(data) {
+if (!data) return ''
+if (typeof data === 'string') return /^https?:\/\//i.test(data) ? data : ''
+return data.url || data.link || data.file || data.result?.url || data.result?.link || data.data?.url || data.data?.link || data.files?.[0]?.url || data.files?.[0]?.link || data.result?.files?.[0]?.url || ''
 }
 
-async function fileIO(buffer) {
-  const { ext, mime } = await detectFile(buffer)
-  const form = new FormData()
-  form.append('file', bufferToBlob(buffer, mime), `tmp.${ext}`)
-  const res = await fetch('https://file.io/?expires=1d', { method: 'POST', body: form })
-  const json = await res.json()
-  if (!json.success) throw json
-  return json.link
+async function postForm(url, form) {
+const res = await fetch(url, { method: 'POST', body: form })
+if (!res.ok) throw new Error(`HTTP ${res.status}`)
+const text = await res.text()
+try { return JSON.parse(text) } catch { return text }
 }
 
-async function RESTfulAPI(input) {
-  const form = new FormData()
-  const buffers = Array.isArray(input) ? input : [input]
-  for (const buffer of buffers) form.append('file', bufferToBlob(buffer))
-  const res = await fetch('https://storage.restfulapi.my.id/upload', { method: 'POST', body: form })
-  const text = await res.text()
-  try {
-    const json = JSON.parse(text)
-    return Array.isArray(input) ? json.files.map(file => file.url) : json.files[0].url
-  } catch {
-    throw text
-  }
+async function adofiles(buffer, mime) {
+const file = await detectFile(buffer, mime)
+const form = new FormData()
+form.append('file', bufferToBlob(buffer, file.mime), `ruby.${file.ext}`)
+const json = await postForm('https://cdn.adoolab.xyz/api/upload', form)
+const url = pickUrl(json)
+if (!url) throw new Error('adofiles upload failed')
+return url
 }
 
-export async function uploadFile(input) {
-  let err = false
-  for (const upload of [RESTfulAPI, fileIO]) {
-    try { return await upload(input) } catch (error) { err = error }
-  }
-  if (err) throw err
+async function fare(buffer, mime) {
+const file = await detectFile(buffer, mime)
+const form = new FormData()
+form.append('file', bufferToBlob(buffer, file.mime), `ruby.${file.ext}`)
+const json = await postForm('https://u.fare.ink/api/upload', form)
+const url = pickUrl(json)
+if (!url) throw new Error('fare upload failed')
+return url
 }
 
-export default uploadFile
+async function uguu(buffer, mime) {
+const file = await detectFile(buffer, mime)
+const form = new FormData()
+form.append('files[]', bufferToBlob(buffer, file.mime), `ruby.${file.ext}`)
+const json = await postForm('https://uguu.se/upload.php', form)
+const url = pickUrl(json) || json?.files?.[0]?.url
+if (!url) throw new Error('uguu upload failed')
+return url
+}
+
+export async function uploadAuto(buffer, mime) {
+let lastError
+for (const upload of [adofiles, fare, uguu]) {
+try { return await upload(buffer, mime) } catch (error) { lastError = error }
+}
+throw lastError || new Error('upload failed')
+}
+
+export async function uploadImage(buffer, mime) {
+return uploadAuto(buffer, mime)
+}
+
+export async function uploadFile(buffer, mime) {
+return uploadAuto(buffer, mime)
+}
+
+export default uploadAuto
