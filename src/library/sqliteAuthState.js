@@ -117,6 +117,17 @@ if (name.startsWith(prefix)) return [category, safeFilePart(name.slice(prefix.le
 return null
 }
 
+
+function getOne(sqlite, sql, ...params) {
+const statement = sqlite.prepare(sql)
+return statement.get(...params)
+}
+
+function runOne(sqlite, sql, ...params) {
+const statement = sqlite.prepare(sql)
+return statement.run(...params)
+}
+
 function purgeLegacyFiles(sessionDir) {
 if (!existsSync(sessionDir)) return
 try {
@@ -131,7 +142,7 @@ console.error('[sqlite-auth] no se pudieron purgar archivos legacy:', error)
 }
 }
 
-async function migrateLegacyAuthFiles(sessionDir, statements) {
+async function migrateLegacyAuthFiles(sessionDir, sqlite) {
 if (!existsSync(sessionDir)) return
 let files = []
 try { files = readdirSync(sessionDir) } catch (error) {
@@ -144,45 +155,33 @@ const legacyKey = legacyKeyFromFile(file)
 if (!legacyKey) continue
 const [category, id] = legacyKey
 try {
-if (await statements.get.getAsync(category, id)) continue
+if (await getOne(sqlite, 'SELECT value FROM auth_state WHERE category = ? AND id = ?', category, id)) continue
 const value = JSON.parse(readFileSync(path.join(sessionDir, file), 'utf8'), BufferJSON.reviver)
-await statements.upsert.runAsync(category, id, stringify(value), now, now, now)
+runOne(sqlite, `INSERT INTO auth_state(category,id,value,created_at,updated_at,last_access_at)
+VALUES(?,?,?,?,?,?)
+ON CONFLICT(category,id) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at, last_access_at=excluded.last_access_at`, category, id, stringify(value), now, now, now)
 } catch (error) {
 console.error(`[sqlite-auth] no se pudo migrar ${file}:`, error)
 }
 }
 }
 
-function buildStatements(sqlite) {
-return {
-get: sqlite.prepare('SELECT value FROM auth_state WHERE category = ? AND id = ?'),
-touch: sqlite.prepare('UPDATE auth_state SET last_access_at = ? WHERE category = ? AND id = ?'),
-upsert: sqlite.prepare(`INSERT INTO auth_state(category,id,value,created_at,updated_at,last_access_at)
-VALUES(?,?,?,?,?,?)
-ON CONFLICT(category,id) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at, last_access_at=excluded.last_access_at`),
-remove: sqlite.prepare('DELETE FROM auth_state WHERE category = ? AND id = ?'),
-cleanup: sqlite.prepare("DELETE FROM auth_state WHERE category IN ('pre-key','sender-key','session') AND last_access_at < ?"),
-getMeta: sqlite.prepare('SELECT value FROM auth_state WHERE category = ? AND id = ?'),
-setMeta: sqlite.prepare(`INSERT INTO auth_state(category,id,value,created_at,updated_at,last_access_at)
-VALUES('meta',?,?,?,?,?)
-ON CONFLICT(category,id) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at, last_access_at=excluded.last_access_at`)
-}
-}
-
-function startDailyCleanup(dbPath, sqlite, statements, options = {}) {
+function startDailyCleanup(dbPath, sqlite, options = {}) {
 if (cleanupTimers.has(dbPath)) return cleanupTimers.get(dbPath)
 const retentionMs = Number(options.retentionMs) || DEFAULT_RETENTION_MS
 const intervalMs = Number(options.cleanupIntervalMs) || DEFAULT_CLEANUP_INTERVAL_MS
 const runCleanup = async () => {
 try {
 const now = Date.now()
-const lastRow = await statements.getMeta.getAsync('meta', 'last_cleanup_at')
+const lastRow = await getOne(sqlite, 'SELECT value FROM auth_state WHERE category = ? AND id = ?', 'meta', 'last_cleanup_at')
 const last = Number(parse(lastRow?.value) || 0)
 if (now - last < intervalMs) return
 const cutoff = now - retentionMs
-await statements.cleanup.runAsync(cutoff)
-await sqlite.execAsync('PRAGMA incremental_vacuum;')
-await statements.setMeta.runAsync('last_cleanup_at', stringify(now), now, now, now)
+runOne(sqlite, "DELETE FROM auth_state WHERE category IN ('pre-key','sender-key','session') AND last_access_at < ?", cutoff)
+sqlite.exec('PRAGMA incremental_vacuum;')
+runOne(sqlite, `INSERT INTO auth_state(category,id,value,created_at,updated_at,last_access_at)
+VALUES('meta',?,?,?,?,?)
+ON CONFLICT(category,id) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at, last_access_at=excluded.last_access_at`, 'last_cleanup_at', stringify(now), now, now, now)
 } catch (error) {
 console.error('[sqlite-auth] error en limpieza diaria:', error)
 }
@@ -197,16 +196,17 @@ export async function useSQLiteAuthState(sessionDir, options = {}) {
 if (!existsSync(sessionDir)) mkdirSync(sessionDir, { recursive: true })
 const dbPath = path.join(sessionDir, options.dbName || 'auth.db')
 const sqlite = await openDatabase(dbPath)
-const statements = buildStatements(sqlite)
-await migrateLegacyAuthFiles(sessionDir, statements)
+await migrateLegacyAuthFiles(sessionDir, sqlite)
 if (options.cleanOldFiles !== false) purgeLegacyFiles(sessionDir)
-const credsRow = await statements.get.getAsync('creds', 'creds')
+const credsRow = await getOne(sqlite, 'SELECT value FROM auth_state WHERE category = ? AND id = ?', 'creds', 'creds')
 let creds = parse(credsRow?.value) || initAuthCreds()
 const writeLock = createMutex()
 const writeCredsTx = async () => {
 try {
 const now = Date.now()
-await statements.upsert.runAsync('creds', 'creds', stringify(creds), now, now, now)
+runOne(sqlite, `INSERT INTO auth_state(category,id,value,created_at,updated_at,last_access_at)
+VALUES(?,?,?,?,?,?)
+ON CONFLICT(category,id) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at, last_access_at=excluded.last_access_at`, 'creds', 'creds', stringify(creds), now, now, now)
 } catch (error) {
 console.error('[sqlite-auth] error guardando credenciales:', error)
 throw error
@@ -215,18 +215,20 @@ throw error
 const writeKeysTx = async data => {
 try {
 const now = Date.now()
-await sqlite.execAsync('BEGIN IMMEDIATE;')
+sqlite.exec('BEGIN IMMEDIATE;')
 try {
 for (const category of Object.keys(data || {})) {
 for (const id of Object.keys(data[category] || {})) {
 const value = data[category][id]
-if (value) await statements.upsert.runAsync(category, safeFilePart(id), stringify(value), now, now, now)
-else await statements.remove.runAsync(category, safeFilePart(id))
+if (value) runOne(sqlite, `INSERT INTO auth_state(category,id,value,created_at,updated_at,last_access_at)
+VALUES(?,?,?,?,?,?)
+ON CONFLICT(category,id) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at, last_access_at=excluded.last_access_at`, category, safeFilePart(id), stringify(value), now, now, now)
+else runOne(sqlite, 'DELETE FROM auth_state WHERE category = ? AND id = ?', category, safeFilePart(id))
 }
 }
-await sqlite.execAsync('COMMIT;')
+sqlite.exec('COMMIT;')
 } catch (error) {
-try { await sqlite.execAsync('ROLLBACK;') } catch (rollbackError) { console.error('[sqlite-auth] error revirtiendo lote de llaves:', rollbackError) }
+try { sqlite.exec('ROLLBACK;') } catch (rollbackError) { console.error('[sqlite-auth] error revirtiendo lote de llaves:', rollbackError) }
 throw error
 }
 } catch (error) {
@@ -235,12 +237,12 @@ throw error
 }
 }
 const keyWriter = createDebouncedKeyWriter(data => writeLock(() => writeKeysTx(data)), options.keyFlushDelayMs ?? 250, options.keyMaxFlushDelayMs ?? 1500)
-const cleanupTimer = startDailyCleanup(dbPath, sqlite, statements, options)
+const cleanupTimer = startDailyCleanup(dbPath, sqlite, options)
 const closeAuthDb = async () => {
 if (cleanupTimer) clearInterval(cleanupTimer)
 cleanupTimers.delete(dbPath)
 await keyWriter.flush()
-await sqlite.execAsync('PRAGMA wal_checkpoint(TRUNCATE);')
+sqlite.exec('PRAGMA wal_checkpoint(TRUNCATE);')
 sqlite.close()
 }
 return {
@@ -255,8 +257,8 @@ const keyId = safeFilePart(id)
 const category = authCategory(type)
 let row = null
 try {
-row = await statements.get.getAsync(category, keyId)
-if (row) await statements.touch.runAsync(now, category, keyId)
+row = await getOne(sqlite, 'SELECT value FROM auth_state WHERE category = ? AND id = ?', category, keyId)
+if (row) runOne(sqlite, 'UPDATE auth_state SET last_access_at = ? WHERE category = ? AND id = ?', now, category, keyId)
 } catch (error) {
 console.error(`[sqlite-auth] error leyendo llave ${category}/${keyId}:`, error)
 }
@@ -270,7 +272,7 @@ set: async data => keyWriter(data)
 saveCreds: async () => { await keyWriter.flush(); return writeLock(() => writeCredsTx()) },
 removeCreds: async () => writeLock(async () => {
 try {
-return await statements.remove.runAsync('creds', 'creds')
+return runOne(sqlite, 'DELETE FROM auth_state WHERE category = ? AND id = ?', 'creds', 'creds')
 } catch (error) {
 console.error('[sqlite-auth] error eliminando credenciales:', error)
 throw error
@@ -280,7 +282,7 @@ clearDb: async () => {
 await keyWriter.flush()
 return writeLock(async () => {
 try {
-return await sqlite.prepare('DELETE FROM auth_state').runAsync()
+return runOne(sqlite, 'DELETE FROM auth_state')
 } catch (error) {
 console.error('[sqlite-auth] error limpiando base de autenticación:', error)
 throw error
