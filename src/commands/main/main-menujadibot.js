@@ -1,5 +1,6 @@
+import { getActiveBotProfile, getMenuBanner } from '../../core/menu-banner.js'
 let handler = async (m, { conn, usedPrefix }) => {
-const profile = conn.botProfile || {}
+const profile = await getActiveBotProfile(conn)
 const used = profile.customPrefix || usedPrefix || '#'
 const prefix = used
 const botName = profile.botName || 'Ruby Hoshino'
@@ -38,7 +39,7 @@ const text = `🤖⊹ 𝐌𝐄𝐍𝐔 𝐉𝐀𝐃𝐈𝐁𝐎𝐓 / 𝐒𝐔�
 > ✦ Consulta o restablece el perfil nativo de ${botName}.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅`
 const image = process.env.JADIBOT_MENU_IMAGE || 'https://files.catbox.moe/rt1yfo.jpeg'
-return conn.sendMessage(m.chat, { image: { url: profile.individualMenuImageUrl || image }, caption: text }, { quoted: m })
+return conn.sendMessage(m.chat, { image: { url: getMenuBanner(profile, 'jadibot', image) }, caption: text }, { quoted: m })
 }
 handler.help = ['menujadibot']
 handler.tags = ['main']

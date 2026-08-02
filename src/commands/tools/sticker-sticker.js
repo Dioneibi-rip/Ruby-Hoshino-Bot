@@ -10,8 +10,9 @@ return false
 await m.react('🧃')
 try {
 const packstickers = global.db.getUser(m.sender) || {}
-const defaultPack = String(packstickers.text1 ?? m.pushName ?? '').trim()
-const defaultAuthor = String(packstickers.text2 ?? '').trim()
+const botName = conn.botProfile?.botName || global.packname || 'Ruby Hoshino'
+const defaultPack = String(packstickers.text1 ?? botName).trim()
+const defaultAuthor = String(packstickers.text2 ?? conn.botProfile?.meta?.stickerAuthor ?? global.author ?? '').trim()
 const txt = args.join(' ').trim()
 const marca = txt ? txt.split(/[\u2022|]/).map(v => v.trim()) : [defaultPack, defaultAuthor]
 let stiker = null

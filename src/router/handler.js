@@ -6,6 +6,8 @@ import MiddlewarePipeline from '../runtime/middleware-pipeline.js'
 import { getGroupMetadataOnDemand } from '../library/global-cache.js'
 import { shouldSilenceChatForBot, normalizeSessionJid } from '../core/session-utils.js'
 import { executePlugin } from './plugin-executor.js'
+import { getPersonalStickerCommand } from '../core/sticker-command-utils.js'
+import { getCurrencyName } from '../core/currency.js'
 
 const registryReady = commandRegistry.init()
 const pipeline = new MiddlewarePipeline({ registry: commandRegistry })
@@ -25,6 +27,30 @@ return `${seconds}s`
 }
 
 global.segundosAHMS = segundosAHMS
+
+
+function stickerCommandMessage(rawMessage = {}) {
+try {
+const sticker = rawMessage?.message?.stickerMessage
+const fileSha256 = sticker?.fileSha256
+if (!fileSha256) return rawMessage
+const sha = Buffer.from(fileSha256).toString('base64')
+const record = global.db?.getSection?.('sticker')?.[sha]
+const sender = rawMessage.key?.participant || rawMessage.key?.remoteJid || ''
+const personal = getPersonalStickerCommand(record, sender)
+if (!personal?.text) return rawMessage
+const text = String(personal.text || '').trim()
+if (!text) return rawMessage
+return {
+...rawMessage,
+message: { conversation: text },
+__stickerCommandHydrated: true,
+__stickerCommandHash: sha
+}
+} catch {
+return rawMessage
+}
+}
 
 function getIncomingMessages(chatUpdate = {}) {
 if (chatUpdate?.type && chatUpdate.type !== 'notify') return []
@@ -91,7 +117,7 @@ return
 }
 const command = await commandLoader.load(ctx.commandMetadata)
 ctx.m.plugin = ctx.commandMetadata.name
-ctx.m.moneda = ctx.dbState?.settings?.moneda || 'Coins'
+ctx.m.moneda = getCurrencyName(conn)
 ctx.m.exp = Number(ctx.m.exp || 0) + Math.ceil(Math.random() * 10)
 const extra = buildExecutionContext(ctx)
 if (!await pipeline.beforeCommand(ctx, command, extra)) return
@@ -103,7 +129,8 @@ try {
 await registryReady
 for (const rawMessage of getIncomingMessages(chatUpdate)) {
 try {
-await processMessage(this, chatUpdate, rawMessage)
+const routedMessage = stickerCommandMessage(rawMessage)
+await processMessage(this, chatUpdate, routedMessage)
 } catch (error) {
 console.error('[UPSERT ERROR]:', error)
 console.error('[handler:message]', error?.stack || error?.message || error)

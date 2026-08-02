@@ -19,9 +19,9 @@ Puedes usar las siguientes variables en tu mensaje:
 }
 };
 
-handler.help = ['setwelcome <texto>'];
+handler.help = ['setwelcome <texto>', 'setwelcomemsg <texto>'];
 handler.tags = ['group'];
-handler.command = ['setwelcome'];
+handler.command = ['setwelcome', 'setwelcomemsg'];
 handler.admin = true;
 
 export default handler;

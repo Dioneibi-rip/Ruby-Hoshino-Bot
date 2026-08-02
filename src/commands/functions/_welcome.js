@@ -85,7 +85,8 @@ const fecha = new Date().toLocaleDateString("es-ES", { timeZone: "America/Santo_
 if (isWelcome) {
 let text
 if (chat.welcomeText) {
-text = chat.welcomeText.replace(/@user/g, username).replace(/@subject/g, groupName).replace(/@desc/g, desc)
+const botName = profile.botName || conn.botProfile?.botName || 'Ruby Hoshino'
+text = chat.welcomeText.replace(/@user/g, username).replace(/@subject/g, groupName).replace(/@desc/g, desc).replace(/\{user\}/g, username).replace(/\{group\}/g, groupName).replace(/\{botName\}/g, botName)
 } else {
 text = `
 ︶᮫໋۪۪᷼͡⏝᜔໋〫᷑ׄ♡᜔ׅ𝆬۟┅᮫໋ׅׄ᪲︶᮫᜔ׅᷭ͡⏝᮫᜔〪ׅ〫𝆬⢥ֶ𝆬✿۪۪𝆬֟🍒̷̸᩠〪۪۪〫〫〫ᷭ✿ֶ〫𝆬⡬᮫〪ׅׄ⏝᮫໋〪ׅ〫𝆬ׄ͡︶᜔ׄ┅᮫۪۪᪲
@@ -112,7 +113,8 @@ await sendWelcomeMessage(conn, m.chat, targetJid, greetingImage, text, fallbackG
 } else if (isBye) {
 let text
 if (chat.byeText) {
-text = chat.byeText.replace(/@user/g, username).replace(/@subject/g, groupName)
+const botName = profile.botName || conn.botProfile?.botName || 'Ruby Hoshino'
+text = chat.byeText.replace(/@user/g, username).replace(/@subject/g, groupName).replace(/\{user\}/g, username).replace(/\{group\}/g, groupName).replace(/\{botName\}/g, botName)
 } else {
 text = `
 ︶᮫໋۪۪᷼͡⏝᜔໋〫᷑ׄ♡᜔ׅ𝆬۟┅᮫໋ׅׄ᪲︶᮫᜔ׅᷭ͡⏝᮫᜔〪ׅ〫𝆬⢥ֶ𝆬✿۪۪𝆬֟🍒̷̸᩠〪۪۪〫〫〫ᷭ✿ֶ〫𝆬⡬᮫〪ׅׄ⏝᮫໋〪ׅ〫𝆬ׄ͡︶᜔ׄ┅᮫۪۪᪲

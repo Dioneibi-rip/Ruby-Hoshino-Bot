@@ -1,5 +1,6 @@
+import { getActiveBotProfile, getMenuBanner } from '../../core/menu-banner.js'
 let handler = async (m, { conn, usedPrefix }) => {
-const profile = conn.botProfile || {}
+const profile = await getActiveBotProfile(conn)
 const used = profile.customPrefix || usedPrefix || '#'
 const botName = profile.botName || 'Ruby Hoshino'
 const texto = `
@@ -17,7 +18,7 @@ const texto = `
 await conn.sendMessage(
 m.chat,
 {
-image: { url: profile.individualMenuImageUrl || 'https://i.pinimg.com/736x/06/d0/49/06d049413ac75b327e92e84c7b1410bd.jpg' },
+image: { url: getMenuBanner(profile, 'ia', 'https://i.pinimg.com/736x/06/d0/49/06d049413ac75b327e92e84c7b1410bd.jpg') },
 caption: texto,
 contextInfo: {
 mentionedJid: [m.sender],
