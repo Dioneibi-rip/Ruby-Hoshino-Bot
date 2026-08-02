@@ -1,51 +1,53 @@
 
-let handler = async (m, { conn }) => {
+let handler = async (m, { conn, usedPrefix }) => {
+const profile = conn.botProfile || {}
+const used = profile.customPrefix || usedPrefix || '#'
 const texto = `
 📥⊹ 𝐌𝐄𝐍𝐔 𝐃𝐄 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐒 ⊹📂
 
-꒰☕꒱ *#play • #playdoc • #play2 • #play2doc*
+꒰☕꒱ *${used}play • ${used}playdoc • ${used}play2 • ${used}play2doc*
 > ✦ Descarga música/video de YouTube por búsqueda.
-꒰☕꒱ *#ytmp3 • #ytmp4*
+꒰☕꒱ *${used}ytmp3 • ${used}ytmp4*
 > ✦ Descarga audio/video de YouTube por enlace.
-꒰☕꒱ *#tiktok • #tt*
+꒰☕꒱ *${used}tiktok • ${used}tt*
 > ✦ Descarga videos de TikTok.
-ㅤۚ𑁯ׂᰍ  ☕ ᳴   ׅ  ׄʚ   ̶ *#mediafire • #mf*
+ㅤۚ𑁯ׂᰍ  ☕ ᳴   ׅ  ׄʚ   ̶ *${used}mediafire • ${used}mf*
 > ✦ Descargar un archivo de MediaFire.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#tiktok • #tt*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}tiktok • ${used}tt*
 > ✦ Descarga videos de TikTok.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#mediafire • #mf*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}mediafire • ${used}mf*
 > ✦ Descargar archivos de MediaFire.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#mega • #mg* + [enlace]
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}mega • ${used}mg* + [enlace]
 > ✦ Descargar archivos de MEGA.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#play • #playdoc • #play2 • #play2doc*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}play • ${used}playdoc • ${used}play2 • ${used}play2doc*
 > ✦ Descargar música/video de YouTube.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ytmp3 • #ytmp4*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}ytmp3 • ${used}ytmp4*
 > ✦ Descarga directa por url de YouTube.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#fb • #facebook*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}fb • ${used}facebook*
 > ✦ Descargar videos de Facebook.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#twitter • #x* + [link]
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}twitter • ${used}x* + [link]
 > ✦ Descargar videos de Twitter/X.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ig • #instagram*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}ig • ${used}instagram*
 > ✦ Descargar contenido de Instagram.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#tts • #tiktoks* + [búsqueda]
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}tts • ${used}tiktoks* + [búsqueda]
 > ✦ Buscar videos de TikTok.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#terabox • #tb* + [enlace]
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}terabox • ${used}tb* + [enlace]
 > ✦ Descargar archivos de Terabox.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#ttimg • #tiktokimg • #ttmp3* + <url>
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}ttimg • ${used}tiktokimg • ${used}ttmp3* + <url>
 > ✦ Descargar fotos/audios de TikTok.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#gitclone* + <url>
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}gitclone* + <url>
 > ✦ Descargar repositorios desde GitHub.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#xvideosdl*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}xvideosdl*
 > ✦ Descargar videos de Xvideos.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#xnxxdl*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}xnxxdl*
 > ✦ Descargar videos de XNXX.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#apk • #modapk*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}apk • ${used}modapk*
 > ✦ Descargar APKs (Aptoide).
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#tiktokrandom • #ttrandom*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}tiktokrandom • ${used}ttrandom*
 > ✦ Descargar video aleatorio de TikTok.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#npmdl • #npmdownloader*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}npmdl • ${used}npmdownloader*
 > ✦ Descargar paquetes desde NPMJs.
-ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *#anime • #animedl*
+ㅤۚ𑁯ׂᰍ ☕ ᳴ ׅ ׄʚ ̶ *${used}anime • ${used}animedl*
 > ✦ Descargar enlaces disponibles de anime.
 ╰──── ੈ₊˚༅༴╰────︶.︶ ⸙ ͛ ͎ ͛ ︶.︶ ੈ₊˚༅
 `.trim();
@@ -53,7 +55,7 @@ const texto = `
 await conn.sendMessage(
 m.chat,
 {
-image: { url: 'https://files.catbox.moe/tw0g5u.png' },
+image: { url: profile.individualMenuImageUrl || 'https://files.catbox.moe/tw0g5u.png' },
 caption: texto,
 contextInfo: {
 mentionedJid: [m.sender],

@@ -1,5 +1,6 @@
 import { prepareWAMessageMedia, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys'
 import { createSubbotSocket, destroySubbotSession, getPairingErrorMessage, requestPairingCodeWithTimeout } from '../../core/subbot-engine.js'
+import { sanitizePairingPrefix } from '../../core/botProfileStore.js'
 
 const requestCooldown = new Map()
 const COOLDOWN_MS = 120000
@@ -34,16 +35,22 @@ parentConn: conn,
 onPairingCode: async sock => {
 let rawCode
 try {
-rawCode = await requestPairingCodeWithTimeout(sock, pairingPhone, 'RUBYCHAN', PAIRING_EXPIRATION_MS)
+rawCode = await requestPairingCodeWithTimeout(sock, pairingPhone, sanitizePairingPrefix(conn.botProfile?.pairingPrefix), PAIRING_EXPIRATION_MS)
 } catch (error) {
 requestCooldown.delete(m.sender)
 await destroySubbotSession(m.sender).catch(() => false)
 return conn.reply(m.chat, `🥀 Baileys rechazó la solicitud del código para +${pairingPhone}. Detalle: ${getPairingErrorMessage(error)}`, m)
 }
 const formattedCode = rawCode.match(/.{1,4}/g)?.join('-') || rawCode
-const mediaMessage = await prepareWAMessageMedia({
-image: { url: 'https://files.catbox.moe/rt1yfo.jpeg' }
-}, { upload: conn.waUploadToServer })
+let mediaMessage
+for (const image of [conn.botProfile?.pairingImageUrl, 'https://files.catbox.moe/rt1yfo.jpeg']) {
+try {
+if (!image) continue
+mediaMessage = await prepareWAMessageMedia({ image: { url: image } }, { upload: conn.waUploadToServer })
+break
+} catch {}
+}
+if (!mediaMessage) mediaMessage = await prepareWAMessageMedia({ image: { url: 'https://files.catbox.moe/rt1yfo.jpeg' } }, { upload: conn.waUploadToServer })
 const interactivePayload = generateWAMessageFromContent(m.chat, {
 viewOnceMessage: {
 message: {

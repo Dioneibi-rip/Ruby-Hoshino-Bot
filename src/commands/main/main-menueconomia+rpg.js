@@ -1,74 +1,76 @@
 
-let handler = async (m, { conn }) => {
+let handler = async (m, { conn, usedPrefix }) => {
+const profile = conn.botProfile || {}
+const used = profile.customPrefix || usedPrefix || '#'
 
 const texto = `
 💰🎮⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐝𝐞 𝐞𝐜𝐨𝐧𝐨𝐦𝐢́𝐚 𝐲 𝐑𝐏𝐆 𝐩𝐚𝐫𝐚 𝐠𝐚𝐧𝐚𝐫 𝐝𝐢𝐧𝐞𝐫𝐨 𝐲 𝐨𝐭𝐫𝐨𝐬 𝐫𝐞𝐜𝐮𝐫𝐬𝐨𝐬 🏆💎⊹
 
-ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#w • #work • #trabajar*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}w • ${used}work • ${used}trabajar*
 > ✦ Trabaja para ganar ${m.moneda}.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🧰̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#trabajo • #job • #empleo*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🧰̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}trabajo • ${used}job • ${used}empleo*
 > ✦ Elige o gestiona tu empleo (afecta work/crime/slut).
-ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#slut • #prostituirse*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}slut • ${used}prostituirse*
 > ✦ Trabaja como prostituta y gana ${m.moneda}.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#cf • #suerte*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}cf • ${used}suerte*
 > ✦ Apuesta tus ${m.moneda} a cara o cruz.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─ *#crime • #crimen*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─ *${used}crime • ${used}crimen*
 > ✦ Trabaja como ladrón para ganar ${m.moneda}.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🪷̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#ruleta • #roulette • #rt*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🪷̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}ruleta • ${used}roulette • ${used}rt*
 > ✦ Apuesta ${m.moneda} al color rojo o negro.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🥡̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#casino • #apostar*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🥡̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}casino • ${used}apostar*
 > ✦ Apuesta tus ${m.moneda} en el casino.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#slot*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}slot*
 > ✦ Apuesta tus ${m.moneda} en la ruleta y prueba tu suerte.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#cartera • #wallet*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}cartera • ${used}wallet*
 > ✦ Ver tus ${m.moneda} en la cartera.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#bal • #balance • #bank*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}bal • ${used}balance • ${used}bank*
 > ✦ Ver tus ${m.moneda} en el banco.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─ *#deposit • #depositar • #d*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─ *${used}deposit • ${used}depositar • ${used}d*
 > ✦ Deposita tus ${m.moneda} al banco.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🪷̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#with • #retirar • #withdraw*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🪷̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}with • ${used}retirar • ${used}withdraw*
 > ✦ Retira tus ${m.moneda} del banco.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🥡̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#transfer • #pay*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🥡̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}transfer • ${used}pay*
 > ✦ Transfiere ${m.moneda} o XP a otros usuarios.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#miming • #minar • #mine*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}miming • ${used}minar • ${used}mine*
 > ✦ Trabaja como minero y recolecta recursos.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🛍️̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#tienda • #shop • #store*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🛍️̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}tienda • ${used}shop • ${used}store*
 > ✦ Compra y vende ítems de economía y RPG.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🛠️̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#craftear • #craft*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🛠️̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}craftear • ${used}craft*
 > ✦ Convierte materiales en antorchas y anillos.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#buyall • #buy*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}buyall • ${used}buy*
 > ✦ Compra ${m.moneda} con tu XP.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#daily • #diario*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}daily • ${used}diario*
 > ✦ Reclama tu recompensa diaria.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─  *#cofre*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─  *${used}cofre*
 > ✦ Reclama un cofre diario lleno de recursos.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🪷̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#weekly • #semanal*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🪷̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}weekly • ${used}semanal*
 > ✦ Reclama tu regalo semanal.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🪙̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#interes • #bankinterest*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🪙̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}interes • ${used}bankinterest*
 > ✦ Cobra intereses diarios por ahorrar en el banco.
-ൃ⵿꤬ᩚ̸̷͠ᩘ👑̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#premiumbonus • #bonopremium*
+ൃ⵿꤬ᩚ̸̷͠ᩘ👑̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}premiumbonus • ${used}bonopremium*
 > ✦ Bonus exclusivo para usuarios premium cada 8h.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🥡̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#monthly • #mensual*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🥡̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}monthly • ${used}mensual*
 > ✦ Reclama tu recompensa mensual.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#steal • #robar • #rob*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}steal • ${used}robar • ${used}rob*
 > ✦ Intenta robarle ${m.moneda} a alguien.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🚔̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#fianza • #bail*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🚔̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}fianza • ${used}bail*
 > ✦ Paga tu fianza desde el banco para salir de la cárcel.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#robarxp • #robxp*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}robarxp • ${used}robxp*
 > ✦ Intenta robar XP a un usuario.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#eboard • #baltop*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}eboard • ${used}baltop*
 > ✦ Ver el ranking de usuarios con más ${m.moneda}.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─ *#aventura • #adventure*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─ *${used}aventura • ${used}adventure*
 > ✦ Aventúrate en un nuevo reino y recolecta recursos.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🪷̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#curar • #heal*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🪷̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}curar • ${used}heal*
 > ✦ Cura tu salud para volverte aventurero.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#inv • #inventario*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🍒̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}inv • ${used}inventario*
 > ✦ Ver tu inventario con todos tus ítems.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#mazmorra • #explorar • #dungeon*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🎀̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}mazmorra • ${used}explorar • ${used}dungeon*
 > ✦ Explorar mazmorras para ganar ${m.moneda}.
-ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *#halloween*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🍨̷̸ᩚ⃨⢾ ֺ ֢ ᮫  ─ *${used}halloween*
 > ✦ Reclama tu dulce o truco (Solo en Halloween).
-ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─ *#christmas • #navidad*
+ൃ⵿꤬ᩚ̸̷͠ᩘ🌸̷̸ᩚ⃨⢾ ֺ ֢ ᮫ ⵿ ─ *${used}christmas • ${used}navidad*
 > ✦ Reclama tu regalo navideño (Solo en Navidad).
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅,
 `.trim();
@@ -76,7 +78,7 @@ const texto = `
 await conn.sendMessage(
 m.chat,
 {
-image: { url: 'https://files.catbox.moe/bi19e7.png' },
+image: { url: profile.individualMenuImageUrl || 'https://files.catbox.moe/bi19e7.png' },
 caption: texto,
 contextInfo: {
 mentionedJid: [m.sender],
