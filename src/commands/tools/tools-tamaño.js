@@ -1,4 +1,4 @@
-import uploadImage from '../../library/uploader.js'
+import uploadImage, { resolveUploadLink } from '../../library/uploader.js'
 let handler = async (m, { conn, usedPrefix, command, args, text }) => {
 let q = m.quoted ? m.quoted : m
 let mime = (q.msg || q).mimetype || ''
@@ -21,7 +21,8 @@ await conn.reply(m.chat, `${emoji2} Formato no soportado.`, m);
 return false;
 }
 let img = await q.download()
-let url = await uploadImage(img)
+let uploaded = await uploadImage(img, mime)
+let url = resolveUploadLink(uploaded)
 
 if (/image\/(jpe?g|png)/.test(mime)) {
 await conn.sendMessage(m.chat, { image: {url: url}, caption: ``, fileLength: `${text}`, mentions: [m.sender] }, { ephemeralExpiration: 24*3600, quoted: m})
