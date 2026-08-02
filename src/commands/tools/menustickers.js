@@ -1,36 +1,38 @@
-let handler = async (m, { conn }) => {
+let handler = async (m, { conn, usedPrefix }) => {
+const profile = conn.botProfile || {}
+const used = profile.customPrefix || usedPrefix || '#'
 const texto = `
 🖼️✨⊹ 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐩𝐚𝐫𝐚 𝐜𝐫𝐞𝐚𝐜𝐢𝐨𝐧𝐞𝐬 𝐝𝐞 𝐬𝐭𝐢𝐜𝐤𝐞𝐫𝐬, 𝐞𝐭𝐜. 🎨🔖
 
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#sticker • #s*
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *${used}sticker • ${used}s*
 > ✦ Crea stickers de (imagen/video).
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#setmeta*
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *${used}setmeta*
 > ✦ Establece un pack y autor para los stickers.
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#setcmd <texto>*
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *${used}setcmd <texto>*
 > ✦ Asigna un comando personal a un sticker.
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#delcmd • #cmdrm*
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *${used}delcmd • ${used}cmdrm*
 > ✦ Borra tu comando personal de un sticker.
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#delmeta*
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *${used}delmeta*
 > ✦ Elimina tu pack de stickers.
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#pfp • #getpic*
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *${used}pfp • ${used}getpic*
 > ✦ Obtén la foto de perfil de un usuario.
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#qc*
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *${used}qc*
 > ✦ Crea stickers con texto o de un usuario.
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#toimg • #img*
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *${used}toimg • ${used}img*
 > ✦ Convierte stickers en imagen.
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#brat • #ttp • #attp*︎
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *${used}brat • ${used}ttp • ${used}attp*︎
 > ✦ Crea stickers con texto.
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#emojimix*
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *${used}emojimix*
 > ✦ Funciona 2 emojis para crear un sticker.
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#stickerly • #spack • #stickerpack*
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *${used}stickerly • ${used}spack • ${used}stickerpack*
 > ✦ Envía un paquete de stickers.
-🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *#wm*
+🏮 ⃞ּㅤ ᰩ 𑂳  ▢꯭֟፝▢   ׅ ੭ *${used}wm*
 > ✦ Cambia el nombre de los stickers.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅,
 `.trim();
 
 await conn.sendMessage(m.chat, {
-image: { url: 'https://files.catbox.moe/61219t.png' },
+image: { url: profile.individualMenuImageUrl || 'https://files.catbox.moe/61219t.png' },
 caption: texto,
 contextInfo: {
 mentionedJid: [m.sender]}

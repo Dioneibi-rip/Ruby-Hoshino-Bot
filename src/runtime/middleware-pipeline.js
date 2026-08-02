@@ -5,6 +5,7 @@ import { getGroupMetadataOnDemand } from '../library/global-cache.js'
 import { canManageBotSecurity, getAntiPrivateState, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
 import { messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
 import { buildGuardContext, pluginNeedsJob, runPluginGuards, userHasJob } from '../router/permission-guard.js'
+import { getNativeBotProfile, hydrateBotProfile } from '../core/botProfileStore.js'
 
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 3_000
 const DEFAULT_RATE_LIMIT_MAX = 6
@@ -45,7 +46,13 @@ this.cooldowns = new Map()
 async run(input = {}) {
 const ctx = { ...input, db: input.db || this.db, halted: false }
 for (const stage of this.stages) {
+try {
 await stage(ctx)
+} catch (error) {
+console.error('[UPSERT ERROR]:', error)
+ctx.halted = true
+break
+}
 if (ctx.halted) break
 }
 return ctx
@@ -53,6 +60,13 @@ return ctx
 
 async normalize(ctx) {
 const conn = ctx.conn
+try {
+if (conn && !conn.botProfile) conn.botProfile = getNativeBotProfile(conn?.session?.id || conn?.user?.jid || 'primary')
+hydrateBotProfile(conn)
+} catch (error) {
+console.error('[UPSERT ERROR]:', error)
+if (conn && !conn.botProfile) conn.botProfile = getNativeBotProfile(conn?.session?.id || conn?.user?.jid || 'primary')
+}
 const raw = ctx.rawMessage || ctx.message
 const m = smsg(conn, raw) || raw
 if (!m) {

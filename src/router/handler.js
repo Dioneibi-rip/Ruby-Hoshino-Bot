@@ -105,10 +105,12 @@ for (const rawMessage of getIncomingMessages(chatUpdate)) {
 try {
 await processMessage(this, chatUpdate, rawMessage)
 } catch (error) {
+console.error('[UPSERT ERROR]:', error)
 console.error('[handler:message]', error?.stack || error?.message || error)
 }
 }
 } catch (error) {
+console.error('[UPSERT ERROR]:', error)
 console.error('[handler:upsert]', error?.stack || error?.message || error)
 }
 }

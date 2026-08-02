@@ -1,33 +1,35 @@
 
-let handler = async (m, { conn }) => {
+let handler = async (m, { conn, usedPrefix }) => {
+const profile = conn.botProfile || {}
+const used = profile.customPrefix || usedPrefix || '#'
 const texto = `
 🔍⊹ 𝐌𝐄𝐍𝐔 𝐃𝐄 𝐁𝐔́𝐒𝐐𝐔𝐄𝐃𝐀𝐒 ⊹🔎
 
-⌈ ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#tiktoksearch • #tiktoks*
+⌈ ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}tiktoksearch • ${used}tiktoks*
 > ✦ Buscador de videos de TikTok.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#ytsearch • #yts*
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}ytsearch • ${used}yts*
 > ✦ Realiza búsquedas en YouTube.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#githubsearch*
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}githubsearch*
 > ✦ Buscador de usuarios de GitHub.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#pin • #pinterest*
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}pin • ${used}pinterest*
 > ✦ Buscador de imágenes de Pinterest.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#imagen • #image*
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}imagen • ${used}image*
 > ✦ Buscador de imágenes en Google.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#animesearch • #animess*
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}animesearch • ${used}animess*
 > ✦ Buscador de animes en TioAnime.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#animei • #animeinfo*
-> ✦ Buscador de capítulos de #animesearch.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#infoanime*
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}animei • ${used}animeinfo*
+> ✦ Buscador de capítulos de ${used}animesearch.
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}infoanime*
 > ✦ Buscador de información de anime/manga.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#hentaimanga • #3hentai*
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}hentaimanga • ${used}3hentai*
 > ✦ Busca mangas hentai y permite descargarlos en PDF.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#xnxxsearch • #xnxxs*
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}xnxxsearch • ${used}xnxxs*
 > ✦ Buscador de videos de XNXX.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#xvsearch • #xvideossearch*
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}xvsearch • ${used}xvideossearch*
 > ✦ Buscador de videos de Xvideos.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#pornhubsearch • #phsearch*
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}pornhubsearch • ${used}phsearch*
 > ✦ Buscador de videos de Pornhub.
-| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *#npmjs*
+| ׄ 𝅄ׁ֢◯⃟▒ ꕀ▿⃟⃞🪴 ◯⃝◦・ׄ. *${used}npmjs*
 > ✦ Buscador de paquetes en npmjs.
 ᷼︶۪۪۪۪፝֟᷼︶᷼╰──────✧──────╯᷼︶᷼
 `.trim();
@@ -35,7 +37,7 @@ const texto = `
 await conn.sendMessage(
 m.chat,
 {
-image: { url: 'https://files.catbox.moe/jau272.jpeg' },
+image: { url: profile.individualMenuImageUrl || 'https://files.catbox.moe/jau272.jpeg' },
 caption: texto,
 contextInfo: {
 mentionedJid: [m.sender],

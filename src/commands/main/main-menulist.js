@@ -125,7 +125,7 @@ text: `${beforeText}
 
 ${bodyText}`
 }),
-footer: proto.Message.InteractiveMessage.Footer.fromObject({ text: "usa #menumanual si no puedes usar los botones" }),
+footer: proto.Message.InteractiveMessage.Footer.fromObject({ text: `usa ${usedPrefix || "#"}menumanual si no puedes usar los botones` }),
 nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
 buttons: nativeButtons,
 messageParamsJson: JSON.stringify({ version: 1 })
