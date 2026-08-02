@@ -12,15 +12,15 @@ return fs.readFileSync(localCatalogoPath);
 }
 
 const defaultMenu = {
-before: `𝙃𝙤𝙡𝙖 *%name*-san ${ucapan()}
+before: `𝙃𝙤𝙡𝙖 *%name* *${ucapan()}*
 𝙢𝙞 𝙣𝙤𝙢𝙗𝙧𝙚 𝙚𝙨 *${botName}* ¡𝙚𝙨𝙥𝙚𝙧𝙤 𝙦𝙪𝙚 𝙚𝙨𝙩𝙚𝙨 𝙩𝙚𝙣𝙞𝙚𝙣𝙙𝙤 𝙪𝙣 𝙚𝙭𝙘𝙚𝙡𝙚𝙣𝙩𝙚 𝙙𝙞𝙖! 🧴  𖹥
 
 ♡  ∩_∩
 （„• ֊ •„)♡
 ┏━━∪∪━⏤͟͟͞͞★꙲⃝͟🌷❈┉━━━┓
-┃  *𝖨𝖭𝖥𝖮 𝖣𝖤 𝖫𝖠 𝖡𝖮𝖳* ┃┈──❊:::::::¨¨*:::::::❊──┈
+┃  *𝖨𝖭𝖥𝖮 𝖣𝖤𝖫 𝖡𝖮𝖳* ┃┈──❊:::::::¨¨*:::::::❊──┈
 ┃ ◦ 👑 *Creador:* Dioneibi
-┃ ◦ 🌎 *Modo:* Pública
+┃ ◦ 🌎 *Modo:* Público
 ┃ ◦ 💻 *Baileys:* Multi Device
 ┃ ◦ ⏰ *Tiempo Activa:* %uptime
 ┃ ◦ 👥 *Usuarios:* %totalreg
