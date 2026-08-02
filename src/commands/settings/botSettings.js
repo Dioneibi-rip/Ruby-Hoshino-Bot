@@ -1,6 +1,6 @@
-import { upsertBotProfile, resetBotProfile, sanitizePairingPrefix } from '../core/botProfileStore.js'
-import { uploadAuto, resolveUploadLink } from '../library/uploader.js'
-import { normalizeMenuCategory } from '../core/menu-banner.js'
+import { upsertBotProfile, resetBotProfile, sanitizePairingPrefix } from '../../core/botProfileStore.js'
+import { uploadAuto, resolveUploadLink } from '../../library/uploader.js'
+import { normalizeMenuCategory } from '../../core/menu-banner.js'
 
 function jidNum(jid = '') {
 return String(jid || '').split('@')[0].split(':')[0].replace(/\D/g, '')
@@ -58,6 +58,16 @@ if (value.length < 2 || value.length > 35) return conn.reply(m.chat, commandHelp
 conn.botProfile = upsertBotProfile(sessionId(conn), { botName: value })
 return conn.reply(m.chat, `✅ *Nombre actualizado*\nAhora este Sub-Bot se presenta como *${conn.botProfile.botName}*.`, m)
 }
+if (cmd === 'setpackname' || cmd === 'setauthor' || cmd === 'setmoneda') {
+const value = String(text || '').trim()
+if (value.length < 1 || value.length > 40) return conn.reply(m.chat, commandHelp(prefix, cmd), m)
+const meta = { ...(conn.botProfile?.meta || {}) }
+if (cmd === 'setpackname') meta.packname = value
+if (cmd === 'setauthor') meta.author = value
+if (cmd === 'setmoneda') meta.currencyName = value
+conn.botProfile = upsertBotProfile(sessionId(conn), { meta })
+return conn.reply(m.chat, `✅ *Configuración actualizada*\n${settingLabel(cmd)}: *${value}*.`, m)
+}
 if (cmd === 'setbotprefix') {
 const value = String(text || '').trim()
 if (value.length < 1 || value.length > 3) return conn.reply(m.chat, commandHelp(prefix, 'setbotprefix'), m)
@@ -87,26 +97,76 @@ return conn.reply(m.chat, `✅ Perfil restablecido a ${conn.botProfile.botName |
 return conn.reply(m.chat, profileCard(conn.botProfile || {}, prefix), m)
 }
 
+function settingLabel(cmd) {
+return ({ setpackname: 'Pack de stickers', setauthor: 'Autor de stickers', setmoneda: 'Moneda RPG' })[cmd] || 'Valor'
+}
+
 function commandHelp(usedPrefix, cmd) {
 const map = {
-setbotname: ['Nombre visible', `${usedPrefix}setbotname Luna Bot`, 'Cambia el nombre mostrado en menús y textos del Sub-Bot.'],
-setbotprefix: ['Prefijo dinámico', `${usedPrefix}setbotprefix !`, 'Cambia el prefijo sugerido en menús y ejemplos.'],
-setpairingprefix: ['Pairing Code', `${usedPrefix}setpairingprefix LUNA2026`, 'Cambia el texto inicial del código de vinculación. Solo A-Z y 0-9, de 2 a 10 caracteres.']
+setbotname: ['NOMBRE SUB-BOT', 'Cambia el nombre visible en menús, saludos y respuestas del Sub-Bot.', `${usedPrefix}setbotname Luna Bot`, `${usedPrefix}setbotname Ruby Mini`],
+setbotprefix: ['PREFIJO SUB-BOT', 'Cambia el prefijo sugerido para ejecutar comandos en este Sub-Bot.', `${usedPrefix}setbotprefix !`, `${usedPrefix}setbotprefix /`],
+setpairingprefix: ['PAIRING SUB-BOT', 'Cambia el texto inicial del código de vinculación. Usa solo A-Z y 0-9, de 2 a 10 caracteres.', `${usedPrefix}setpairingprefix LUNA2026`, `${usedPrefix}setpairingprefix RUBY26`],
+setpackname: ['PACK STICKERS SUB-BOT', 'Cambia el nombre de paquete usado por los stickers del Sub-Bot.', `${usedPrefix}setpackname Ruby Stickers`, `${usedPrefix}setpackname Luna Pack`],
+setauthor: ['AUTOR STICKERS SUB-BOT', 'Cambia el autor usado por los stickers del Sub-Bot.', `${usedPrefix}setauthor Dioneibi`, `${usedPrefix}setauthor Ruby Bot`],
+setmoneda: ['MONEDA SUB-BOT', 'Cambia el nombre de la moneda para economía y RPG del Sub-Bot.', `${usedPrefix}setmoneda RubyCoins`, `${usedPrefix}setmoneda Cristales`]
 }
-const item = map[cmd]
-return `╭─「 AYUDA DE CONFIGURACIÓN 」\n│ Campo: ${item[0]}\n│ Formato: ${item[1]}\n│ Acción: ${item[2]}\n╰────────────`
+const item = map[cmd] || map.setbotname
+return `┏━━━⏤͟͟͞͞★꙲⃝͟⚙️ *GUÍA DE ${item[0]}* ━━━┓
+┃
+┃ 📌 *¿Qué hace?:*
+┃ ${item[1]}
+┃
+┃ 🎯 *Área afectada:*
+┃ Configuración visual y funcional exclusiva del sistema de Sub-Bots.
+┃
+┃ 📝 *Uso correcto:*
+┃ Escribe el comando seguido del valor nuevo.
+┃
+┃ 💡 *Ejemplos:*
+┃ ${item[2]}
+┃ ${item[3]}
+┗━━━━⏤͟͟͞͞★꙲⃝͟🌸❈┉━━━━━━┛`
 }
 
 function mediaHelp(field, usedPrefix) {
 const cards = {
-pairingImageUrl: ['Imagen del Pairing Code', `${usedPrefix}setpairingimage`, 'imagen'],
-menuVideoUrl: ['Media principal del MenuAll', `${usedPrefix}setbotmenu`, 'imagen, GIF o video'],
-individualMenuImageUrl: ['Banner de menús individuales', `${usedPrefix}setmenubanner`, 'imagen'],
-welcomeImageUrl: ['Imagen de bienvenida', `${usedPrefix}setbotwelcome`, 'imagen'],
-goodbyeImageUrl: ['Imagen de despedida', `${usedPrefix}setbotbye`, 'imagen']
+pairingImageUrl: ['PAIRING IMAGE SUB-BOT', 'Cambia la imagen mostrada en la guía de vinculación del Sub-Bot.', 'Guía y flujo de conexión del Sub-Bot.', `Responde a una imagen con ${usedPrefix}setpairingimage`, 'Responde a una foto escribiendo: `' + usedPrefix + 'setpairingimage`'],
+menuVideoUrl: ['MENÚ PRINCIPAL SUB-BOT', 'Cambia la imagen, GIF o video principal del MenuAll del Sub-Bot.', 'Menú completo y presentación principal del Sub-Bot.', `Responde a una imagen, GIF o video con ${usedPrefix}setbotmenu`, 'Responde a un video escribiendo: `' + usedPrefix + 'setbotmenu`'],
+individualMenuImageUrl: ['BANNER SUB-BOT', 'Cambia la imagen banner de los menús individuales.', 'Menús por categoría (NSFW, Descargas, etc.) o MenuManual.', `Responde a una imagen con ${usedPrefix}setbanner o ${usedPrefix}setbanner [categoría]`, 'Responde a una foto escribiendo: `' + usedPrefix + 'setbanner nsfw`'],
+welcomeImageUrl: ['BIENVENIDA SUB-BOT', 'Cambia la imagen de bienvenida del Sub-Bot.', 'Mensajes automáticos de bienvenida en grupos.', `Responde a una imagen con ${usedPrefix}setbotwelcome`, 'Responde a una foto escribiendo: `' + usedPrefix + 'setbotwelcome`'],
+goodbyeImageUrl: ['DESPEDIDA SUB-BOT', 'Cambia la imagen de despedida del Sub-Bot.', 'Mensajes automáticos de salida en grupos.', `Responde a una imagen con ${usedPrefix}setbotbye`, 'Responde a una foto escribiendo: `' + usedPrefix + 'setbotbye`']
 }
-const [title, example, type] = cards[field]
-return `╭─「 ${title} 」\n│ Responde a una ${type} con: ${example}\n│ Modifica esta parte visual del Sub-Bot.\n│ Causas CDN se intenta primero con expiración máxima de 30 días.\n╰────────────`
+const [title, what, area, usage, example] = cards[field]
+const categories = field === 'individualMenuImageUrl' ? `
+┃
+┃ 🏷️ *Categorías válidas:*
+┃ • menumanual
+┃ • nsfw
+┃ • descargas
+┃ • busquedas
+┃ • stickers
+┃ • economia
+┃ • gacha
+┃ • grupos
+┃ • admin
+┃ • ia
+┃ • herramientas
+┃ • anime
+┃ • juegos` : ''
+return `┏━━━⏤͟͟͞͞★꙲⃝͟⚙️ *GUÍA DE ${title}* ━━━┓
+┃
+┃ 📌 *¿Qué hace?:*
+┃ ${what}
+┃
+┃ 🎯 *Área afectada:*
+┃ ${area}
+┃
+┃ 📝 *Uso correcto:*
+┃ ${usage}${categories}
+┃
+┃ 💡 *Ejemplo:*
+┃ ${example}
+┗━━━━⏤͟͟͞͞★꙲⃝͟🌸❈┉━━━━━━┛`
 }
 
 function successCard(okText, url, server) {
@@ -117,8 +177,8 @@ function profileCard(p, usedPrefix) {
 return `╭─「 SUB-BOT CONFIG 」\n│ Nombre: ${p.botName || 'Ruby Hoshino'}\n│ Prefijo: ${p.customPrefix || usedPrefix || '#'}\n│ Pairing Code: ${p.pairingPrefix || 'RUBY-CHAN'}\n│ Pairing image: ${p.pairingImageUrl ? '✅ Configurada' : '🧩 Nativa'}\n│ MenuAll media: ${p.menuVideoUrl ? '✅ Configurada' : '🧩 Nativa'}\n│ Banner menús: ${p.individualMenuImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n│ Welcome: ${p.welcomeImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n│ Bye: ${p.goodbyeImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n╰────────────\n\n╭─「 MINI TUTORIAL 」\n│ ${usedPrefix}setbotname Luna Bot\n│ ${usedPrefix}setbotprefix !\n│ ${usedPrefix}setbotmenu responde a imagen/video/gif\n│ ${usedPrefix}setmenubanner responde a imagen\n│ ${usedPrefix}setbanner nsfw responde a imagen\n│ ${usedPrefix}setpairingprefix LUNA2026\n│ ${usedPrefix}setpairingimage responde a imagen\n╰────────────`
 }
 
-handler.help = ['setbotname', 'setbotprefix', 'setpairingprefix', 'setpairingimage', 'setbotmenu', 'setmenubanner', 'setbanner <categoría>', 'setbotwelcome', 'setbotbye', 'resetbotprofile', 'botprofile']
+handler.help = ['setbotname', 'setbotprefix', 'setpairingprefix', 'setpairingimage', 'setbotmenu', 'setmenubanner', 'setbanner <categoría>', 'setpackname', 'setauthor', 'setmoneda', 'setbotwelcome', 'setbotbye', 'resetbotprofile', 'botprofile']
 handler.tags = ['jadibot']
-handler.command = ['setbotname', 'setbotprefix', 'setpairingprefix', 'setpairingcode', 'setpairingimage', 'setpairingimg', 'setbotmenu', 'setmenu', 'setmenuall', 'setmenubanner', 'setbanner', 'setmenuindiv', 'setbotwelcome', 'setbotbye', 'resetbotprofile', 'botprofile', 'subbotconfig']
+handler.command = ['setbotname', 'setbotprefix', 'setpairingprefix', 'setpairingcode', 'setpairingimage', 'setpairingimg', 'setbotmenu', 'setmenu', 'setmenuall', 'setmenubanner', 'setbanner', 'setmenuindiv', 'setpackname', 'setauthor', 'setmoneda', 'setbotwelcome', 'setbotbye', 'resetbotprofile', 'botprofile', 'subbotconfig']
 handler.botProfileOwner = true
 export default handler
