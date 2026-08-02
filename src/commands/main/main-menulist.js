@@ -1,7 +1,9 @@
+import { getBotProfile } from '../../core/botProfileStore.js'
+import { getMenuBanner } from '../../core/menu-banner.js'
 const DEFAULT_BANNER = 'https://files.catbox.moe/bi19e7.png'
 
 let handler = async (m, { conn, usedPrefix }) => {
-const profile = conn.botProfile || {}
+const profile = conn.botProfile || (await getBotProfile(conn.session?.id))
 const botName = profile.botName || 'Ruby Hoshino'
 const prefix = profile.customPrefix || usedPrefix || '#'
 const totalCommands = Object.values(global.plugins || {}).filter(v => v.help && v.tags).length
@@ -26,7 +28,7 @@ const rows = [
 ]
 const list = rows.map(([title, description, id]) => `│ ${title}\n│ ${description}\n│ Comando: ${prefix}${id}`).join('\n├────────────\n')
 const text = `╭─「 ${botName} 」\n│ Hola, *${name}*\n│ Prefijo activo: *${prefix}*\n│ Comandos cargados: *${totalCommands}*\n│ Usuarios registrados: *${totalreg}*\n│ Uptime: *${uptime}*\n╰────────────\n\n╭─「 MENÚS DISPONIBLES 」\n${list}\n╰────────────\n\nResponde o escribe cualquier comando mostrado para abrir su categoría.`
-return conn.sendMessage(m.chat, { image: { url: profile.individualMenuImageUrl || DEFAULT_BANNER }, caption: text, contextInfo: { mentionedJid: [m.sender] } }, { quoted: m })
+return conn.sendMessage(m.chat, { image: { url: getMenuBanner(profile, 'list', DEFAULT_BANNER) }, caption: text, contextInfo: { mentionedJid: [m.sender] } }, { quoted: m })
 }
 
 handler.help = ['menulist']

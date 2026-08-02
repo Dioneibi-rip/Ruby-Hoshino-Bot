@@ -1,6 +1,7 @@
+import { getActiveBotProfile, getMenuBanner } from '../../core/menu-banner.js'
 
 let handler = async (m, { conn, usedPrefix }) => {
-const profile = conn.botProfile || {}
+const profile = await getActiveBotProfile(conn)
 const used = profile.customPrefix || usedPrefix || '#'
 const texto = `
 🔞⊹ 𝐌𝐄𝐍𝐔 𝐍𝐒𝐅𝐖 ⊹🔥
@@ -36,7 +37,7 @@ const texto = `
 await conn.sendMessage(
 m.chat,
 {
-image: { url: profile.individualMenuImageUrl || 'https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/_%F0%9D%90%82%F0%9D%90%AE%F0%9D%90%AD%F0%9D%90%9E_%F0%9D%90%A1%F0%9D%90%A8%F0%9D%90%AD%20%F0%9D%90%91%F0%9D%90%AE%F0%9D%90%9B%F0%9D%90%B2%20%F0%9D%90%A2%F0%9D%90%9C%F0%9D%90%A8%F0%9D%90%A7%20_%F0%9D%9F%91.jpeg' },
+image: { url: getMenuBanner(profile, 'nsfw', 'https://raw.githubusercontent.com/Dioneibi-rip/imagenes/refs/heads/main/_%F0%9D%90%82%F0%9D%90%AE%F0%9D%90%AD%F0%9D%90%9E_%F0%9D%90%A1%F0%9D%90%A8%F0%9D%90%AD%20%F0%9D%90%91%F0%9D%90%AE%F0%9D%90%9B%F0%9D%90%B2%20%F0%9D%90%A2%F0%9D%90%9C%F0%9D%90%A8%F0%9D%90%A7%20_%F0%9D%9F%91.jpeg') },
 caption: texto,
 contextInfo: {
 mentionedJid: [m.sender],

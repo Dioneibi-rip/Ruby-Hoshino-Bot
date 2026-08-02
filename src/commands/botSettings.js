@@ -1,5 +1,6 @@
 import { upsertBotProfile, resetBotProfile, sanitizePairingPrefix } from '../core/botProfileStore.js'
 import { uploadAuto, resolveUploadLink } from '../library/uploader.js'
+import { normalizeMenuCategory } from '../core/menu-banner.js'
 
 function jidNum(jid = '') {
 return String(jid || '').split('@')[0].split(':')[0].replace(/\D/g, '')
@@ -24,14 +25,22 @@ const buffer = await q.download()
 return { buffer, mime }
 }
 
-async function saveMedia(m, conn, field, mimeTest, okText, usedPrefix) {
+async function saveMedia(m, conn, field, mimeTest, okText, usedPrefix, category = '') {
 const media = await quotedMedia(m, mimeTest)
 if (!media) return conn.reply(m.chat, mediaHelp(field, usedPrefix), m)
 try {
 const uploaded = await uploadAuto(media.buffer, media.mime)
 const url = resolveUploadLink(uploaded)
 if (!url) throw new Error('upload failed')
-const profile = upsertBotProfile(sessionId(conn), { [field]: url })
+let patch = { [field]: url }
+if (field === 'individualMenuImageUrl' && category) {
+const meta = { ...(conn.botProfile?.meta || {}) }
+const banners = { ...(meta.category_banners || {}) }
+banners[normalizeMenuCategory(category)] = url
+meta.category_banners = banners
+patch = { meta }
+}
+const profile = upsertBotProfile(sessionId(conn), patch)
 conn.botProfile = profile
 return conn.reply(m.chat, successCard(okText, url, uploaded?.server), m)
 } catch {
@@ -64,12 +73,16 @@ return conn.reply(m.chat, `✅ Pairing Code actualizado a *${conn.botProfile.pai
 }
 if (cmd === 'setpairingimage' || cmd === 'setpairingimg') return saveMedia(m, conn, 'pairingImageUrl', /^image\//, '✅ Imagen del Pairing Code actualizada.', prefix)
 if (cmd === 'setbotmenu' || cmd === 'setmenu' || cmd === 'setmenuall') return saveMedia(m, conn, 'menuVideoUrl', /^(image|video)\//, '✅ Media principal del MenuAll actualizada.', prefix)
-if (cmd === 'setmenubanner' || cmd === 'setbanner' || cmd === 'setmenuindiv') return saveMedia(m, conn, 'individualMenuImageUrl', /^image\//, '✅ Banner de menús individuales actualizado.', prefix)
+if (cmd === 'setmenubanner' || cmd === 'setbanner' || cmd === 'setmenuindiv') {
+const category = normalizeMenuCategory(text || '')
+const ok = category ? `✅ Banner de la categoría ${category} actualizado.` : '✅ Banner de menús individuales actualizado.'
+return saveMedia(m, conn, 'individualMenuImageUrl', /^image\//, ok, prefix, category)
+}
 if (cmd === 'setbotwelcome') return saveMedia(m, conn, 'welcomeImageUrl', /^image\//, '✅ Bienvenida actualizada.', prefix)
 if (cmd === 'setbotbye') return saveMedia(m, conn, 'goodbyeImageUrl', /^image\//, '✅ Despedida actualizada.', prefix)
 if (cmd === 'resetbotprofile') {
 conn.botProfile = resetBotProfile(sessionId(conn))
-return conn.reply(m.chat, '✅ Perfil restablecido a Ruby Hoshino nativo.', m)
+return conn.reply(m.chat, `✅ Perfil restablecido a ${conn.botProfile.botName || 'Ruby Hoshino'} nativo.`, m)
 }
 return conn.reply(m.chat, profileCard(conn.botProfile || {}, prefix), m)
 }
@@ -101,10 +114,10 @@ return `${okText}\nServidor: *${server || 'fallback'}*\nURL: ${url}`
 }
 
 function profileCard(p, usedPrefix) {
-return `╭─「 SUB-BOT CONFIG 」\n│ Nombre: ${p.botName || 'Ruby Hoshino'}\n│ Prefijo: ${p.customPrefix || usedPrefix || '#'}\n│ Pairing Code: ${p.pairingPrefix || 'RUBY-CHAN'}\n│ Pairing image: ${p.pairingImageUrl ? '✅ Configurada' : '🧩 Nativa'}\n│ MenuAll media: ${p.menuVideoUrl ? '✅ Configurada' : '🧩 Nativa'}\n│ Banner menús: ${p.individualMenuImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n│ Welcome: ${p.welcomeImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n│ Bye: ${p.goodbyeImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n╰────────────\n\n╭─「 MINI TUTORIAL 」\n│ ${usedPrefix}setbotname Luna Bot\n│ ${usedPrefix}setbotprefix !\n│ ${usedPrefix}setbotmenu responde a imagen/video/gif\n│ ${usedPrefix}setmenubanner responde a imagen\n│ ${usedPrefix}setpairingprefix LUNA2026\n│ ${usedPrefix}setpairingimage responde a imagen\n╰────────────`
+return `╭─「 SUB-BOT CONFIG 」\n│ Nombre: ${p.botName || 'Ruby Hoshino'}\n│ Prefijo: ${p.customPrefix || usedPrefix || '#'}\n│ Pairing Code: ${p.pairingPrefix || 'RUBY-CHAN'}\n│ Pairing image: ${p.pairingImageUrl ? '✅ Configurada' : '🧩 Nativa'}\n│ MenuAll media: ${p.menuVideoUrl ? '✅ Configurada' : '🧩 Nativa'}\n│ Banner menús: ${p.individualMenuImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n│ Welcome: ${p.welcomeImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n│ Bye: ${p.goodbyeImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n╰────────────\n\n╭─「 MINI TUTORIAL 」\n│ ${usedPrefix}setbotname Luna Bot\n│ ${usedPrefix}setbotprefix !\n│ ${usedPrefix}setbotmenu responde a imagen/video/gif\n│ ${usedPrefix}setmenubanner responde a imagen\n│ ${usedPrefix}setbanner nsfw responde a imagen\n│ ${usedPrefix}setpairingprefix LUNA2026\n│ ${usedPrefix}setpairingimage responde a imagen\n╰────────────`
 }
 
-handler.help = ['setbotname', 'setbotprefix', 'setpairingprefix', 'setpairingimage', 'setbotmenu', 'setmenubanner', 'setbotwelcome', 'setbotbye', 'resetbotprofile', 'botprofile']
+handler.help = ['setbotname', 'setbotprefix', 'setpairingprefix', 'setpairingimage', 'setbotmenu', 'setmenubanner', 'setbanner <categoría>', 'setbotwelcome', 'setbotbye', 'resetbotprofile', 'botprofile']
 handler.tags = ['jadibot']
 handler.command = ['setbotname', 'setbotprefix', 'setpairingprefix', 'setpairingcode', 'setpairingimage', 'setpairingimg', 'setbotmenu', 'setmenu', 'setmenuall', 'setmenubanner', 'setbanner', 'setmenuindiv', 'setbotwelcome', 'setbotbye', 'resetbotprofile', 'botprofile', 'subbotconfig']
 handler.botProfileOwner = true

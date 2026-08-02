@@ -18,9 +18,9 @@ Puedes usar las siguientes variables en tu mensaje:
 }
 };
 
-handler.help = ['setbye <texto>'];
+handler.help = ['setbye <texto>', 'setbyemsg <texto>'];
 handler.tags = ['group'];
-handler.command = ['setbye'];
+handler.command = ['setbye', 'setbyemsg'];
 handler.admin = true;
 
 export default handler;

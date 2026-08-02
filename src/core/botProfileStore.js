@@ -16,6 +16,7 @@ goodbyeImageUrl: path.join(process.cwd(), 'src', 'assets', 'greetings', 'leave_c
 welcomeEnabled: true,
 goodbyeEnabled: true,
 meta: {},
+currencyName: 'RubyCoins',
 defaultMenuVideoPath: path.join(process.cwd(), 'src', 'menu', 'ruby-hoshino-miau.mp4'),
 defaultMenuDirectory: path.join(process.cwd(), 'src', 'menu'),
 defaultWelcomeImagePath: path.join(process.cwd(), 'src', 'assets', 'greetings', 'welcome_card.jpg'),
@@ -140,7 +141,7 @@ return true
 function rowToProfile(row, sessionId) {
 const fallback = getNativeBotProfile(sessionId)
 if (!row) return fallback
-return {
+const profile = {
 ...fallback,
 sessionId: normalizeSessionId(row.session_id || sessionId),
 botJid: row.bot_jid || fallback.botJid,
@@ -158,6 +159,8 @@ welcomeEnabled: toBool(row.welcome_enabled, fallback.welcomeEnabled),
 goodbyeEnabled: toBool(row.goodbye_enabled, fallback.goodbyeEnabled),
 meta: safeJsonParse(row.meta_json, fallback.meta)
 }
+profile.currencyName = profile.meta?.currencyName || profile.meta?.currency_name || 'RubyCoins'
+return profile
 }
 
 export function getBotProfile(sessionId = 'primary', db = global.db) {
