@@ -42,13 +42,13 @@ rows: [
 { title: '⏤͟͟͞͞🤖⃞⃝⃤ 𝗠𝗘𝗡𝗨́ 𝗝𝗔𝗗𝗜𝗕𝗢𝗧', description: '✨ ꒰ 𝗦𝘂𝗯-𝗕𝗼𝘁𝘀, 𝗰𝗼́𝗱𝗶𝗴𝗼𝘀, 𝗿𝘂𝘁𝗮𝘀 𝘆 𝘀𝗲𝘀𝗶𝗼𝗻𝗲𝘀 ꒱', id: `${prefix}menujadibot` }
 ]
 }]
-let beforeText = `𝙃𝙤𝙡𝙖 *${name}*-san ${ucapan()}
+let beforeText = `𝙃𝙤𝙡𝙖 *${name}* ${ucapan()}
 𝙢𝙞 𝙣𝙤𝙢𝙗𝙧𝙚 𝙚𝙨 ${botName} ¡𝙚𝙨𝙥𝙚𝙧𝙤 𝙦𝙪𝙚 𝙚𝙨𝙩𝙚𝙨 𝙩𝙚𝙣𝙞𝙚𝙣𝙙𝙤 𝙪𝙣 𝙚𝙭𝙘𝙚𝙡𝙚𝙣𝙩𝙚 𝙙𝙞𝙖! 🧴  𖹥
 
 ♡  ∩_∩
 （„• ֊ •„)♡
 ┏━━∪∪━⏤͟͟͞͞★꙲⃝͟🌷❈┉━━━┓
-┃  *𝖨𝖭𝖥𝖮 𝖣𝖤 𝖫𝖠 𝖡𝖮𝖳* ┃┈──❊:::::::¨¨*:::::::❊──┈
+┃  *𝖨𝖭𝖥𝖮 𝖣𝖤L 𝖫𝖠 𝖡𝖮𝖳* ┃┈──❊:::::::¨¨*:::::::❊──┈
 ┃ ◦ 👑 *Creador:* Dioneibi
 ┃ ◦ 🌎 *Modo:* Pública
 ┃ ◦ 💻 *Baileys:* Multi Device
