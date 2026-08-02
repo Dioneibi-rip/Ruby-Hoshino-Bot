@@ -13,7 +13,7 @@ return fs.readFileSync(localCatalogoPath);
 
 const defaultMenu = {
 before: `𝙃𝙤𝙡𝙖 *%name*-san ${ucapan()}
-𝙢𝙞 𝙣𝙤𝙢𝙗𝙧𝙚 𝙚𝙨 𝙍𝙪𝙗𝙮 ¡𝙚𝙨𝙥𝙚𝙧𝙤 𝙦𝙪𝙚 𝙚𝙨𝙩𝙚𝙨 𝙩𝙚𝙣𝙞𝙚𝙣𝙙𝙤 𝙪𝙣 𝙚𝙭𝙘𝙚𝙡𝙚𝙣𝙩𝙚 𝙙𝙞𝙖! 🧴  𖹥
+𝙢𝙞 𝙣𝙤𝙢𝙗𝙧𝙚 𝙚𝙨 *${botName}* ¡𝙚𝙨𝙥𝙚𝙧𝙤 𝙦𝙪𝙚 𝙚𝙨𝙩𝙚𝙨 𝙩𝙚𝙣𝙞𝙚𝙣𝙙𝙤 𝙪𝙣 𝙚𝙭𝙘𝙚𝙡𝙚𝙣𝙩𝙚 𝙙𝙞𝙖! 🧴  𖹥
 
 ♡  ∩_∩
 （„• ֊ •„)♡
@@ -32,7 +32,7 @@ let handler = async (m, { conn, usedPrefix, __dirname }) => {
 try {
 const prefix = (typeof usedPrefix === 'string' ? usedPrefix : '.');
 const isMainBot = conn.user.jid === global.conn.user.jid;
-const botStatusText = isMainBot ? '> 👑 𝖤𝗌𝗍𝖺𝖽𝗈: *𝖡𝗈𝗍 𝖮𝖿𝗂𝖼𝗂𝖺𝗅 (𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅)*' : '> 💫 𝖤𝗌𝗍𝖺𝖽𝗈: *𝖲𝗎𝖻-𝖡𝗈𝗍 𝖠𝖼𝗍𝗂𝗏𝗈*';
+const botStatusText = isMainBot ? '👑 𝖤𝗌𝗍𝖺𝖽𝗈: *𝖡𝗈𝗍 𝖮𝖿𝗂𝖼𝗂𝖺𝗅 (𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅)*' : '> 💫 𝖤𝗌𝗍𝖺𝖽𝗈: *𝖲𝗎𝖻-𝖡𝗈𝗍 𝖠𝖼𝗍𝗂𝗏𝗈*';
 
 let { exp, level, role } = global.db.getUser(m.sender);
 let name = await conn.getName(m.sender);
