@@ -37,7 +37,7 @@ return { name: result.name || 'Sin nombre', author: result.user?.displayName || 
 }
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 if (!text) {
-return m.reply(`𐔌 ࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִ ࣪⛩️ᩧ᳟˖ ۪࣪ ̟ ּ ִ ׄ ִ ࣪ ˖ ۪࣪ ̟ ּ ִﾉﾞ\n\n      ໊ 𐔌  Hola hermosa personita :3\n      Por favor, ingresa un texto o URL.\n\n ᗝᗝ  ϙִ ࣪ ˖ ࣪🍣̟᳟⃛ ! ੭ ִ ׄ⠷ 𝗘𝗷𝗲𝗺𝗽𝗹𝗼𝘀:\n ⊹ ${usedPrefix + command} Hatsune Miku\n ⊹ ${usedPrefix + command} Goku\n\nᐝ ׅ ׄ ׅ ѕωєєƚ ׄ ׅ ׄ ꊞ ׄ ׅ ׄ ׅ 🌼 ׄ ׅ ㅤׄ 𓈒𓂂`)
+return m.reply(` ໊ 𐔌  Hola hermosa personita :3\n      Por favor, ingresa un texto o URL.\n\n ᗝᗝ  ϙִ ࣪ ˖ ࣪🍣̟᳟⃛ ! ੭ ִ ׄ⠷ 𝗘𝗷𝗲𝗺𝗽𝗹𝗼𝘀:\n ⊹ ${usedPrefix + command} Hatsune Miku\n ⊹ ${usedPrefix + command} Goku`)
 }
 await m.react('⏳')
 try {
