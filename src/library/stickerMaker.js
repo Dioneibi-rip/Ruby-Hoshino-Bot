@@ -46,16 +46,19 @@ async function assertMedia(buffer) {
 }
 
 export function buildExif({ pack = '', author = '', categories = [], id = randomBytes(32).toString('hex') } = {}) {
+  const rawCategories = Array.isArray(categories) ? categories : [categories]
   const data = JSON.stringify({
     'sticker-pack-id': id,
     'sticker-pack-name': pack,
     'sticker-pack-publisher': author,
-    emojis: Array.isArray(categories) ? categories : [categories]
+    emojis: rawCategories.filter(Boolean),
+    'android-app-store-link': 'https://play.google.com/store/apps/details?id=com.termux',
+    'ios-app-store-link': 'https://itunes.apple.com/app/sticker-maker-studio/id1443326857'
   })
+  const json = Buffer.from(data, 'utf8')
   const header = Buffer.from([0x49,0x49,0x2a,0x00,0x08,0x00,0x00,0x00,0x01,0x00,0x41,0x57,0x07,0x00,0x00,0x00,0x00,0x00,0x16,0x00,0x00,0x00])
-  const exif = Buffer.concat([header, Buffer.from(data, 'utf8')])
-  exif.writeUIntLE(Buffer.byteLength(data, 'utf8'), 14, 4)
-  return exif
+  header.writeUIntLE(json.length, 14, 4)
+  return Buffer.concat([header, json])
 }
 
 function makeChunk(type, payload) {
@@ -132,16 +135,26 @@ export async function convertToWebp(buffer, type) {
 
 export async function sticker(img, url, packname = '', author = '', categories = ['']) {
   return runStickerJob(async () => {
-    const input = await readInput(img, url)
-    const type = await assertMedia(input)
-    const webp = type.mime === 'image/webp' ? input : await convertToWebp(input, type)
-    return injectExif(webp, buildExif({ pack: packname, author, categories }))
+    try {
+      const input = await readInput(img, url)
+      const type = await assertMedia(input)
+      const webp = type.mime === 'image/webp' ? input : await convertToWebp(input, type)
+      return injectExif(webp, buildExif({ pack: packname, author, categories }))
+    } catch (error) {
+      throw new Error(error?.message || 'No se pudo generar el sticker')
+    }
   })
 }
 
 export async function addExif(buffer, packname = '', author = '', categories = ['']) {
-  const input = await readInput(buffer)
-  const type = await assertMedia(input)
-  const webp = type.mime === 'image/webp' ? input : await convertToWebp(input, type)
-  return injectExif(webp, buildExif({ pack: packname, author, categories }))
+  return runStickerJob(async () => {
+    try {
+      const input = await readInput(buffer)
+      const type = await assertMedia(input)
+      const webp = type.mime === 'image/webp' ? input : await convertToWebp(input, type)
+      return injectExif(webp, buildExif({ pack: packname, author, categories }))
+    } catch (error) {
+      throw new Error(error?.message || 'No se pudo agregar metadatos al sticker')
+    }
+  })
 }

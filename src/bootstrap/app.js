@@ -44,6 +44,7 @@ import { commandRegistry } from '../runtime/command-registry.js'
 import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from '../library/queue.js'
 import { restoreSubbots } from '../core/subbot-engine.js'
 import { getBaileysExport, getBaileysProto, getSignalKeyStore } from '../core/baileys-compat.js'
+import { printNativeQr, clearNativeQr } from '../utils/nativeQr.js'
 EventEmitter.defaultMaxListeners = 100
 const baileysModule = await import('@whiskeysockets/baileys')
 global.baileys = baileysModule
@@ -319,6 +320,30 @@ if (process.env.RUBY_SMOKE_PAIRING_CODE) await shutdownDatabaseAndExit(0)
 }
 }
 let reconnectTimer
+let qrExpiryTimer
+let qrStopped = false
+function clearQrRendering() {
+if (qrExpiryTimer) {
+clearTimeout(qrExpiryTimer)
+qrExpiryTimer = undefined
+}
+clearNativeQr()
+}
+function stopQrRendering() {
+qrStopped = true
+clearQrRendering()
+}
+async function showQrOnce(qr) {
+if (!qr || qrStopped) return
+clearQrRendering()
+console.log(chalk.hex('#FF66C4')('—🍦ܶ߭ຼ ᪲  ۪  ︵ Escanea el codigo QR aqui ︵ ࣪'))
+await printNativeQr(qr)
+qrExpiryTimer = setTimeout(() => {
+stopQrRendering()
+console.log(chalk.hex('#FF66C4')('—🍦 El QR expiró. Reinicia el proceso para generar uno nuevo.'))
+}, 40000)
+qrExpiryTimer.unref?.()
+}
 function cleanupTransientSessionState(sessionPath = `./${global.Rubysessions}`) {
 try {
 if (!existsSync(sessionPath)) return
@@ -337,10 +362,9 @@ const { connection, lastDisconnect, isNewLogin, qr, reconnectDelayMs } = update
 global.stopped = connection
 if (isNewLogin) conn.isInit = true
 if (global.db.data == null) loadDatabase()
-if ((qr && opcion === '1') || methodCodeQR) {
-console.log(chalk.hex('#FF66C4')('—🍦ܶ߭ຼ ᪲  ۪  ︵ Escanea el codigo QR aqui ︵ ࣪'))
-}
+if ((qr && opcion === '1') || (qr && methodCodeQR)) await showQrOnce(qr)
 if (connection === 'open') {
+stopQrRendering()
 if (pairingRequested && !conn.baileysStore) {
 try { conn = global.conn = SimpleSocketService.attachStore(conn) } catch (error) { console.error(error) }
 }
@@ -358,6 +382,7 @@ conn.ev.on('messages.upsert', conn.handler)
 console.log('\n')
 }
 if (connection === 'close') {
+clearQrRendering()
 const statusCode = (lastDisconnect?.error)?.output?.statusCode || (lastDisconnect?.error)?.statusCode || DisconnectReason.connectionClosed
 const show = (color, text, icon) => console.log(`${icon} ${color(text)}`)
 if (DISCONNECT_AUTH_STATUS.has(statusCode)) {

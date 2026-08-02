@@ -9,7 +9,7 @@ import { useOptimizedAuthState } from '../library/sqliteAuthState.js'
 import { attachSessionState, createMessageRetryCache } from './session-manager.js'
 import { alignSocketTelemetry } from './socket-telemetry.js'
 import { getBaileysExport, getSignalKeyStore } from './baileys-compat.js'
-import { normalizeSessionJid } from './session-utils.js'
+import { isChatBannedForBot, normalizeSessionJid } from './session-utils.js'
 import { countActiveSubbots, deleteSubbotRecord, listSubbots, updateSubbot, upsertSubbot } from './subbot-store.js'
 import { readSubbotLimit } from '../config/subbot-limit.js'
 import { subbotBootQueue } from './subbot-boot-queue.js'
@@ -90,6 +90,52 @@ export function activeSubbotRuntimeList() {
 return [...managed.values()].map(item => ({ botJid: item.botJid, ownerJid: item.ownerJid, status: item.status, sessionPath: item.sessionPath }))
 }
 
+
+function readMessageText(message = {}) {
+const content = message.message || {}
+const viewOnce = content.viewOnceMessage?.message || content.viewOnceMessageV2?.message || content.viewOnceMessageV2Extension?.message || {}
+const body = { ...content, ...viewOnce }
+return String(body.conversation || body.extendedTextMessage?.text || body.imageMessage?.caption || body.videoMessage?.caption || body.documentMessage?.caption || body.buttonsResponseMessage?.selectedButtonId || body.listResponseMessage?.singleSelectReply?.selectedRowId || body.templateButtonReplyMessage?.selectedId || '').trim()
+}
+
+function currentSubbotJid(sock, fallback = '') {
+return normalizeSessionJid(sock?.user?.jid || sock?.user?.id || sock?.authState?.creds?.me?.jid || sock?.authState?.creds?.me?.id || fallback) || 'primary'
+}
+
+function ownerNumber(value = '') {
+return String(Array.isArray(value) ? value[0] : value || '').split('@')[0].replace(/[^0-9]/g, '')
+}
+
+function isOwnerSender(sender = '') {
+const senderNumber = ownerNumber(sender)
+return Boolean(senderNumber && (global.owner || []).some(owner => ownerNumber(owner) === senderNumber))
+}
+
+async function canUnbanBlockedChat(sock, message = {}, chatId = '') {
+const text = readMessageText(message).toLowerCase()
+if (!/^#unbanchat(?:\s|$)/.test(text)) return false
+const sender = normalizeSessionJid(message.key?.participant || message.participant || message.key?.remoteJid || '')
+if (!sender) return false
+if (isOwnerSender(sender) || sender === currentSubbotJid(sock)) return true
+if (!chatId.endsWith('@g.us')) return false
+try {
+const metadata = await sock.groupMetadata(chatId)
+const participant = metadata?.participants?.find(item => normalizeSessionJid(item.id || item.jid || item.lid) === sender)
+return Boolean(participant?.admin || participant?.isAdmin || participant?.isSuperAdmin)
+} catch {
+return false
+}
+}
+
+async function shouldIgnoreBannedSubbotChat(sock, message = {}, botJid = '') {
+const chatId = message.key?.remoteJid || message.chat || message.remoteJid || ''
+if (!chatId) return false
+const chat = global.db?.getChat?.(chatId) || global.db?.data?.chats?.[chatId] || { id: chatId }
+chat.id ||= chatId
+if (!isChatBannedForBot(chat, botJid)) return false
+return !await canUnbanBlockedChat(sock, message, chatId)
+}
+
 function getSubbotMessageTime(message = {}) {
 const raw = Number(message.messageTimestamp || message?.message?.messageTimestamp || message.timestamp || 0)
 if (!raw) return 0
@@ -150,8 +196,16 @@ await saveCreds()
 })
 const handler = await import('../router/handler.js')
 sock.handler = handler.handler.bind(sock)
-sock.subbotMessageGuard = update => {
-const list = Array.isArray(update?.messages) ? update.messages.filter(message => shouldProcessSubbotMessage(message, botStartTime)) : []
+sock.subbotMessageGuard = async update => {
+const incoming = Array.isArray(update?.messages) ? update.messages : []
+if (!incoming.length) return
+const botJid = currentSubbotJid(sock, runtime?.botJid || sessionId)
+const list = []
+for (const message of incoming) {
+if (!shouldProcessSubbotMessage(message, botStartTime)) continue
+if (await shouldIgnoreBannedSubbotChat(sock, message, botJid)) continue
+list.push(message)
+}
 if (!list.length) return
 return sock.handler({ ...update, messages: list })
 }
