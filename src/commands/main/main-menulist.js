@@ -15,7 +15,7 @@ const profile = conn.botProfile || {}
 const botName = profile.botName || 'Ruby'
 const prefix = (typeof usedPrefix === 'string' ? usedPrefix : (profile.customPrefix || '.'))
 const isMainBot = conn.user.jid === global.conn?.user?.jid
-const botStatusText = isMainBot ? '👑 𝖤𝗌𝗍𝖺𝖽𝗈: *𝖡𝗈𝗍 𝖮𝖿𝗂𝖼𝗂𝖺𝗅 (𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅)*' : '💫 𝖤𝗌𝗍𝖺𝖽𝗈: *𝖲𝗎𝖻-𝖡𝗈𝗍 𝖠𝖼𝗍𝗂𝗏𝗈*'
+const botStatusText = isMainBot ? '👑 *𝖡𝗈𝗍 𝖮𝖿𝗂𝖼𝗂𝖺𝗅 (𝖯𝗋𝗂𝗇𝖼𝗂𝗉𝖺𝗅)*' : '💫 *𝖲𝗎𝖻-𝖡𝗈𝗍 𝖠𝖼𝗍𝗂𝗏𝗈*'
 let { exp, level, role } = global.db?.getUser?.(m.sender) || { exp: 0, level: 0, role: 'Novato' }
 let name = await conn.getName(m.sender)
 let _uptime = process.uptime() * 1000
