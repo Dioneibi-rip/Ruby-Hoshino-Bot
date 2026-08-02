@@ -5,6 +5,8 @@ import path from 'path';
 const menuMediaCache = new WeakMap();
 let menuThumbPromise = null;
 
+const botName = profile.botName || 'Ruby Hoshino'
+
 const localCatalogoPath = path.join(process.cwd(), 'src', 'catalogo.jpg');
 
 function getLocalCatalogoBuffer() {
