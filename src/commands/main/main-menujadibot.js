@@ -2,6 +2,7 @@ let handler = async (m, { conn, usedPrefix }) => {
 const profile = conn.botProfile || {}
 const used = profile.customPrefix || usedPrefix || '#'
 const prefix = used
+const botName = profile.botName || 'Ruby Hoshino'
 const text = `🤖⊹ 𝐌𝐄𝐍𝐔 𝐉𝐀𝐃𝐈𝐁𝐎𝐓 / 𝐒𝐔𝐁-𝐁𝐎𝐓𝐒 ⊹✨
 
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}qr*
@@ -34,7 +35,7 @@ const text = `🤖⊹ 𝐌𝐄𝐍𝐔 𝐉𝐀𝐃𝐈𝐁𝐎𝐓 / 𝐒𝐔�
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}setbotwelcome • ${prefix}setbotbye*
 > ✦ Edita bienvenida y despedida.
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}botprofile • ${prefix}resetbotprofile*
-> ✦ Consulta o restablece el perfil nativo de Ruby.
+> ✦ Consulta o restablece el perfil nativo de ${botName}.
 ╰────︶.︶ ⸙ ͛ ͎ ͛  ︶.︶ ੈ₊˚༅`
 const image = process.env.JADIBOT_MENU_IMAGE || 'https://files.catbox.moe/rt1yfo.jpeg'
 return conn.sendMessage(m.chat, { image: { url: profile.individualMenuImageUrl || image }, caption: text }, { quoted: m })

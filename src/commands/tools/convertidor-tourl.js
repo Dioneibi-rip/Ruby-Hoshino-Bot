@@ -1,4 +1,4 @@
-import { uploadAuto } from '../../library/uploader.js'
+import { uploadAuto, resolveUploadLink } from '../../library/uploader.js'
 
 let handler = async (m, { conn }) => {
 let q = m.quoted ? m.quoted : m
@@ -7,7 +7,8 @@ if (!mime) return conn.reply(m.chat, `${emoji} Por favor, responda a una *Imagen
 await m.react(rwait)
 try {
 let media = await q.download()
-let link = await uploadAuto(media, mime)
+let uploaded = await uploadAuto(media, mime)
+let link = resolveUploadLink(uploaded)
 let img = Buffer.from(await (await fetch(`${link}`)).arrayBuffer())
 let txt = `乂  *L I N K - E N L A C E*  乂\n\n`
 txt += `*» Enlace* : ${link}\n`

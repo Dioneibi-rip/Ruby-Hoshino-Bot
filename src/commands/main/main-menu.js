@@ -84,7 +84,7 @@ let txt = `
 ├• ✐; ₊˚✦୧︰ 𝙄𝘼 .
 ├┈・──・──・﹕₊˚ ✦・୨୧・
 ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}Ruby • ${prefix}bot • ${prefix}ia*
-> ✦ Conversa con Ruby con memoria extensa.
+> ✦ Conversa con ${botName} con memoria extensa.
 ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}gemini • ${prefix}gemi*
 > ✦ Pregunta a Gemini con memoria de conversación corregida.
 ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}copilot*
@@ -766,9 +766,7 @@ await m.react('💛');
 
 try {
 await conn.sendMessage(m.chat, {
-video: { url: profile.menuVideoUrl || randomGif },
-caption: txt,
-gifPlayback: true,
+...menuMediaPayload(profile.menuVideoUrl || randomGif, txt),
 contextInfo: {
 mentionedJid: [m.sender, userId],
 isForwarded: true,
@@ -779,7 +777,7 @@ newsletterName: '..⃗. 💌 ⌇ ¡Noticias y más de tu idol favorita! ⊹ ִ �
 serverMessageId: -1}}
 }, { quoted: m });
 } catch {
-await conn.sendMessage(m.chat, { video: { url: randomGif }, caption: txt, gifPlayback: true }, { quoted: m })
+await conn.sendMessage(m.chat, menuMediaPayload(randomGif, txt), { quoted: m })
 }
 
 };
@@ -807,4 +805,13 @@ function commandAliases(command) {
 if (Array.isArray(command)) return command.filter(cmd => typeof cmd === 'string');
 if (typeof command === 'string') return [command];
 return [];
+}
+
+function menuMediaPayload(url, caption) {
+const clean = String(url || '').split('?')[0].toLowerCase()
+const isVideo = /\.(mp4|m4v|mov|webm|gif|mkv)$/i.test(clean)
+const isImage = /\.(jpe?g|png|webp|bmp|heic)$/i.test(clean)
+if (isVideo) return { video: { url }, gifPlayback: true, caption }
+if (isImage) return { image: { url }, caption }
+return { video: { url }, gifPlayback: true, caption }
 }

@@ -1,11 +1,12 @@
 let handler = async (m, { conn, usedPrefix }) => {
 const profile = conn.botProfile || {}
 const used = profile.customPrefix || usedPrefix || '#'
+const botName = profile.botName || 'Ruby Hoshino'
 const texto = `
 🤖⊹ 𝐌𝐄𝐍𝐔 𝐈𝐀 / 𝐈𝐍𝐓𝐄𝐋𝐈𝐆𝐄𝐍𝐂𝐈𝐀 𝐀𝐑𝐓𝐈𝐅𝐈𝐂𝐈𝐀𝐋 ⊹🧠
 
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭🤖 *${used}Ruby • ${used}bot • ${used}ia* + <pregunta>
-> ✦ Conversa con Ruby usando memoria de contexto.
+> ✦ Conversa con ${botName} usando memoria de contexto.
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭🤖 *${used}gemini • ${used}gemi* + <pregunta>
 > ✦ Pregunta a Gemini y mantiene el hilo de conversación.
 𓂃˛ׁ⁠  ✿𝆬ᩙ⃞𓈒࣭🤖 *${used}copilot* + <pregunta>
