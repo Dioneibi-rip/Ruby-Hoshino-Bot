@@ -31,7 +31,7 @@ try {
 const meta = profile?.meta && typeof profile.meta === 'object' ? profile.meta : {}
 banners = meta.category_banners && typeof meta.category_banners === 'object' ? meta.category_banners : {}
 } catch {
- banners = {}
+banners = {}
 }
 const key = normalizeMenuCategory(category)
 return banners[key] || profile?.individualMenuImageUrl || nativeBanner
@@ -42,4 +42,5 @@ try {
 return conn?.botProfile || await getBotProfile(conn?.session?.id || conn?.user?.jid || 'primary')
 } catch {
 return conn?.botProfile || getBotProfile('primary')
+}
 }
