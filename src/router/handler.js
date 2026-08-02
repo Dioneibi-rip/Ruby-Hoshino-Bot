@@ -48,6 +48,7 @@ function buildExecutionContext(ctx = {}) {
 const parsed = ctx.parsed || {}
 return {
 conn: ctx.conn,
+botProfile: ctx.conn?.botProfile || null,
 match: ctx.prefixMatch,
 usedPrefix: ctx.usedPrefix || parsed.usedPrefix || '',
 prefix: ctx.usedPrefix || parsed.prefix || '',
