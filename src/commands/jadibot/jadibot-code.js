@@ -50,8 +50,7 @@ message: {
 interactiveMessage: proto.Message.InteractiveMessage.fromObject({
 body: proto.Message.InteractiveMessage.Body.create({
 text: [
-'ㅤㅤㅤ',
-'     𝖲𝗎𝖻-𝖡𝗈𝗍 ー(德) 𝖢𝗈𝖽𝖾.',
+'    𝖲𝗎𝖻-𝖡𝗈𝗍 ー(德) 𝖢𝗈𝖽𝖾.',
 '',
 '> ꒰ঌ(˶ˆᗜˆ˵)໒꒱ 𝖨𝗇𝗌𝗍𝗋𝗎𝖼𝖼𝗂𝗈𝗇𝖾𝗌 𝗉⍺𝗋⍺ 𝗏𝗂𝗇𝖼𝗎𝗅⍺𝗋:',
 '',
