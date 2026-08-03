@@ -194,5 +194,6 @@ await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id })
 handler.tags = ['serbot']
 handler.help = ['sockets']
 handler.command = ['bots', 'sockets', 'socket']
+handler.group = true
 
 export default handler
