@@ -10,8 +10,8 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     const CHAT_ID = '654a7f7e-8072-41fb-ad5b-f3782aafe422';
 
     try {
-        // Hacemos la petición utilizando tu módulo nativo
-        const response = await axios.post('https://neo.character.ai/chat/streaming/', {
+        // Endpoint corregido: /chat/turn/create
+        const response = await axios.post('https://neo.character.ai/chat/turn/create', {
             chat_id: CHAT_ID,
             turn: {
                 author: { author_id: "user" },
@@ -24,13 +24,13 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
                 'Referer': 'https://character.ai/',
                 'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0 Safari/537.36'
             },
-            responseType: 'text' // Para recibir el texto NDJSON multilínea sin Parse automático
+            responseType: 'text'
         });
 
         const rawText = response.data;
         if (typeof rawText !== 'string') throw new Error('Respuesta no válida del servidor.');
 
-        // Character.AI responde con múltiples líneas JSON de streaming
+        // Character.AI responde en NDJSON (streaming multilínea)
         const lines = rawText.split('\n').filter(line => line.trim() !== '');
         let replyText = '';
 
@@ -42,7 +42,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
                     replyText = candidate.raw_content;
                 }
             } catch {
-                // Omitir fragmentos de streaming incompletos
+                // Ignorar fragmentos incompletos
             }
         }
 
