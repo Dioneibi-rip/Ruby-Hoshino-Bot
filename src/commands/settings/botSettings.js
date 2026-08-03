@@ -28,9 +28,9 @@ if (buffer.length > 10 * 1024 * 1024) return { error: 'size', mime }
 return { buffer, mime }
 }
 
-function mediaError(media) {
-if (media?.error === 'size') return '🥀 Archivo demasiado grande. Envía una imagen o video MP4 de máximo 10 MB.'
-if (media?.error === 'type') return '🥀 Formato no compatible. Usa imágenes (image/*) o video MP4 según el comando.'
+function mediaError(media, field, usedPrefix) {
+if (media?.error === 'size') return `${mediaHelp(field, usedPrefix)}\n\n🥀 *Nota:* el archivo no debe superar 10 MB.`
+if (media?.error === 'type' || media?.error === 'empty') return mediaHelp(field, usedPrefix)
 return ''
 }
 
@@ -40,7 +40,7 @@ return String(value).replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u2
 
 async function saveMedia(m, conn, field, mimeTest, okText, usedPrefix, category = '') {
 const media = await quotedMedia(m, mimeTest)
-if (!media || media.error) return conn.reply(m.chat, mediaError(media) || mediaHelp(field, usedPrefix), m)
+if (!media || media.error) return conn.reply(m.chat, mediaError(media, field, usedPrefix) || mediaHelp(field, usedPrefix), m)
 try {
 const uploaded = await uploadAuto(media.buffer, media.mime)
 const url = resolveUploadLink(uploaded)
@@ -96,7 +96,7 @@ conn.botProfile = upsertBotProfile(sessionId(conn), { pairingPrefix: value })
 return conn.reply(m.chat, `✅ Pairing Code actualizado a *${conn.botProfile.pairingPrefix}*.`, m)
 }
 if (cmd === 'setpairingimage' || cmd === 'setpairingimg' || cmd === 'setpimg') return saveMedia(m, conn, 'pairingImageUrl', /^(image\/|video\/mp4$)/, '✅ Imagen del Pairing Code actualizada.', prefix)
-if (cmd === 'setbotmenuall' || cmd === 'setmenuall' || cmd === 'setmenuallmedia') return saveMedia(m, conn, 'menuVideoUrl', /^(image\/|video\/mp4$)/, '✅ Media principal del MenuAll actualizada.', prefix)
+if (cmd === 'setbotmenu' || cmd === 'setbotmenuall' || cmd === 'setmenuall' || cmd === 'setmenuallmedia') return saveMedia(m, conn, 'menuVideoUrl', /^(image\/|video\/mp4$)/, '✅ Media principal del MenuAll actualizada.', prefix)
 if (cmd === 'setmenubanner' || cmd === 'setbanner' || cmd === 'banner') {
 const category = normalizeMenuCategory(text || '')
 const ok = category ? `✅ Banner de la categoría ${category} actualizado.` : '✅ Banner de menús individuales actualizado.'
@@ -145,8 +145,8 @@ return `┏━━━⏤͟͟͞͞★꙲⃝͟⚙️ *GUÍA DE ${item[0]}* ━━━
 function mediaHelp(field, usedPrefix) {
 const cards = {
 pairingImageUrl: ['PAIRING IMAGE SUB-BOT', 'Cambia la imagen mostrada en la guía de vinculación del Sub-Bot.', 'Guía y flujo de conexión del Sub-Bot.', `Responde a una imagen con ${usedPrefix}setpimg`, 'Responde a una foto escribiendo: `' + usedPrefix + 'setpimg`'],
-menuVideoUrl: ['MENÚ PRINCIPAL SUB-BOT', 'Cambia la imagen, GIF o video principal del MenuAll del Sub-Bot.', 'Menú completo y presentación principal del Sub-Bot.', `Responde a una imagen, GIF o video con ${usedPrefix}setbotmenuall`, 'Responde a un video escribiendo: `' + usedPrefix + 'setbotmenuall`'],
-individualMenuImageUrl: ['BANNER SUB-BOT', 'Cambia la imagen banner de los menús individuales.', 'Menús por categoría (NSFW, Descargas, etc.) o MenuManual.', `Responde a una imagen con ${usedPrefix}setbanner o ${usedPrefix}setbanner [categoría]`, 'Responde a una foto escribiendo: `' + usedPrefix + 'setbanner nsfw`'],
+menuVideoUrl: ['MENÚ PRINCIPAL SUB-BOT', 'Cambia la imagen, GIF o video principal del MenuAll del Sub-Bot.', 'Menú completo y presentación principal del Sub-Bot.', `Responde a una imagen, GIF o video con ${usedPrefix}setbotmenu`, 'Responde a un video escribiendo: `' + usedPrefix + 'setbotmenu`'],
+individualMenuImageUrl: ['BANNER SUB-BOT', 'Cambia la imagen banner de los menús individuales.', 'Menús por categoría (NSFW, Descargas, etc.), MenuManual, MenuJadibot o menú principal.', `Responde a una imagen con ${usedPrefix}setbanner o ${usedPrefix}setbanner [categoría]`, 'Responde a una foto escribiendo: `' + usedPrefix + 'setbanner nsfw`'],
 welcomeImageUrl: ['BIENVENIDA SUB-BOT', 'Cambia la imagen de bienvenida del Sub-Bot.', 'Mensajes automáticos de bienvenida en grupos.', `Responde a una imagen con ${usedPrefix}setbotwelcome`, 'Responde a una foto escribiendo: `' + usedPrefix + 'setbotwelcome`'],
 goodbyeImageUrl: ['DESPEDIDA SUB-BOT', 'Cambia la imagen de despedida del Sub-Bot.', 'Mensajes automáticos de salida en grupos.', `Responde a una imagen con ${usedPrefix}setbotbye`, 'Responde a una foto escribiendo: `' + usedPrefix + 'setbotbye`']
 }
@@ -154,6 +154,8 @@ const [title, what, area, usage, example] = cards[field]
 const categories = field === 'individualMenuImageUrl' ? `
 ┃
 ┃ 🏷️ *Categorías válidas:*
+┃ • menu
+┃ • menujadibot
 ┃ • menumanual
 ┃ • nsfw
 ┃ • descargas
@@ -188,11 +190,11 @@ return `${okText}\nServidor: *${server || 'fallback'}*\nURL: ${url}`
 }
 
 function profileCard(p, usedPrefix) {
-return `╭─「 SUB-BOT CONFIG 」\n│ Nombre: ${p.botName || 'Ruby Hoshino'}\n│ Prefijo: ${p.customPrefix || usedPrefix || '#'}\n│ Pairing Code: ${p.pairingPrefix || 'RUBY-CHAN'}\n│ Pairing image: ${p.pairingImageUrl ? '✅ Configurada' : '🧩 Nativa'}\n│ MenuAll media: ${p.menuVideoUrl ? '✅ Configurada' : '🧩 Nativa'}\n│ Banner menús: ${p.individualMenuImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n│ Welcome: ${p.welcomeImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n│ Bye: ${p.goodbyeImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n╰────────────\n\n╭─「 MINI TUTORIAL 」\n│ ${usedPrefix}setbotname Luna Bot\n│ ${usedPrefix}setbotprefix !\n│ ${usedPrefix}setbotmenuall responde a imagen/video/gif\n│ ${usedPrefix}setmenubanner responde a imagen\n│ ${usedPrefix}setbanner nsfw responde a imagen\n│ ${usedPrefix}setpprefix LUNA2026\n│ ${usedPrefix}setpimg responde a imagen\n╰────────────`
+return `╭─「 SUB-BOT CONFIG 」\n│ Nombre: ${p.botName || 'Ruby Hoshino'}\n│ Prefijo: ${p.customPrefix || usedPrefix || '#'}\n│ Pairing Code: ${p.pairingPrefix || 'RUBY-CHAN'}\n│ Pairing image: ${p.pairingImageUrl ? '✅ Configurada' : '🧩 Nativa'}\n│ MenuAll media: ${p.menuVideoUrl ? '✅ Configurada' : '🧩 Nativa'}\n│ Banner menús: ${p.individualMenuImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n│ Welcome: ${p.welcomeImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n│ Bye: ${p.goodbyeImageUrl ? '✅ Configurado' : '🧩 Nativo'}\n╰────────────\n\n╭─「 MINI TUTORIAL 」\n│ ${usedPrefix}setbotname Luna Bot\n│ ${usedPrefix}setbotprefix !\n│ ${usedPrefix}setbotmenu responde a imagen/video/gif\n│ ${usedPrefix}setmenubanner responde a imagen\n│ ${usedPrefix}setbanner nsfw responde a imagen\n│ ${usedPrefix}setpprefix LUNA2026\n│ ${usedPrefix}setpimg responde a imagen\n╰────────────`
 }
 
-handler.help = ['setbotname', 'botname', 'setbotprefix', 'setprefix', 'setpprefix', 'setpimg', 'setbotmenuall', 'setmenubanner', 'setbanner <categoría>', 'setpackname', 'setauthor', 'setmoneda', 'setbotwelcome', 'setbotbye', 'resetbotprofile', 'botprofile']
+handler.help = ['setbotname', 'botname', 'setbotprefix', 'setprefix', 'setpprefix', 'setpimg', 'setbotmenu', 'setbotmenuall', 'setmenubanner', 'setbanner <categoría>', 'setpackname', 'setauthor', 'setmoneda', 'setbotwelcome', 'setbotbye', 'resetbotprofile', 'botprofile']
 handler.tags = ['jadibot']
-handler.command = ['setbotname', 'botname', 'setbotprefix', 'setprefix', 'prefix', 'setpairingprefix', 'setpairingcode', 'setpprefix', 'setpairingimage', 'setpairingimg', 'setpimg', 'setbotmenuall', 'setmenuall', 'setmenuallmedia', 'setmenubanner', 'setbanner', 'banner', 'setpackname', 'setauthor', 'setmoneda', 'setbotwelcome', 'setbotbye', 'resetbotprofile', 'botprofile', 'subbotconfig']
+handler.command = ['setbotname', 'botname', 'setbotprefix', 'setprefix', 'prefix', 'setpairingprefix', 'setpairingcode', 'setpprefix', 'setpairingimage', 'setpairingimg', 'setpimg', 'setbotmenu', 'setbotmenuall', 'setmenuall', 'setmenuallmedia', 'setmenubanner', 'setbanner', 'banner', 'setpackname', 'setauthor', 'setmoneda', 'setbotwelcome', 'setbotbye', 'resetbotprofile', 'botprofile', 'subbotconfig']
 handler.botProfileOwner = true
 export default handler
