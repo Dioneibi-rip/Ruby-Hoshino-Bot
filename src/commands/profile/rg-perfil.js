@@ -1,5 +1,5 @@
 import{formatJobLine,ensureJobFields}from'../../library/rpg-jobs.js'
-import{ensureUserRole}from'../functions/_roles.js'
+import{ensureUserRole}from'../uncategorized/_roles.js'
 import{resolveTarget,resolveInteractionTarget,resolveIdentityName}from'../../core/identity-utils.js'
 async function loadMarriages(){
 return global.db?.getSection?.('marriages') || {}

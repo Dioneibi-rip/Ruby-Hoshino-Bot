@@ -1,1 +1,1 @@
-export { default } from '../info/report.js'
+export { default } from '../main/report.js'
