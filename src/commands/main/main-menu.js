@@ -747,10 +747,18 @@ let txt = `
 > ✦ Personaliza nombre y prefijo.
 ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setpprefix • ${prefix}setpimg*
 > ✦ Personaliza el código de vinculación.
-ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setmenuall • ${prefix}setbanner*
-> ✦ Personaliza MenuAll y banners individuales.
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}subbotdoc • ${prefix}jadibotdoc*
+> ✦ Guía completa y documentación de Sub-Bots.
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setbotmenu • ${prefix}setmenu*
+> ✦ Personaliza la portada del Menú Principal.
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setbotmenuall • ${prefix}setmenuall*
+> ✦ Personaliza MenuAll.
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setbanner* + [categoría]
+> ✦ Personaliza banners individuales.
 ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setbotwelcome • ${prefix}setbotbye*
 > ✦ Personaliza bienvenida y despedida.
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setprimary • ${prefix}resetbot*
+> ✦ Fija o restablece el bot primario del grupo.
 ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}botprofile • ${prefix}resetbotprofile*
 > ✦ Consulta o restablece el perfil del Sub-Bot.
 ╚▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬ִ▭࣪▬▭╝

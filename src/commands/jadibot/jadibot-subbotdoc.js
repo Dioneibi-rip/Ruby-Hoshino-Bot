@@ -6,10 +6,12 @@ const text = `┏━━━⏤͟͟͞͞★꙲⃝͟⚙️ *GUÍA DOCUMENTACIÓN SUB
 ┃ Un Sub-Bot es una sesión clonada de Ruby Hoshino que funciona con Baileys Multi-Device. Puedes conectarlo escaneando QR con *${prefix}jadibot* / *${prefix}qr* o usando código de vinculación con *${prefix}code*.
 ┃
 ┃ 🎯 *Sistema de Personalización:*
-┃ Cada Sub-Bot puede tener identidad propia: nombre, prefijo, imagen de pairing, moneda/divisa RPG, pack de stickers y banners. Usa *${prefix}setbotmenu* respondiendo a una imagen, GIF o video para cambiar el menú principal, y *${prefix}setbanner [categoría]* respondiendo a una imagen para cambiar menús específicos.
+┃ Cada Sub-Bot puede tener identidad propia: nombre, prefijo, imagen de pairing, moneda/divisa RPG, pack de stickers y banners. Usa *${prefix}setbotmenu* respondiendo a una imagen, GIF o video para cambiar la portada del menú principal; usa *${prefix}setbotmenuall* para el Menú Completo, y *${prefix}setbanner [categoría]* respondiendo a una imagen para cambiar menús específicos.
 ┃
 ┃ 🏷️ *Banners útiles:*
-┃ • *${prefix}setbanner menu* — imagen del menú principal.
+┃ • *${prefix}setbotmenu* — portada del menú principal.
+┃ • *${prefix}setbotmenuall* — media del Menú Completo.
+┃ • *${prefix}setbanner menu* — banner alternativo del menú principal.
 ┃ • *${prefix}setbanner menujadibot* — imagen de la guía Jadibot.
 ┃ • *${prefix}setbanner nsfw* — banner de categoría NSFW.
 ┃ • *${prefix}setmoneda Rubíes* — divisa personalizada.
@@ -29,7 +31,7 @@ const text = `┏━━━⏤͟͟͞͞★꙲⃝͟⚙️ *GUÍA DOCUMENTACIÓN SUB
 ┃ • *${prefix}resetbot*
 ┃
 ┃ 💡 *Tip:*
-┃ Responde a una imagen con *${prefix}setbanner menu* o a un video con *${prefix}setbotmenu* para personalizar la presentación del Sub-Bot.
+┃ Responde a un video con *${prefix}setbotmenu* para la portada, a otro con *${prefix}setbotmenuall* para MenuAll o a una imagen con *${prefix}setbanner menujadibot* para la sección Jadibot.
 ┗━━━━⏤͟͟͞͞★꙲⃝͟🌸❈┉━━━━━━┛`
 return conn.reply(m.chat, text, m)
 }

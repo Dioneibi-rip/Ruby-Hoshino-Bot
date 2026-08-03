@@ -1,6 +1,6 @@
 import { jidNormalizedUser } from '@whiskeysockets/baileys'
 
-const RESET_COMMANDS = ['resetbot', 'resetprimario', 'botreset']
+const RESET_COMMANDS = ['resetbot', 'resetprimary', 'delprimary', 'resetprimario', 'botreset']
 const resetLocks = global.__primaryBotResetLocks ||= new Map()
 
 function normalizeJid(jid = '') {
@@ -53,7 +53,7 @@ return true
 await resetPrimaryBot(m, conn, { silent: false })
 return true
 }
-handler.help = ['resetbot', 'resetprimario', 'botreset']
+handler.help = ['resetbot', 'resetprimary', 'delprimary']
 handler.tags = ['jadibot']
 handler.command = RESET_COMMANDS
 handler.group = true

@@ -21,6 +21,12 @@ if (/^\d+@(?:s\.whatsapp\.net|lid)$/.test(text)) return text
 return text.includes('@') ? text : null
 }
 
+
+function isForbiddenError(error) {
+const text = [error?.message, error?.stack, error?.reason, error?.code, error?.statusCode, error?.output?.statusCode, error?.data?.statusCode].filter(Boolean).join(' ').toLowerCase()
+return text.includes('403') || text.includes('forbidden')
+}
+
 function mentionLabel(jid) {
 const normalized = normalizeMentionJid(jid)
 return normalized ? `@${normalized.split('@')[0].split(':')[0]}` : '@usuario'
@@ -38,12 +44,19 @@ try {
 const image = /^https?:\/\//i.test(String(imagePath)) ? { url: imagePath } : fs.readFileSync(imagePath)
 await conn.sendMessage(chatId, { image, caption: text, contextInfo }, { quoted: null })
 } catch (error) {
+if (isForbiddenError(error)) return true
 console.error('[welcome] error generando/enviando imagen de bienvenida', error)
 try {
 const fallbackImage = fallbackPath ? fs.readFileSync(fallbackPath) : null
 if (fallbackImage) return await conn.sendMessage(chatId, { image: fallbackImage, caption: text, contextInfo }, { quoted: null })
-} catch {}
+} catch (fallbackError) {
+if (isForbiddenError(fallbackError)) return true
+}
+try {
 await conn.sendMessage(chatId, { text, mentions: [targetJid].filter(Boolean), contextInfo }, { quoted: null })
+} catch (textError) {
+if (!isForbiddenError(textError)) console.error('[welcome] error enviando texto de respaldo', textError)
+}
 }
 }
 
@@ -142,7 +155,7 @@ text = `
 await sendWelcomeMessage(conn, m.chat, targetJid, greetingImage, text, fallbackGreetingImage)
 }
 } catch (error) {
-console.error('[welcome] error procesando participante', error);
+if (!isForbiddenError(error)) console.error('[welcome] error procesando participante', error);
 }
 }
 }

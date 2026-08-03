@@ -9,6 +9,7 @@ import { getNativeBotProfile, hydrateBotProfile } from '../core/botProfileStore.
 
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 3_000
 const DEFAULT_RATE_LIMIT_MAX = 6
+const PRIMARY_RESET_COMMANDS = new Set(['resetbot', 'resetprimary', 'delprimary', 'resetprimario', 'botreset'])
 
 function parseCommandText(text = '', usedPrefix = '') {
 const raw = String(text || '').trim()
@@ -153,7 +154,7 @@ if (ctx.halted) return
 const chatData = m.chat ? global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat] || {} : {}
 const sessionJid = normalizeSessionJid(conn?.user?.jid || conn?.user?.id || '')
 const primaryBot = normalizeSessionJid(chatData?.primaryBot || chatData?.botPrimario || chatData?.primaryBotJid || '')
-if (m.isGroup && ctx.commandName && primaryBot && primaryBot !== sessionJid && ctx.commandName !== 'resetbot') {
+if (m.isGroup && ctx.commandName && primaryBot && primaryBot !== sessionJid && !PRIMARY_RESET_COMMANDS.has(ctx.commandName)) {
 ctx.halted = true
 return
 }

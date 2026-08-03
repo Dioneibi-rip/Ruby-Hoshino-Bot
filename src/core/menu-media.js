@@ -9,7 +9,7 @@ export function resolveMenuMediaSource(profile = {}, category = '') {
 const key = normalizeMenuCategory(category)
 const categoryBanner = getMenuBanner(profile, key, '')
 if (categoryBanner) return categoryBanner
-if (!key || key === 'global' || key === 'menu') return profile?.menuVideoUrl || profile?.menuImageUrl || profile?.meta?.category_banners?.global || defaultMenuImagePath
+if (!key || key === 'global' || key === 'menu') return profile?.menuImageUrl || profile?.meta?.category_banners?.global || defaultMenuImagePath
 return profile?.meta?.category_banners?.global || profile?.individualMenuImageUrl || profile?.menuImageUrl || defaultMenuImagePath
 }
 

@@ -24,6 +24,7 @@ let uptime = clockString(_uptime)
 let totalreg = await Promise.resolve(global.db?.countUsers?.() ?? 0)
 const fkontak = await getMenuQuoted(conn, m, botName)
 const media = await getMenuMedia(conn, 'menu')
+const headerMedia = media.videoMessage ? { videoMessage: media.videoMessage } : { imageMessage: media.imageMessage }
 let sections = [{
 title: '𝐒𝐄𝐋𝐄𝐂𝐂𝐈𝐎𝐍𝐄 𝐀𝐐𝐔𝐈',
 rows: [
@@ -68,7 +69,7 @@ let bodyText = `🪷ᩚ⃟꙰⟡˖ ࣪𝗜𝖭𝖥𝖮 𝖣𝖤𝖫 𝖴𝖲𝖴
 ი ̯ 🎋̸̶ *𝖱𝖠𝖭𝖦𝖮:* ${role}
 ─━━━━┉❈⏤͟͟͞͞★꙲⃝͟🍁❈┉━━━━─`
 const nativeButtons = [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '꒰꒰ 🍒 𝐌𝖾𝗇𝗎 𝐌𝖺𝗇𝗎𝖺𝗅 Ი꯭ᰍ', id: `${prefix}menumanual` }) }, { name: 'single_select', buttonParamsJson: JSON.stringify({ title: ' ❀⃘⃛͜ ۪۪۪݃𓉘᳟ี ⃞̸͢𑁃 ̚𓉝᳟ี𝐌𝐄𝐍𝐔 𝐁𝐎𝐓❀⃘⃛͜', sections }) }]
-const interactiveMessage = proto.Message.InteractiveMessage.fromObject({ header: proto.Message.InteractiveMessage.Header.fromObject({ title: '', hasMediaAttachment: true, imageMessage: media.imageMessage }), body: proto.Message.InteractiveMessage.Body.fromObject({ text: `${beforeText}\n\n${bodyText}` }), footer: proto.Message.InteractiveMessage.Footer.fromObject({ text: `usa ${prefix}menumanual si no puedes usar los botones` }), nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({ buttons: nativeButtons, messageParamsJson: JSON.stringify({ version: 1 }) }) })
+const interactiveMessage = proto.Message.InteractiveMessage.fromObject({ header: proto.Message.InteractiveMessage.Header.fromObject({ title: '', hasMediaAttachment: true, ...headerMedia }), body: proto.Message.InteractiveMessage.Body.fromObject({ text: `${beforeText}\n\n${bodyText}` }), footer: proto.Message.InteractiveMessage.Footer.fromObject({ text: `usa ${prefix}menumanual si no puedes usar los botones` }), nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({ buttons: nativeButtons, messageParamsJson: JSON.stringify({ version: 1 }) }) })
 let msgi = generateWAMessageFromContent(m.chat, { viewOnceMessage: { message: { messageContextInfo: { deviceListMetadata: {}, deviceListMetadataVersion: 2 }, interactiveMessage } } }, { userJid: conn.user.jid, quoted: fkontak || m })
 await conn.relayMessage(m.chat, msgi.message, { messageId: msgi.key.id })
 m.react('💞')
