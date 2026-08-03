@@ -1,6 +1,6 @@
 import { jidNormalizedUser } from '@whiskeysockets/baileys'
 import { smsg } from '../library/simple.js'
-import { getPrefixMatch, hydrateDatabaseForMessage, buildPermissionContext } from '../router/handler-utils.js'
+import { getPrefixMatch, hydrateDatabaseForMessage, buildPermissionContext, beforeHooks, allHooks } from '../router/handler-utils.js'
 import { getGroupMetadataOnDemand } from '../library/global-cache.js'
 import { canManageBotSecurity, getAntiPrivateState, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
 import { messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
@@ -39,7 +39,7 @@ this.registry = registry
 this.db = db
 this.rateLimitWindowMs = rateLimitWindowMs
 this.rateLimitMax = rateLimitMax
-this.stages = [this.normalize.bind(this), this.security.bind(this), this.automoderation.bind(this), this.rateLimit.bind(this), this.route.bind(this)]
+this.stages = [this.normalize.bind(this), this.security.bind(this), this.afkReturn.bind(this), this.pluginHooks.bind(this), this.automoderation.bind(this), this.rateLimit.bind(this), this.route.bind(this)]
 this.cooldowns = new Map()
 }
 
@@ -90,6 +90,57 @@ ctx.usedPrefix = usedPrefix
 ctx.dbState = hydrateDatabaseForMessage(conn, m, ctx.sender)
 }
 
+
+
+async afkReturn(ctx) {
+if (!ctx.m || ctx.m.fromMe || !ctx.sender) return
+const user = global.db?.getUser?.(ctx.sender) || ctx.dbState?.user
+if (!user || !(Number(user.afk) > -1) || ctx.commandName === 'afk') return
+const ms = Date.now() - Number(user.afk)
+const h = Math.floor(ms / 3600000)
+const min = Math.floor(ms / 60000) % 60
+const sec = Math.floor(ms / 1000) % 60
+const timeAfk = [h, min, sec].map(value => value.toString().padStart(2, '0')).join(':')
+const reasonText = user.afkReason ? `\n         🧇̫͠ ꒰  *𝖬𝗈𝗍𝗂𝗏𝗈:* ${user.afkReason}` : ''
+const returnText = `> 🍰 𝖣𝖾𝗃𝖺𝗌𝗍𝖾     𝖽𝖾     𝖾𝗌𝗍𝖺𝗋     𝗂𝗇𝖺𝖼𝗍𝗂𝗏𝗈     !
+
+୨ㅤ࣪ㅤ︶︶︶︶ ㅤ꒰ 🎀 ꒱ㅤ︶︶︶︶ㅤ࣪ㅤ୧
+
+🍪̮͡ 〣  *𝖳𝗂𝖾𝗆𝗉𝗈     𝖨𝗇𝖺𝖼𝗍𝗂𝗏𝗈:* ${timeAfk}${reasonText}
+
+> \`𝖡𝗂𝖾𝗇𝗏𝖾𝗇𝗂𝖽𝗈     𝖽𝖾     𝗏𝗎𝖾𝗅𝗍𝖺     ♡\``
+await ctx.conn.reply?.(ctx.m.chat, returnText, ctx.m, { mentions: [ctx.sender] })
+user.afk = -1
+user.afkReason = ''
+ctx.m.__afkReturnHandled = true
+}
+
+async pluginHooks(ctx) {
+const extra = { conn: ctx.conn, participants: ctx.participants || [], groupMetadata: ctx.groupMetadata || {}, chatUpdate: ctx.chatUpdate }
+for (const { name, plugin } of allHooks) {
+try {
+const result = await plugin.all.call(ctx.conn, ctx.m, extra)
+if (result === false) {
+ctx.halted = true
+return
+}
+} catch (error) {
+console.error(`[hook:all:${name}]`, error?.stack || error?.message || error)
+}
+}
+for (const { name, plugin } of beforeHooks) {
+try {
+const result = await plugin.before.call(ctx.conn, ctx.m, extra)
+if (result === false) {
+ctx.halted = true
+return
+}
+} catch (error) {
+console.error(`[hook:before:${name}]`, error?.stack || error?.message || error)
+}
+}
+}
+
 async security(ctx) {
 const { conn, m, sender } = ctx
 if (!m || !sender) {
@@ -100,7 +151,13 @@ const opts = conn?.opts || global.opts || {}
 if (opts.nyimak || (!m.fromMe && opts.self) || (opts.swonly && m.chat !== 'status@broadcast')) ctx.halted = true
 if (ctx.halted) return
 const chatData = m.chat ? global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat] || {} : {}
-if (m.isGroup && shouldSilenceChatForBot(chatData, normalizeSessionJid(conn?.user?.jid || conn?.user?.id || '')) && !ctx.commandName && !messageHasModeratedLink(m)) ctx.halted = true
+const sessionJid = normalizeSessionJid(conn?.user?.jid || conn?.user?.id || '')
+const primaryBot = normalizeSessionJid(chatData?.primaryBot || chatData?.botPrimario || chatData?.primaryBotJid || '')
+if (m.isGroup && ctx.commandName && primaryBot && primaryBot !== sessionJid && ctx.commandName !== 'resetbot') {
+ctx.halted = true
+return
+}
+if (m.isGroup && shouldSilenceChatForBot(chatData, sessionJid) && !ctx.commandName && !messageHasModeratedLink(m)) ctx.halted = true
 if (ctx.halted) return
 if (!m.fromMe && !m.isGroup && !canManageBotSecurity(sender, conn)) {
 const antiPrivateState = getAntiPrivateState(ctx.dbState?.settings || {})

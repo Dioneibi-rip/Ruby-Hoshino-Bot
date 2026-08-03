@@ -23,7 +23,7 @@ let _uptime = process.uptime() * 1000
 let uptime = clockString(_uptime)
 let totalreg = await Promise.resolve(global.db?.countUsers?.() ?? 0)
 const fkontak = await getMenuQuoted(conn, m, botName)
-const media = await getMenuMedia(conn)
+const media = await getMenuMedia(conn, 'menu')
 let sections = [{
 title: '𝐒𝐄𝐋𝐄𝐂𝐂𝐈𝐎𝐍𝐄 𝐀𝐐𝐔𝐈',
 rows: [

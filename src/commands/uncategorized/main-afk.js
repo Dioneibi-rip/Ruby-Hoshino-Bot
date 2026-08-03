@@ -1,6 +1,8 @@
 import { normalizeIdentityJid, buildParticipantsByLid } from '../../core/identity-utils.js'
 export async function before(m, { conn, participants = [] }) {
-if (m.fromMe) return true;
+if (m.fromMe || m.__afkReturnHandled) return true;
+const body = String(m.text || m.body || '').trim();
+const isAfkCommand = /^([!#./\\])?afk(?:\s|$)/i.test(body);
 
 const user = global.db.getUser(m.sender);
 if (!user) return true;
@@ -12,7 +14,7 @@ let s = Math.floor(ms / 1000) % 60;
 return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
 };
 
-if (user.afk > -1) {
+if (user.afk > -1 && !isAfkCommand) {
 let timeAfk = clockString(new Date() - user.afk);
 let reasonText = user.afkReason ? `\n         🧇̫͠ ꒰  *𝖬𝗈𝗍𝗂𝗏𝗈:* ${user.afkReason}` : '';
 
@@ -24,7 +26,7 @@ let returnText = `> 🍰 𝖣𝖾𝗃𝖺𝗌𝗍𝖾     𝖽𝖾     𝖾𝗌�
 
 > \`𝖡𝗂𝖾𝗇𝗏𝖾𝗇𝗂𝖽𝗈     𝖽𝖾     𝗏𝗎𝖾𝗅𝗍𝖺     ♡\``;
 
-conn.reply(m.chat, returnText, m);
+conn.reply(m.chat, returnText, m, { mentions: [m.sender] });
 user.afk = -1;
 user.afkReason = '';
 }
