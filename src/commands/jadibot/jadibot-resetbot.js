@@ -1,6 +1,6 @@
 import { jidNormalizedUser } from '@whiskeysockets/baileys'
 
-const RESET_COMMANDS = ['resetbot', 'resetprimary', 'delprimary', 'resetprimario', 'botreset']
+const RESET_COMMANDS = ['resetbot', 'resetprimary', 'delprimary']
 const resetLocks = global.__primaryBotResetLocks ||= new Map()
 
 function normalizeJid(jid = '') {
@@ -32,7 +32,7 @@ setTimeout(() => resetLocks.delete(lockKey), 30000).unref?.()
 const previous = normalizeJid((global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat] || {}).primaryBot || (global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat] || {}).botPrimario || '')
 clearPrimaryBot(m.chat)
 await global.db?.write?.()
-if (!silent) return m.reply(previous ? '✐ ¡Listo! Se ha restablecido la configuración.\n> A partir de ahora, todos los bots válidos responderán nuevamente en este grupo.' : '《✧》 No había ningún bot primario establecido, pero se limpió el enrutamiento del grupo.')
+if (!silent) return m.reply(previous ? '✐ ¡Listo! Se restableció el bot primario del grupo.\n> A partir de ahora, todos los bots pueden volver a responder.' : '《✧》 No había ningún bot primario establecido, pero se limpió el enrutamiento del grupo.')
 return true
 }
 
@@ -55,7 +55,7 @@ return true
 }
 handler.help = ['resetbot', 'resetprimary', 'delprimary']
 handler.tags = ['jadibot']
-handler.command = RESET_COMMANDS
+handler.command = ['resetbot', 'resetprimary', 'delprimary']
 handler.group = true
 handler.admin = true
 export default handler
