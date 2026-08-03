@@ -24,11 +24,14 @@ const text = `🤖⊹ 𝐌𝐄𝐍𝐔 𝐉𝐀𝐃𝐈𝐁𝐎𝐓 / 𝐒𝐔�
 𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}setprimary* + <@bot>
 > ✦ Define qué Sub-Bot atiende en el grupo.
 
-𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}resetbot*
+𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}resetbot* • *${prefix}resetprimary*
 > ✦ Restablece la ruta de bots en el grupo.
 
 𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}banchat* / *${prefix}unbanchat*
 > ✦ Banea o desbanea al Bot en el chat actual.
+
+𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}subbotdoc* • *${prefix}jadibotdoc*
+> ✦ Guía completa y documentación de Sub-Bots.
 
 ⚙️ 𝖯𝖤𝖱𝖲𝖮𝖭𝖠𝖫𝖨𝖹𝖠𝖢𝖨𝖮𝖭 𝖣𝖤𝖫 𝖲𝖴𝖡-𝖡𝖮𝖳
 
@@ -41,11 +44,14 @@ const text = `🤖⊹ 𝐌𝐄𝐍𝐔 𝐉𝐀𝐃𝐈𝐁𝐎𝐓 / 𝐒𝐔�
 𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}setpprefix* • *${prefix}setpimg*
 > ✦ Personaliza el Pairing Code (texto e imagen).
 
-𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}setmenuall* • *${prefix}setbotmenuall*
+𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}setbotmenu* • *${prefix}setmenu*
+> ✦ Cambia la portada del Menú Principal (#menu).
+
+𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}setbotmenuall* • *${prefix}setmenuall*
 > ✦ Cambia la imagen/video del menú completo (#menuall).
 
 𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}setbanner* • *${prefix}setmenubanner*
-> ✦ Cambia el banner de submenús (Uso: #setbanner [categoría|global]).
+> ✦ Cambia el banner de submenús (Uso: ${prefix}setbanner [categoría]).
 
 𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}setmoneda*
 > ✦ Cambia el nombre de la moneda del Sub-Bot.

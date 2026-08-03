@@ -67,10 +67,6 @@ let owner = `
 > ✦ Sacar el Bot de un grupo.
 ᰔᩚ *${used}let*
 > ✦ Envia un mensaje con una duración de 1 hora.
-ᰔᩚ *${used}prefix*
-> ✦ Ver o cambiar el prefijo del Bot.
-ᰔᩚ *${used}resetprefix*
-> ✦ Restablecer el prefijo del Bot.
 ᰔᩚ *${used}reiniciar • ${used}restart*
 > ✦ Reiniciar el servidor del Bot.
 ᰔᩚ *${used}reunion • ${used}meeting*

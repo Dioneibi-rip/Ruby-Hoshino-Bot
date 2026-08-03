@@ -13,6 +13,11 @@ const registryReady = commandRegistry.init()
 const pipeline = new MiddlewarePipeline({ registry: commandRegistry })
 const PRESENCE_STATES = new Set(['composing', 'paused'])
 
+function isForbiddenError(error) {
+const text = [error?.message, error?.stack, error?.reason, error?.code, error?.statusCode, error?.output?.statusCode, error?.data?.statusCode].filter(Boolean).join(' ').toLowerCase()
+return text.includes('403') || text.includes('forbidden')
+}
+
 global.uptimeStart ||= Date.now()
 global.dfail = (type, m, conn) => failureHandler(type, conn, m)
 
@@ -196,10 +201,16 @@ const action = String(update.action || '').toLowerCase()
 const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null
 if (!messageStubType) return
 const plugin = (await import('../commands/uncategorized/_welcome.js')).default
-const groupMetadata = await getGroupMetadataOnDemand(this, chat, { requireParticipants: true })
+let groupMetadata = {}
+try {
+groupMetadata = await getGroupMetadataOnDemand(this, chat, { requireParticipants: true })
+} catch (error) {
+if (isForbiddenError(error)) return
+throw error
+}
 await plugin.before.call(this, { chat, isGroup: true, sender: update.participants[0], messageStubType, messageStubParameters: update.participants }, { conn: this, participants: groupMetadata?.participants || [], groupMetadata: groupMetadata || {} })
 } catch (error) {
-console.error('[participants.update]', error?.message || error)
+if (!isForbiddenError(error)) console.error('[participants.update]', error?.message || error)
 }
 }
 
