@@ -1,43 +1,66 @@
-import { resolveInteractionTarget, resolveIdentityName } from '../../core/identity-utils.js'
+import axios from '../../library/http.js';
 
-import fs from 'fs';
-import path from 'path';
+let handler = async (m, { conn, text, usedPrefix, command }) => {
+    if (!text) return m.reply(`*¡Hola! Escribe un mensaje para hablar con Shinobu.*\n\n*Ejemplo:* ${usedPrefix + command} Hola Shinobu, ¿cómo estás?`);
 
-let handler = async (m, { conn, usedPrefix }) => {
-let who = await resolveInteractionTarget(m, conn);
+    await m.react('🦋');
 
-let name = await resolveIdentityName(conn, who, { fallback: `@${String(who).split('@')[0]}` });
-let name2 = await resolveIdentityName(conn, m.sender, { fallback: `@${String(m.sender).split('@')[0]}` });
-m.react('🛀');
+    // Datos extraídos de tu captura de pantalla en Lemur
+    const CAI_TOKEN = '86503eae33f07560d29337428df5ffd699f4f2f4';
+    const CHAT_ID = '654a7f7e-8072-41fb-ad5b-f3782aafe422';
 
-let str;
-if (m.mentionedJid.length > 0) {
-str = `\`${name2}\` *está bañando a* \`${name || who}\`.`;
-} else if (m.quoted) {
-str = `\`${name2}\` *está bañando a* \`${name || who}\`.`;
-} else {
-str = `\`${name2}\` se está duchando.`.trim();
-}
+    try {
+        // Hacemos la petición utilizando tu módulo nativo
+        const response = await axios.post('https://neo.character.ai/chat/streaming/', {
+            chat_id: CHAT_ID,
+            turn: {
+                author: { author_id: "user" },
+                candidates: [{ raw_content: text }]
+            }
+        }, {
+            headers: {
+                'Authorization': `Token ${CAI_TOKEN}`,
+                'Origin': 'https://character.ai',
+                'Referer': 'https://character.ai/',
+                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0 Safari/537.36'
+            },
+            responseType: 'text' // Para recibir el texto NDJSON multilínea sin Parse automático
+        });
 
-if (m.isGroup) {
-let pp = 'https://qu.ax/JZvz.mp4'
-let pp2 = 'https://qu.ax/yRRc.mp4'
-let pp3 = 'https://qu.ax/Onas.mp4'
-let pp4 = 'https://qu.ax/kwcA.mp4'
-let pp5 = 'https://qu.ax/XNDF.mp4'
-let pp6 = 'https://qu.ax/GZDB.mp4'
+        const rawText = response.data;
+        if (typeof rawText !== 'string') throw new Error('Respuesta no válida del servidor.');
 
-const videos = [pp, pp2, pp3, pp4, pp5, pp6];
-const video = videos[Math.floor(Math.random() * videos.length)];
+        // Character.AI responde con múltiples líneas JSON de streaming
+        const lines = rawText.split('\n').filter(line => line.trim() !== '');
+        let replyText = '';
 
-let mentions = [who];
-conn.sendMessage(m.chat, { video: { url: video }, gifPlayback: true, caption: str, mentions }, { quoted: m });
-}
-}
+        for (const line of lines) {
+            try {
+                const parsed = JSON.parse(line);
+                const candidate = parsed?.turn?.candidates?.[0];
+                if (candidate?.raw_content) {
+                    replyText = candidate.raw_content;
+                }
+            } catch {
+                // Omitir fragmentos de streaming incompletos
+            }
+        }
 
-handler.help = ['bath/bañarse @tag'];
-handler.tags = ['anime'];
-handler.command = ['bath','bañarse'];
-handler.group = true;
+        if (!replyText) {
+            return m.reply('❌ Shinobu no envió ninguna respuesta.');
+        }
+
+        await conn.sendMessage(m.chat, { text: replyText }, { quoted: m });
+
+    } catch (error) {
+        console.error('Error CAI:', error);
+        const errorDetails = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+        await m.reply(`⚠️ Ocurrió un error al comunicarse con Character.AI:\n\`\`\`${errorDetails}\`\`\``);
+    }
+};
+
+handler.help = ['shinobu <texto>', 'cai <texto>'];
+handler.tags = ['ia'];
+handler.command = ['shinobu', 'cai'];
 
 export default handler;
