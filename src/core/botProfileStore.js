@@ -169,7 +169,8 @@ try {
 const sqlite = resolveSqlite(db)
 if (!sqlite?.prepare) return getNativeBotProfile(id)
 ensureBotProfileSchema(sqlite)
-const row = sqlite.prepare('SELECT * FROM bot_profiles WHERE session_id=?').get(id)
+let row = sqlite.prepare('SELECT * FROM bot_profiles WHERE session_id=?').get(id)
+if (!row && id.includes('@')) row = sqlite.prepare('SELECT * FROM bot_profiles WHERE bot_jid=? ORDER BY updated_at DESC LIMIT 1').get(id)
 return rowToProfile(row, id)
 } catch {
 return getNativeBotProfile(id)
@@ -247,10 +248,12 @@ return getNativeBotProfile(id)
 }
 
 export function hydrateBotProfile(conn, db = global.db) {
-const sessionId = normalizeSessionId(conn?.session?.id || conn?.user?.jid || 'primary')
-const profile = getBotProfile(sessionId, db)
-if (conn?.session?.ownerJid && !profile.ownerJid) profile.ownerJid = conn.session.ownerJid
-if (conn?.user?.jid && !profile.botJid) profile.botJid = conn.user.jid
+const sessionId = normalizeSessionId(conn?.user?.jid || conn?.session?.id || 'primary')
+let profile = getBotProfile(sessionId, db)
+const identityPatch = {}
+if (conn?.session?.ownerJid && !profile.ownerJid) identityPatch.ownerJid = conn.session.ownerJid
+if (conn?.user?.jid && profile.botJid !== conn.user.jid) identityPatch.botJid = conn.user.jid
+if (Object.keys(identityPatch).length) profile = upsertBotProfile(sessionId, identityPatch, db)
 if (conn) {
 conn.botProfile = profile
 try {

@@ -1,10 +1,14 @@
 import axios from '../../library/http.js'
+import { getActiveBotProfile, getMenuBanner } from '../../core/menu-banner.js'
 const channelRD = '120363335626706839@newsletter'
 const canalNombreM = '𖥔ᰔᩚ⋆｡˚ ꒰🍒 ʀᴜʙʏ-ʜᴏꜱʜɪɴᴏ | ᴄʜᴀɴɴᴇʟ-ʙᴏᴛ 💫꒱࣭'
 
 var handler = async (m, { conn, usedPrefix, command }) => {
 try {
-const img = await axios.get("https://github.com/levi275/img/blob/main/Merry-christmas4.jpeg?raw=1", { responseType: "arraybuffer" })
+const profile = await getActiveBotProfile(conn)
+const botName = profile.botName || 'Ruby'
+const banner = getMenuBanner(profile, 'menumanual', 'https://github.com/levi275/img/blob/main/Merry-christmas4.jpeg?raw=1')
+const img = await axios.get(banner, { responseType: 'arraybuffer' })
 const thumb = Buffer.from(img.data)
 let name = m.pushName || 'Aventurero'
 
@@ -16,7 +20,7 @@ const texto = `⋱⏜ֹ๋۪۪۪۪۪۪᷼︵̈⋱ֻ࡛࡛፟＼𑂳⚚／ֻ࡛�
 
 > ├┈・──・──・﹕₊˚ ✦・୨୧・
 > │  ◦  ⚙️ _${usedPrefix}menuall_
-> 🍧 ꒰ 𝗺𝘂𝗲𝘀𝘁𝗿𝗮 𝘁𝗼𝗱𝗼𝘀 𝗹𝗼𝘀 𝗰𝗼𝗺𝗮𝗻𝗱𝗼𝘀 𝗱𝗶𝘀𝗽𝗼𝗻𝗶𝗯𝗹𝗲𝘀 𝗲𝗻 𝗥𝘂𝗯𝘆 ꒱
+> 🍧 ꒰ 𝗺𝘂𝗲𝘀𝘁𝗿𝗮 𝘁𝗼𝗱𝗼𝘀 𝗹𝗼𝘀 𝗰𝗼𝗺𝗮𝗻𝗱𝗼𝘀 𝗱𝗶𝘀𝗽𝗼𝗻𝗶𝗯𝗹𝗲𝘀 𝗲𝗻 ${botName} ꒱
 > │  ◦  ⚙️ _${usedPrefix}menudescargas_
 > 🎧 ꒰ 𝗗𝗲𝘀𝗰𝗮𝗿𝗴𝗮 𝗮𝘂𝗱𝗶𝗼𝘀, 𝘃𝗶𝗱𝗲𝗼𝘀, 𝗜𝗴, 𝗙𝗕, 𝗧𝗶𝗸𝗧𝗼𝗸 𝘆 𝗺𝗮́𝘀 ꒱
 > │  ◦  ⚙️ _${usedPrefix}menueconomia_
@@ -33,7 +37,7 @@ const texto = `⋱⏜ֹ๋۪۪۪۪۪۪᷼︵̈⋱ֻ࡛࡛፟＼𑂳⚚／ֻ࡛�
 > 🌐 ꒰ 𝗛𝗲𝗿𝗿𝗮𝗺𝗶𝗲𝗻𝘁𝗮𝘀 𝗽𝗮𝗿𝗮 𝗹𝗮 𝗮𝗱𝗺𝗶𝗻𝗶𝘀𝘁𝗿𝗮𝗰𝗶𝗼́𝗻 𝗱𝗲 𝘁𝘂 𝗴𝗿𝘂𝗽𝗼 ꒱
 > │  ◦  ⚙️ _${usedPrefix}menuia_
 > 🧠 ꒰ 𝗖𝗵𝗮𝘁𝗚𝗣𝗧, 𝗚𝗲𝗺𝗶𝗻𝗶 𝘆 𝗖𝗼𝗽𝗶𝗹𝗼𝘁 𝗽𝗮𝗿𝗮 𝗰𝗼𝗻𝘃𝗲𝗿𝘀𝗮𝗿 𝘆 𝗿𝗲𝘀𝗼𝗹𝘃𝗲𝗿 𝗱𝘂𝗱𝗮𝘀 ꒱
-> 🤖 ꒰ 𝗖𝗿𝗲𝗮, 𝗹𝗶𝘀𝘁𝗮 𝘆 𝗴𝗲𝘀𝘁𝗶𝗼𝗻𝗮 𝗦𝘂𝗯-𝗕𝗼𝘁𝘀 𝗱𝗲 𝗥𝘂𝗯𝘆 ꒱
+> 🤖 ꒰ 𝗖𝗿𝗲𝗮, 𝗹𝗶𝘀𝘁𝗮 𝘆 𝗴𝗲𝘀𝘁𝗶𝗼𝗻𝗮 𝗦𝘂𝗯-𝗕𝗼𝘁𝘀 𝗱𝗲 ${botName} ꒱
 > │  ◦  ⚙️ _${usedPrefix}menuanime_
 > 💢 ꒰ 𝗘𝘅𝗽𝗿𝗲́𝘀𝗮𝘁𝗲 𝗰𝗼𝗻 𝗿𝗲𝗮𝗰𝗰𝗶𝗼𝗻𝗲𝘀 𝗱𝗲 𝗮𝗻𝗶𝗺𝗲 𝗶𝗰𝗼́𝗻𝗶𝗰𝗮𝘀 ꒱
 > │  ◦  ⚙️ _${usedPrefix}menujuegos_

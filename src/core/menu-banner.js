@@ -34,7 +34,7 @@ banners = meta.category_banners && typeof meta.category_banners === 'object' ? m
 banners = {}
 }
 const key = normalizeMenuCategory(category)
-return banners[key] || profile?.individualMenuImageUrl || nativeBanner
+return banners[key] || banners.global || profile?.individualMenuImageUrl || profile?.menuImageUrl || nativeBanner
 }
 
 export async function getActiveBotProfile(conn) {

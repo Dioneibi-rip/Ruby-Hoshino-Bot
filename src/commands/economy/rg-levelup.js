@@ -1,5 +1,5 @@
 import { canLevelUp, xpRange } from '../../library/levelling.js';
-import { ensureUserRole } from '../functions/_roles.js';
+import { ensureUserRole } from '../uncategorized/_roles.js';
 import { resolveInteractionTarget, resolveIdentityName } from '../../core/identity-utils.js';
 
 let handler = async (m, { conn }) => {

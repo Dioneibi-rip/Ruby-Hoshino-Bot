@@ -1,6 +1,7 @@
-import { prepareWAMessageMedia, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys'
+import { generateWAMessageFromContent, proto } from '@whiskeysockets/baileys'
 import fs from 'fs'
 import path from 'path'
+import { getMenuMedia } from '../../core/menu-media.js'
 
 const menuMediaCache = new WeakMap()
 const localCatalogoPath = path.join(process.cwd(), 'src', 'catalogo.jpg')
@@ -88,13 +89,6 @@ const thumb = getLocalCatalogoBuffer()
 return { key: { participant: '0@s.whatsapp.net', remoteJid: 'status@broadcast', fromMe: false, id: 'Halo' }, message: { productMessage: { product: { productImage: { jpegThumbnail: thumb }, title: `𝖬𝖤𝖭𝖴 𝖫𝖨𝖲𝖳 • ${botName.toUpperCase()}`, description: '╰┈➤ 𝖨𝖭𝖳𝖤𝖱𝖠𝖢𝖳𝖨𝖵𝖤 𝖬𝖤𝖭𝖴', retailerId: 'INFO • ESTADO', productImageCount: 1 }, businessOwnerJid: '0@s.whatsapp.net' } }, participant: '0@s.whatsapp.net' }
 }
 
-async function getMenuMedia(conn) {
-const cached = menuMediaCache.get(conn)
-if (cached) return cached
-const media = await prepareWAMessageMedia({ image: getLocalCatalogoBuffer() }, { upload: conn.waUploadToServer })
-menuMediaCache.set(conn, media)
-return media
-}
 
 function clockString(ms) {
 let d = isNaN(ms) ? '--' : Math.floor(ms / 86400000)

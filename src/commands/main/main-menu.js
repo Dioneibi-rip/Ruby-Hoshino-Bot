@@ -2,7 +2,7 @@ import moment from '../../library/momentCompat.js';
 import fs from 'fs';
 import { xpRange } from '../../library/levelling.js';
 import path from 'path';
-import { ensureUserRole } from '../functions/_roles.js';
+import { ensureUserRole } from '../uncategorized/_roles.js';
 
 async function pathExists(file){
 try{
@@ -743,11 +743,11 @@ let txt = `
 ├┈ ↷  𝙀𝘿𝙄𝘾𝙄𝙊́𝙉 𝘿𝙀 𝙎𝙐𝘽-𝘽𝙊𝙏
 ├• ✐; ₊˚✦୧︰ 𝘽𝙖𝙖𝙎 .
 ├┈・──・──・﹕₊˚ ✦・୨୧・
-ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setbotname • ${prefix}setbotprefix*
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}botname • ${prefix}setprefix*
 > ✦ Personaliza nombre y prefijo.
-ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setpairingprefix • ${prefix}setpairingimage*
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setpprefix • ${prefix}setpimg*
 > ✦ Personaliza el código de vinculación.
-ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setbotmenu • ${prefix}setmenubanner*
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setmenuall • ${prefix}setbanner*
 > ✦ Personaliza MenuAll y banners individuales.
 ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setbotwelcome • ${prefix}setbotbye*
 > ✦ Personaliza bienvenida y despedida.
