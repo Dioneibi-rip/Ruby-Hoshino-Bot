@@ -24,9 +24,9 @@ if (/^https?:\/\//i.test(value)) return { url: value }
 return fs.existsSync(value) ? fs.readFileSync(value) : fs.readFileSync(defaultMenuImagePath)
 }
 
-export async function getMenuMedia(conn, category = 'global') {
+export async function getMenuMedia(conn, category = 'global', explicitSource = '') {
 const profile = await getActiveBotProfile(conn)
-const source = resolveMenuMediaSource(profile, category)
+const source = explicitSource || resolveMenuMediaSource(profile, category)
 const mediaValue = toMediaValue(source)
 const message = isVideoSource(source) ? { video: mediaValue } : { image: mediaValue }
 return prepareWAMessageMedia(message, { upload: conn.waUploadToServer })

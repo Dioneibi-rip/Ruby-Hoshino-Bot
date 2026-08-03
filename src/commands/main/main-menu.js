@@ -773,8 +773,9 @@ isForwarded: true}
 await m.react('💛');
 
 try {
+const menuAllMedia = global.db?.data?.bots?.[conn.user?.jid]?.menuall || profile.menuVideoUrl || randomGif
 await conn.sendMessage(m.chat, {
-...menuMediaPayload(profile.menuVideoUrl || randomGif, txt),
+...menuMediaPayload(menuAllMedia, txt),
 contextInfo: {
 mentionedJid: [m.sender, userId],
 isForwarded: true,
