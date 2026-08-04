@@ -1,48 +1,8 @@
 import { loadHarem, isSameUserId } from '../../library/gacha-group.js';
 import { normalizeIdentityJid, buildParticipantsByLid, resolveIdentityName } from '../../core/identity-utils.js';
 import { loadCharacters } from '../../library/gacha-characters.js';
-import { getCooldownKey, isRedisReady, redis } from '../../library/redis.js';
+import { GACHA_COOLDOWN_COMMANDS, getGachaCooldownStatus, normalizeGachaUserId } from '../../helpers/gacha-cooldowns.js';
 import { normalizePity, renderPityBar } from '../../library/gacha-pity.js';
-
-const cooldownAliases = {
-rollwaifu: ['rw', 'rollwaifu'],
-claim: ['claim', 'reclamar', 'c'],
-vote: ['vote', 'votar']
-};
-
-function formatTime(ms) {
-if (!Number.isFinite(ms) || ms <= 0) return 'Ahora.';
-const totalSeconds = Math.ceil(ms / 1000);
-const minutes = Math.floor(totalSeconds / 60);
-const seconds = totalSeconds % 60;
-if (minutes <= 0) return `${seconds} segundos`;
-if (seconds <= 0) return `${minutes} minutos`;
-return `${minutes} minutos ${seconds} segundos`;
-}
-
-async function getCooldownStatus(commands = [], userId = '') {
-if (!userId || !isRedisReady()) return 'Ahora.';
-const ttls = [];
-for (const command of commands) {
-if (!command) continue;
-const key = getCooldownKey(command, userId);
-try {
-const value = await redis.get(key);
-if (!value) continue;
-const ttlSeconds = await redis.ttl(key);
-if (Number.isFinite(ttlSeconds) && ttlSeconds > 0) ttls.push(ttlSeconds * 1000);
-} catch (error) {
-console.error('[ginfo] No se pudo consultar cooldown:', error);
-return 'Ahora.';
-}
-}
-return ttls.length ? formatTime(Math.max(...ttls)) : 'Ahora.';
-}
-
-function normalizeUserId(userId = '') {
-if (!userId) return '';
-return String(userId).trim();
-}
 
 function getSeriesName(character = {}) {
 return String(character.source || character.series || character.anime || character.origin || character.game || '').trim();
@@ -54,7 +14,7 @@ const safeParticipants = Array.isArray(participants) ? participants : [];
 const participantsByLid = buildParticipantsByLid(safeParticipants);
 const rawTarget = m?.mentionedJid?.[0] || m?.quoted?.sender || m?.quoted?.participant || m?.quoted?.key?.participant || m?.sender || '';
 const normalizedTarget = await normalizeIdentityJid(conn, rawTarget, participantsByLid);
-const userId = normalizeUserId(normalizedTarget || rawTarget || m?.sender || '');
+const userId = normalizeGachaUserId(normalizedTarget || rawTarget || m?.sender || '');
 const groupId = m?.chat;
 if (!userId || !groupId) throw new Error(`Datos insuficientes en ginfo: userId=${userId || 'vacío'}, groupId=${groupId || 'vacío'}`);
 
@@ -65,9 +25,9 @@ userName = await resolveIdentityName(conn, userId, { participantsByLid, fallback
 console.error('[ginfo] No se pudo resolver el nombre del usuario:', error);
 }
 
-const rwStatus = await getCooldownStatus(cooldownAliases.rollwaifu, userId);
-const claimStatus = await getCooldownStatus(cooldownAliases.claim, userId);
-const voteStatus = await getCooldownStatus(cooldownAliases.vote, userId);
+const rwStatus = await getGachaCooldownStatus(GACHA_COOLDOWN_COMMANDS.rollwaifu, userId);
+const claimStatus = await getGachaCooldownStatus(GACHA_COOLDOWN_COMMANDS.claim, userId);
+const voteStatus = await getGachaCooldownStatus(GACHA_COOLDOWN_COMMANDS.vote, userId);
 
 const allCharactersRaw = await loadCharacters();
 const allCharacters = Array.isArray(allCharactersRaw) ? allCharactersRaw : [];

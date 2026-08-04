@@ -141,10 +141,7 @@ const nextGachaPity = calculateNextPity(pityBefore, rarity.key, { guaranteed: gu
 const pityStatus = `${renderPityBar(nextGachaPity)} ${nextGachaPity}%`
 const pityNote = guaranteedPity ? ' ✦ Garantía activada' : ''
 
-if (!claimedInGroup) {
-const rollOwner = exclusiveOwner || userId
-global.activeRolls[`${groupId}:${randomCharacter.id}`] = { user: rollOwner, time: Date.now() }
-}
+const rollOwner = !claimedInGroup ? (exclusiveOwner || userId) : null
 
 const message = `
 ㅤㅤ⏜⋮ㅤㅤ꒰ㅤ꒰ㅤㅤ𖹭⃞🎲⃞𖹭ㅤㅤ꒱ㅤ꒱ㅤㅤ⋮⏜
@@ -179,6 +176,7 @@ const message = `
 `
 
 await conn.sendMessage(m.chat, { image: { url: randomImage }, mimetype: 'image/jpeg', caption: message }, { quoted: m })
+if (rollOwner) global.activeRolls[`${groupId}:${randomCharacter.id}`] = { user: rollOwner, time: Date.now() }
 user.gachaTokens = nextGachaTokens
 user.gachaPity = nextGachaPity
 if (global.db.updateUser) global.db.updateUser(userId, { gachaTokens: user.gachaTokens, gachaPity: user.gachaPity })

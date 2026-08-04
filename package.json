@@ -16,7 +16,7 @@
     "eslintfix": "eslint --fix .",
     "qr": "node index.js qr",
     "start": "node index.js",
-    "test": "node --check index.js && node --check src/bootstrap/app.js && node --check src/router/handler.js"
+    "test": "node --check index.js && node --check src/bootstrap/app.js && node --check src/router/handler.js && node --check src/commands/main/gacha-ginfo.js && node --check src/commands/gacha/gacha-rollwaifu.js && node test/gacha-cooldowns.test.js"
   },
   "author": {
     "name": "Dioneibi-rip"
