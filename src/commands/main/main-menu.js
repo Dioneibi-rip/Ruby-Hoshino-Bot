@@ -757,6 +757,8 @@ let txt = `
 > ✦ Personaliza banners individuales.
 ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setbotwelcome • ${prefix}setbotbye*
 > ✦ Personaliza bienvenida y despedida.
+ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setwarnimage • ${prefix}setwarnmsg*
+> ✦ Personaliza advertencias interactivas.
 ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}setprimary • ${prefix}resetbot*
 > ✦ Fija o restablece el bot primario del grupo.
 ᳯ⃞ 𑪏𑪋ᩧ✿𝆬﹕ *${prefix}botprofile • ${prefix}resetbotprofile*
@@ -773,8 +775,9 @@ isForwarded: true}
 await m.react('💛');
 
 try {
+const menuAllMedia = global.db?.data?.bots?.[conn.user?.jid]?.menuall || profile.menuVideoUrl || randomGif
 await conn.sendMessage(m.chat, {
-...menuMediaPayload(profile.menuVideoUrl || randomGif, txt),
+...menuMediaPayload(menuAllMedia, txt),
 contextInfo: {
 mentionedJid: [m.sender, userId],
 isForwarded: true,

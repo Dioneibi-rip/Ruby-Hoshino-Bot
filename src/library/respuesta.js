@@ -53,12 +53,11 @@ const newsletterJid='120363335626706839@newsletter'
 const newsletterName='𖥔ᰔᩚ⋆｡˚ ꒰🍒 ʀᴜʙʏ-ʜᴏsʜɪɴᴏ | ᴄʜᴀɴɴᴇʟ-ʙᴏᴛ 💫꒱࣭'
 const fallbackImage='https://files.catbox.moe/xr2m6u.jpg'
 
-const handler=async(type,conn,m,comando)=>{
-const msg={
+const DEFAULT_WARNING_MESSAGES={
 rowner:'「 🌌 」 *¡A-Ah! (⁄ ⁄•⁄ω⁄•⁄ ⁄) ᴇsᴛᴀ ғᴜɴᴄɪᴏ́ɴ ᴇs ᴇxᴄʟᴜsɪᴠᴀ ᴘᴀʀᴀ ᴍɪ ᴄʀᴇᴀᴅᴏʀ ᴄᴇʟᴇsᴛɪᴀʟ,* `ᴅɪᴏɴᴇɪʙɪ-sᴀᴍᴀ` *~ 💫*\n\n> 🎀 `sᴏʟᴏ ǫᴜɪᴇɴ ᴍᴇ ᴅɪᴏ ᴠɪᴅᴀ ᴘᴜᴇᴅᴇ ᴜsᴀʀʟᴀ.` ฅ(•ㅅ•❀)ฅ',
 owner:'「 👑 」 *¡Nʏᴀᴀ~! (≧◡≦) sᴏʟᴏ ᴍɪ* `ᴅᴜᴇɴ̃ᴏ ʏ ᴘʀᴏɢʀᴀᴍᴀᴅᴏʀᴇs` *ᴛɪᴇɴᴇɴ ᴘᴇʀᴍɪsᴏ ᴘᴀʀᴀ ᴇᴊᴇᴄᴜᴛᴀʀ ᴇsᴛᴏ~ 💕*',
 mods:'「 🧸 」 *Uɢᴜᴜ~ (,,>﹏<,,) ᴇsᴛᴇ ᴄᴏᴍᴀɴᴅᴏ ᴇs ᴇxᴄʟᴜsɪᴠᴀ ᴘᴀʀᴀ ʟᴏs* `ᴀʏᴜᴅᴀɴᴛᴇs ᴍᴀ́ɢɪᴄᴏs` *ᴅᴇ ʀᴜʙʏ. ✨*',
-premium:'❌ *Acceso Denegado*\nEste comando es exclusivo para usuarios Premium.\n\n🌟 Para adquirir Premium y desbloquear estos beneficios, escribe: *#comprarpremium*',
+premium:'「 💎 」 *¡Eʜʜ~? (o_O) ᴇsᴛᴀ ʜᴀʙɪʟɪᴅᴀᴅ ᴇs sᴏʟᴏ ᴘᴀʀᴀ* `ᴜsᴜᴀʀɪᴏs ᴘʀᴇᴍɪᴜᴍ-ᴅᴇsᴜ` *~ ʟᴏ sɪᴇɴᴛᴏ ᴍᴜᴄʜᴏ.* 🌸',
 group:'「 🐾 」 *¡Oɴɪɪ-ᴄʜᴀɴ! (ง ื▿ ื)ว ᴇsᴛᴀ ғᴜɴᴄɪᴏ́ɴ sᴏ́ʟᴏ ᴘᴜᴇᴅᴇ ᴜsᴀʀsᴇ ᴇɴ* `ɢʀᴜᴘᴏs` *... ¡Iɴᴠɪ́ᴛᴀᴍᴇ ᴀ ᴜɴᴏ!* 🍡',
 private:'「 💌 」 *Sʜʜ~ ( ˘ ³˘)♥︎ ᴜsᴀ ᴇsᴛᴇ ᴄᴏᴍᴀɴᴅᴏ ᴇɴ* `ᴘʀɪᴠᴀᴅᴏ` *ᴄᴏɴᴍɪɢᴏ, ᴘᴏʀғɪs... sᴏʟᴏ ᴛᴜ́ ʏ ʏᴏ 💙.*',
 admin:'「 🛡️ 」 *¡Kʏᴀʜ~! ( Ò﹏Ó) sᴏʟᴏ ʟᴏs* `ᴀᴅᴍɪɴ-sᴇɴᴘᴀɪ` *ᴅᴇʟ ɢʀᴜᴘᴏ ᴘᴜᴇᴅᴇɴ ᴜsᴀʀ ᴇsᴛᴇ ᴄᴏᴍᴀɴᴅᴏ.* 🎀',
@@ -66,31 +65,32 @@ botAdmin:'「 🔧 」 *¡E-ᴇsᴘᴇʀᴀ! (｡•́︿•̀｡)* `ɴᴇᴄᴇ
 unreg:'「 🔄 」 *Tu perfil se crea automáticamente.* Si quieres empezar desde cero, usa `/unreg si` para reiniciar tu cuenta.',
 nsfw:'「 🚫 」 *¡B-ʙᴀᴋᴀ! (///￣ ￣///) ᴇʟ ᴄᴏɴᴛᴇɴɪᴅᴏ* `ɴsғᴡ` *ᴇsᴛᴀ́ ᴅᴇsᴀᴄᴛɪᴠᴀᴅᴏ ᴘᴀʀᴀ ᴘʀᴏᴛᴇɢᴇʀ ᴛᴜ ᴘᴜʀᴏ ᴋᴏᴋᴏʀᴏ 💙.*',
 restrict:'「 📵 」 *¡Oᴜʜ~! (￣▽￣*)ゞ ᴇsᴛᴀ ᴏᴘᴄɪᴏ́ɴ ᴇsᴛᴀ́* `ʟɪᴍɪᴛᴀᴅᴀ` *ᴘᴏʀ ᴍɪ ᴄʀᴇᴀᴅᴏʀ.*\n\n> 💌 `ᴄᴏɴᴛᴀᴄᴛᴀ ᴄᴏɴ ᴇ́ʟ sɪ ᴅᴇsᴇᴀs ᴀᴄᴛɪᴠᴀʀʟᴀ.`'
-}[type]
-
-if(msg){
-const randomUrl=imagenes[Math.floor(Math.random()*imagenes.length)]
-const matchedUrl='https://github.com/Dioneibi-rip'
-
-let rimg
-try{
-const response=await fetch(randomUrl)
-if(response.ok){
-const arrayBuffer=await response.arrayBuffer()
-rimg=Buffer.from(arrayBuffer)
-}else{
-throw new Error()
 }
-}catch(error){
+
+function cleanWarningUrl(value=''){
+return String(value||'').trim().replace(/^\[(https?:\/\/[^\]]+)\]\(.*\)$/,'$1')
+}
+
+async function fetchThumbnail(url=''){
 try{
-const fallbackRes=await fetch(fallbackImage)
-const fbBuffer=await fallbackRes.arrayBuffer()
-rimg=Buffer.from(fbBuffer)
+const response=await fetch(cleanWarningUrl(url))
+if(!response.ok)throw new Error('thumbnail fetch failed')
+return Buffer.from(await response.arrayBuffer())
 }catch{
-rimg=null
+return null
 }
 }
 
+const handler=async(type,conn,m,comando)=>{
+const jid=conn?.user?.jid || conn?.user?.id || ''
+const botConfig=global.db?.data?.bots?.[jid] || {}
+const customMsgs=botConfig.warningMsgs || {}
+const msg=customMsgs[type] || DEFAULT_WARNING_MESSAGES[type]
+if(msg){
+const randomUrl=botConfig.warnImage || imagenes[Math.floor(Math.random()*imagenes.length)]
+const matchedUrl='https://github.com/Dioneibi-rip'
+let rimg=await fetchThumbnail(randomUrl)
+if(!rimg)rimg=await fetchThumbnail(fallbackImage)
 try{
 await conn.relayMessage(
 m.chat,
@@ -110,21 +110,15 @@ stanzaId:m.id,
 remoteJid:m.chat,
 isForwarded:true,
 forwardingScore:999,
-forwardedNewsletterMessageInfo:{
-newsletterJid,
-newsletterName,
-serverMessageId:-1
-}
+forwardedNewsletterMessageInfo:{newsletterJid,newsletterName,serverMessageId:-1}
 }
 }
 },
 {quoted:m}
 )
-await m.react('🎀')
-}catch(e){
+await m.react?.('🎀')
+}catch(e){}
 }
-}
-
 return true
 }
 

@@ -196,6 +196,9 @@ try {
 const chat = this.decodeJid?.(update.id) || update.id
 if (!chat?.endsWith?.('@g.us') || !Array.isArray(update.participants) || !update.participants.length) return
 const chatData = global.db?.getChat?.(chat) || global.db?.data?.chats?.[chat]
+const sessionJid = normalizeSessionJid(this?.user?.jid || this?.user?.id || '')
+const primaryBot = normalizeSessionJid(chatData?.primaryBot || chatData?.botPrimario || chatData?.primaryBotJid || '')
+if (primaryBot && primaryBot !== sessionJid) return
 if (!chatData?.welcome) return
 const action = String(update.action || '').toLowerCase()
 const messageStubType = action === 'add' || action === 'invite' ? 27 : action === 'remove' || action === 'leave' ? 28 : null

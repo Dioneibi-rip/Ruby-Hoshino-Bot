@@ -9,7 +9,7 @@ import { getNativeBotProfile, hydrateBotProfile } from '../core/botProfileStore.
 
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 3_000
 const DEFAULT_RATE_LIMIT_MAX = 6
-const PRIMARY_RESET_COMMANDS = new Set(['resetbot', 'resetprimary', 'delprimary', 'resetprimario', 'botreset'])
+const PRIMARY_RESET_TEXTS = new Set(['.resetbot', '.resetprimary', '.delprimary'])
 
 function parseCommandText(text = '', usedPrefix = '') {
 const raw = String(text || '').trim()
@@ -154,7 +154,7 @@ if (ctx.halted) return
 const chatData = m.chat ? global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat] || {} : {}
 const sessionJid = normalizeSessionJid(conn?.user?.jid || conn?.user?.id || '')
 const primaryBot = normalizeSessionJid(chatData?.primaryBot || chatData?.botPrimario || chatData?.primaryBotJid || '')
-if (m.isGroup && ctx.commandName && primaryBot && primaryBot !== sessionJid && !PRIMARY_RESET_COMMANDS.has(ctx.commandName)) {
+if (m.isGroup && primaryBot && primaryBot !== sessionJid && !PRIMARY_RESET_TEXTS.has(String(m.text || '').trim().toLowerCase())) {
 ctx.halted = true
 return
 }
@@ -205,12 +205,12 @@ ctx.commandMetadata = metadata
 if (!metadata) return
 const permissions = metadata.permissions || {}
 if (permissions.group && !ctx.m.isGroup) {
-await ctx.m.reply?.('Este comando solo puede usarse en grupos.')
+await global.dfail?.('group', ctx.m, ctx.conn)
 ctx.halted = true
 return
 }
 if (permissions.owner && !ctx.isOwner) {
-await ctx.m.reply?.('Este comando solo puede usarlo el propietario del bot.')
+await global.dfail?.('owner', ctx.m, ctx.conn)
 ctx.halted = true
 return
 }
@@ -225,12 +225,12 @@ participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.partic
 }
 ctx.permissionContext ||= buildPermissionContext(ctx.conn, ctx.m, ctx.sender, participants)
 if (permissions.admin && !ctx.permissionContext.isAdmin && !ctx.permissionContext.isOwner) {
-await ctx.m.reply?.('Este comando requiere permisos de administrador.')
+await global.dfail?.('admin', ctx.m, ctx.conn)
 ctx.halted = true
 return
 }
 if (permissions.botAdmin && !ctx.permissionContext.isBotAdmin) {
-await ctx.m.reply?.('Necesito ser administrador para ejecutar este comando.')
+await global.dfail?.('botAdmin', ctx.m, ctx.conn)
 ctx.halted = true
 return
 }

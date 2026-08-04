@@ -23,6 +23,7 @@ return ''
 }
 
 export default async function(m,conn={user:{}}){
+if(conn?.user?.jid !== global.conn?.user?.jid)return
 if(m.key.remoteJid==='status@broadcast')return
 let _name=await conn.getName(m.sender)
 let sender=formatPhoneInternational(m.sender.replace('@s.whatsapp.net',''))+(_name?' ~'+chalk.green.bold(_name):'')
