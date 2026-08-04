@@ -50,6 +50,9 @@ const text = `🤖⊹ 𝐌𝐄𝐍𝐔 𝐉𝐀𝐃𝐈𝐁𝐎𝐓 / 𝐒𝐔�
 𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}setbotmenuall* • *${prefix}setmenuall*
 > ✦ Cambia la imagen/video del menú completo (#menuall).
 
+𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}setwarnimage* • *${prefix}setwarnmsg*
+> ✦ Personaliza advertencias interactivas de permisos.
+
 𓂃˛ׁ  ✿𝆬ᩙ⃞𓈒࣭🤖 *${prefix}setbanner* • *${prefix}setmenubanner*
 > ✦ Cambia el banner de submenús (Uso: ${prefix}setbanner [categoría]).
 

@@ -26,8 +26,15 @@ return fs.existsSync(value) ? fs.readFileSync(value) : fs.readFileSync(defaultMe
 
 export async function getMenuMedia(conn, category = 'global', explicitSource = '') {
 const profile = await getActiveBotProfile(conn)
-const source = explicitSource || resolveMenuMediaSource(profile, category)
+const fallbackSource = resolveMenuMediaSource(profile, category) || defaultMenuImagePath
+const source = explicitSource || fallbackSource
+try {
 const mediaValue = toMediaValue(source)
 const message = isVideoSource(source) ? { video: mediaValue } : { image: mediaValue }
 return prepareWAMessageMedia(message, { upload: conn.waUploadToServer })
+} catch (error) {
+const fallbackValue = toMediaValue(fallbackSource || defaultMenuImagePath)
+const fallbackMessage = isVideoSource(fallbackSource) ? { video: fallbackValue } : { image: fallbackValue }
+return prepareWAMessageMedia(fallbackMessage, { upload: conn.waUploadToServer })
+}
 }

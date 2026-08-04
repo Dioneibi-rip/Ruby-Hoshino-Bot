@@ -205,12 +205,12 @@ ctx.commandMetadata = metadata
 if (!metadata) return
 const permissions = metadata.permissions || {}
 if (permissions.group && !ctx.m.isGroup) {
-await ctx.m.reply?.('Este comando solo puede usarse en grupos.')
+await global.dfail?.('group', ctx.m, ctx.conn)
 ctx.halted = true
 return
 }
 if (permissions.owner && !ctx.isOwner) {
-await ctx.m.reply?.('Este comando solo puede usarlo el propietario del bot.')
+await global.dfail?.('owner', ctx.m, ctx.conn)
 ctx.halted = true
 return
 }
@@ -225,12 +225,12 @@ participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.partic
 }
 ctx.permissionContext ||= buildPermissionContext(ctx.conn, ctx.m, ctx.sender, participants)
 if (permissions.admin && !ctx.permissionContext.isAdmin && !ctx.permissionContext.isOwner) {
-await ctx.m.reply?.('Este comando requiere permisos de administrador.')
+await global.dfail?.('admin', ctx.m, ctx.conn)
 ctx.halted = true
 return
 }
 if (permissions.botAdmin && !ctx.permissionContext.isBotAdmin) {
-await ctx.m.reply?.('Necesito ser administrador para ejecutar este comando.')
+await global.dfail?.('botAdmin', ctx.m, ctx.conn)
 ctx.halted = true
 return
 }
