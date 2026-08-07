@@ -13,6 +13,7 @@ extractCharacterIdFromText
 } from '../../library/gacha-characters.js';
 import { canUserClaimCharacter } from '../../library/gacha-restrictions.js';
 import { resetProtectionOnTransfer } from '../../library/gacha-protection.js';
+import { deleteActiveRoll, evaluateRollWindow, formatWindowSeconds, getActiveRoll } from '../../library/gacha-roll-window.js';
 
 function isUserInGroup(userId, participants = []) {
 if (!userId) return false;
@@ -65,26 +66,23 @@ await conn.reply(m.chat, '🚫 Personaje no encontrado.', m);
 return false;
 }
 
-const rollData = global.activeRolls ? global.activeRolls[`${groupId}:${id}`] : null;
+const rollData = getActiveRoll(groupId, id);
 
 let timeElapsedStr = "";
 
 if (rollData) {
-const timeElapsed = now - rollData.time;
-const protectionTime = 30000;
-const expirationTime = 60000;
-if (timeElapsed > expirationTime) {
-delete global.activeRolls[`${groupId}:${id}`];
+const window = evaluateRollWindow(rollData, userId, now);
+if (window.state === 'expired') {
+deleteActiveRoll(groupId, id);
 await conn.reply(m.chat, "🍂 Ese personaje ya expiró y nadie puede reclamarlo ahora (vuelve a usar #rw).", m);
 return false;
 }
-if (timeElapsed < protectionTime && rollData.user !== userId) {
+if (window.state === 'protected') {
 const protectedBy = await conn.getName(rollData.user);
-const remainingProtection = Math.ceil((protectionTime - timeElapsed) / 1000);
-await conn.reply(m.chat, `🛡️ El personaje *${character.name}* está siendo protegido por *${protectedBy}* durante *${remainingProtection} segundos*.`, m);
+await conn.reply(m.chat, `🛡️ El personaje *${character.name}* está siendo protegido por *${protectedBy}* durante *${formatWindowSeconds(window.protectionRemainingMs)}*.`, m);
 return false;
 }
-timeElapsedStr = ` (${(timeElapsed / 1000).toFixed(1)}s)`;
+timeElapsedStr = ` (${(window.elapsedMs / 1000).toFixed(1)}s)`;
 } else {
 const harem = await loadHarem();
 const claim = findClaim(harem, groupId, id);
@@ -121,9 +119,7 @@ global.db.upsertHaremClaim(existingClaim || { groupId, userId, characterId: Stri
 await saveHarem(haremBefore);
 }
 
-if (global.activeRolls && global.activeRolls[`${groupId}:${id}`]) {
-delete global.activeRolls[`${groupId}:${id}`];
-}
+deleteActiveRoll(groupId, id);
 
 const username = await conn.getName(userId);
 const baseMessage = await getCustomClaimMessage(userId, username, character.name);

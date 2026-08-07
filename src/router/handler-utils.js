@@ -267,10 +267,18 @@ cache.set(cacheKey, tester)
 return tester
 }
 
+export const MENTION_TEXT_REGEX = /^@\d+/
+
+export function isMentionText(text = '') {
+return MENTION_TEXT_REGEX.test(String(text || '').trim())
+}
+
 export function getPrefixMatch(conn, plugin = {}, text = '') {
+const rawText = String(text || '')
+if (isMentionText(rawText)) return null
 const str2Regex = (str) => String(str || '').replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
 const prefixCache = getPrefixMatcherCache(conn)
-const fallbackPrefix = /^[#/!.@]/
+const fallbackPrefix = /^[#/!.]/
 const candidates = [plugin?.customPrefix, conn?.prefix, global.prefix, fallbackPrefix].filter(Boolean)
 const normalize = (prefix) => Array.isArray(prefix) ? prefix : [prefix]
 for (const source of candidates) {
@@ -296,8 +304,10 @@ prefixCache.set(cacheKey, re)
 continue
 }
 re.lastIndex = 0
-const match = re.exec(String(text || ''))
-if (match?.[0]) return [match, re]
+const match = re.exec(rawText)
+if (!match?.[0]) continue
+if (match[0].includes('@') && /^\d/.test(rawText.slice(match[0].length))) continue
+return [match, re]
 } catch (error) {
 console.error('[UPSERT ERROR]:', error)
 }

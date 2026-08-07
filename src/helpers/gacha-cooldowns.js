@@ -1,4 +1,4 @@
-import { getCooldownKey, isRedisReady, redis } from '../library/redis.js'
+import { peekCooldownMs, clearCooldownFor } from '../library/cooldown-store.js'
 
 export const GACHA_COOLDOWN_COMMANDS = Object.freeze({
   rollwaifu: ['rw', 'rollwaifu', 'roll'],
@@ -27,23 +27,37 @@ export function normalizeGachaUserId(userId = '') {
 
 export async function getGachaCooldownRemainingMs(commands = [], userId = '') {
   const normalizedUserId = normalizeGachaUserId(userId)
-  if (!normalizedUserId || !isRedisReady()) return 0
-  const commandList = Array.isArray(commands) ? commands : [commands]
-  const ttls = []
-  for (const command of commandList) {
-    if (!command) continue
-    const key = getCooldownKey(command, normalizedUserId)
-    const ttlSeconds = await redis.ttl(key)
-    if (Number.isFinite(ttlSeconds) && ttlSeconds > 0) ttls.push(ttlSeconds * 1000)
+  if (!normalizedUserId) return 0
+  try {
+    return await peekCooldownMs(commands, normalizedUserId)
+  } catch (error) {
+    console.error('[gacha-cooldowns] No se pudo consultar cooldown:', error)
+    return 0
   }
-  return ttls.length ? Math.max(...ttls) : 0
 }
 
 export async function getGachaCooldownStatus(commands = [], userId = '') {
-  try {
-    return formatRemainingTimeSpanish(await getGachaCooldownRemainingMs(commands, userId))
-  } catch (error) {
-    console.error('[gacha-cooldowns] No se pudo consultar cooldown:', error)
-    return 'Ahora.'
+  return formatRemainingTimeSpanish(await getGachaCooldownRemainingMs(commands, userId))
+}
+
+export async function getGachaCooldownReport(userId = '') {
+  const normalizedUserId = normalizeGachaUserId(userId)
+  const [rollMs, claimMs, voteMs] = await Promise.all([
+    getGachaCooldownRemainingMs(GACHA_COOLDOWN_COMMANDS.rollwaifu, normalizedUserId),
+    getGachaCooldownRemainingMs(GACHA_COOLDOWN_COMMANDS.claim, normalizedUserId),
+    getGachaCooldownRemainingMs(GACHA_COOLDOWN_COMMANDS.vote, normalizedUserId)
+  ])
+  return {
+    userId: normalizedUserId,
+    rollwaifu: { remainingMs: rollMs, ready: rollMs <= 0, label: formatRemainingTimeSpanish(rollMs) },
+    claim: { remainingMs: claimMs, ready: claimMs <= 0, label: formatRemainingTimeSpanish(claimMs) },
+    vote: { remainingMs: voteMs, ready: voteMs <= 0, label: formatRemainingTimeSpanish(voteMs) }
   }
+}
+
+export async function resetGachaCooldowns(userId = '') {
+  const normalizedUserId = normalizeGachaUserId(userId)
+  if (!normalizedUserId) return false
+  for (const commands of Object.values(GACHA_COOLDOWN_COMMANDS)) await clearCooldownFor(commands, normalizedUserId)
+  return true
 }

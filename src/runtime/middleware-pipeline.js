@@ -6,10 +6,18 @@ import { canManageBotSecurity, getAntiPrivateState, isChatBannedForBot, normaliz
 import { messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
 import { buildGuardContext, pluginNeedsJob, runPluginGuards, userHasJob } from '../router/permission-guard.js'
 import { getNativeBotProfile, hydrateBotProfile } from '../core/botProfileStore.js'
+import { formatCooldown, getCanonicalCommand, peekCooldownMs, resolveCooldownMs } from '../library/cooldown-store.js'
+import { buildCooldownNotice, replyWithFkontak } from '../core/notice.js'
 
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 3_000
 const DEFAULT_RATE_LIMIT_MAX = 6
-const PRIMARY_RESET_TEXTS = new Set(['.resetbot', '.resetprimary', '.delprimary'])
+const PRIMARY_RESET_COMMANDS = new Set(['resetbot', 'resetprimary', 'delprimary'])
+
+function isPrimaryResetRequest(text = '') {
+const stripped = String(text || '').trim().toLowerCase().replace(/^[#/!.@]+/, '')
+if (!stripped) return false
+return PRIMARY_RESET_COMMANDS.has(stripped.split(/\s+/)[0])
+}
 
 function parseCommandText(text = '', usedPrefix = '') {
 const raw = String(text || '').trim()
@@ -154,7 +162,7 @@ if (ctx.halted) return
 const chatData = m.chat ? global.db?.getChat?.(m.chat) || global.db?.data?.chats?.[m.chat] || {} : {}
 const sessionJid = normalizeSessionJid(conn?.user?.jid || conn?.user?.id || '')
 const primaryBot = normalizeSessionJid(chatData?.primaryBot || chatData?.botPrimario || chatData?.primaryBotJid || '')
-if (m.isGroup && primaryBot && primaryBot !== sessionJid && !PRIMARY_RESET_TEXTS.has(String(m.text || '').trim().toLowerCase())) {
+if (m.isGroup && primaryBot && primaryBot !== sessionJid && !isPrimaryResetRequest(m.text)) {
 ctx.halted = true
 return
 }
@@ -234,7 +242,9 @@ await global.dfail?.('botAdmin', ctx.m, ctx.conn)
 ctx.halted = true
 return
 }
-if (isChatBannedForBot(ctx.chatData, normalizeSessionJid(ctx.conn?.user?.jid || ctx.conn?.user?.id || '')) && !ctx.isOwner && !canManageBotSecurity(ctx.sender, ctx.conn)) ctx.halted = true
+const chatBanned = isChatBannedForBot(ctx.chatData, normalizeSessionJid(ctx.conn?.user?.jid || ctx.conn?.user?.id || ''))
+const canBypassBan = ctx.isOwner || canManageBotSecurity(ctx.sender, ctx.conn) || (isPrimaryResetRequest(ctx.m?.text) && (ctx.permissionContext.isAdmin || ctx.permissionContext.isRAdmin))
+if (chatBanned && !canBypassBan) ctx.halted = true
 ctx.participants = participants
 ctx.groupMetadata = groupMetadata
 }
@@ -249,19 +259,16 @@ return `${seconds}s`
 }
 
 getCommandCooldownMs(command = {}) {
-const raw = command?.cooldown ?? command?.cooldownMs ?? command?.cooldownTime ?? 0
-const value = Number(raw) || 0
-if (value <= 0) return 0
-return value < 1000 ? value * 1000 : value
+return resolveCooldownMs(command)
 }
 
-getCooldownMessage(command, remainingMs) {
+getCooldownMessage(command, remainingMs, ctx = {}) {
 const seconds = Math.max(1, Math.ceil(remainingMs / 1000))
-const hms = this.formatCooldownTime(remainingMs)
+const hms = formatCooldown(remainingMs)
 const custom = command?.cooldownMessage || command?.cooldownText || command?.cooldownReply
-if (typeof custom === 'function') return custom(seconds, hms, hms)
+if (typeof custom === 'function') return custom(seconds, hms, this.formatCooldownTime(remainingMs))
 if (typeof custom === 'string') return custom.replace(/%time%|%hms%/g, hms).replace(/%seconds%/g, String(seconds))
-return `⏳ La esfera de Ruby aún está sellada. Espera *${hms}* antes de invocar de nuevo este comando.`
+return buildCooldownNotice({ usedPrefix: ctx.usedPrefix || '', command: ctx.commandName || '', remaining: hms })
 }
 
 async userGuards(ctx, command, extra = {}) {
@@ -288,16 +295,17 @@ async cooldown(ctx, command) {
 if (ctx.isOwner) return true
 const cooldownMs = this.getCommandCooldownMs(command)
 if (!cooldownMs) return true
-const now = Date.now()
-const key = `${ctx.sender}:${ctx.commandName}`
-const expiresAt = Number(this.cooldowns.get(key) || 0)
-if (expiresAt > now) {
-await ctx.conn.reply?.(ctx.m.chat, this.getCooldownMessage(command, expiresAt - now), ctx.m)
+const canonical = getCanonicalCommand(command, ctx.commandName)
+const aliases = [...new Set([canonical, ctx.commandName].filter(Boolean))]
+const remainingMs = await peekCooldownMs(aliases, ctx.sender)
+if (remainingMs > 0) {
+const notice = this.getCooldownMessage(command, remainingMs, ctx)
+await replyWithFkontak(ctx.conn, ctx.m, notice, { name: '⏳ Rᥙby H᥆shіᥒ᥆ · Cᥙᥱᥒ𝗍ᥲ rᥱgrᥱsіvᥲ' })
 ctx.halted = true
 return false
 }
-this.cooldowns.set(key, now + cooldownMs)
-if (this.cooldowns.size > 10000) for (const [itemKey, itemExpiresAt] of this.cooldowns) if (itemExpiresAt <= now) this.cooldowns.delete(itemKey)
+ctx.cooldownMs = cooldownMs
+ctx.cooldownCommands = aliases
 return true
 }
 

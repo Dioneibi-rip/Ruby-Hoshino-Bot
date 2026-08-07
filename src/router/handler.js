@@ -8,6 +8,8 @@ import { shouldSilenceChatForBot, normalizeSessionJid } from '../core/session-ut
 import { executePlugin } from './plugin-executor.js'
 import { getPersonalStickerCommand } from '../core/sticker-command-utils.js'
 import { getCurrencyName } from '../core/currency.js'
+import { isMentionText } from './handler-utils.js'
+import { buildUnknownCommandNotice, replyWithFkontak } from '../core/notice.js'
 
 const registryReady = commandRegistry.init()
 const pipeline = new MiddlewarePipeline({ registry: commandRegistry })
@@ -107,8 +109,9 @@ __filename: ctx.commandMetadata?.filePath || ''
 
 async function replyInvalidCommand(conn, m, parsed = {}, usedPrefix = '') {
 if (!parsed?.command || !usedPrefix) return false
-const text = `(,,•᷄‎ࡇ•᷅ ,,)? ᥱᥣ ᥴ᥆mᥲᥒძ᥆ *${usedPrefix}${parsed.command}* ᥒ᥆ sᥱ ᥱᥒᥴᥙᥱᥒ𝗍rᥲ rᥱgіs𝗍rᥲძ᥆.\n\n⍴ᥲrᥲ ᥴ᥆ᥒsᥙᥣ𝗍ᥲr ᥣᥲ ᥣіs𝗍ᥲ ᥴ᥆m⍴ᥣᥱ𝗍ᥲ ძᥱ 𝖿ᥙᥒᥴі᥆ᥒᥲᥣіძᥲძᥱs ᥙsᥲ:\n» *${usedPrefix}help*`
-await (m.reply?.(text) || conn.reply?.(m.chat, text, m))
+if (isMentionText(m?.text || m?.body || '')) return false
+const text = buildUnknownCommandNotice(usedPrefix, parsed.command)
+await replyWithFkontak(conn, m, text, { name: '(,,•᷄ࡇ•᷅ ,,)? C᥆mᥲᥒძ᥆ ძᥱsᥴ᥆ᥒ᥆ᥴіძ᥆' })
 return true
 }
 

@@ -1,5 +1,6 @@
 import { format } from 'util'
-import { getCooldownKey, getCooldownSeconds, isRedisReady, redis, setRedisWithTTL } from '../library/redis.js'
+import { claimCooldown, formatCooldown, getCanonicalCommand, releaseCooldown, resolveCooldownMs } from '../library/cooldown-store.js'
+import { buildCooldownNotice, replyWithFkontak } from '../core/notice.js'
 import { buildGuardContext, isBotSender, runPluginGuards } from './permission-guard.js'
 
 export function segundosAHMS(totalSeconds = 0) {
@@ -10,10 +11,6 @@ const seconds = safeSeconds % 60
 if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`
 if (minutes > 0) return `${minutes}m ${seconds}s`
 return `${seconds}s`
-}
-
-function pluginUsesRedisCooldown(plugin) {
-return Boolean(getCooldownSeconds(plugin))
 }
 
 function formatCooldownTime(seconds) {
@@ -40,17 +37,28 @@ return customMessage
 return null
 }
 
-async function claimRedisCooldown(conn, plugin, name, m, command, sender) {
-if (!pluginUsesRedisCooldown(plugin)) return { claimed: false, allowed: true, key: null }
-if (!isRedisReady()) return { claimed: false, allowed: true, key: null }
-const seconds = getCooldownSeconds(plugin)
-const key = getCooldownKey(command || name, sender)
+async function claimPluginCooldown(conn, plugin, name, m, command, sender, usedPrefix = '') {
+const cooldownMs = resolveCooldownMs(plugin)
+if (!cooldownMs) return { claimed: false, allowed: true, keys: [] }
+const canonical = getCanonicalCommand(plugin, command || name)
+const aliases = [...new Set([canonical, String(command || '').toLowerCase()].filter(Boolean))]
 try {
-const ttl = await redis.ttl(key)
-if (ttl > 0) {
-const message = getCooldownMessage(plugin, ttl)
-if (message) await conn.reply(m.chat, message, m)
-return { claimed: false, allowed: false, key }
+const state = await claimCooldown(aliases, sender, cooldownMs)
+if (state.allowed) return { ...state, aliases }
+const remaining = formatCooldown(state.remainingMs)
+const custom = getCooldownMessage(plugin, Math.ceil(state.remainingMs / 1000))
+const notice = custom || buildCooldownNotice({ usedPrefix, command: command || canonical, remaining })
+await replyWithFkontak(conn, m, notice, { name: '⏳ Rᥙby H᥆shіᥒ᥆ · Cᥙᥱᥒ𝗍ᥲ rᥱgrᥱsіvᥲ' })
+return { ...state, aliases }
+} catch (error) {
+console.error('[cooldown] claim error', error)
+return { claimed: false, allowed: true, keys: [] }
+}
+}
+
+async function releasePluginCooldown(cooldownState) {
+if (!cooldownState?.claimed) return
+await releaseCooldown(cooldownState.keys)
 }
 const result = await setRedisWithTTL(key, '1', seconds, 'NX')
 if (result === 'OK') return { claimed: true, allowed: true, key }
@@ -93,7 +101,7 @@ const xp = 'exp' in plugin ? parseInt(plugin.exp) : 17
 if (xp > 200) m.reply('chirrido -_-')
 else m.exp += xp
 
-const cooldownState = await claimRedisCooldown(conn, plugin, name, m, extra.command, sender)
+const cooldownState = await claimPluginCooldown(conn, plugin, name, m, extra.command, sender, extra.usedPrefix)
 if (!cooldownState.allowed) return false
 
 let pluginResult
@@ -101,11 +109,11 @@ try {
 pluginResult = await plugin.call(conn, m, extra)
 const pluginSucceeded = pluginResult !== false && !m.error
 m.pluginFailed = !pluginSucceeded
-if (!pluginSucceeded) await releaseRedisCooldown(cooldownState)
+if (!pluginSucceeded) await releasePluginCooldown(cooldownState)
 if (pluginSucceeded && !isEconomyPremium && !isBotSelf) m.coin = m.coin || plugin.coin || false
 } catch (error) {
 m.error = error
-await releaseRedisCooldown(cooldownState)
+await releasePluginCooldown(cooldownState)
 console.error(error)
 if (error) m.reply(sanitizeError(error))
 m.pluginFailed = true
