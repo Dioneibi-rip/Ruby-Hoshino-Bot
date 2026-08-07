@@ -16,7 +16,7 @@
     "eslintfix": "eslint --fix .",
     "qr": "node index.js qr",
     "start": "node index.js",
-    "test": "node --check index.js && node --check src/bootstrap/app.js && node --check src/router/handler.js && node --check src/commands/main/gacha-ginfo.js && node --check src/commands/gacha/gacha-rollwaifu.js && node test/gacha-cooldowns.test.js"
+    "test": "node --check index.js && node --check src/bootstrap/app.js && node --check src/router/handler.js && node --check src/router/plugin-executor.js && node --check src/runtime/middleware-pipeline.js && node --check src/commands/main/gacha-ginfo.js && node --check src/commands/gacha/gacha-claim.js && node --check src/commands/gacha/gacha-rollwaifu.js && node --check src/commands/jadibot/jadibot-resetbot.js && node --check src/commands/settings/_nable.js"
   },
   "author": {
     "name": "Dioneibi-rip"
@@ -31,8 +31,11 @@
     "url": "https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot/issues"
   },
   "dependencies": {
+    "@hapi/boom": "^10.0.1",
     "@whiskeysockets/baileys": "github:Dioneibi-rip/Ruby-Baileys",
     "better-sqlite3": "github:Dioneibi-rip/sqlite3",
+    "googleapis": "^174.0.1",
+    "sharp": "^0.35.3",
     "ws": "^8.18.0"
   }
 }

@@ -3,6 +3,8 @@ import { loadCharactersOptimized } from '../../library/gacha-cache-manager.js'
 import { normalizeCharacterId } from '../../library/gacha-characters.js'
 import { getExclusiveOwner } from '../../library/gacha-restrictions.js'
 import { calculateNextPity, isPityGuaranteed, renderPityBar } from '../../library/gacha-pity.js'
+import { pruneActiveRolls, setActiveRoll, ROLL_EXPIRATION_MS, ROLL_PROTECTION_MS } from '../../library/gacha-roll-window.js'
+import { replyWithFkontak } from '../../core/notice.js'
 
 const ROLL_TOKEN_COST = 1
 const RARITY_TIERS = [
@@ -100,13 +102,11 @@ user.tokens = Number(user.tokens || 0)
 user.gachaTokens = Number(user.gachaTokens || 0)
 user.gachaPity = Number(user.gachaPity || 0)
 if (user.gachaTokens < ROLL_TOKEN_COST) {
-await conn.reply(m.chat, `✘ Necesitas *1 Token Gacha* para tirar el gacha. Puedes comprarlo con *#tienda comprar token*.`, m)
+await replyWithFkontak(conn, m, '(,,•᷄‎ࡇ•᷅ ,,)? ᥒᥱᥴᥱsі𝗍ᥲs *1 T᥆kᥱᥒ Gᥲᥴhᥲ* ⍴ᥲrᥲ 𝗍іrᥲr ᥱᥣ gᥲᥴhᥲ.\n\n» ᥴ᥆m⍴rᥲᥣ᥆ ᥴ᥆ᥒ *#tienda comprar token*', { name: '✘ Rᥙby H᥆shіᥒ᥆ · T᥆kᥱᥒs' })
 return false
 }
 const now = Date.now()
-for (const [rollKey, rollData] of Object.entries(global.activeRolls)) {
-if (!rollData?.time || now - rollData.time > 3 * 60 * 1000) delete global.activeRolls[rollKey]
-}
+pruneActiveRolls(now)
 
 try {
 const characters = await loadCharactersOptimized()
@@ -172,18 +172,21 @@ const message = `
 ▓𓏴𓏴 ۪ ֹ 🅃꯭🄾꯭🄺꯭🄴꯭🄽꯭🅂 :
 ╰┈➤ 🎟️ ${nextGachaTokens} restantes
 
+▓𓏴𓏴 ۪ ֹ 🅅꯭🄴꯭🄽꯭🅃꯭🄰꯭🄽꯭🄰 :
+╰┈➤ 🛡️ ${Math.round(ROLL_PROTECTION_MS / 1000)}s solo para ti · ⏳ expira en ${Math.round(ROLL_EXPIRATION_MS / 1000)}s
+
 ㅤㅤㅤㅤㅤㅤ© ᑲ᥆𝗍 𝗀ɑᥴ꯭hɑ 𝗌𝗒sł꯭ᥱꭑ꒱
 `
 
 await conn.sendMessage(m.chat, { image: { url: randomImage }, mimetype: 'image/jpeg', caption: message }, { quoted: m })
-if (rollOwner) global.activeRolls[`${groupId}:${randomCharacter.id}`] = { user: rollOwner, time: Date.now() }
+if (rollOwner) setActiveRoll(groupId, randomCharacter.id, rollOwner, Date.now())
 user.gachaTokens = nextGachaTokens
 user.gachaPity = nextGachaPity
 if (global.db.updateUser) global.db.updateUser(userId, { gachaTokens: user.gachaTokens, gachaPity: user.gachaPity })
 else global.db.scheduleFlush?.()
 } catch (error) {
 console.error(error)
-await conn.reply(m.chat, `✘ Error al cargar el personaje: ${error.message}`, m)
+await replyWithFkontak(conn, m, `(,,•᷄‎ࡇ•᷅ ,,)? ᥒ᥆ sᥱ ⍴ᥙძ᥆ ᥴᥲrgᥲr ᥱᥣ ⍴ᥱrs᥆ᥒᥲjᥱ.\n\n» ${error.message}`, { name: '✘ Rᥙby H᥆shіᥒ᥆ · Err᥆r' })
 return false
 }
 }

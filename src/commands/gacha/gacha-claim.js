@@ -13,7 +13,8 @@ extractCharacterIdFromText
 } from '../../library/gacha-characters.js';
 import { canUserClaimCharacter } from '../../library/gacha-restrictions.js';
 import { resetProtectionOnTransfer } from '../../library/gacha-protection.js';
-import { deleteActiveRoll, evaluateRollWindow, formatWindowSeconds, getActiveRoll } from '../../library/gacha-roll-window.js';
+import { deleteActiveRoll, evaluateRollWindow, formatWindowSeconds, getActiveRoll, pruneActiveRolls, ROLL_EXPIRATION_MS, ROLL_PROTECTION_MS } from '../../library/gacha-roll-window.js';
+import { replyWithFkontak } from '../../core/notice.js';
 
 function isUserInGroup(userId, participants = []) {
 if (!userId) return false;
@@ -31,7 +32,6 @@ try {
 return global.db?.getSection?.('claim_config') || {};
 } catch (e) {
 return {};
-return false;
 }
 }
 
@@ -47,7 +47,7 @@ const groupId = m.chat;
 const now = Date.now();
 
 if (!m.quoted || !m.quoted.text) {
-await conn.reply(m.chat, '⚠️ Debes citar un personaje válido (usa #rw para ver el roll y luego cita ese mensaje con #claim).', m);
+await replyWithFkontak(conn, m, '(,,•᷄‎ࡇ•᷅ ,,)? ძᥱbᥱs ᥴі𝗍ᥲr ᥙᥒ ⍴ᥱrs᥆ᥒᥲjᥱ vᥲᥣіძ᥆.\n\n» ᥙsᥲ *#rw* ⍴ᥲrᥲ 𝗍іrᥲr ᥙᥒ r᥆ᥣᥣ y ᥣᥙᥱg᥆ ᥴі𝗍ᥲ ᥱsᥱ mᥱᥒsᥲjᥱ ᥴ᥆ᥒ *#claim*', { name: '✘ Rᥙby H᥆shіᥒ᥆ · Cᥣᥲіm' });
 return false;
 }
 
@@ -55,17 +55,18 @@ try {
 const characters = await loadCharacters();
 const id = extractCharacterIdFromText(m.quoted.text);
 if (!id) {
-await conn.reply(m.chat, '⚠️ No se detectó el ID del personaje en el mensaje citado.', m);
+await replyWithFkontak(conn, m, '(,,•᷄‎ࡇ•᷅ ,,)? ᥒ᥆ sᥱ ძᥱ𝗍ᥱᥴ𝗍᥆ ᥱᥣ ID ძᥱᥣ ⍴ᥱrs᥆ᥒᥲjᥱ ᥱᥒ ᥱᥣ mᥱᥒsᥲjᥱ ᥴі𝗍ᥲძ᥆.', { name: '✘ Rᥙby H᥆shіᥒ᥆ · Cᥣᥲіm' });
 return false;
 }
 
 const character = findCharacterById(characters, id);
 
 if (!character) {
-await conn.reply(m.chat, '🚫 Personaje no encontrado.', m);
+await replyWithFkontak(conn, m, '(,,•᷄‎ࡇ•᷅ ,,)? ⍴ᥱrs᥆ᥒᥲjᥱ ᥒ᥆ ᥱᥒᥴ᥆ᥒ𝗍rᥲძ᥆.', { name: '✘ Rᥙby H᥆shіᥒ᥆ · Cᥣᥲіm' });
 return false;
 }
 
+pruneActiveRolls(now);
 const rollData = getActiveRoll(groupId, id);
 
 let timeElapsedStr = "";
@@ -74,12 +75,12 @@ if (rollData) {
 const window = evaluateRollWindow(rollData, userId, now);
 if (window.state === 'expired') {
 deleteActiveRoll(groupId, id);
-await conn.reply(m.chat, "🍂 Ese personaje ya expiró y nadie puede reclamarlo ahora (vuelve a usar #rw).", m);
+await replyWithFkontak(conn, m, `(,,•᷄‎ࡇ•᷅ ,,)? ᥱsᥱ ⍴ᥱrs᥆ᥒᥲjᥱ yᥲ ᥱx⍴іr᥆ (vᥱᥒ𝗍ᥲᥒᥲ ძᥱ ${Math.round(ROLL_EXPIRATION_MS / 1000)}s) y ᥒᥲძіᥱ ⍴ᥙᥱძᥱ rᥱᥴᥣᥲmᥲrᥣ᥆.\n\n» vᥙᥱᥣvᥱ ᥲ ᥙsᥲr *#rw*`, { name: '⏳ Rᥙby H᥆shіᥒ᥆ · Vᥱᥒ𝗍ᥲᥒᥲ ᥱx⍴іrᥲძᥲ' });
 return false;
 }
 if (window.state === 'protected') {
-const protectedBy = await conn.getName(rollData.user);
-await conn.reply(m.chat, `🛡️ El personaje *${character.name}* está siendo protegido por *${protectedBy}* durante *${formatWindowSeconds(window.protectionRemainingMs)}*.`, m);
+const protectedBy = await conn.getName(rollData.user).catch(() => `@${String(rollData.user || '').split('@')[0]}`);
+await replyWithFkontak(conn, m, `(,,•᷄‎ࡇ•᷅ ,,)? ᥱᥣ ⍴ᥱrs᥆ᥒᥲjᥱ *${character.name}* ᥱs𝗍ᥲ ⍴r᥆𝗍ᥱgіძ᥆ ⍴᥆r *${protectedBy}*.\n\n🛡️ ⍴r᥆𝗍ᥱᥴᥴі᥆ᥒ rᥱs𝗍ᥲᥒ𝗍ᥱ: *${formatWindowSeconds(window.protectionRemainingMs)}* ძᥱ ${Math.round(ROLL_PROTECTION_MS / 1000)}s\n⏳ ᥱx⍴іrᥲ ᥱᥒ: *${formatWindowSeconds(window.expirationRemainingMs)}*`, { name: '🛡️ Rᥙby H᥆shіᥒ᥆ · Pr᥆𝗍ᥱᥴᥴі᥆ᥒ ᥲᥴ𝗍іvᥲ' });
 return false;
 }
 timeElapsedStr = ` (${(window.elapsedMs / 1000).toFixed(1)}s)`;
@@ -87,7 +88,7 @@ timeElapsedStr = ` (${(window.elapsedMs / 1000).toFixed(1)}s)`;
 const harem = await loadHarem();
 const claim = findClaim(harem, groupId, id);
 if (!claim) {
-await conn.reply(m.chat, "🍂 Ese personaje no está disponible para reclamar en este grupo (usa #rw para tirar uno).", m);
+await replyWithFkontak(conn, m, '(,,•᷄‎ࡇ•᷅ ,,)? ᥱsᥱ ⍴ᥱrs᥆ᥒᥲjᥱ ᥒ᥆ ᥱs𝗍ᥲ ძіs⍴᥆ᥒіbᥣᥱ ⍴ᥲrᥲ rᥱᥴᥣᥲmᥲr ᥱᥒ ᥱs𝗍ᥱ grᥙ⍴᥆.\n\n» ᥙsᥲ *#rw* ⍴ᥲrᥲ 𝗍іrᥲr ᥙᥒ᥆', { name: '✘ Rᥙby H᥆shіᥒ᥆ · Cᥣᥲіm' });
 return false;
 }
 }
@@ -95,14 +96,14 @@ return false;
 const exclusiveRule = canUserClaimCharacter(character.id, userId);
 if (!exclusiveRule.allowed) {
 const exclusiveName = await conn.getName(exclusiveRule.ownerJid).catch(() => `@${exclusiveRule.ownerJid.split('@')[0]}`);
-await conn.reply(m.chat, `🔒 El personaje *${character.name}* (ID ${character.id}) es exclusivo y solo puede ser reclamado por *${exclusiveName}*.`, m);
+await replyWithFkontak(conn, m, `(,,•᷄‎ࡇ•᷅ ,,)? ᥱᥣ ⍴ᥱrs᥆ᥒᥲjᥱ *${character.name}* (ID ${character.id}) ᥱs ᥱxᥴᥣᥙsіv᥆ y s᥆ᥣ᥆ ⍴ᥙᥱძᥱ sᥱr rᥱᥴᥣᥲmᥲძ᥆ ⍴᥆r *${exclusiveName}*.`, { name: '🔒 Rᥙby H᥆shіᥒ᥆ · Exᥴᥣᥙsіv᥆' });
 return false;
 }
 
 const haremBefore = await loadHarem();
 const existingClaim = findClaim(haremBefore, groupId, id);
 if (existingClaim && !isSameUserId(existingClaim.userId, userId) && isUserInGroup(existingClaim.userId, participants)) {
-await conn.reply(m.chat, `❌ El personaje *${character.name}* ya fue reclamado por ${existingClaim.userId.split('@')[0]}.`, m);
+await replyWithFkontak(conn, m, `(,,•᷄‎ࡇ•᷅ ,,)? ᥱᥣ ⍴ᥱrs᥆ᥒᥲjᥱ *${character.name}* yᥲ 𝖿ᥙᥱ rᥱᥴᥣᥲmᥲძ᥆ ⍴᥆r @${existingClaim.userId.split('@')[0]}.`, { name: '✘ Rᥙby H᥆shіᥒ᥆ · Yᥲ rᥱᥴᥣᥲmᥲძ᥆', mentions: [existingClaim.userId] });
 return false;
 }
 
@@ -125,10 +126,10 @@ const username = await conn.getName(userId);
 const baseMessage = await getCustomClaimMessage(userId, username, character.name);
 const mensajeFinal = `${baseMessage}${timeElapsedStr}`;
 
-await conn.reply(m.chat, mensajeFinal, m);
+await replyWithFkontak(conn, m, mensajeFinal, { name: '✧ Rᥙby H᥆shіᥒ᥆ · Cᥣᥲіm ᥱxі𝗍᥆s᥆', mentions: [userId] });
 
 } catch (e) {
-conn.reply(m.chat, `✘ Error al reclamar waifu:\n${e.message}`, m);
+await replyWithFkontak(conn, m, `(,,•᷄‎ࡇ•᷅ ,,)? ᥱrr᥆r ᥲᥣ rᥱᥴᥣᥲmᥲr wᥲі𝖿ᥙ.\n\n» ${e.message}`, { name: '✘ Rᥙby H᥆shіᥒ᥆ · Err᥆r' });
 return false;
 }
 };
