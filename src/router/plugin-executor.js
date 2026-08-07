@@ -60,26 +60,6 @@ async function releasePluginCooldown(cooldownState) {
 if (!cooldownState?.claimed) return
 await releaseCooldown(cooldownState.keys)
 }
-const result = await setRedisWithTTL(key, '1', seconds, 'NX')
-if (result === 'OK') return { claimed: true, allowed: true, key }
-const remainingSeconds = Math.max(1, await redis.ttl(key))
-const message = getCooldownMessage(plugin, remainingSeconds)
-if (message) await conn.reply(m.chat, message, m)
-return { claimed: false, allowed: false, key }
-} catch (error) {
-console.error('[redis] cooldown claim error', error)
-return { claimed: false, allowed: true, key }
-}
-}
-
-async function releaseRedisCooldown(cooldownState) {
-if (!cooldownState?.claimed || !cooldownState?.key || !isRedisReady()) return
-try {
-await redis.del(cooldownState.key)
-} catch (error) {
-console.error('[redis] cooldown release error', error)
-}
-}
 
 function sanitizeError(error) {
 let text = format(error)
