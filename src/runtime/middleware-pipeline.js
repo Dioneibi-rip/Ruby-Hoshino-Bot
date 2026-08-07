@@ -4,7 +4,7 @@ import { getPrefixMatch, hydrateDatabaseForMessage, buildPermissionContext, befo
 import { getGroupMetadataOnDemand } from '../library/global-cache.js'
 import { canManageBotSecurity, getAntiPrivateState, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
 import { messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
-import { buildGuardContext, pluginNeedsJob, runPluginGuards, userHasJob } from '../router/permission-guard.js'
+import { buildGuardContext, pluginNeedsJob, pluginRequiresGroupParticipants, runPluginGuards, userHasJob } from '../router/permission-guard.js'
 import { getNativeBotProfile, hydrateBotProfile } from '../core/botProfileStore.js'
 import { formatCooldown, getCanonicalCommand, peekCooldownMs, resolveCooldownMs } from '../library/cooldown-store.js'
 import { buildCooldownNotice, replyWithFkontak } from '../core/notice.js'
@@ -49,7 +49,7 @@ this.db = db
 this.rateLimitWindowMs = rateLimitWindowMs
 this.rateLimitMax = rateLimitMax
 this.stages = [this.normalize.bind(this), this.security.bind(this), this.afkReturn.bind(this), this.pluginHooks.bind(this), this.automoderation.bind(this), this.rateLimit.bind(this), this.route.bind(this)]
-this.cooldowns = new Map()
+this.rateSweepAt = 0
 }
 
 async run(input = {}) {
@@ -203,7 +203,10 @@ return
 }
 bucket.push(now)
 store.set(key, bucket)
-if (store.size > 5_000) for (const [itemKey, values] of store) if (!values.some(ts => now - ts <= this.rateLimitWindowMs)) store.delete(itemKey)
+if (now - this.rateSweepAt > this.rateLimitWindowMs) {
+this.rateSweepAt = now
+for (const [itemKey, values] of store) if (!values.some(ts => now - ts <= this.rateLimitWindowMs)) store.delete(itemKey)
+}
 }
 
 async route(ctx) {
@@ -222,14 +225,12 @@ await global.dfail?.('owner', ctx.m, ctx.conn)
 ctx.halted = true
 return
 }
-let participants = []
-let groupMetadata = {}
-if (ctx.participants || ctx.groupMetadata) {
-participants = ctx.participants || []
-groupMetadata = ctx.groupMetadata || {}
-} else if (ctx.m.isGroup && (permissions.admin || permissions.botAdmin || permissions.group)) {
+let participants = Array.isArray(ctx.participants) ? ctx.participants : []
+let groupMetadata = ctx.groupMetadata || {}
+if (!participants.length && ctx.m.isGroup && (pluginRequiresGroupParticipants(permissions) || permissions.group)) {
 groupMetadata = await getGroupMetadataOnDemand(ctx.conn, ctx.m.chat, { requireParticipants: true }).catch(() => ({}))
 participants = Array.isArray(groupMetadata?.participants) ? groupMetadata.participants : []
+ctx.permissionContext = null
 }
 ctx.permissionContext ||= buildPermissionContext(ctx.conn, ctx.m, ctx.sender, participants)
 if (permissions.admin && !ctx.permissionContext.isAdmin && !ctx.permissionContext.isOwner) {

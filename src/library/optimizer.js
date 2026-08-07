@@ -35,7 +35,27 @@ export class TTLCache {
   }
 }
 
+const PREFIX_MATCHER_MAX = 512
+
+export class BoundedMap extends Map {
+  constructor(maxSize = 512) {
+    super()
+    this.maxSize = Math.max(1, Number(maxSize) || 1)
+  }
+
+  set(key, value) {
+    if (this.has(key)) this.delete(key)
+    super.set(key, value)
+    while (this.size > this.maxSize) {
+      const oldestKey = this.keys().next().value
+      if (oldestKey === undefined) break
+      this.delete(oldestKey)
+    }
+    return this
+  }
+}
+
 export function getPrefixMatcherCache(ctx) {
-  if (!ctx.__prefixMatcherCache) ctx.__prefixMatcherCache = new Map()
+  if (!ctx.__prefixMatcherCache) ctx.__prefixMatcherCache = new BoundedMap(PREFIX_MATCHER_MAX)
   return ctx.__prefixMatcherCache
 }

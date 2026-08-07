@@ -185,6 +185,15 @@ console.error(error)
 }
 }, 60000)
 databaseAutosaveInterval.unref?.()
+const cacheMaintenanceInterval = setInterval(() => {
+try {
+runMaintenance(global.conn)
+cleanupGlobalCaches()
+} catch (error) {
+console.error('[cache-maintenance]', error?.message || error)
+}
+}, 60000)
+cacheMaintenanceInterval.unref?.()
 let metricsLogInterval = null
 async function shutdownDatabaseAndExit(code, error) {
 if (databaseShutdownStarted) return

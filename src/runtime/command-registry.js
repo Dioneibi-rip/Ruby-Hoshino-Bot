@@ -1,11 +1,20 @@
-import fsSync, { promises as fs } from 'fs'
+import { promises as fs } from 'fs'
 import path from 'path'
 import { pathToFileURL } from 'url'
 
 const DEFAULT_COMMANDS_DIR = path.resolve(process.cwd(), 'src', 'commands')
 const MANIFEST_FILE = 'manifest.json'
 const COMMAND_ASSIGNMENT = /(?:handler|module\.exports)\s*\.\s*command\s*=\s*([^\n;]+)/m
-const FIELD_ASSIGNMENT = (field) => new RegExp(`(?:handler|module\\.exports)\\s*\\.\\s*${field}\\s*=\\s*([^\\n;]+)`, 'm')
+const FIELD_ASSIGNMENT_CACHE = new Map()
+const FIELD_ASSIGNMENT = (field) => {
+let regex = FIELD_ASSIGNMENT_CACHE.get(field)
+if (!regex) {
+regex = new RegExp(`(?:handler|module\\.exports)\\s*\\.\\s*${field}\\s*=\\s*([^\\n;]+)`, 'm')
+FIELD_ASSIGNMENT_CACHE.set(field, regex)
+}
+return regex
+}
+const SCAN_BATCH_SIZE = 32
 
 function normalizeArray(value) {
 if (value == null) return []
@@ -47,7 +56,8 @@ admin: parseBoolean(source.match(FIELD_ASSIGNMENT('admin'))?.[1] || ''),
 botAdmin: parseBoolean(source.match(FIELD_ASSIGNMENT('botAdmin'))?.[1] || ''),
 group: parseBoolean(source.match(FIELD_ASSIGNMENT('group'))?.[1] || ''),
 private: parseBoolean(source.match(FIELD_ASSIGNMENT('private'))?.[1] || ''),
-register: parseBoolean(source.match(FIELD_ASSIGNMENT('register'))?.[1] || '')
+register: parseBoolean(source.match(FIELD_ASSIGNMENT('register'))?.[1] || ''),
+needsParticipants: parseBoolean(source.match(FIELD_ASSIGNMENT('needsParticipants'))?.[1] || '')
 },
 help,
 filePath,
@@ -57,7 +67,8 @@ fileUrl: pathToFileURL(filePath).href
 
 async function walkJavaScriptFiles(dir) {
 try {
-return fsSync.readdirSync(dir, { recursive: true, withFileTypes: true })
+const entries = await fs.readdir(dir, { recursive: true, withFileTypes: true })
+return entries
 .filter(entry => entry.isFile() && entry.name.endsWith('.js'))
 .map(entry => path.join(entry.parentPath || entry.path || dir, entry.name))
 } catch {
@@ -121,10 +132,14 @@ return true
 
 async scanCommands() {
 const files = await walkJavaScriptFiles(this.commandsDir)
-for (const filePath of files) {
-const source = await fs.readFile(filePath, 'utf8').catch(() => '')
-const metadata = parseMetadataFromSource(source, filePath)
+for (let index = 0; index < files.length; index += SCAN_BATCH_SIZE) {
+const batch = files.slice(index, index + SCAN_BATCH_SIZE)
+const sources = await Promise.all(batch.map(filePath => fs.readFile(filePath, 'utf8').catch(() => '')))
+for (let offset = 0; offset < batch.length; offset++) {
+const metadata = parseMetadataFromSource(sources[offset], batch[offset])
 if (metadata) this.register(metadata)
+}
+if (index + SCAN_BATCH_SIZE < files.length) await new Promise(resolve => setImmediate(resolve))
 }
 return this
 }

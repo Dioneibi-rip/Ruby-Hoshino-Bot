@@ -20,6 +20,7 @@ antibots: 'antiBot',
 antilink: 'antiLink',
 antidelete: 'delete',
 antieliminar: 'delete',
+antiporno: 'antiPorno',
 antiPorno: 'antiPorno'
 };
 
@@ -38,7 +39,7 @@ const featureNames = {
 'welcome': 'Bienvenida', 'bv': 'Bienvenida', 'bienvenida': 'Bienvenida',
 'antiprivado': 'Anti-Privado', 'antipriv': 'Anti-Privado', 'antiprivate': 'Anti-Privado',
 'antigrupos': 'Anti-Grupos', 'antigroup': 'Anti-Grupos', 'antigrupo': 'Anti-Grupos',
-'antiPorno': 'Anti-Porno',
+'antiporno': 'Anti-Porno', 'antiPorno': 'Anti-Porno',
 'restrict': 'Restringir', 'restringir': 'Restringir',
 'autolevelup': 'Auto Nivel', 'autonivel': 'Auto Nivel',
 'audios': 'Audios',
@@ -65,6 +66,8 @@ let isAll = false, isUser = false;
 const chatKey = chatFeatureKeys[type] || type;
 const settingKey = settingFeatureKeys[type] || type;
 let isEnable = chat[chatKey] ?? bot[settingKey] ?? false;
+const canManageGlobalFeature = Boolean(isOwner || isROwner || m.fromMe);
+const canManageGroupFeature = Boolean(isAdmin || canManageGlobalFeature);
 
 if (args[0] === 'on' || args[0] === 'enable' || args[0] === '1' || args[0] === 'block' || args[0] === 'bloquear') {
 isEnable = (type === 'antiprivado' || type === 'antipriv' || type === 'antiprivate') ? 'block' : true;
@@ -84,11 +87,11 @@ switch (type) {
 case 'welcome':
 case 'bv':
 case 'bienvenida':
-if (m.isGroup && !(isAdmin || isOwner || isROwner || m.fromMe)) {
+if (m.isGroup && !canManageGroupFeature) {
 global.dfail('admin', m, conn);
 throw false;
 }
-if (!m.isGroup && !(isOwner || isROwner || m.fromMe)) {
+if (!m.isGroup && !canManageGlobalFeature) {
 global.dfail('group', m, conn);
 throw false;
 }
@@ -117,9 +120,10 @@ throw false;
 }
 bot.antiGroup = isEnable === 2 ? 2 : isEnable ? 1 : false;
 break;
+case 'antiporno':
 case 'antiPorno':
 if (m.isGroup) {
-if (!(isAdmin || isOwner)) {
+if (!canManageGroupFeature) {
 global.dfail('admin', m, conn);
 throw false;
 }
@@ -138,7 +142,7 @@ break;
 case 'autolevelup':
 case 'autonivel':
 if (m.isGroup) {
-if (!(isAdmin || isOwner)) {
+if (!canManageGroupFeature) {
 global.dfail('admin', m, conn);
 throw false;
 }
@@ -147,7 +151,7 @@ chat.autolevelup = isEnable;
 break;
 case 'audios':
 if (m.isGroup) {
-if (!(isAdmin || isOwner)) {
+if (!canManageGroupFeature) {
 global.dfail('admin', m, conn);
 throw false;
 }
@@ -156,7 +160,7 @@ chat.audios = isEnable;
 break;
 case 'autosticker':
 if (m.isGroup) {
-if (!(isAdmin || isOwner)) {
+if (!canManageGroupFeature) {
 global.dfail('admin', m, conn);
 throw false;
 }
@@ -166,7 +170,7 @@ break;
 case 'antibot':
 case 'antibots':
 if (m.isGroup) {
-if (!(isAdmin || isOwner)) {
+if (!canManageGroupFeature) {
 global.dfail('admin', m, conn);
 throw false;
 }
@@ -177,7 +181,7 @@ case 'modoadmin':
 case 'soloadmin':
 case 'onlyadmin':
 if (m.isGroup) {
-if (!(isAdmin || isOwner)) {
+if (!canManageGroupFeature) {
 global.dfail('admin', m, conn);
 throw false;
 }
@@ -197,13 +201,13 @@ break;
 case 'reaction':
 case 'reaccion':
 case 'emojis':
-if (!m.isGroup) {
-if (!isOwner) {
-global.dfail('group', m, conn);
+if (m.isGroup) {
+if (!canManageGroupFeature) {
+global.dfail('admin', m, conn);
 throw false;
 }
-} else if (!isAdmin) {
-global.dfail('admin', m, conn);
+} else if (!canManageGlobalFeature) {
+global.dfail('group', m, conn);
 throw false;
 }
 chat.reaction = isEnable;
@@ -211,19 +215,18 @@ break;
 case 'nsfw':
 case 'nsfwhot':
 case 'nsfwhorny':
-if (!m.isGroup) {
-if (!isOwner) {
-global.dfail('group', m, conn);
+if (m.isGroup) {
+if (!canManageGroupFeature) {
+global.dfail('admin', m, conn);
 throw false;
 }
-} else if (!isAdmin) {
-global.dfail('admin', m, conn);
+} else if (!canManageGlobalFeature) {
+global.dfail('group', m, conn);
 throw false;
 }
 chat.nsfw = isEnable;
 break;
 case 'antispam':
-case 'antiSpam':
 case 'antispamosos':
 isAll = true;
 if (!isOwner) {
@@ -235,7 +238,7 @@ break;
 case 'antidelete':
 case 'antieliminar':
 if (m.isGroup) {
-if (!(isAdmin || isOwner)) {
+if (!canManageGroupFeature) {
 global.dfail('admin', m, conn);
 throw false;
 }
@@ -245,13 +248,13 @@ break;
 case 'detect':
 case 'configuraciones':
 case 'avisodegp':
-if (!m.isGroup) {
-if (!isOwner) {
-global.dfail('group', m, conn);
+if (m.isGroup) {
+if (!canManageGroupFeature) {
+global.dfail('admin', m, conn);
 throw false;
 }
-} else if (!isAdmin) {
-global.dfail('admin', m, conn);
+} else if (!canManageGlobalFeature) {
+global.dfail('group', m, conn);
 throw false;
 }
 chat.detect = isEnable;
@@ -259,20 +262,20 @@ break;
 case 'detect2':
 case 'avisos':
 case 'eventos':
-if (!m.isGroup) {
-if (!isOwner) {
-global.dfail('group', m, conn);
+if (m.isGroup) {
+if (!canManageGroupFeature) {
+global.dfail('admin', m, conn);
 throw false;
 }
-} else if (!isAdmin) {
-global.dfail('admin', m, conn);
+} else if (!canManageGlobalFeature) {
+global.dfail('group', m, conn);
 throw false;
 }
 chat.detect2 = isEnable;
 break;
 case 'antilink':
 if (m.isGroup) {
-if (!(isAdmin || isOwner)) {
+if (!canManageGroupFeature) {
 global.dfail('admin', m, conn);
 throw false;
 }
@@ -283,7 +286,7 @@ break;
 case 'antitoxic':
 case 'antitoxicos':
 if (m.isGroup) {
-if (!(isAdmin || isOwner)) {
+if (!canManageGroupFeature) {
 global.dfail('admin', m, conn);
 throw false;
 }

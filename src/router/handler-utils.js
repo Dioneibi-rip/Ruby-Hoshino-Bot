@@ -1,11 +1,7 @@
 import { join } from 'path'
 import { fileURLToPath } from 'url'
-import { TTLCache, getPrefixMatcherCache } from '../library/optimizer.js'
+import { getPrefixMatcherCache } from '../library/optimizer.js'
 import { chatDefault, ensureDatabaseShape, ensureRecord, settingsDefault, userDefault } from '../core/defaults.js'
-
-export const GROUP_METADATA_TTL = 10 * 60 * 1000
-export const GROUP_METADATA_MAX = 2000
-export const GROUP_METADATA_MIN_INTERVAL = 45 * 1000
 
 export const isNumber = (x) => typeof x === 'number' && Number.isFinite(x)
 
@@ -17,34 +13,6 @@ jid: participant?.jid || participant?.id,
 lid: participant?.lid,
 admin: participant?.admin ?? null,
 }
-}
-
-export async function getCachedGroupMetadata(conn, chatId, { force = false } = {}) {
-if (!conn || !chatId) return {}
-conn.__groupMetadataCache ||= new TTLCache(GROUP_METADATA_TTL, GROUP_METADATA_MAX)
-conn.__groupMetadataInflight ||= new Map()
-const cached = !force ? (conn.__groupMetadataCache.get(chatId) || global.db?.getGroup?.(chatId)) : (global.db?.getGroup?.(chatId) || conn.__groupMetadataCache.get(chatId))
-if (!force && cached?.id && Date.now() - Number(cached.__cachedAt || cached.updatedAt || 0) < GROUP_METADATA_TTL) return cached
-conn.__groupMetadataLastFetch ||= new Map()
-const lastFetch = Number(conn.__groupMetadataLastFetch.get(chatId) || 0)
-if (!force && cached?.id && Date.now() - lastFetch < GROUP_METADATA_MIN_INTERVAL) return cached
-if (conn.__groupMetadataInflight.has(chatId)) return conn.__groupMetadataInflight.get(chatId)
-conn.__groupMetadataLastFetch.set(chatId, Date.now())
-const fetchGroupMetadata = conn.__rawGroupMetadata || conn.groupMetadata?.bind(conn)
-const request = Promise.resolve(fetchGroupMetadata?.(chatId)).then((metadata) => {
-metadata ||= cached || {}
-metadata.participants = normalizeParticipantList(metadata?.participants)
-metadata.__cachedAt = Date.now()
-conn.__groupMetadataCache.set(chatId, metadata)
-global.db?.upsertGroupMetadata?.(chatId, metadata)
-return metadata
-}).catch((error) => {
-const code = error?.output?.statusCode || error?.data?.statusCode || error?.statusCode
-if ([408, 428, 429].includes(Number(code))) conn.__groupMetadataLastFetch.set(chatId, Date.now() + GROUP_METADATA_MIN_INTERVAL)
-return cached || {}
-}).finally(() => conn.__groupMetadataInflight.delete(chatId))
-conn.__groupMetadataInflight.set(chatId, request)
-return request
 }
 
 export function normalizeParticipantList(participants = []) {
@@ -152,15 +120,15 @@ return { userGroup, botGroup, isRAdmin, isAdmin, isBotAdmin, isROwner, isOwner, 
 }
 
 export function runMaintenance(conn) {
+if (!conn) return
 conn.msgqueque ||= []
 conn.uptime ||= Date.now()
 conn.__maintenanceAt ||= 0
 if (Date.now() - conn.__maintenanceAt <= 60_000) return
 conn.__maintenanceAt = Date.now()
-conn.__groupMetadataCache?.clearExpired?.()
 conn.__rubyReadMessagesLast?.clearExpired?.()
-if (conn.__commandTesterCache?.size > 3000) conn.__commandTesterCache.clear()
 if (conn.__prefixMatcherCache?.size > 2000) conn.__prefixMatcherCache.clear()
+if (conn.__rubyRateLimit instanceof Map && conn.__rubyRateLimit.size > 2000) conn.__rubyRateLimit.clear()
 global.__rubyMessageQueue?.cleanup?.()
 }
 
@@ -253,18 +221,6 @@ return false
 if (typeof pluginCommand === 'string') return pluginCommand === command
 if (typeof pluginCommand === 'function') return pluginCommand(command)
 return false
-}
-
-export function getCommandTester(conn, pluginName, pluginCommand) {
-conn.__commandTesterCache ||= new Map()
-const cache = conn.__commandTesterCache
-const cacheKey = `${pluginName}:${typeof pluginCommand}`
-let tester = cache.get(cacheKey)
-if (tester?.__source === pluginCommand) return tester
-tester = (command) => commandMatches(pluginCommand, command)
-tester.__source = pluginCommand
-cache.set(cacheKey, tester)
-return tester
 }
 
 export const MENTION_TEXT_REGEX = /^@\d+/
