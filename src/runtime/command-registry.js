@@ -58,7 +58,7 @@ fileUrl: pathToFileURL(filePath).href
 async function walkJavaScriptFiles(dir) {
 try {
 return fsSync.readdirSync(dir, { recursive: true, withFileTypes: true })
-.filter(entry => entry.isFile() && entry.name.endsWith('.js') && !entry.name.startsWith('_'))
+.filter(entry => entry.isFile() && entry.name.endsWith('.js'))
 .map(entry => path.join(entry.parentPath || entry.path || dir, entry.name))
 } catch {
 return []
