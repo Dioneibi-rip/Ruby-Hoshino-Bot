@@ -39,7 +39,8 @@ process.env[match[1]] = value.replace(/\\n/g, '\n')
 loadEnvFile()
 import { attachSessionState, createMessageRetryCache } from '../core/session-manager.js'
 import { alignSocketTelemetry, getStandardBrowserProfile } from '../core/socket-telemetry.js'
-import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from '../router/handler-utils.js'
+import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands, runMaintenance } from '../router/handler-utils.js'
+import { cleanupGlobalCaches } from '../library/global-cache.js'
 import { commandRegistry } from '../runtime/command-registry.js'
 import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from '../library/queue.js'
 import { restoreSubbots } from '../core/subbot-engine.js'
@@ -243,7 +244,7 @@ do {
 showBanner()
 opcion = await question(chalk.bold.magentaBright(`
 ╭━━${lineM}━━╮
-┃ ${chalk.bold.cyanBright('╔════❖•ೋ° ¡HOLA USUARIO! °ೋ•❖════╗')}
+┃ ${chalk.bold.cyanBright('╔════❖��ೋ° ¡HOLA USUARIO! °ೋ•❖════╗')}
 ┃ ${chalk.bold.cyanBright('║')}    ${chalk.bold.greenBright('SELECCIONA TU MÉTODO DE CONEXIÓN')}
 ┃ ${chalk.bold.cyanBright('╚════❖•ೋ° ❀ RUBY-BOT ❀ °ೋ•❖════╝')}
 ┃
