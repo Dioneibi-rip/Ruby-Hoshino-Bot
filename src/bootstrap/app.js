@@ -42,7 +42,7 @@ import { alignSocketTelemetry, getStandardBrowserProfile } from '../core/socket-
 import { rebuildCommandsMap, registerPluginCommands, unregisterPluginCommands } from '../router/handler-utils.js'
 import { commandRegistry } from '../runtime/command-registry.js'
 import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from '../library/queue.js'
-import { restoreSubbots } from '../core/subbot-engine.js'
+import { restoreSubbots, requestPairingCodeWithTimeout } from '../core/subbot-engine.js'
 import { getBaileysExport, getBaileysProto, getSignalKeyStore } from '../core/baileys-compat.js'
 import { printNativeQr, clearNativeQr } from '../utils/nativeQr.js'
 import { sanitizePairingNumber } from '../core/identity-utils.js'
@@ -120,7 +120,7 @@ const bannerASCII = chalk.bold.hex('#FF0080')(`
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠘⠇⠀⠈⢿⣷⡀⠈⠁⠀⠀⠘⢷⣦⣬⣉⠉⢀⡀⠀⠉⠘⠛⠁⣀⡘⠛⠛⠗⢀⠎⠀⣉⣉⣩⣤⣴⣇⢹⡆⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣿⣿⣿⡇⠠⣴⣶⣶⣾⣶⠀⠃⠀⠛⣳⠄⠙⠀⠀⠀⠀⠙⠿⠁⠀⠀⠄⠀⠀⠀⠀⢀⣩⣿⣿⡿⡇⠀⣠⠞⠉⢀⣬⣽⣿⡿⢸⣷⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⣿⣿⣿⣿⣿⣿⢃⡉⣿⣿⣿⣵⣶⣦⡀⠀⠀⠹⣧⡀⠀⠁⠄⠀⠀⠀⠀⠐⠄⠀⠀⠀⢠⣾⣿⣿⣿⣿⣿⣇⠰⡘⢠⣾⡿⣿⣿⡿⢁⣾⣿⡆⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⡟⣾⢧⡙⣿⣿⣿⣿⣿⣿⡄⠀⠀⠘⣿⣄⠀⠠⠀⠀⢠⠀⡀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⣿⡿⡄⣧⣸⡿⠀⣿⣿⢃⣾⣿⣿⡇⠀
+⠀⠀⠀⠀⠀⠀⠀���⠀⠀⣿⣿⣿⣿⣿⣿⣿⡟⣾⢧⡙⣿⣿⣿⣿⣿⣿⡄⠀⠀⠘⣿⣄⠀⠠⠀⠀⢠⠀⡀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⣿⡿⡄⣧⣸⡿⠀⣿⣿⢃⣾⣿⣿⡇⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣷⢩⣧⡙⠮⣿⢸⣿⣿⣿⣿⡄⠀⠀⡈⢿⣷⣤⣤⣶⠀⠀⠀⢰⣶⣿⣿⡿⠿⠿⠿⣿⣿⣿⣷⢠⡧⣼⠀⣸⣿⠇⣼⣿⣿⣿⣿⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⠀⣿⣿⣷⡌⠀⠿⠛⠛⠛⠛⠀⠻⠋⠀⠹⣿⡇⣀⠀⠀⠀⣸⣿⣏⠰⠶⠾⣿⣿⣿⣿⡷⢀⠟⠰⣻⣿⠿⠋⠰⣿⣿⣿⣿⣿⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⡇⢸⣿⣿⣿⣿⡆⣠⣶⣬⣭⡉⠛⠀⡀⠰⣤⡈⠷⣿⣤⣤⣴⣿⣿⡿⠻⢷⣶⡶⠶⠿⠿⢷⣾⣤⣾⡿⠻⠆⣘⣠⠀⣿⣿⣿⣿⠀
@@ -234,7 +234,7 @@ const lineM = '━'.repeat(45)
 do {
 showBanner()
 opcion = await question(chalk.bold.magentaBright(`
-╭━━${lineM}━━╮
+╭━━${lineM}━━���
 ┃ ${chalk.bold.cyanBright('╔════❖•ೋ° ¡HOLA USUARIO! °ೋ•❖════╗')}
 ┃ ${chalk.bold.cyanBright('║')}    ${chalk.bold.greenBright('SELECCIONA TU MÉTODO DE CONEXIÓN')}
 ┃ ${chalk.bold.cyanBright('╚════❖•ೋ° ❀ RUBY-BOT ❀ °ೋ•❖════╝')}
@@ -288,8 +288,10 @@ keepAliveIntervalMs: socketCfg.keepAliveIntervalMs ?? 30000,
 retryRequestDelayMs: socketCfg.retryRequestDelayMs ?? 250,
 shouldReconnect: ({ statusCode }) => !DISCONNECT_AUTH_STATUS.has(statusCode) && (RECONNECT_REASONS.has(statusCode) || statusCode !== DisconnectReason.loggedOut)
 }
-connectionOptions = alignSocketTelemetry(connectionOptions, { version })
 const pairingRequested = !state.creds?.registered && (opcion === '2' || methodCode)
+// `pairing: true` fuerza el perfil de navegador de escritorio: es la unica forma de que
+// el servidor de Meta emita la notificacion push "Vincular dispositivo" en el telefono.
+connectionOptions = alignSocketTelemetry(connectionOptions, { version, pairing: pairingRequested })
 global.conn = await makeWASocket(connectionOptions, { skipStoreBind: pairingRequested });
 setMediaQueueConnection(global.conn)
 startMediaWorker(global.conn)
@@ -319,16 +321,22 @@ addNumber = phoneNumber
 if (!addNumber) {
 console.log(chalk.red.bold('❌ NO SE PUDO DETERMINAR UN NÚMERO VÁLIDO PARA EL PAIRING CODE.'))
 } else {
-setTimeout(async () => {
+// Se solicita el codigo con `requestPairingCodeWithTimeout`, que ademas de sanear el
+// numero ESPERA a que el socket abra su ventana de pairing. El `setTimeout` ciego de
+// 3s que habia antes disparaba la peticion demasiado pronto: el codigo se generaba y
+// vinculaba, pero el servidor no lo asociaba a una sesion anunciada y la notificacion
+// push nunca llegaba al telefono.
+;(async () => {
 try {
-let codeBot = await conn.requestPairingCode(addNumber);
-codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
+let codeBot = await requestPairingCodeWithTimeout(conn, addNumber)
+codeBot = codeBot?.match(/.{1,4}/g)?.join('-') || codeBot
 console.log(chalk.bold.white(' Codigo : ') + chalk.bold.bgMagenta(` ${codeBot} `))
+console.log(chalk.bold.hex('#7CFFCB')('📲 Revisa la notificación en tu teléfono o entra a Dispositivos vinculados.'))
 } catch (error) {
 console.log(chalk.red.bold(`❌ ERROR SOLICITANDO EL CÓDIGO: ${error?.message || error}`))
 }
 if (process.env.RUBY_SMOKE_PAIRING_CODE) await shutdownDatabaseAndExit(0)
-}, Number(process.env.RUBY_SMOKE_PAIRING_CODE ? 10 : 3000))
+})()
 }
 }
 }

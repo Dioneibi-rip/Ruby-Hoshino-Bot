@@ -1,6 +1,6 @@
-import db from '../../library/database.js'
 import { formatJobLine, ensureJobFields } from '../../library/rpg-jobs.js'
 import { buildParticipantsByLid, resolveInteractionTarget, normalizeIdentityJid, resolveIdentityName } from '../../core/identity-utils.js'
+import { readUnifiedUser } from '../../core/economy-identity.js'
 
 let handler = async (m, { conn, usedPrefix, participants = [] }) => {
 const participantsByLid = buildParticipantsByLid(participants)
@@ -10,15 +10,15 @@ if (who === conn.user.jid) return m.react('✖️')
 
 let primaryJid = await normalizeIdentityJid(conn, who, participantsByLid)
 
-const user = global.db.getUser(primaryJid)
+// `readUnifiedUser` resuelve el JID canonico via `jid_aliases` y, si el usuario tiene el
+// saldo partido entre su numero y su `@lid`, fusiona las filas antes de leer. Sin esto
+// el comando mostraba solo la mitad del dinero segun con que identidad hablara.
+const { user, id: canonicalJid, coin, bank, total } = readUnifiedUser(primaryJid)
+primaryJid = canonicalJid || primaryJid
 
 ensureJobFields(user)
 let nombre = await resolveIdentityName(conn, primaryJid, { participantsByLid, fallback: `@${String(primaryJid).split('@')[0]}` })
 const jobLine = formatJobLine(user)
-
-const coin = Number(user.coin || user.coins || 0)
-const bank = Number(user.bank || 0)
-const total = coin + bank
 
 let texto = `
 ╭─〔 ᥫ᭡ 𝗜𝗡𝗙𝗢 𝗘𝗖𝗢𝗡𝗢́𝗠𝗜𝗖𝗔 ❀ 〕

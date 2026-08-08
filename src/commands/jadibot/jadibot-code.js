@@ -38,14 +38,16 @@ sessionId: m.sender,
 pairingPhone,
 mode: 'code',
 parentConn: conn,
-onPairingCode: async sock => {
+// El engine pasa `(sock, numeroSaneado, parentConn)`. Se usan los parametros recibidos
+// en vez del closure para que el numero sea siempre el que el engine valido.
+onPairingCode: async (sock, phone = pairingPhone) => {
 let rawCode
 try {
-rawCode = await requestPairingCodeWithTimeout(sock, pairingPhone, sanitizePairingPrefix(conn.botProfile?.pairingPrefix), PAIRING_EXPIRATION_MS)
+rawCode = await requestPairingCodeWithTimeout(sock, phone, sanitizePairingPrefix(conn.botProfile?.pairingPrefix), PAIRING_EXPIRATION_MS)
 } catch (error) {
 requestCooldown.delete(m.sender)
 await destroySubbotSession(m.sender).catch(() => false)
-return conn.reply(m.chat, `🥀 Baileys rechazó la solicitud del código para +${pairingPhone}. Detalle: ${getPairingErrorMessage(error)}`, m)
+return conn.reply(m.chat, `🥀 Baileys rechazó la solicitud del código para +${phone}. Detalle: ${getPairingErrorMessage(error)}`, m)
 }
 const formattedCode = rawCode.match(/.{1,4}/g)?.join('-') || rawCode
 let mediaMessage
@@ -67,6 +69,7 @@ text: [
 '',
 '> ꒰ঌ(˶ˆᗜˆ˵)໒꒱ 𝖨𝗇𝗌𝗍𝗋𝗎𝖼𝖼𝗂𝗈𝗇𝖾𝗌 𝗉⍺𝗋⍺ 𝗏𝗂𝗇𝖼𝗎𝗅⍺𝗋:',
 '',
+'𖹭 `𝟢.` 𝖲𝗂 𝗍𝖾 𝗅𝗅𝖾𝗀⍺ 𝗅⍺ 𝗇𝗈𝗍𝗂𝖿𝗂𝖼⍺𝖼𝗂𝗈́𝗇, 𝗍𝗈́𝖼⍺𝗅⍺ 𝗒 𝗌⍺𝗅𝗍⍺ ⍺𝗅 𝗉⍺𝗌𝗈 `𝟧`.',
 '𖹭 `𝟣.` 𝖵𝖾 ⍺ 𝗅𝗈𝗌 𝟥 𝗉𝗎𝗇𝗍𝗂𝗍𝗈𝗌 `⋮` 𝗈 `𝖢𝗈𝗇𝖿𝗂𝗀𝗎𝗋⍺𝖼𝗂𝗈́𝗇`.',
 '𖹭 `𝟤.` 𝖲𝖾𝗅𝖾𝖼𝖼𝗂𝗈𝗇⍺ `𝖣𝗂𝗌𝗉𝗈𝗌𝗂𝗍𝗂𝗏𝗈𝗌 𝗏𝗂𝗇𝖼𝗎𝗅⍺𝖽𝗈𝗌`.',
 '𖹭 `𝟥.` 𝖳𝗈𝖼⍺ 𝖾𝗇 `𝖵𝗂𝗇𝖼𝗎𝗅⍺𝗋 𝗎𝗇 𝖽𝗂𝗌𝗉𝗈𝗌𝗂𝗍𝗂𝗏𝗈`.',

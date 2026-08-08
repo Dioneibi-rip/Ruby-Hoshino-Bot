@@ -1,17 +1,21 @@
+import { readUnifiedUser } from '../../core/economy-identity.js'
+
 let handler = async (m, { conn }) => {
-let user = global.db.getUser(m.sender);
+// Se lee sobre la identidad canonica y con los saldos ya unificados: cobrar sobre la
+// fila `@lid` mientras el dinero vivia en la fila del telefono dejaba al usuario en
+// negativo o le impedia curarse teniendo saldo.
+const { user, coin } = readUnifiedUser(m.sender);
 
 const costoCura = 8000;
 const cura = 75;
 
-if (user.coin < costoCura) {
+if (coin < costoCura) {
 return conn.reply(m.chat, `💔 No tienes suficientes *${m.moneda}* para curarte.\nNecesitas al menos *¥${costoCura.toLocaleString()} ${m.moneda}*.`, m);
 }
 
-user.health += cura;
-user.coin -= costoCura;
-
-if (user.health > 100) user.health = 100;
+const health = Math.min(100, (Number(user.health) || 0) + cura);
+user.health = health;
+user.coin = coin - costoCura;
 
 user.lastHeal = new Date();
 
@@ -23,8 +27,8 @@ const mensaje = `
 ╰──────────❍
 
 🏷️ *Estado actual*
-› ❤️ Vida: *${user.health}/100*
-› 💰 Monedas: *¥${user.coin.toLocaleString()} ${m.moneda}*
+› ❤️ Vida: *${health}/100*
+› 💰 Monedas: *¥${(coin - costoCura).toLocaleString()} ${m.moneda}*
 `;
 
 await conn.sendMessage(m.chat, { text: mensaje.trim() }, { quoted: m });
