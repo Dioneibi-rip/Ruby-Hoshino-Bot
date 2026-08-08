@@ -45,25 +45,37 @@ global.normalizeJid = normalizeJid
  *
  * Baileys exige digitos puros en formato internacional SIN `+`. Cualquier basura
  * (espacios, guiones, parentesis, sufijo `@s.whatsapp.net`, prefijo `00`, un `+`
- * suelto) provoca un pairing code invalido o un error del servidor.
+ * suelto, un sufijo de device `:12`) provoca un pairing code invalido, un 400
+ * opaco del servidor o —peor— un codigo valido que NUNCA dispara la notificacion
+ * push en el telefono porque el numero no coincide con ninguna cuenta.
  *
- * Reglas aplicadas:
+ * Reglas aplicadas (en orden):
  *  - Se descarta todo lo que venga despues de `@` (por si llega un JID completo).
+ *  - Se descarta el sufijo de device (`:12`) antes de limpiar digitos, para no
+ *    concatenarlo al numero real.
  *  - Se eliminan todos los caracteres que no sean digitos.
  *  - Se quita el prefijo de marcacion internacional `00` (00521... -> 521...).
+ *  - Se quitan TODOS los ceros troncales iniciales: E.164 nunca empieza con `0`.
  *  - Se valida la longitud E.164 (7 a 15 digitos).
+ *
+ * El resultado es SIEMPRE una cadena de solo digitos, sin `+` y sin ceros
+ * iniciales: exactamente lo que el servidor de Meta necesita para emparejar el
+ * codigo con la cuenta y emitir el push.
  *
  * @returns {string} digitos listos para Baileys, o `''` si el numero no es usable
  */
 export function sanitizePairingNumber(value = '') {
 const raw = String(Array.isArray(value) ? value[0] : value ?? '').trim()
 if (!raw) return ''
-let digits = raw.split('@')[0].replace(/\D/g, '')
+// El sufijo de device se corta ANTES del filtro de digitos: `5219999:12` no debe
+// convertirse en `521999912`.
+let digits = raw.split('@')[0].split(':')[0].replace(/\D/g, '')
 if (!digits) return ''
 // `00` es prefijo de salida internacional, no parte del numero.
 if (digits.startsWith('00')) digits = digits.slice(2)
-// Un `0` troncal inicial tampoco pertenece al formato E.164.
-if (digits.length > 11 && digits.startsWith('0')) digits = digits.replace(/^0+/, '')
+// Un `0` troncal inicial tampoco pertenece al formato E.164 (nunca, sin importar
+// la longitud: la condicion anterior `length > 11` dejaba pasar `0999999999`).
+digits = digits.replace(/^0+/, '')
 if (!/^\d{7,15}$/.test(digits)) return ''
 return digits
 }
