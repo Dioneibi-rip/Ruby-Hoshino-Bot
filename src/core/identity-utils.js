@@ -1,5 +1,20 @@
 import { jidNormalizedUser } from '@whiskeysockets/baileys'
+import { resolveAliasSync, rememberMapping } from './lid-registry.js'
 
+const LID_SERVERS = new Set(['lid', 'hosted.lid'])
+
+/**
+ * Normaliza un JID de forma SINCRONA al identificador canonico usado en la base de datos.
+ *
+ * Reglas:
+ *  - `@c.us` se traduce a `@s.whatsapp.net`.
+ *  - El sufijo de device (`:12`) se descarta siempre.
+ *  - Un `@lid` se traduce a telefono SOLO si el registro de alias ya conoce el mapeo.
+ *    Si no lo conoce, se devuelve el `@lid` INTACTO.
+ *
+ * Importante: nunca se convierte el numero interno de un LID en un `@s.whatsapp.net`.
+ * Un LID no es un telefono; hacerlo generaba usuarios fantasma en la base de datos.
+ */
 export function normalizeJid(jid) {
 if (!jid || typeof jid !== 'string') return ''
 const raw = String(jid).trim()
@@ -8,26 +23,45 @@ const normalizedByBaileys = jidNormalizedUser(raw) || raw
 const lower = String(normalizedByBaileys).trim().toLowerCase()
 const match = lower.match(/^([^@]+)@([^@]+)$/)
 if (!match) return lower.replace(/:\d+(?=@|$)/, '')
-let user = match[1].replace(/:\d+$/, '')
+const user = match[1].replace(/:\d+$/, '')
 let server = match[2]
 if (server === 'c.us') server = 's.whatsapp.net'
+if (LID_SERVERS.has(server)) {
+const mapped = resolveAliasSync(`${user}@${server}`)
+// Sin mapeo conocido conservamos el `@lid` real: es una identidad valida y estable.
+return mapped || `${user}@${server}`
+}
+if (server === 's.whatsapp.net') {
 const digits = user.replace(/\D/g, '')
-if (digits && ['s.whatsapp.net', 'lid', 'hosted.lid'].includes(server)) return `${digits}@s.whatsapp.net`
+return digits ? `${digits}@s.whatsapp.net` : `${user}@${server}`
+}
 return `${user}@${server}`
 }
 
 global.normalizeJid = normalizeJid
 
+/**
+ * Version ASINCRONA: puede preguntarle a Baileys por el mapeo LID->PN.
+ * Cada resolucion exitosa se guarda en el registro de alias, de modo que
+ * `normalizeJid()` (sincrona) pueda resolver ese mismo LID a partir de entonces.
+ */
 export async function normalizeIdentityJid(conn, jid, participantsByLid = null) {
 if (!jid || typeof jid !== 'string') return ''
 let normalized = jidNormalizedUser(jid) || jid
 if (normalized.endsWith('@lid') || normalized.endsWith('@hosted.lid')) {
+const lidKey = normalized
+// 1) Alias ya conocido: resolucion inmediata, sin I/O.
+const cached = resolveAliasSync(lidKey)
+if (cached) return cached
 const participant = participantsByLid?.get?.(normalized) || participantsByLid?.get?.(jid)
 if (participant?.jid) normalized = jidNormalizedUser(participant.jid) || participant.jid
 else {
+// 2) Preguntar al mapeo LID/PN de Baileys.
 const mapped = await conn?.signalRepository?.lidMapping?.getPNForLID?.(normalized).catch(() => null)
 if (mapped) normalized = jidNormalizedUser(mapped) || mapped
 }
+// 3) Aprender el mapeo para futuras resoluciones sincronas.
+if (normalized && normalized !== lidKey) rememberMapping(lidKey, normalized)
 }
 return normalized
 }

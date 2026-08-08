@@ -2,6 +2,7 @@ import Database from 'better-sqlite3'
 import { existsSync, mkdirSync, readFileSync } from 'fs'
 import path from 'path'
 import { normalizeJid } from '../core/identity-utils.js'
+import { attachStore as attachLidStore } from '../core/lid-registry.js'
 
 const USER_COLUMNS = {
 id: { type: 'TEXT', defaultSql: null, primary: true },
@@ -19,6 +20,10 @@ marry: { type: 'TEXT', defaultSql: "''" }, extras: { type: 'TEXT', defaultSql: "
 const BOOLEAN_FIELDS = new Set(['registered', 'premium', 'banned', 'muto'])
 const NUMERIC_FIELDS = new Set(Object.entries(USER_COLUMNS).filter(([, c]) => c.type === 'INTEGER').map(([name]) => name))
 const INTERNAL_PROPS = new Set(['then', 'inspect', 'toJSON', 'valueOf', Symbol.toStringTag, Symbol.iterator])
+// Campos que se SUMAN al fusionar dos filas del mismo usuario humano (recursos y contadores).
+const ACCUMULATED_FIELDS = new Set(['coin', 'bank', 'exp', 'diamond', 'diamonds', 'emerald', 'iron', 'gold', 'coal', 'stone', 'tokens', 'gachaTokens', 'candies', 'gifts', 'commands', 'msg_count', 'jobXp', 'joincount', 'monthly', 'weekly'])
+// El resto de los campos numericos (niveles, cooldowns `last*`, flags) toman el valor MAYOR.
+// Tomar el maximo en los cooldowns evita que fusionar regale un claim/daily extra.
 
 function ensureDir(filename) { const dir = path.dirname(filename); if (dir && dir !== '.' && !existsSync(dir)) mkdirSync(dir, { recursive: true }) }
 function now() { return Date.now() }
@@ -291,6 +296,8 @@ this._prepareSchema()
 this._prepareStatements()
 this._migrateJsonSectionsToTables()
 this._bindPublicApi()
+// Debe ir despues de `_bindPublicApi` para que `mergeUserRows` ya este ligado.
+this._attachLidRegistry()
 this.data = this._createDataFacade()
 }
 
@@ -324,6 +331,8 @@ CREATE TABLE IF NOT EXISTS group_routing (chat_id TEXT PRIMARY KEY, primary_bot_
 CREATE TABLE IF NOT EXISTS bot_chat_bans (bot_jid TEXT NOT NULL, chat_id TEXT NOT NULL, banned INTEGER NOT NULL DEFAULT 1, updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000), PRIMARY KEY(bot_jid, chat_id));
 CREATE TABLE IF NOT EXISTS subbot_config (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000));
 CREATE TABLE IF NOT EXISTS timelock_cooldown (jid TEXT PRIMARY KEY, expires_at INTEGER NOT NULL, value TEXT NOT NULL DEFAULT '{}', updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000));
+CREATE TABLE IF NOT EXISTS jid_aliases (lid TEXT PRIMARY KEY, pn TEXT NOT NULL, merged_at INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL DEFAULT (unixepoch()));
+CREATE INDEX IF NOT EXISTS idx_jid_aliases_pn ON jid_aliases(pn);
 CREATE INDEX IF NOT EXISTS idx_users_jid ON users(id);
 CREATE INDEX IF NOT EXISTS idx_users_level ON users(level);
 CREATE INDEX IF NOT EXISTS idx_users_coin ON users(coin);
@@ -561,7 +570,7 @@ addUserActivity: this.sqlite.prepare('UPDATE users SET exp = COALESCE(exp, 0) + 
 
 
 _bindPublicApi() {
-for (const name of ['topUsers', 'getTopUsers', 'userRank', 'countUsers', 'countRegisteredUsers', 'getUserAsync', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'updateUserAsync', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'incrementUserActivity', 'incrementUserActivityFast', 'transferBetweenUsers', 'settleUserBet', 'buyGachaMarketSale', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
+for (const name of ['topUsers', 'getTopUsers', 'userRank', 'countUsers', 'countRegisteredUsers', 'getUserAsync', 'getRecord', 'setRecord', 'countSection', 'getUser', 'getGroup', 'upsertGroupMetadata', 'listGroups', 'updateUser', 'updateUserAsync', 'userExists', 'getChat', 'updateChat', 'listUsers', 'listUserRows', 'addMoney', 'addEconomy', 'setEconomy', 'incrementUserField', 'incrementUserActivity', 'incrementUserActivityFast', 'transferBetweenUsers', 'mergeUserRows', 'settleUserBet', 'buyGachaMarketSale', 'syncCharactersFts', 'searchCharacter', 'getSection', 'replaceSection', 'setMarriagePair', 'divorcePair', 'getMarriages', 'replaceMarriages', 'getHarem', 'replaceHarem', 'upsertHaremClaim', 'getGachaMarket', 'replaceGachaMarket', 'addGachaMarketSale', 'removeGachaMarketSale', 'getStickerCommands', 'replaceStickerCommands', 'getStickerCommand', 'setStickerCommand', 'get', 'set', 'has', 'delete', 'read', 'write', 'flush', 'scheduleFlush', 'save', 'close', 'snapshot']) {
 this[name] = this[name].bind(this)
 }
 }
@@ -589,6 +598,125 @@ return this._rowToUser(statement.get(id))
 async _runUserRowAsync(id, user) {
 return this._writeUserRow(id, user)
 }
+/**
+ * Conecta este almacen al registro de alias LID<->PN.
+ * A partir de aqui `normalizeJid()` puede resolver LIDs de forma sincrona y
+ * cada mapeo nuevo dispara la fusion de las filas duplicadas.
+ */
+_attachLidRegistry() {
+const loadAliases = this.sqlite.prepare('SELECT lid, pn, merged_at FROM jid_aliases')
+const saveAlias = this.sqlite.prepare('INSERT INTO jid_aliases(lid,pn,merged_at,updated_at) VALUES(?,?,0,unixepoch()) ON CONFLICT(lid) DO UPDATE SET pn=excluded.pn, updated_at=unixepoch()')
+const markMerged = this.sqlite.prepare('UPDATE jid_aliases SET merged_at=unixepoch() WHERE lid=?')
+attachLidStore({
+load: () => loadAliases.all(),
+save: (lid, pn) => saveAlias.run(lid, pn),
+merge: (fromId, toId) => this.mergeUserRows(fromId, toId),
+markMerged: lid => markMerged.run(lid),
+})
+}
+
+/** Reapunta hacia `target` todas las tablas relacionales que guardan un JID de usuario. */
+_repointUserReferences(source, target) {
+// Tablas donde el JID no forma parte de la PK: update directo.
+const plainUpdates = [
+'UPDATE harem SET user_id=? WHERE user_id=?',
+'UPDATE marriages SET partner_id=? WHERE partner_id=?',
+'UPDATE gacha_market SET seller_jid=? WHERE seller_jid=?',
+'UPDATE waifus_venta SET vendedor=? WHERE vendedor=?',
+'UPDATE users SET marry=? WHERE marry=?',
+'UPDATE subbots SET owner_jid=? WHERE owner_jid=?',
+]
+for (const sql of plainUpdates) {
+try { this.sqlite.prepare(sql).run(target, source) } catch {}
+}
+// Tablas donde el JID SI forma parte de la PK: `UPDATE OR IGNORE` y luego se
+// descarta el sobrante, de modo que la fila del destino siempre gana.
+const keyedUpdates = [
+['UPDATE OR IGNORE marriages SET user_id=? WHERE user_id=?', 'DELETE FROM marriages WHERE user_id=?'],
+['UPDATE OR IGNORE character_favorites SET user_id=? WHERE user_id=?', 'DELETE FROM character_favorites WHERE user_id=?'],
+['UPDATE OR IGNORE claim_config SET user_id=? WHERE user_id=?', 'DELETE FROM claim_config WHERE user_id=?'],
+['UPDATE OR IGNORE timelock_cooldown SET jid=? WHERE jid=?', 'DELETE FROM timelock_cooldown WHERE jid=?'],
+]
+for (const [updateSql, deleteSql] of keyedUpdates) {
+try {
+this.sqlite.prepare(updateSql).run(target, source)
+this.sqlite.prepare(deleteSql).run(source)
+} catch {}
+}
+}
+
+/** Combina dos filas hidratadas segun la politica de campos acumulables / maximos / texto. */
+_combineUserRows(sourceRow, targetRow) {
+const source = this._hydrateUser(sourceRow || {})
+const target = this._hydrateUser(targetRow || {})
+const merged = { ...target }
+for (const name of Object.keys(USER_COLUMNS)) {
+if (name === 'id' || name === 'updated_at') continue
+if (name === 'extras') continue
+const a = source[name]
+const b = target[name]
+if (NUMERIC_FIELDS.has(name) && !BOOLEAN_FIELDS.has(name)) {
+const na = Number(a) || 0
+const nb = Number(b) || 0
+merged[name] = ACCUMULATED_FIELDS.has(name) ? na + nb : Math.max(na, nb)
+continue
+}
+if (BOOLEAN_FIELDS.has(name)) {
+merged[name] = Boolean(a) || Boolean(b)
+continue
+}
+// Texto: gana el destino si ya tiene contenido; si esta vacio se hereda del origen.
+const emptyTarget = b == null || b === ''
+merged[name] = emptyTarget ? a : b
+}
+merged.extras = { ...(source.extras || {}), ...(target.extras || {}) }
+return this._hydrateUser(merged)
+}
+
+/**
+ * Fusiona la fila `fromId` dentro de `toId` sin perder datos y en una sola transaccion.
+ * Se usa como puente en vivo entre los `@lid` nuevos, los `@s.whatsapp.net` viejos y
+ * las filas fantasma que genero el bug anterior de `normalizeJid`.
+ *
+ * Ojo: se trabaja con los ids TAL CUAL, sin pasar por `normalizeJid`, porque el
+ * objetivo es precisamente reconciliar identificadores que no son canonicos.
+ * @returns {boolean} true si hubo algo que fusionar
+ */
+mergeUserRows(fromId, toId) {
+const source = String(fromId || '').trim().toLowerCase()
+const target = String(toId || '').trim().toLowerCase()
+if (!source || !target || source === target) return false
+const selectRow = this.sqlite.prepare('SELECT * FROM users WHERE id=?')
+const tx = this.sqlite.transaction(() => {
+const sourceRow = this._rowToUser(selectRow.get(source))
+// Reapuntamos siempre: puede haber harem/marriages del id viejo aunque su fila
+// de `users` ya no exista.
+this._repointUserReferences(source, target)
+if (!sourceRow) return false
+this.statements.insertUser.run(target)
+const targetRow = this._rowToUser(selectRow.get(target))
+const merged = this._combineUserRows(sourceRow, targetRow)
+this._writeUserRow(target, merged)
+this.sqlite.prepare('DELETE FROM users WHERE id=?').run(source)
+return true
+})
+let changed = false
+try {
+changed = tx()
+} catch (error) {
+console.error('[sqlite] no se pudo fusionar', source, '->', target, error?.message || error)
+return false
+}
+// Invalidamos las caches de AMBOS ids: el origen desaparecio y el destino cambio.
+for (const id of [source, target]) {
+this.userCache.delete(id)
+this.userProxyCache.delete(id)
+this.dirtyUsers.delete(id)
+}
+if (changed) console.log('[v0][sqlite] usuario fusionado', source, '->', target)
+return changed
+}
+
 _withUserWriteLock(id, task) {
 const previous = this.userWriteLocks.get(id) || Promise.resolve()
 const next = previous.catch(() => {}).then(task)

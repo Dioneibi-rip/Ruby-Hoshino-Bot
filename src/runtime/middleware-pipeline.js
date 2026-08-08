@@ -1,7 +1,9 @@
 import { jidNormalizedUser } from '@whiskeysockets/baileys'
 import { smsg } from '../library/simple.js'
 import { getPrefixMatch, hydrateDatabaseForMessage, buildPermissionContext, beforeHooks, allHooks } from '../router/handler-utils.js'
-import { getGroupMetadataOnDemand } from '../library/global-cache.js'
+import { getGroupMetadataOnDemand, groupMetadataCache } from '../library/global-cache.js'
+import { buildParticipantsByLid, normalizeIdentityJid } from '../core/identity-utils.js'
+import { rememberMapping, resolveAliasSync } from '../core/lid-registry.js'
 import { canManageBotSecurity, getAntiPrivateState, isChatBannedForBot, normalizeSessionJid, shouldSilenceChatForBot } from '../core/session-utils.js'
 import { messageHasModeratedLink, runAutoModeration } from '../core/moderation-utils.js'
 import { buildGuardContext, pluginNeedsJob, runPluginGuards, userHasJob } from '../router/permission-guard.js'
@@ -27,6 +29,48 @@ const command = String(args.shift() || '').toLowerCase()
 return { raw, body, command, args, text: args.join(' '), usedPrefix, prefix: usedPrefix }
 }
 
+const LID_SUFFIX = /@(?:hosted\.)?lid$/i
+
+function isLid(jid) {
+return typeof jid === 'string' && LID_SUFFIX.test(jid)
+}
+
+/**
+ * Devuelve el primer candidato que ya sea un telefono clasico.
+ * Baileys parchado expone estas pistas en la key (`participantPn`, `remoteJidAlt`, ...)
+ * y son la fuente mas confiable porque vienen del propio servidor.
+ */
+function pickPhoneHint(...candidates) {
+for (const candidate of candidates) {
+if (typeof candidate !== 'string' || !candidate) continue
+const normalized = jidNormalizedUser(candidate) || candidate
+if (normalized.endsWith('@s.whatsapp.net') && /^\d{7,15}@/.test(normalized)) return normalized
+}
+return ''
+}
+
+/**
+ * Resuelve un JID a su telefono canonico siguiendo el orden de confianza:
+ *   1. pistas de la propia key del mensaje (`participantPn` / `remoteJidAlt` / ...)
+ *   2. `participantsByLid` de la metadata del grupo ya cacheada
+ *   3. `signalRepository.lidMapping.getPNForLID()` de Baileys
+ * Si nada resuelve, devuelve el `@lid` intacto: es una identidad valida.
+ */
+async function resolveEntityJid(conn, jid, { hints = [], participantsByLid = null } = {}) {
+if (!jid || typeof jid !== 'string') return jid
+const normalized = jidNormalizedUser(jid) || jid
+if (!isLid(normalized)) return normalized
+const cached = resolveAliasSync(normalized)
+if (cached) return cached
+const hint = pickPhoneHint(...hints)
+if (hint) {
+rememberMapping(normalized, hint)
+return hint
+}
+const resolved = await normalizeIdentityJid(conn, normalized, participantsByLid)
+return resolved || normalized
+}
+
 function getSender(conn, m) {
 if (m?.fromMe) return jidNormalizedUser(conn?.user?.id || conn?.user?.jid || m.sender || '')
 return m?.isGroup ? m?.key?.participant || m?.sender : m?.key?.remoteJid || m?.sender
@@ -38,7 +82,12 @@ return conn.__rubyRateLimit
 }
 
 function isOwner(sender = '') {
-const number = String(sender || '').replace(/[^0-9]/g, '')
+if (!sender) return false
+// Un `@lid` sin mapeo conocido NO se compara por digitos: el numero interno de un
+// LID no es un telefono y compararlo podria dar un falso positivo de owner.
+const canonical = resolveAliasSync(sender) || sender
+if (isLid(canonical)) return false
+const number = String(canonical).replace(/[^0-9]/g, '')
 return Boolean(number && (global.owner || []).some(owner => String(Array.isArray(owner) ? owner[0] : owner).replace(/[^0-9]/g, '') === number))
 }
 
