@@ -41,6 +41,36 @@ return `${user}@${server}`
 global.normalizeJid = normalizeJid
 
 /**
+ * Prepara un numero para `requestPairingCode()`.
+ *
+ * Baileys exige digitos puros en formato internacional SIN `+`. Cualquier basura
+ * (espacios, guiones, parentesis, sufijo `@s.whatsapp.net`, prefijo `00`, un `+`
+ * suelto) provoca un pairing code invalido o un error del servidor.
+ *
+ * Reglas aplicadas:
+ *  - Se descarta todo lo que venga despues de `@` (por si llega un JID completo).
+ *  - Se eliminan todos los caracteres que no sean digitos.
+ *  - Se quita el prefijo de marcacion internacional `00` (00521... -> 521...).
+ *  - Se valida la longitud E.164 (7 a 15 digitos).
+ *
+ * @returns {string} digitos listos para Baileys, o `''` si el numero no es usable
+ */
+export function sanitizePairingNumber(value = '') {
+const raw = String(Array.isArray(value) ? value[0] : value ?? '').trim()
+if (!raw) return ''
+let digits = raw.split('@')[0].replace(/\D/g, '')
+if (!digits) return ''
+// `00` es prefijo de salida internacional, no parte del numero.
+if (digits.startsWith('00')) digits = digits.slice(2)
+// Un `0` troncal inicial tampoco pertenece al formato E.164.
+if (digits.length > 11 && digits.startsWith('0')) digits = digits.replace(/^0+/, '')
+if (!/^\d{7,15}$/.test(digits)) return ''
+return digits
+}
+
+global.sanitizePairingNumber = sanitizePairingNumber
+
+/**
  * Version ASINCRONA: puede preguntarle a Baileys por el mapeo LID->PN.
  * Cada resolucion exitosa se guarda en el registro de alias, de modo que
  * `normalizeJid()` (sincrona) pueda resolver ese mismo LID a partir de entonces.

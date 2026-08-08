@@ -45,6 +45,7 @@ import { startMediaWorker, setMediaQueueConnection, closeMediaQueue } from '../l
 import { restoreSubbots } from '../core/subbot-engine.js'
 import { getBaileysExport, getBaileysProto, getSignalKeyStore } from '../core/baileys-compat.js'
 import { printNativeQr, clearNativeQr } from '../utils/nativeQr.js'
+import { sanitizePairingNumber } from '../core/identity-utils.js'
 EventEmitter.defaultMaxListeners = 100
 const baileysModule = await import('@whiskeysockets/baileys')
 global.baileys = baileysModule
@@ -301,18 +302,31 @@ if (opcion === '2' || methodCode) {
 opcion = '2'
 if (!conn.authState.creds.registered) {
 let addNumber
-if (!!phoneNumber) { addNumber = phoneNumber.replace(/[^0-9]/g, '') } else {
+if (!!phoneNumber) { addNumber = sanitizePairingNumber(phoneNumber) } else {
 do {
 phoneNumber = await question(chalk.bold.hex('#A020F0')(`\n📞 INGRESE SU NÚMERO DE WHATSAPP\n${chalk.white('Ejemplo: 5219999999999')}\n${chalk.yellow('➜ ')}`));
-phoneNumber = phoneNumber.replace(/\D/g, '');
-if (!phoneNumber.startsWith('+')) { phoneNumber = `+${phoneNumber}` }
-} while (!await isValidPhoneNumber(phoneNumber))
+// Se sanea a digitos puros ANTES de validar: `isValidPhoneNumber` necesita el
+// formato E.164 (`+<digitos>`), y `requestPairingCode` necesita solo digitos.
+phoneNumber = sanitizePairingNumber(phoneNumber)
+if (!phoneNumber) {
+console.log(chalk.red.bold('❌ NÚMERO INVÁLIDO. INGRESE SOLO DÍGITOS CON CÓDIGO DE PAÍS.'))
+continue
+}
+} while (!await isValidPhoneNumber(`+${phoneNumber}`))
 rl.close()
-addNumber = phoneNumber.replace(/\D/g, '')
+addNumber = phoneNumber
+}
+if (!addNumber) {
+console.log(chalk.red.bold('❌ NO SE PUDO DETERMINAR UN NÚMERO VÁLIDO PARA EL PAIRING CODE.'))
+} else {
 setTimeout(async () => {
+try {
 let codeBot = await conn.requestPairingCode(addNumber);
 codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
 console.log(chalk.bold.white(' Codigo : ') + chalk.bold.bgMagenta(` ${codeBot} `))
+} catch (error) {
+console.log(chalk.red.bold(`❌ ERROR SOLICITANDO EL CÓDIGO: ${error?.message || error}`))
+}
 if (process.env.RUBY_SMOKE_PAIRING_CODE) await shutdownDatabaseAndExit(0)
 }, Number(process.env.RUBY_SMOKE_PAIRING_CODE ? 10 : 3000))
 }

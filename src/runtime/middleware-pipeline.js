@@ -97,7 +97,7 @@ this.registry = registry
 this.db = db
 this.rateLimitWindowMs = rateLimitWindowMs
 this.rateLimitMax = rateLimitMax
-this.stages = [this.normalize.bind(this), this.security.bind(this), this.afkReturn.bind(this), this.pluginHooks.bind(this), this.automoderation.bind(this), this.rateLimit.bind(this), this.route.bind(this)]
+this.stages = [this.normalize.bind(this), this.identity.bind(this), this.security.bind(this), this.afkReturn.bind(this), this.pluginHooks.bind(this), this.automoderation.bind(this), this.rateLimit.bind(this), this.route.bind(this)]
 this.cooldowns = new Map()
 }
 
@@ -140,11 +140,89 @@ const match = getPrefixMatch(conn, {}, text)
 const usedPrefix = match?.[0]?.[0] || ''
 ctx.m = m
 ctx.sender = getSender(conn, m)
-ctx.isOwner = isOwner(ctx.sender)
 ctx.prefixMatch = match
 ctx.parsed = usedPrefix ? parseCommandText(text, usedPrefix) : null
 ctx.commandName = ctx.parsed?.command || ''
 ctx.usedPrefix = usedPrefix
+}
+
+/**
+ * Etapa de normalizacion de identidad.
+ *
+ * Es la UNICA etapa asincrona donde se resuelve `@lid` -> telefono canonico, y por eso
+ * debe correr ANTES de `security`, `afkReturn`, `route` y de la hidratacion de la DB.
+ * Todo lo que venga despues trabaja siempre con la identidad canonica, y `normalizeJid()`
+ * (sincrona) ya puede resolver ese mismo LID gracias al registro de alias.
+ */
+async identity(ctx) {
+const { conn, m } = ctx
+if (!m) {
+ctx.halted = true
+return
+}
+
+// Metadata de grupo ya cacheada: fuente barata y confiable de pares lid/pn.
+// Nunca se fuerza una consulta de red aqui, solo se aprovecha lo que ya existe.
+let participantsByLid = null
+if (m.isGroup && m.chat) {
+const cachedMetadata = groupMetadataCache?.get?.(m.chat) || conn?.chats?.[m.chat]?.metadata || null
+const participants = Array.isArray(cachedMetadata?.participants) ? cachedMetadata.participants : []
+if (participants.length) {
+participantsByLid = buildParticipantsByLid(participants)
+ctx.groupMetadata ||= cachedMetadata
+ctx.participants ||= participants
+// Aprendemos todos los pares lid<->pn del grupo de una sola pasada.
+for (const participant of participants) {
+const lid = participant?.lid
+const phone = pickPhoneHint(participant?.jid, participant?.id, participant?.phoneNumber)
+if (lid && phone) rememberMapping(lid, phone)
+}
+}
+}
+ctx.participantsByLid = participantsByLid
+
+const key = m.key || {}
+const senderHints = [key.participantPn, key.participantAlt, m.participantPn, m.senderPn, !m.isGroup ? key.remoteJidAlt : '', !m.isGroup ? key.remoteJidPn : '']
+const canonicalSender = await resolveEntityJid(conn, ctx.sender, { hints: senderHints, participantsByLid })
+if (canonicalSender && canonicalSender !== ctx.sender) {
+ctx.sender = canonicalSender
+m.sender = canonicalSender
+if (m.isGroup) m.participant = canonicalSender
+else m.chat = canonicalSender
+}
+
+// Chat privado: el `remoteJid` tambien puede llegar como `@lid`.
+if (!m.isGroup) {
+const canonicalChat = await resolveEntityJid(conn, m.chat, { hints: [key.remoteJidAlt, key.remoteJidPn], participantsByLid })
+if (canonicalChat) m.chat = canonicalChat
+} else if (isLid(m.chat)) {
+// Un grupo nunca deberia ser `@lid`; si lo es, lo dejamos intacto sin resolverlo.
+ctx.groupLidChat = true
+}
+
+// El autor del mensaje citado alimenta comandos de moderacion (ban/kick/warn).
+const quotedRaw = m.quoted?.sender || m.quoted?.participant || m.quoted?.key?.participant || ''
+if (quotedRaw) {
+const quotedKey = m.quoted?.key || {}
+const canonicalQuoted = await resolveEntityJid(conn, quotedRaw, { hints: [quotedKey.participantPn, quotedKey.participantAlt, m.quoted?.participantPn], participantsByLid })
+if (canonicalQuoted && canonicalQuoted !== quotedRaw) {
+if (m.quoted) m.quoted.sender = canonicalQuoted
+ctx.quotedSender = canonicalQuoted
+} else ctx.quotedSender = quotedRaw
+}
+
+// Menciones: se resuelven en bloque para que los plugins reciban identidades canonicas.
+if (Array.isArray(m.mentionedJid) && m.mentionedJid.length) {
+const mentioned = []
+for (const jid of m.mentionedJid) {
+const resolved = await resolveEntityJid(conn, jid, { participantsByLid })
+if (resolved) mentioned.push(resolved)
+}
+m.mentionedJid = [...new Set(mentioned)]
+}
+
+// Owner y DB solo se calculan con la identidad ya canonica.
+ctx.isOwner = isOwner(ctx.sender)
 ctx.dbState = hydrateDatabaseForMessage(conn, m, ctx.sender)
 }
 
