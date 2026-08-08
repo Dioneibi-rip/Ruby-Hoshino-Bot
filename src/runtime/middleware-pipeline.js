@@ -71,6 +71,79 @@ const resolved = await normalizeIdentityJid(conn, normalized, participantsByLid)
 return resolved || normalized
 }
 
+/**
+ * Sobreescribe una propiedad de forma SEGURA.
+ *
+ * `proto.WebMessageInfo.prototype` define `chat`, `sender`, `isGroup`, ... como
+ * accessors de SOLO LECTURA (`get()` sin `set()`). Una asignacion directa
+ * (`m.chat = x`) en modulos ESM (strict mode) lanza:
+ *   TypeError: Cannot set property chat of #<WebMessageInfo> which has only a getter
+ *
+ * Orden de intentos:
+ *   1. Si la propiedad tiene setter propio o es un data-property escribible -> asignacion normal.
+ *   2. Si no, se instala un data-property PROPIO en la instancia con `Object.defineProperty`,
+ *      lo que sombrea el getter del prototipo sin tocarlo.
+ * @returns {boolean} true si el valor quedo aplicado
+ */
+function safeAssign(target, prop, value) {
+if (!target || typeof target !== 'object') return false
+try {
+const own = Object.getOwnPropertyDescriptor(target, prop)
+if (own && (own.writable || typeof own.set === 'function')) {
+target[prop] = value
+return true
+}
+if (!own) {
+// Buscamos un setter heredado (ej. `mentionedJid` / `text` en el prototipo parchado).
+let proto = Object.getPrototypeOf(target)
+while (proto) {
+const inherited = Object.getOwnPropertyDescriptor(proto, prop)
+if (inherited) {
+if (typeof inherited.set === 'function') {
+target[prop] = value
+return true
+}
+break
+}
+proto = Object.getPrototypeOf(proto)
+}
+}
+if (own && !own.configurable) return false
+Object.defineProperty(target, prop, { value, writable: true, enumerable: true, configurable: true })
+return true
+} catch (error) {
+console.error('[identity] no se pudo sobreescribir', prop, error?.message || error)
+return false
+}
+}
+
+/**
+ * Localiza el `contextInfo` REAL (mutable) del mensaje.
+ *
+ * `m.mentionedJid` y `m.quoted` son getters que derivan de aqui; para que un cambio
+ * sobreviva hay que escribir en este objeto y no en el valor derivado.
+ * Se prioriza `extendedTextMessage` (menciones de texto) y luego cualquier
+ * `contextInfo` anidado (captions de imagen/video, botones, etc.).
+ */
+function getContextInfo(m) {
+if (!m?.message || typeof m.message !== 'object') return null
+const direct = m.message.extendedTextMessage?.contextInfo
+if (direct && typeof direct === 'object') return direct
+const seen = new Set()
+const walk = (node, depth = 0) => {
+if (!node || typeof node !== 'object' || depth > 6 || seen.has(node)) return null
+seen.add(node)
+if (node.contextInfo && typeof node.contextInfo === 'object') return node.contextInfo
+for (const value of Object.values(node)) {
+if (!value || typeof value !== 'object') continue
+const found = walk(value, depth + 1)
+if (found) return found
+}
+return null
+}
+return walk(m.msg) || walk(m.message)
+}
+
 function getSender(conn, m) {
 if (m?.fromMe) return jidNormalizedUser(conn?.user?.id || conn?.user?.jid || m.sender || '')
 return m?.isGroup ? m?.key?.participant || m?.sender : m?.key?.remoteJid || m?.sender
@@ -182,43 +255,73 @@ if (lid && phone) rememberMapping(lid, phone)
 ctx.participantsByLid = participantsByLid
 
 const key = m.key || {}
-const senderHints = [key.participantPn, key.participantAlt, m.participantPn, m.senderPn, !m.isGroup ? key.remoteJidAlt : '', !m.isGroup ? key.remoteJidPn : '']
+const isGroupChat = Boolean(m.isGroup)
+const senderHints = [key.participantPn, key.participantAlt, m.participantPn, m.senderPn, !isGroupChat ? key.remoteJidAlt : '', !isGroupChat ? key.remoteJidPn : '']
 const canonicalSender = await resolveEntityJid(conn, ctx.sender, { hints: senderHints, participantsByLid })
 if (canonicalSender && canonicalSender !== ctx.sender) {
 ctx.sender = canonicalSender
-m.sender = canonicalSender
-if (m.isGroup) m.participant = canonicalSender
-else m.chat = canonicalSender
+// `sender` es un getter derivado de `key.participant` / `key.remoteJid`.
+// Mutamos primero la fuente subyacente (la key SI es escribible) y luego
+// sombreamos el getter para que cualquier lectura posterior sea canonica.
+if (isGroupChat) {
+safeAssign(key, 'participant', canonicalSender)
+safeAssign(m, 'participant', canonicalSender)
+} else {
+safeAssign(key, 'remoteJid', canonicalSender)
+}
+safeAssign(m, 'sender', canonicalSender)
 }
 
 // Chat privado: el `remoteJid` tambien puede llegar como `@lid`.
-if (!m.isGroup) {
+if (!isGroupChat) {
 const canonicalChat = await resolveEntityJid(conn, m.chat, { hints: [key.remoteJidAlt, key.remoteJidPn], participantsByLid })
-if (canonicalChat) m.chat = canonicalChat
+if (canonicalChat && canonicalChat !== m.chat) {
+safeAssign(key, 'remoteJid', canonicalChat)
+safeAssign(m, 'chat', canonicalChat)
+// `isGroup` deriva de `chat`; al sombrear `chat` hay que fijar el booleano.
+safeAssign(m, 'isGroup', false)
+}
 } else if (isLid(m.chat)) {
 // Un grupo nunca deberia ser `@lid`; si lo es, lo dejamos intacto sin resolverlo.
 ctx.groupLidChat = true
 }
 
-// El autor del mensaje citado alimenta comandos de moderacion (ban/kick/warn).
-const quotedRaw = m.quoted?.sender || m.quoted?.participant || m.quoted?.key?.participant || ''
+// El autor del mensaje citado alimenta moderacion Y economia (bank/perfil por cita).
+// OJO: `m.quoted` es un getter que reconstruye un objeto NUEVO en cada acceso, por lo
+// que mutarlo no persiste. La fuente real es `contextInfo.participant`, y ahi si se
+// puede escribir. Ademas cacheamos el `quoted` ya resuelto para no perder el mapeo.
+const contextInfo = getContextInfo(m)
+const quotedSnapshot = m.quoted || null
+const quotedRaw = quotedSnapshot?.sender || contextInfo?.participant || quotedSnapshot?.participant || quotedSnapshot?.key?.participant || ''
 if (quotedRaw) {
-const quotedKey = m.quoted?.key || {}
-const canonicalQuoted = await resolveEntityJid(conn, quotedRaw, { hints: [quotedKey.participantPn, quotedKey.participantAlt, m.quoted?.participantPn], participantsByLid })
-if (canonicalQuoted && canonicalQuoted !== quotedRaw) {
-if (m.quoted) m.quoted.sender = canonicalQuoted
-ctx.quotedSender = canonicalQuoted
-} else ctx.quotedSender = quotedRaw
+const quotedKey = quotedSnapshot?.key || {}
+const canonicalQuoted = await resolveEntityJid(conn, quotedRaw, { hints: [contextInfo?.participantPn, contextInfo?.participantAlt, quotedKey.participantPn, quotedKey.participantAlt, quotedSnapshot?.participantPn], participantsByLid })
+const finalQuoted = canonicalQuoted || quotedRaw
+ctx.quotedSender = finalQuoted
+if (finalQuoted !== quotedRaw && contextInfo) safeAssign(contextInfo, 'participant', finalQuoted)
+if (quotedSnapshot) {
+safeAssign(quotedSnapshot, 'sender', finalQuoted)
+// Congelamos el snapshot ya normalizado para que `m.quoted` deje de regenerarse.
+safeAssign(m, 'quoted', quotedSnapshot)
+}
 }
 
 // Menciones: se resuelven en bloque para que los plugins reciban identidades canonicas.
-if (Array.isArray(m.mentionedJid) && m.mentionedJid.length) {
+// Se reescribe TANTO el `contextInfo.mentionedJid` crudo (fuente del getter) como la
+// propiedad serializada, porque los comandos leen indistintamente de ambas.
+const rawMentions = Array.isArray(contextInfo?.mentionedJid) && contextInfo.mentionedJid.length ? contextInfo.mentionedJid : Array.isArray(m.mentionedJid) ? m.mentionedJid : []
+if (rawMentions.length) {
 const mentioned = []
-for (const jid of m.mentionedJid) {
+for (const jid of rawMentions) {
 const resolved = await resolveEntityJid(conn, jid, { participantsByLid })
 if (resolved) mentioned.push(resolved)
 }
-m.mentionedJid = [...new Set(mentioned)]
+const unique = [...new Set(mentioned)]
+if (unique.length) {
+if (contextInfo) safeAssign(contextInfo, 'mentionedJid', unique)
+safeAssign(m, 'mentionedJid', unique)
+ctx.mentionedJid = unique
+}
 }
 
 // Owner y DB solo se calculan con la identidad ya canonica.
