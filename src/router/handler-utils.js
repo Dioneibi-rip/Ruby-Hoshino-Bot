@@ -109,7 +109,15 @@ const botJid = 'primary'
 const settings = ensureRecord(data.settings, botJid, settingsDefault)
 const chat = m?.chat ? ensureRecord(data.chats, m.chat, chatDefault) : {}
 if (!sender || typeof sender !== 'string') return { data, user: {}, chat, settings }
-const currentUser = global.db?.getUser?.(sender) || data.users?.[sender] || {}
+// `getUser()` lanza si el id no es normalizable (LID sin mapeo + basura). Antes esto
+// se propagaba hasta el pipeline y mataba el mensaje entero de forma silenciosa.
+let currentUser = {}
+try {
+currentUser = global.db?.getUser?.(sender) || data.users?.[sender] || {}
+} catch (error) {
+console.error('[db-bridge] getUser fallo para', sender, error?.message || error)
+currentUser = data.users?.[sender] || {}
+}
 const safeUser = currentUser && typeof currentUser === 'object' ? currentUser : {}
 const whatsappName = String(m?.pushName || m?.name || safeUser?.name || '').trim()
 const user = ensureRecord(data.users, sender, userDefault, { name: whatsappName || safeUser?.name || userDefault.name })
