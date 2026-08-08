@@ -1,6 +1,7 @@
 import { prepareWAMessageMedia, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys'
 import { createSubbotSocket, destroySubbotSession, getPairingErrorMessage, requestPairingCodeWithTimeout } from '../../core/subbot-engine.js'
 import { sanitizePairingPrefix } from '../../core/botProfileStore.js'
+import { sanitizePairingNumber } from '../../core/identity-utils.js'
 
 const requestCooldown = new Map()
 const COOLDOWN_MS = 120000
@@ -20,7 +21,12 @@ setTimeout(() => requestCooldown.delete(jid), COOLDOWN_MS).unref?.()
 }
 
 let handler = async (m, { conn }) => {
-const pairingPhone = String(conn.decodeJid?.(m.sender) || m.sender || '').split('@')[0].replace(/\D/g, '')
+// `m.sender` ya llega canonicalizado por la etapa de identidad del pipeline. Si aun
+// asi es un `@lid` sin mapeo, sus digitos NO son un telefono: abortamos en vez de
+// pedirle a Baileys un codigo para un numero inventado.
+const senderJid = String(conn.decodeJid?.(m.sender) || m.sender || '')
+if (/@(?:hosted\.)?lid$/i.test(senderJid)) return conn.reply(m.chat, '🥀 WhatsApp está ocultando tu número en este chat. Escríbeme por privado y vuelve a enviar *#code*.', m)
+const pairingPhone = sanitizePairingNumber(senderJid)
 if (!pairingPhone) return conn.reply(m.chat, '🥀 No pude detectar tu número automáticamente. Intenta enviar #code desde tu chat de WhatsApp.', m)
 if (isCoolingDown(m.sender)) return conn.reply(m.chat, '⏳ Tu solicitud sigue activa. Espera 2 minutos antes de pedir otra vinculación.', m)
 setCooldown(m.sender)

@@ -10,6 +10,7 @@ import { attachSessionState, createMessageRetryCache } from './session-manager.j
 import { alignSocketTelemetry } from './socket-telemetry.js'
 import { getBaileysExport, getSignalKeyStore } from './baileys-compat.js'
 import { isChatBannedForBot, normalizeSessionJid } from './session-utils.js'
+import { sanitizePairingNumber } from './identity-utils.js'
 import { countActiveSubbots, deleteSubbotRecord, listSubbots, updateSubbot, upsertSubbot } from './subbot-store.js'
 import { readSubbotLimit } from '../config/subbot-limit.js'
 import { subbotBootQueue } from './subbot-boot-queue.js'
@@ -76,8 +77,12 @@ console.error(rubyConsole('purge', `no se pudo limpiar ${label}: ${cleanupError.
 }
 
 export function requestPairingCodeWithTimeout(sock, phone, code = 'RUBYCHAN', timeoutMs = 45000) {
+// Ultimo filtro antes de Baileys: si el numero trae basura el servidor devuelve
+// un codigo invalido o un 400 opaco, asi que fallamos temprano y con un mensaje claro.
+const digits = sanitizePairingNumber(phone)
+if (!digits) return Promise.reject(new Error(`número de vinculación inválido: "${phone}"`))
 return Promise.race([
-sock.requestPairingCode(phone, code),
+sock.requestPairingCode(digits, code),
 new Promise((_, reject) => setTimeout(() => reject(new Error('timeout solicitando código de vinculación')), timeoutMs))
 ])
 }
@@ -151,10 +156,13 @@ return Date.now() - timestamp <= 60_000
 
 export async function createSubbotSocket({ ownerJid, sessionId, pairingPhone, mode = 'code', parentConn, onPairingCode, onQr } = {}) {
 if (countActiveSubbots() >= readSubbotLimit()) throw new Error(`Límite de Sub-Bots alcanzado (${readSubbotLimit()})`)
+// Se pre-procesa aqui para no crear la sesion en disco si el numero no sirve.
+const safePhone = sanitizePairingNumber(pairingPhone)
+if (mode === 'code' && !safePhone) throw new Error(`número de vinculación inválido: "${pairingPhone}"`)
 const safeId = String(sessionId || ownerJid || Date.now()).replace(/[^a-zA-Z0-9_.@-]/g, '_')
 const sessionPath = path.join(baseDir, safeId)
 upsertSubbot({ botJid: `pending:${safeId}`, ownerJid, sessionId: safeId, sessionPath, status: 'connecting' })
-return startSubbot({ ownerJid, sessionId: safeId, sessionPath, pairingPhone, mode, parentConn, onPairingCode, onQr })
+return startSubbot({ ownerJid, sessionId: safeId, sessionPath, pairingPhone: safePhone, mode, parentConn, onPairingCode, onQr })
 }
 
 export async function startSubbot({ ownerJid, sessionId, sessionPath, pairingPhone, mode = 'restore', parentConn, onPairingCode, onQr } = {}) {
