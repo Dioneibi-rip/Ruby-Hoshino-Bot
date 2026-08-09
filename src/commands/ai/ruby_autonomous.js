@@ -504,6 +504,12 @@ export async function selfHeal(error, origin = 'uncaughtException') {
   }
 }
 
+export function attachRubyConn(conn) {
+  if (conn?.sendMessage) liveConn = conn
+  initListeners()
+  return !!liveConn
+}
+
 function initListeners() {
   if (listenersReady) return
   listenersReady = true

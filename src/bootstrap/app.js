@@ -116,7 +116,7 @@ const bannerASCII = chalk.bold.hex('#FF0080')(`
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⣿⡇⠀⠀⢸⣿⡘⣷⢻⡌⢿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⢿⣿⣿⣾⠇⣿⢸⣿⡏⠈⣿⣿⡅⠀⠀⠀⠀⣿⣿⣿⣦⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⣿⡇⠀⠀⠸⣿⠇⢻⣸⡝⣌⠻⣿⣿⣿⣿⡟⢉⣴⣶⣿⣿⣿⡿⢃⢸⣿⢸⣿⣇⠀⣿⣿⣷⠀⢀⣀⡀⠟⠻⢿⣿⣧⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⣿⣿⡇⠀⠀⠀⠻⣀⠘⣇⢷⡈⢷⣌⡛⠿⣿⣿⣿⣿⣿⣿⡿⠋⡀⡇⣸⡏⢸⣿⣿⠀⢻⣿⣿⣇⠈⠛⠀⠀⠀⣀⡉⠻⣧⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⣿⠀⠘⣾⣧⠀⠻⣿⠀⠂⠉⣙⠛⠛⣩⣴⣿⠋⢀⠿⣷⢸⣿⡿⠀⢸⣿⣿⡏⠁⠀⠀⣤⣤⣤⣽⣷⡌⣧⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀���⠀⠀⠀⢀⣾⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⣿⠀⠘⣾⣧⠀⠻⣿⠀⠂⠉⣙⠛⠛⣩⣴⣿⠋⢀⠿⣷⢸⣿⡿⠀⢸⣿⣿⡏⠁⠀⠀⣤⣤⣤⣽⣷⡌⣧⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠘⠇⠀⠈⢿⣷⡀⠈⠁⠀⠀⠘⢷⣦⣬⣉⠉⢀⡀⠀⠉⠘⠛⠁⣀⡘⠛⠛⠗⢀⠎⠀⣉⣉⣩⣤⣴⣇⢹⡆⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣿⣿⣿⡇⠠⣴⣶⣶⣾⣶⠀⠃⠀⠛⣳⠄⠙⠀⠀⠀⠀⠙⠿⠁⠀⠀⠄⠀⠀⠀⠀⢀⣩⣿⣿⡿⡇⠀⣠⠞⠉⢀⣬⣽⣿⡿⢸⣷⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⣿⣿⣿⣿⣿⣿⢃⡉⣿⣿⣿⣵⣶⣦⡀⠀⠀⠹⣧⡀⠀⠁⠄⠀⠀⠀⠀⠐⠄⠀⠀⠀⢠⣾⣿⣿⣿⣿⣿⣇⠰⡘⢠⣾⡿⣿⣿⡿⢁⣾⣿⡆⠀
@@ -236,7 +236,7 @@ showBanner()
 opcion = await question(chalk.bold.magentaBright(`
 ╭━━${lineM}━━���
 ┃ ${chalk.bold.cyanBright('╔════❖•ೋ° ¡HOLA USUARIO! °ೋ•❖════╗')}
-┃ ${chalk.bold.cyanBright('║')}    ${chalk.bold.greenBright('SELECCIONA TU MÉTODO DE CONEXIÓN')}
+┃ ${chalk.bold.cyanBright('║')}    ${chalk.bold.greenBright('SELECCIONA TU M��TODO DE CONEXIÓN')}
 ┃ ${chalk.bold.cyanBright('╚════❖•ೋ° ❀ RUBY-BOT ❀ °ೋ•❖════╝')}
 ┃
 ┃ ${chalk.bold.yellow('🔸 OPCIÓN 1:')} ${chalk.white('Escanear Código QR')}
@@ -401,6 +401,9 @@ console.log('\n')
 console.log(chalk.bold.hex('#00FF00')('୭ৎ֮֮ BOT CONECTADO CORRECTAMENTE 🪼 ׄ'))
 conn.ev.off('messages.upsert', conn.handler)
 conn.ev.on('messages.upsert', conn.handler)
+import('../commands/ai/ruby_autonomous.js')
+.then(mod => mod.attachRubyConn?.(conn))
+.catch(e => console.error('[Ruby][attach]', e?.message))
 console.log('\n')
 }
 if (connection === 'close') {
@@ -429,8 +432,19 @@ await global.reloadHandler(true).catch(console.error)
 reconnectTimer.unref?.()
 }
 }
-process.once('uncaughtException', error => shutdownDatabaseAndExit(0, error))
-process.once('unhandledRejection', error => shutdownDatabaseAndExit(1, error))
+async function rubySelfHeal(error, origin) {
+try {
+const { selfHeal } = await import('../commands/ai/ruby_autonomous.js')
+await Promise.race([
+selfHeal(error instanceof Error ? error : new Error(String(error)), origin),
+new Promise(resolve => setTimeout(resolve, 60000))
+])
+} catch (e) {
+console.error('[Ruby][self-heal-hook]', e?.message)
+}
+}
+process.once('uncaughtException', async error => { await rubySelfHeal(error, 'uncaughtException'); shutdownDatabaseAndExit(0, error) })
+process.once('unhandledRejection', async error => { await rubySelfHeal(error, 'unhandledRejection'); shutdownDatabaseAndExit(1, error) })
 let isInit = true;
 let handler = await import('../router/handler.js')
 global.reloadHandler = async function(restatConn) {
