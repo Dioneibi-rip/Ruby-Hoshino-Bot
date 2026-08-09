@@ -8,7 +8,7 @@ import cron from 'node-cron'
 const OWNER_NUMBER = '18093519169@s.whatsapp.net'
 const ROOT = process.cwd()
 const MEMORY_FILE = path.join(ROOT, 'ruby_memory.json')
-const MODEL_ID = process.env.GEMINI_MODEL || 'gemini-2.0-flash'
+const MODEL_ID = process.env.GEMINI_MODEL || 'google/gemini-2.0-flash-001"; '
 const MAX_TURNS = 16
 const EXEC_TIMEOUT = 120000
 const MAX_OUT = 6000
