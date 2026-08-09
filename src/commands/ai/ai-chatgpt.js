@@ -121,8 +121,8 @@ await m.react?.('💔')
 await m.reply(`> (っ- ‸ - ς) 𝖮𝖼𝗎𝗋𝗋𝗂𝗈́ 𝗎𝗇 𝖾𝗋𝗋𝗈𝗋, 𝗇𝗈 𝗉𝗎𝖽𝖾 𝗉𝗋𝗈𝖼𝖾𝗌⍺𝗋 𝖾𝗌𝗈... ✨\n\n> 💡 *𝖣𝖾𝗍⍺𝗅𝗅𝖾:* \`${error.message}\``)
 }
 }
-handler.command = ['Ruby', 'bot', 'ia', 'ruby']
-handler.help = ['ruby <pregunta>']
+handler.command = ['chatgpt', 'gpt', 'openai']
+handler.help = ['chatgpt <pregunta>']
 handler.tags = ['ai']
 handler.limit = true
 handler.register = true
