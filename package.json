@@ -31,6 +31,7 @@
     "url": "https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot/issues"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@hapi/boom": "^10.0.1",
     "@whiskeysockets/baileys": "github:Dioneibi-rip/Ruby-Baileys",
     "better-sqlite3": "github:Dioneibi-rip/sqlite3",
