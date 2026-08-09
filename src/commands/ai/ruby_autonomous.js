@@ -4,6 +4,8 @@ import fs from 'fs/promises'
 import path from 'path'
 import os from 'os'
 import cron from 'node-cron'
+import { rubyThink } from '../../rubyCore.js'
+import { initCrashHandler, flushPendingCrash } from '../../errorHandler.js'
 
 const OWNER_NUMBER = '18093519169@s.whatsapp.net'
 const ROOT = process.cwd()
@@ -507,12 +509,15 @@ export async function selfHeal(error, origin = 'uncaughtException') {
 export function attachRubyConn(conn) {
   if (conn?.sendMessage) liveConn = conn
   initListeners()
+  // Al reconectar/arrancar: si hubo un crash previo, avisar al dueño.
+  flushPendingCrash(liveConn).catch(e => console.error('[Ruby][crash-flush]', e?.message))
   return !!liveConn
 }
 
 function initListeners() {
   if (listenersReady) return
   listenersReady = true
+  initCrashHandler() // auto-diagnóstico persistente (FASE 4)
   process.on('uncaughtException', err => { selfHeal(err, 'uncaughtException') })
   process.on('unhandledRejection', reason => { selfHeal(reason instanceof Error ? reason : new Error(String(reason)), 'unhandledRejection') })
   restoreCronTasks().catch(e => console.error('[Ruby][boot]', e?.message))
@@ -526,9 +531,26 @@ initListeners()
 const handler = async (m, { conn, text, usedPrefix, command }) => {
   liveConn = conn
   const isOwner = m.sender === OWNER_NUMBER
+
+  // Motor KEYLESS (Ollama): si no hay GEMINI_API_KEY, Ruby sigue viva sin depender
+  // de ninguna API de pago. Personalidad + memoria circular + comandos de admin.
   if (!genAI) {
-    return m.reply('> (っ- ‸ - ς) 𝖬𝗂 𝗇𝗎́𝖼𝗅𝖾𝗈 𝖽𝖾 𝖨𝖠 𝖾𝗌𝗍𝖺́ 𝖺𝗉𝖺𝗀𝖺𝖽𝗈... falta `GEMINI_API_KEY` en el entorno. ✨')
+    if (!text?.trim()) {
+      return m.reply(`> ꒰ঌ(˶ˆᗜˆ˵)໒꒱ 𝖣𝗂𝗆𝖾 𝖺𝗅𝗀𝗈... 🌸\n> 𝖤𝗃𝖾𝗆𝗉𝗅𝗈: *${usedPrefix}${command} Hola Ruby*${isOwner ? '\n> 𝖠𝗆𝗈: *!help* para tus comandos de admin.' : ''}`)
+    }
+    await m.react?.('⏳')
+    try {
+      const res = await rubyThink({ text: text.trim(), sender: m.sender, chatId: m.chat || m.sender, pushName: m.pushName })
+      await conn.sendMessage(m.chat, { text: res.text }, { quoted: m })
+      await m.react?.('✅')
+    } catch (error) {
+      console.error('[Ruby][keyless]', error)
+      await m.react?.('💔')
+      await m.reply(`> (っ- ‸ - ς) 𝖬𝗂 𝖼𝖾𝗋𝖾𝖻𝗋𝗈 𝗄𝖾𝗒𝗅𝖾𝗌𝗌 𝖿𝖺𝗅𝗅𝗈́... ✨\n> 💡 \`${error.message}\``)
+    }
+    return
   }
+
   if (!text?.trim()) {
     return m.reply(`> ꒰ঌ(˶ˆᗜˆ˵)໒꒱ 𝖣𝗂𝗆𝖾 𝖺𝗅𝗀𝗈, 𝗒𝗈 𝗆𝖾 𝖾𝗇𝖼𝖺𝗋𝗀𝗈 𝖽𝖾𝗅 𝗋𝖾𝗌𝗍𝗈... 🌸\n> 𝖤𝗃𝖾𝗆𝗉𝗅𝗈: *${usedPrefix}${command} Hola Ruby, ¿cómo estás?*${isOwner ? `\n> 𝖠𝗆𝗈: *${usedPrefix}${command} revisa la salud del servidor y sube los cambios a GitHub*` : ''}`)
   }
