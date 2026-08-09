@@ -36,6 +36,7 @@
     "@whiskeysockets/baileys": "github:Dioneibi-rip/Ruby-Baileys",
     "better-sqlite3": "github:Dioneibi-rip/sqlite3",
     "googleapis": "^174.0.1",
+    "node-cron": "^4.6.0",
     "sharp": "^0.35.3",
     "ws": "^8.18.0"
   }
