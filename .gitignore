@@ -34,3 +34,4 @@ build/
 *.backup
 .DS_Store
 Thumbs.db
+ruby_memory.json
