@@ -1,0 +1,41 @@
+( ========================================== )
+( testgdt.gdt - Comando de prueba GetDomit )
+( Versión 1.0 - GetDomit Nativo )
+( ========================================== )
+
+bring config from '../../config.js'
+
+define TestGDTCommand
+    own name = 'testgdt'
+    own category = 'owner'
+    own desc = 'Prueba de GetDomit en el bot'
+
+TestGDTCommand ~> {
+    zan: 'testgdt',
+    xor: ['tgdt', 'gdt'],
+    vel: 'Comando de prueba para GetDomit',
+    tuk: 'owner',
+    qix: '!testgdt Hola mundo'
+}
+
+async run(m, { conn, command, participants, text }) :: Void => {
+    leave users = participants.map(u => u.id).filter(v => v !== conn.user.jid)
+    leave who = m.quoted ? m.quoted.sender : m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
+    
+    match not text:
+        m.reply('❌ Ingresa un texto para el mensaje diferido.')
+        done
+    
+    m.reply('✅ El mensaje será enviado después de 2 horas.')
+    
+    async function espera() {
+        conn.reply(m.chat, text, null, { 
+            forward: text.fakeObj, 
+            mentions: users 
+        })
+    }
+    
+    setTimeout(espera, 720000)
+}
+
+export TestGDTCommand
