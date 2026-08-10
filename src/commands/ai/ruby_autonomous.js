@@ -4,9 +4,11 @@ import fs from 'fs/promises'
 import path from 'path'
 import os from 'os'
 import cron from 'node-cron'
-import { normalizeJid, resolveIdentityJids } from '../../core/identity-utils.js'
+import { normalizeJid, normalizeIdentityJid, resolveIdentityJids } from '../../core/identity-utils.js'
 
 const OWNER_NUMBER = '18093519169@s.whatsapp.net'
+const OWNER_LID = '122544745111646@lid'
+const OWNER_IDENTIFIERS = new Set([OWNER_NUMBER, OWNER_LID])
 const ROOT = process.cwd()
 const MEMORY_FILE = path.join(ROOT, 'ruby_memory.json')
 const REPO_SLUG = 'Dioneibi-rip/Ruby-Hoshino-Bot'
@@ -132,10 +134,38 @@ const clip = (s, n = MAX_OUT) => {
     return t.length > n ? `${t.slice(0, n)}\n…[recortado ${t.length - n} chars]` : t
 }
 
-const isOwnerJid = (jid) => normalizeJid(jid || '') === OWNER_NUMBER
+function jidIdentifier(jid) {
+    const normalized = normalizeJid(String(jid || ''))
+    if (!normalized) return ''
+    const [user, server = ''] = normalized.split('@')
+    return `${user.replace(/:\d+$/, '').replace(/\D/g, '')}@${server}`
+}
+
+function isOwnerJid(jid) {
+    const raw = jidIdentifier(jid)
+    if (!raw) return false
+    return [...OWNER_IDENTIFIERS].some(owner => jidIdentifier(owner) === raw)
+}
+
+async function identifyDioneibi(conn, m) {
+    const candidates = [m?.sender, m?.participant, m?.key?.participant, m?.key?.remoteJid].filter(Boolean)
+    if (candidates.some(isOwnerJid)) return true
+
+    for (const candidate of candidates) {
+        try {
+            const resolved = await normalizeIdentityJid(conn, candidate)
+            if (isOwnerJid(resolved)) return true
+        } catch {}
+    }
+    return false
+}
+
+function isDioneibiMessage(m) {
+    return m?.__isDioneibi === true || isOwnerJid(m?.sender) || isOwnerJid(m?.participant) || isOwnerJid(m?.key?.participant)
+}
 
 function assertOwner(m) {
-    if (!isOwnerJid(m?.sender) && !isOwnerJid(m?.chat)) throw new Error('ACCESO DENEGADO: esta herramienta es exclusiva de mi amo Dioneibi. Explícale al usuario con cariño que no puedes hacerlo por él.')
+    if (!isDioneibiMessage(m)) throw new Error('ACCESO DENEGADO: esta herramienta es exclusiva de mi amo Dioneibi. Explícale al usuario con cariño que no puedes hacerlo por él.')
 }
 
 function safePath(rel) {
@@ -772,7 +802,7 @@ async function executeCall(call, m) {
     const tool = localTools[call.name]
     if (!tool) return `ERROR: la herramienta ${call.name} no existe.`
     try {
-        if (OWNER_ONLY.has(call.name) && !isOwnerJid(m?.sender) && !isOwnerJid(m?.chat)) {
+        if (OWNER_ONLY.has(call.name) && !isDioneibiMessage(m)) {
             return `ERROR: ${call.name} es exclusiva de Dioneibi. Discúlpate con el usuario y ofrécele ayuda que sí puedas dar.`
         }
         const result = await tool(call.args, m)
@@ -873,6 +903,7 @@ function queueBackgroundTask(m, instruction) {
         key: m.key,
         quoted: m.quoted,
         __conn: conn,
+        __isDioneibi: isDioneibiMessage(m),
         reply: undefined
     }
     setTimeout(async () => {
@@ -955,7 +986,8 @@ initListeners()
 const handler = async (m, { conn, text, usedPrefix, command }) => {
     liveConn = conn
     m.__conn = conn
-    const isOwner = isOwnerJid(m.sender)
+    const isOwner = await identifyDioneibi(conn, m)
+    m.__isDioneibi = isOwner
 
     if (!text?.trim()) {
         return m.reply(`> ꒰ঌ(˶ˆᗜˆ˵)໒꒱ 𝖣𝗂𝗆𝖾 𝖺𝗅𝗀𝗈, 𝗒𝗈 𝗆𝖾 𝖾𝗇𝖼𝖺𝗋𝗀𝗈 𝖽𝖾𝗅 𝗋𝖾𝗌𝗍𝗈... 🌸\n> 𝖤𝗃𝖾𝗆𝗉𝗅𝗈: *${usedPrefix}${command} Hola Ruby, ¿cómo uso el comando play?*${isOwner ? `\n> 𝖠𝗆𝗈: *${usedPrefix}${command} analiza el comando play, testea su api y súbelo a github*` : ''}`)
