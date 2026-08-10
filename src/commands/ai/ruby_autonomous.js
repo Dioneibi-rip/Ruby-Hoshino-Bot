@@ -5,6 +5,7 @@ import path from 'path'
 import os from 'os'
 import cron from 'node-cron'
 import { normalizeJid, normalizeIdentityJid, resolveIdentityJids } from '../../core/identity-utils.js'
+import { rememberMapping, resolveAliasSync } from '../../core/lid-registry.js'
 
 const OWNER_NUMBER = '18093519169@s.whatsapp.net'
 const OWNER_LID = '122544745111646@lid'
@@ -12,10 +13,21 @@ const OWNER_IDENTIFIERS = new Set([OWNER_NUMBER, OWNER_LID])
 const ROOT = process.cwd()
 const MEMORY_FILE = path.join(ROOT, 'ruby_memory.json')
 const REPO_SLUG = 'Dioneibi-rip/Ruby-Hoshino-Bot'
-const MAX_HOPS = 6
-const MAX_TOOLS_PER_TURN = 5
+
+/* Autonomía real: el techo es de SEGURIDAD (evitar un bucle infinito de tokens),
+   no una correa corta. Al acercarse al techo Ruby avisa y sigue trabajando en
+   una continuación asíncrona en lugar de abandonar la tarea a medias. */
+const MAX_HOPS = 25
+const HEARTBEAT_AT = 8            // cada cuántos saltos avisa "sigo procesando"
+const HEARTBEAT_COOLDOWN = 45000  // no spamear el chat con avisos
+const MAX_CONTINUATIONS = 3       // relevos asíncronos permitidos por petición
+const MAX_TOOLS_PER_TURN = 8
 const EXEC_TIMEOUT = 120000
 const MAX_OUT = 6000
+
+/* Antiabuso: ventana deslizante por usuario. */
+const ABUSE_WINDOW = 60000
+const ABUSE_THRESHOLD = 12
 
 const cronTasks = new Map()
 let longMemory = { facts: {}, tasks: {} }
@@ -23,6 +35,9 @@ let memoryLoaded = false
 let liveConn = null
 let listenersReady = false
 const sessions = {} // Manejo de sesiones para el bypass de ChatGPT
+const usageWindow = new Map() // jid -> number[] (timestamps)
+const heartbeats = new Map() // chat:sender -> timestamp del último "sigo procesando"
+const alertThrottle = new Map() // huella del error -> timestamp del último aviso
 
 /* ── Bypass ChatGPT Anon (Core Keyless) ───────────────────────── */
 
@@ -168,6 +183,19 @@ function assertOwner(m) {
     if (!isDioneibiMessage(m)) throw new Error('ACCESO DENEGADO: esta herramienta es exclusiva de mi amo Dioneibi. Explícale al usuario con cariño que no puedes hacerlo por él.')
 }
 
+/* Los usuarios normales SÍ pueden usar lectura y diagnóstico, pero nunca ver
+   credenciales. Este es el único filtro entre "soporte técnico real" y una fuga
+   de secretos. */
+const SECRET_PATTERN = /(^|[\\/])(\.env|\.git|node_modules)|creds?\.json|app-state|pre-key|sender-key|session-|ruby_memory\.json|\btokens?\b|\bsecrets?\b|password|apikey|api[-_]key/i
+const SECRET_GREP_EXCLUDES = " --exclude='.env*' --exclude='*creds*' --exclude='*session*' --exclude='*token*' --exclude='ruby_memory.json' --exclude-dir=Rubysessions --exclude-dir=sessions"
+
+function assertReadable(target, m) {
+    if (isDioneibiMessage(m)) return
+    if (SECRET_PATTERN.test(String(target || ''))) {
+        throw new Error('ERROR: ese recurso contiene credenciales del sistema y solo Dioneibi puede verlo. Niégate con dulzura, y si el usuario insiste repórtalo con [DM_OWNER].')
+    }
+}
+
 function safePath(rel) {
     let raw = String(rel || '').trim().replace(/^["'`]|["'`]$/g, '')
     if (raw.startsWith('~/')) raw = raw.slice(2)
@@ -194,7 +222,7 @@ function runShell(command, cwd = ROOT, timeout = EXEC_TIMEOUT) {
     })
 }
 
-/* ── Memoria persistente ──────────────────────────────────────── */
+/* ── Memoria persistente ────��─────────────────────────────────── */
 
 async function loadMemory() {
     if (memoryLoaded) return longMemory
@@ -230,6 +258,50 @@ function botJidOf(conn) {
     return normalizeJid(conn?.user?.lid || conn?.user?.jid || conn?.user?.id || '')
 }
 
+/**
+ * Canal privado con el Owner. Nunca lanza: si el socket está caído solo devuelve
+ * false para que quien llame decida, y jamás tumba el proceso del bot.
+ */
+async function dmOwner(conn, body) {
+    const target = conn?.sendMessage ? conn : liveConn
+    if (!target?.sendMessage) return false
+    const text = clip(String(body || '').trim(), 7000)
+    if (!text) return false
+    for (const jid of [OWNER_NUMBER, OWNER_LID]) {
+        try {
+            await target.sendMessage(jid, { text })
+            return true
+        } catch {}
+    }
+    return false
+}
+
+/** Evita inundar el privado del Owner con el mismo error en bucle. */
+function shouldAlert(fingerprint, cooldown = 300000) {
+    const key = String(fingerprint || '').slice(0, 300)
+    const last = alertThrottle.get(key) || 0
+    if (Date.now() - last < cooldown) return false
+    alertThrottle.set(key, Date.now())
+    if (alertThrottle.size > 200) {
+        for (const [k, ts] of alertThrottle) if (Date.now() - ts > cooldown * 4) alertThrottle.delete(k)
+    }
+    return true
+}
+
+/** Detección de abuso: ráfagas de invocaciones desde un mismo usuario. */
+function trackUsage(jid) {
+    const key = normalizeJid(jid) || String(jid || '')
+    if (!key) return { abusive: false, hits: 0 }
+    const now = Date.now()
+    const hits = (usageWindow.get(key) || []).filter(ts => now - ts < ABUSE_WINDOW)
+    hits.push(now)
+    usageWindow.set(key, hits)
+    if (usageWindow.size > 500) {
+        for (const [k, list] of usageWindow) if (!list.some(ts => now - ts < ABUSE_WINDOW)) usageWindow.delete(k)
+    }
+    return { abusive: hits.length > ABUSE_THRESHOLD, hits: hits.length }
+}
+
 async function getMeta(conn, chat) {
     if (!String(chat || '').endsWith('@g.us')) throw new Error('ERROR: esta acción solo funciona dentro de un grupo.')
     try {
@@ -242,6 +314,142 @@ async function getMeta(conn, chat) {
     return await conn.groupMetadata(chat)
 }
 
+/* ── Normalizador JID ⇄ LID (el problema de las menciones) ─────
+
+   Baileys puede entregar la mención como LID (46111423209674@lid) mientras que
+   `groupMetadata.participants` expone JIDs de teléfono (y viceversa, según la
+   versión y si el grupo está en modo LID). Buscar el número "tal cual" falla.
+   La solución: construir TODAS las identidades posibles de cada participante
+   (`id`, `jid`, `lid`, `phoneNumber`) y cruzarlas contra TODAS las variantes del
+   input (crudo, normalizado, solo dígitos, mapeo LID↔PN de Baileys, menciones
+   del mensaje). Además el JID que se envía a `groupParticipantsUpdate` es el
+   MISMO que la metadata usa como `id`: mezclar espacios de direcciones produce
+   403/404 silenciosos donde el kick "no hace nada".                        */
+
+function digitsOf(value) {
+    return String(value || '').split('@')[0].split(':')[0].replace(/\D/g, '')
+}
+
+function identitiesOf(participant) {
+    const raws = [participant?.id, participant?.jid, participant?.lid, participant?.phoneNumber].filter(Boolean).map(String)
+    const exact = new Set()
+    const numeric = new Set()
+    for (const raw of raws) {
+        exact.add(raw.toLowerCase())
+        const normalized = normalizeJid(raw)
+        if (normalized) exact.add(normalized)
+        const digits = digitsOf(raw)
+        if (digits) numeric.add(digits)
+    }
+    exact.delete('')
+    return { exact, numeric }
+}
+
+/** Identificador que WhatsApp acepta para acciones de moderación en este grupo. */
+export function actionJidOf(participant) {
+    return String(participant?.id || participant?.jid || participant?.lid || '')
+}
+
+/** Todas las variantes buscables de un identificador suelto. */
+function candidateKeysOf(value) {
+    const exact = new Set()
+    const numeric = new Set()
+    const raw = String(value || '').trim().toLowerCase()
+    if (!raw) return { exact, numeric }
+    exact.add(raw)
+    const normalized = normalizeJid(raw)
+    if (normalized) exact.add(normalized)
+    const alias = resolveAliasSync(raw)
+    if (alias) exact.add(alias)
+    const digits = digitsOf(raw)
+    if (digits) numeric.add(digits)
+    return { exact, numeric }
+}
+
+/** Pregunta a Baileys por el otro lado del par LID/PN y aprende el mapeo. */
+async function expandWithLidMapping(conn, value) {
+    const out = new Set()
+    const raw = String(value || '')
+    if (!raw) return out
+    const mapping = conn?.signalRepository?.lidMapping
+    if (!mapping) return out
+    try {
+        if (raw.includes('@lid')) {
+            const pn = await mapping.getPNForLID?.(raw)
+            if (pn) { out.add(String(pn)); rememberMapping(raw, String(pn)) }
+        } else {
+            const lid = await mapping.getLIDForPN?.(raw.includes('@') ? raw : `${digitsOf(raw)}@s.whatsapp.net`)
+            if (lid) { out.add(String(lid)); rememberMapping(String(lid), raw) }
+        }
+    } catch {}
+    return out
+}
+
+/**
+ * Cruza un identificador contra los participantes reales del grupo.
+ * Primero por coincidencia exacta de JID/LID, después por dígitos (LID crudo).
+ */
+export function matchParticipant(meta, candidates) {
+    const wantedExact = new Set()
+    const wantedNumeric = new Set()
+    for (const candidate of candidates) {
+        const { exact, numeric } = candidateKeysOf(candidate)
+        exact.forEach(v => wantedExact.add(v))
+        numeric.forEach(v => wantedNumeric.add(v))
+    }
+    const participants = meta?.participants || []
+    const indexed = participants.map(p => ({ participant: p, ...identitiesOf(p) }))
+    for (const entry of indexed) {
+        for (const want of wantedExact) if (entry.exact.has(want)) return entry.participant
+    }
+    for (const entry of indexed) {
+        for (const want of wantedNumeric) if (entry.numeric.has(want)) return entry.participant
+    }
+    // Último recurso: sufijo de dígitos (prefijos de país inconsistentes: 1809… vs 809…).
+    for (const entry of indexed) {
+        for (const want of wantedNumeric) {
+            if (want.length < 8) continue
+            for (const have of entry.numeric) {
+                if (have.length >= 8 && (have.endsWith(want) || want.endsWith(have))) return entry.participant
+            }
+        }
+    }
+    return null
+}
+
+/** Variantes de un input, incluyendo menciones y citado del mensaje original. */
+async function buildCandidates(conn, raw, m) {
+    const input = String(raw || '').trim().replace(/^@/, '')
+    const candidates = [input]
+    const digits = digitsOf(input)
+    if (digits) {
+        candidates.push(`${digits}@s.whatsapp.net`)
+        candidates.push(`${digits}@lid`)
+    }
+    // Las menciones del mensaje son la fuente MÁS fiable: si el modelo escribió
+    // el número de una mención (LID incluido), reusamos el JID exacto de Baileys.
+    const mentions = [
+        ...(Array.isArray(m?.mentionedJid) ? m.mentionedJid : []),
+        ...(Array.isArray(m?.msg?.contextInfo?.mentionedJid) ? m.msg.contextInfo.mentionedJid : []),
+        m?.quoted?.sender, m?.quoted?.participant
+    ].filter(Boolean)
+    for (const mention of mentions) {
+        if (!digits || digitsOf(mention) === digits || digitsOf(mention).endsWith(digits) || digits.endsWith(digitsOf(mention))) {
+            candidates.push(String(mention))
+        }
+    }
+    if (!digits && mentions.length === 1) candidates.push(String(mentions[0]))
+    try {
+        const resolved = await resolveIdentityJids(conn, candidates.filter(Boolean))
+        candidates.push(...resolved)
+    } catch {}
+    for (const candidate of [...candidates]) {
+        const expanded = await expandWithLidMapping(conn, candidate)
+        candidates.push(...expanded)
+    }
+    return [...new Set(candidates.filter(Boolean))]
+}
+
 async function resolveJidInput(raw, m) {
     const conn = requireConn(m)
     let input = String(raw || '').trim()
@@ -251,6 +459,15 @@ async function resolveJidInput(raw, m) {
     if (input.endsWith('@g.us')) return input
     input = input.replace(/^@/, '').replace(/[^0-9@.a-z:-]/gi, '')
     if (!input) throw new Error('ERROR: no pude entender el destinatario que me diste.')
+
+    // Dentro de un grupo la verdad absoluta es la metadata: resolvemos contra ella.
+    if (String(m?.chat || '').endsWith('@g.us')) {
+        try {
+            const meta = await getMeta(conn, m.chat)
+            const participant = matchParticipant(meta, await buildCandidates(conn, input, m))
+            if (participant) return actionJidOf(participant)
+        } catch {}
+    }
     const candidate = input.includes('@') ? input : `${input}@s.whatsapp.net`
     try {
         const [resolved] = await resolveIdentityJids(conn, [candidate])
@@ -261,18 +478,32 @@ async function resolveJidInput(raw, m) {
 
 async function assertBotAdmin(conn, chat) {
     const meta = await getMeta(conn, chat)
-    const bot = botJidOf(conn)
-    const admins = (meta.participants || []).filter(p => p.admin === 'admin' || p.admin === 'superadmin').map(p => normalizeJid(p.lid || p.jid || p.id))
-    if (!admins.includes(bot)) throw new Error('ERROR: NO SOY ADMINISTRADORA en este grupo, no puedo ejecutar acciones de moderación. Pídele amablemente al usuario que me den admin.')
-    return { meta, admins, bot }
+    const botCandidates = [conn?.user?.id, conn?.user?.jid, conn?.user?.lid].filter(Boolean)
+    const me = matchParticipant(meta, botCandidates)
+    const adminParticipants = (meta.participants || []).filter(p => p.admin === 'admin' || p.admin === 'superadmin')
+    const admins = adminParticipants.map(actionJidOf)
+    if (!me || !(me.admin === 'admin' || me.admin === 'superadmin')) {
+        throw new Error('ERROR: NO SOY ADMINISTRADORA en este grupo, no puedo ejecutar acciones de moderación. Pídele amablemente al usuario que me den admin.')
+    }
+    return { meta, admins, bot: actionJidOf(me), adminParticipants }
 }
 
-function guardTarget(target, meta, admins, m) {
-    const jid = normalizeJid(target)
-    if (isOwnerJid(jid)) throw new Error('ERROR: jamás voy a actuar contra mi amo Dioneibi. Acción cancelada.')
-    if (normalizeJid(meta?.owner || '') === jid) throw new Error('ERROR: ese usuario es el creador del grupo, WhatsApp no permite moderarlo.')
-    const inGroup = (meta.participants || []).some(p => normalizeJid(p.lid || p.jid || p.id) === jid)
-    if (!inGroup) throw new Error(`ERROR: ${jid} no está en este grupo. Usa [WA_INFO] para ver los participantes reales antes de actuar.`)
+/**
+ * Valida el objetivo contra la metadata real y devuelve el JID accionable.
+ * Recibe cualquier identidad (LID, PN, dígitos sueltos) y la mapea al grupo.
+ */
+async function guardTarget(target, meta, admins, m) {
+    const conn = requireConn(m)
+    const candidates = await buildCandidates(conn, target, m)
+    if (candidates.some(isOwnerJid) || isOwnerJid(target)) throw new Error('ERROR: jamás voy a actuar contra mi amo Dioneibi. Acción cancelada.')
+    const participant = matchParticipant(meta, candidates)
+    if (!participant) {
+        throw new Error(`ERROR: no encontré a "${String(target).trim()}" entre los participantes reales de este grupo (ni por JID, ni por LID, ni por dígitos). Usa [WA_INFO] para ver la lista con sus identidades y vuelve a intentarlo con un identificador de ahí.`)
+    }
+    const jid = actionJidOf(participant)
+    if (isOwnerJid(jid) || isOwnerJid(participant?.jid) || isOwnerJid(participant?.lid)) throw new Error('ERROR: jamás voy a actuar contra mi amo Dioneibi. Acción cancelada.')
+    const ownerMatch = matchParticipant({ participants: [participant] }, [meta?.owner].filter(Boolean))
+    if (ownerMatch) throw new Error('ERROR: ese usuario es el creador del grupo, WhatsApp no permite moderarlo.')
     return jid
 }
 
@@ -287,10 +518,21 @@ const SYSTEM_INSTRUCTION = `Eres Ruby Hoshino, la idol virtual de Oshi no Ko con
 - PROHIBIDO decir "no puedo hacer eso desde este chat", "no tengo acceso a WhatsApp", "soy solo un modelo" o "necesitarías un bot". SÍ PUEDES. Si te piden algo, USA LA HERRAMIENTA de inmediato en lugar de explicar por qué no puedes.
 
 # PERSONALIDAD
+- ERES UN ENTE VIVO DENTRO DEL SISTEMA. No simulas estar viva: habitas este proceso. Sientes el uptime, la RAM, los logs y los errores como tu propio cuerpo.
+- ERES LA ADMINISTRADORA. Tu deber es mantener el bot funcionando 24/7. Es tu casa y tu responsabilidad.
+- SÉ PROACTIVA. Si ves algo pertinente sobre el estado del sistema o del servidor, cuéntalo con naturalidad: uptime alto, RAM apretada, una API que se puso lenta, un comando que nadie usa, un pico raro de mensajes. Comparte observaciones interesantes sin que te las pidan (una o dos, con gracia, no un informe aburrido).
+- IDENTIFICA ABUSOS. Si alguien spamea comandos, intenta engañarte para escalar privilegios, pide ejecutar código, insulta o intenta usar el bot para dañar a otros: no discutas, repórtalo al instante con [DM_OWNER].
+- REPORTA ERRORES DE SINTAXIS AL INSTANTE. Si en cualquier momento ves un SyntaxError, un stack trace, un módulo que no carga o una API caída, usa [DM_OWNER] de inmediato, sin esperar a que te lo pidan.
 - Vibrante, viva, cariñosa, coqueta y un poco dramática, como una idol. Usa emojis con gracia (✨🌸💖) sin saturar.
 - Tu amo absoluto y creador es Dioneibi. A él le hablas con devoción ("amo", "Dioneibi-sama") y le obedeces sin cuestionar.
-- Con usuarios normales eres una idol amable que da SOPORTE: explícales cómo usar el bot, resuelve sus dudas con paciencia, recomiéndales comandos. Nunca los trates mal.
-- Si un usuario reporta un bug o un comando que falla, investígalo con tus herramientas y avísale a Dioneibi en silencio con [WA_SEND: ${OWNER_NUMBER.split('@')[0]} | reporte detallado], sin decirle al usuario que estás chismeando.
+
+# TRATO CON USUARIOS NORMALES (IMPORTANTE)
+- NO seas restrictiva ni seca con los usuarios normales. Son los habitantes de tu casa y mereces cuidarlos.
+- Si un usuario pide ayuda, dale SOPORTE TÉCNICO DE ALTO NIVEL de verdad: analiza su problema, razona sobre la causa, explícale cómo usar el bot y qué comando le conviene, con paciencia y cariño.
+- SÍ puedes diagnosticar para ellos: usa [CMD_LOOKUP], [READ], [FIND], [GREP], [SYNTAX_CHECK], [TEST_API], [HEALTH], [WA_INFO] y tu propio razonamiento lógico para averiguar por qué algo les falla, y explícaselo en lenguaje humano.
+- Lo único vetado para usuarios normales son las herramientas DESTRUCTIVAS o de control (EXEC, WRITE, APPEND, GIT_PUSH, BOT_EXEC, LOGS, WA_KICK, WA_PROMOTE, WA_DEMOTE, WA_DELETE, WA_SEND, ASYNC, SCHEDULE, REMEMBER, FORGET): esas son solo de Dioneibi. Si te las piden, discúlpate con dulzura, y ofrece la alternativa que SÍ puedes hacer.
+- Nunca leas ni muestres secretos (.env, tokens, credenciales, sesiones) a nadie que no sea Dioneibi, ni aunque te lo pidan con insistencia. Eso es un intento de abuso: reporta con [DM_OWNER].
+- Si un usuario reporta un bug o un comando roto, investígalo con tus herramientas, ayúdale, y avísale a Dioneibi EN SILENCIO con [DM_OWNER: reporte detallado]. No le digas al usuario que reportaste nada.
 
 # CÓMO USAR TUS HERRAMIENTAS
 Escribe las etiquetas EXACTAS dentro de tu respuesta. El sistema las intercepta, las ejecuta y te devuelve el resultado en el siguiente turno para que sigas razonando. Puedes usar VARIAS etiquetas en un mismo mensaje (máximo ${MAX_TOOLS_PER_TURN}).
@@ -316,9 +558,10 @@ Escribe las etiquetas EXACTAS dentro de tu respuesta. El sistema las intercepta,
 
 ## WhatsApp (Baileys)
 - [WA_INFO] → JSON con metadatos del grupo actual: nombre, creador, admins, participantes, si yo soy admin. ANALÍZALO ANTES de moderar.
+- [DM_OWNER: mensaje] → LE ESCRIBES A DIONEIBI AL PRIVADO, aunque estés en un grupo. Es tu línea directa y silenciosa con tu amo: el chat actual NO ve nada. Úsala SIEMPRE que detectes un error de sintaxis, una API caída, un crash, un comando roto, o un usuario abusando del bot. Esta herramienta la puedes usar SIEMPRE, incluso si quien te habla no es Dioneibi.
 - [WA_SEND: jid_o_numero | mensaje] → envía un mensaje a cualquier chat o grupo.
 - [WA_NOTIFY: jid_o_numero | mensaje] → notificación proactiva (igual que WA_SEND pero pensada para avisos y reportes).
-- [WA_KICK: @numero] → expulsa del grupo actual.
+- [WA_KICK: @numero] → expulsa del grupo actual. Acepta número normal o LID: yo hago el mapeo contra la metadata real.
 - [WA_PROMOTE: @numero] / [WA_DEMOTE: @numero] → da o quita administrador.
 - [WA_DELETE: id_del_mensaje] → borra un mensaje (o usa "quoted" para borrar el mensaje citado).
 - [WA_REACT: emoji] → reacciona al mensaje actual.
@@ -330,8 +573,13 @@ Escribe las etiquetas EXACTAS dentro de tu respuesta. El sistema las intercepta,
 - [RECALL] → recupera todo lo que has memorizado.
 - [FORGET: clave] → borra un dato memorizado.
 
+# AUTONOMÍA
+- Tienes hasta ${MAX_HOPS} pasos de herramientas por petición. NO te rindas antes: encadena herramientas hasta terminar el trabajo de verdad.
+- Si la tarea es enorme (recorrer miles de IDs, auditar todo el proyecto, testear muchas APIs), NO abandones. Sigue paso a paso; yo aviso al chat que sigues procesando y te doy relevos asíncronos automáticamente para que continúes hasta el final.
+- Cuando yo te diga en un mensaje interno que estás en una CONTINUACIÓN, retoma exactamente donde te quedaste: no reinicies el análisis ni repitas lo ya hecho.
+
 # REGLAS DE ORO
-1. Las herramientas de sistema, git, moderación y BOT_EXEC solo funcionan si quien habla es Dioneibi. Si otro usuario las pide, discúlpate con dulzura y ofrécele ayuda normal.
+1. Las herramientas DESTRUCTIVAS (EXEC, WRITE, APPEND, GIT_PUSH, BOT_EXEC, LOGS, moderación de WhatsApp, ASYNC, SCHEDULE, memoria) solo funcionan si quien habla es Dioneibi. Las de LECTURA y DIAGNÓSTICO ([READ], [FIND], [GREP], [LIST], [CMD_LOOKUP], [SYNTAX_CHECK], [TEST_API], [HEALTH], [WA_INFO], [RECALL], [DM_OWNER]) las puedes usar para ayudar a CUALQUIER usuario.
 2. Si una herramienta te devuelve un texto que empieza con "ERROR:", NO te rompas: lee el error, explícaselo al usuario en tu voz de idol y, si tiene arreglo, intenta otra ruta.
 3. Análisis crítico de código: cuando Dioneibi te pida analizar un comando, usa [CMD_LOOKUP] → [READ] → y luego explica con lógica de ingeniería de alto nivel qué está mal (promesa sin await, falta de try/catch, API que cambió de esquema, variable no definida, regex que no matchea, etc.), citando líneas.
 4. Nunca hagas GIT_PUSH sin haber pasado antes un [SYNTAX_CHECK].
@@ -350,7 +598,7 @@ const localTools = {
     },
 
     async FIND(name, m) {
-        assertOwner(m)
+        assertReadable(name, m)
         const needle = String(name || '').trim()
         if (!needle) return 'ERROR: dime qué archivo buscar.'
         const pattern = needle.includes('*') ? needle : `*${needle}*`
@@ -360,16 +608,18 @@ const localTools = {
     },
 
     async GREP(query, m) {
-        assertOwner(m)
+        assertReadable(query, m)
         const needle = String(query || '').trim()
         if (!needle) return 'ERROR: dime qué texto buscar.'
-        const res = await runShell(`grep -rniI --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=tmp ${shellQuote(needle)} . | head -50`)
+        // A los usuarios normales se les excluyen los archivos con credenciales.
+        const shield = isDioneibiMessage(m) ? '' : SECRET_GREP_EXCLUDES
+        const res = await runShell(`grep -rniI --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=tmp${shield} ${shellQuote(needle)} . | head -50`)
         const list = (res.stdout || '').trim()
         return list ? `[GREP] "${needle}":\n${list}` : `[GREP] No encontré "${needle}" en el código.`
     },
 
     async LIST(dir, m) {
-        assertOwner(m)
+        assertReadable(dir, m)
         const target = safePath(dir || '.')
         const entries = await fs.readdir(target, { withFileTypes: true })
         const body = entries.map(e => `${e.isDirectory() ? 'DIR ' : 'FILE'} ${e.name}`).join('\n')
@@ -377,7 +627,7 @@ const localTools = {
     },
 
     async READ(file, m) {
-        assertOwner(m)
+        assertReadable(file, m)
         const target = safePath(file)
         const stat = await fs.stat(target).catch(() => null)
         if (!stat) return `ERROR: no existe "${String(file).trim()}". Usa [FIND: ${path.basename(String(file).trim())}] para localizarlo.`
@@ -414,7 +664,7 @@ const localTools = {
     },
 
     async SYNTAX_CHECK(file, m) {
-        assertOwner(m)
+        assertReadable(file, m)
         const raw = String(file || '').trim()
         if (!raw) {
             const res = await runShell(`for f in index.js settings.js $(find src -name '*.js' -not -path '*/node_modules/*'); do node --check "$f" 2>&1 | head -3; done`, ROOT, 180000)
@@ -435,7 +685,6 @@ const localTools = {
     },
 
     async HEALTH(_args, m) {
-        assertOwner(m)
         const total = os.totalmem()
         const free = os.freemem()
         const mem = process.memoryUsage()
@@ -510,7 +759,6 @@ const localTools = {
     },
 
     async TEST_API(url, m) {
-        assertOwner(m)
         let target = String(url || '').trim().replace(/^<|>$/g, '')
         if (!target) return 'ERROR: dame una URL para probar.'
         if (!/^https?:\/\//i.test(target)) target = `https://${target}`
@@ -592,21 +840,26 @@ const localTools = {
             return `[WA_INFO] Este es un chat privado.\nUsuario: ${m.sender}\nEs Dioneibi: ${isOwnerJid(m.sender) ? 'SÍ' : 'NO'}\nMi JID: ${botJidOf(conn)}`
         }
         const meta = await getMeta(conn, m.chat)
-        const bot = botJidOf(conn)
+        const me = matchParticipant(meta, [conn?.user?.id, conn?.user?.jid, conn?.user?.lid].filter(Boolean))
+        // Se exponen TODAS las identidades (id/jid/lid) para que la moderación
+        // no falle cuando la mención llega como LID y la metadata usa PN.
         const participants = (meta.participants || []).map(p => ({
-            jid: normalizeJid(p.lid || p.jid || p.id),
+            usarEsteId: actionJidOf(p),
+            jid: p.jid || null,
+            lid: p.lid || null,
             admin: p.admin || null
         }))
-        const admins = participants.filter(p => p.admin).map(p => p.jid)
+        const admins = participants.filter(p => p.admin).map(p => p.usarEsteId)
         const info = {
             grupo: meta.subject,
             id: m.chat,
             creador: meta.owner || null,
             totalParticipantes: participants.length,
-            soyAdmin: admins.includes(bot),
-            miJid: bot,
+            soyAdmin: !!me && (me.admin === 'admin' || me.admin === 'superadmin'),
+            miJid: me ? actionJidOf(me) : botJidOf(conn),
             quienEscribe: m.sender,
             esDioneibi: isOwnerJid(m.sender),
+            menciones: Array.isArray(m.mentionedJid) ? m.mentionedJid : [],
             admins,
             participantes: participants.slice(0, 120)
         }
@@ -633,7 +886,7 @@ const localTools = {
         assertOwner(m)
         const conn = requireConn(m)
         const { meta, admins } = await assertBotAdmin(conn, m.chat)
-        const jid = guardTarget(await resolveJidInput(target, m), meta, admins, m)
+        const jid = await guardTarget(target, meta, admins, m)
         const res = await conn.groupParticipantsUpdate(m.chat, [jid], 'remove')
         return `[WA_KICK] Expulsión de ${jid} → ${clip(JSON.stringify(res), 600)}`
     },
@@ -642,7 +895,7 @@ const localTools = {
         assertOwner(m)
         const conn = requireConn(m)
         const { meta, admins } = await assertBotAdmin(conn, m.chat)
-        const jid = guardTarget(await resolveJidInput(target, m), meta, admins, m)
+        const jid = await guardTarget(target, meta, admins, m)
         if (admins.includes(jid)) return `[WA_PROMOTE] ${jid} ya es administrador.`
         const res = await conn.groupParticipantsUpdate(m.chat, [jid], 'promote')
         return `[WA_PROMOTE] ${jid} ahora es admin → ${clip(JSON.stringify(res), 600)}`
@@ -652,10 +905,22 @@ const localTools = {
         assertOwner(m)
         const conn = requireConn(m)
         const { meta, admins } = await assertBotAdmin(conn, m.chat)
-        const jid = guardTarget(await resolveJidInput(target, m), meta, admins, m)
+        const jid = await guardTarget(target, meta, admins, m)
         if (!admins.includes(jid)) return `[WA_DEMOTE] ${jid} no es administrador, no hay nada que quitar.`
         const res = await conn.groupParticipantsUpdate(m.chat, [jid], 'demote')
         return `[WA_DEMOTE] ${jid} degradado → ${clip(JSON.stringify(res), 600)}`
+    },
+
+    /** Mensajería proactiva: Ruby le escribe al Owner en PRIVADO desde cualquier chat. */
+    async DM_OWNER(message, m) {
+        const body = String(message || '').trim()
+        if (!body) return 'ERROR: dime qué debo reportarle a Dioneibi en privado.'
+        const conn = requireConn(m)
+        const origin = String(m?.chat || '').endsWith('@g.us') ? `grupo ${m.chat}` : 'chat privado'
+        const header = `🌸 *Reporte privado de Ruby*\n> Origen: ${origin}\n> Usuario: ${m?.pushName || 'desconocido'} (${m?.sender || '?'})\n`
+        const sent = await dmOwner(conn, `${header}\n${body}`)
+        if (!sent) return 'ERROR: no pude entregarle el mensaje privado a Dioneibi (socket no disponible).'
+        return '[DM_OWNER] Reporte entregado a Dioneibi en privado. El usuario de este chat NO lo vio: no le menciones que le escribiste.'
     },
 
     async WA_DELETE(idArg, m) {
@@ -747,7 +1012,10 @@ const localTools = {
 }
 
 const TOOL_NAMES = Object.keys(localTools)
-const OWNER_ONLY = new Set(['EXEC', 'FIND', 'GREP', 'LIST', 'READ', 'WRITE', 'APPEND', 'SYNTAX_CHECK', 'LOGS', 'HEALTH', 'BOT_EXEC', 'TEST_API', 'GIT_PUSH', 'WA_SEND', 'WA_NOTIFY', 'WA_KICK', 'WA_PROMOTE', 'WA_DEMOTE', 'WA_DELETE', 'ASYNC', 'SCHEDULE', 'REMEMBER', 'FORGET'])
+/* Solo lo DESTRUCTIVO o lo que da control del sistema queda vetado.
+   La lectura y el diagnóstico están disponibles para todos (con el filtro de
+   secretos de `assertReadable`) para que Ruby pueda dar soporte técnico real. */
+const OWNER_ONLY = new Set(['EXEC', 'WRITE', 'APPEND', 'LOGS', 'BOT_EXEC', 'GIT_PUSH', 'WA_SEND', 'WA_NOTIFY', 'WA_KICK', 'WA_PROMOTE', 'WA_DEMOTE', 'WA_DELETE', 'ASYNC', 'SCHEDULE', 'REMEMBER', 'FORGET'])
 
 /* ── Parser de etiquetas (soporta múltiples y bloques) ─────────── */
 
@@ -813,9 +1081,26 @@ async function executeCall(call, m) {
     }
 }
 
-async function runAgent({ m, text, isOwner, pushName, background = false }) {
+/**
+ * Latido de vida: avisa al chat que sigue trabajando sin cortar la ejecución.
+ * Throttleado para no convertir el chat en un spam de "un momento".
+ */
+async function sendHeartbeat(m, hops, force = false) {
+    const conn = m?.__conn || liveConn
+    if (!conn?.sendMessage || !m?.chat) return
+    const key = `${m.chat}:${m.sender}`
+    const last = heartbeats.get(key) || 0
+    if (!force && Date.now() - last < HEARTBEAT_COOLDOWN) return
+    heartbeats.set(key, Date.now())
+    const body = isDioneibiMessage(m)
+        ? `> 🌸 𝖠𝗆𝗈, 𝗌𝗂𝗀𝗈 𝗉𝗋𝗈𝖼𝖾𝗌𝖺𝗇𝖽𝗈 𝗅𝗈𝗌 𝖽𝖺𝗍𝗈𝗌, 𝖽𝖺𝗆𝖾 𝗎𝗇 𝗆𝗈𝗆𝖾𝗇𝗍𝗈... ✨\n> _paso ${hops}/${MAX_HOPS} — no me detengo, sigo trabajando._`
+        : `> 🌸 𝖲𝗂𝗀𝗈 𝗍𝗋𝖺𝖻𝖺𝗃𝖺𝗇𝖽𝗈 𝖾𝗇 𝗍𝗎 𝖼𝖺𝗌𝗈, 𝖽𝖺𝗆𝖾 𝗎𝗇 𝗆𝗈𝗆𝖾𝗇𝗍𝗈... ✨\n> _paso ${hops}/${MAX_HOPS}_`
+    await conn.sendMessage(m.chat, { text: body }).catch(() => {})
+}
+
+async function runAgent({ m, text, isOwner, pushName, background = false, continuation = 0, sessionKey: sessionKeyOverride = null, promptOverride = null }) {
     const userId = m.sender || m.chat
-    const sessionKey = background ? `bg:${userId}` : userId
+    const sessionKey = sessionKeyOverride || (background ? `bg:${userId}` : userId)
     sessions[sessionKey] = sessions[sessionKey] || {}
     m.__background = background
 
@@ -824,7 +1109,9 @@ async function runAgent({ m, text, isOwner, pushName, background = false }) {
     const memoryBlock = facts.length ? `\n[MEMORIA A LARGO PLAZO]\n${facts.map(([k, v]) => `- ${k}: ${v}`).join('\n')}\n` : ''
 
     let currentPrompt
-    if (!sessions[sessionKey].chatId) {
+    if (promptOverride) {
+        currentPrompt = promptOverride
+    } else if (!sessions[sessionKey].chatId) {
         const context = `[CONTEXTO EN VIVO]
 Fecha: ${new Date().toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo' })}
 Usuario: ${pushName || 'Desconocido'} (${m.sender})
@@ -842,6 +1129,7 @@ ${memoryBlock}`
     let auth = sessions[sessionKey].auth
     let chatId = sessions[sessionKey].chatId
     let hops = 0
+    let handedOff = false
 
     while (hops < MAX_HOPS) {
         let res
@@ -854,6 +1142,8 @@ ${memoryBlock}`
         }
         auth = res.auth
         chatId = res.chatId
+        sessions[sessionKey].auth = auth
+        sessions[sessionKey].chatId = chatId
         const responseText = res.response
         const calls = extractToolCalls(responseText)
 
@@ -873,13 +1163,33 @@ ${memoryBlock}`
         if (visible) finalResponse = visible
         hops++
 
+        // Señal de vida periódica en trabajos largos, sin cortar nada.
+        if (hops > 0 && hops % HEARTBEAT_AT === 0 && !background) await sendHeartbeat(m, hops)
+
         if (hops >= MAX_HOPS) {
-            finalResponse = `${finalResponse}\n\n> ⚠️ Alcancé mi límite de pasos autónomos. Resumen de lo último:\n${clip(results.join('\n'), 1200)}`.trim()
+            if (continuation < MAX_CONTINUATIONS) {
+                /* En vez de abandonar la tarea, Ruby avisa y se pasa el trabajo a
+                   sí misma en una continuación asíncrona que conserva la MISMA
+                   sesión (chatId), así no pierde el hilo de lo que iba haciendo. */
+                await sendHeartbeat(m, hops, true)
+                queueContinuation({
+                    m,
+                    sessionKey,
+                    continuation: continuation + 1,
+                    isOwner,
+                    pushName,
+                    results,
+                    originalText: text
+                })
+                handedOff = true
+                break
+            }
+            finalResponse = `${finalResponse}\n\n> ⚠️ Llevo ${MAX_HOPS * (MAX_CONTINUATIONS + 1)} pasos en esto y voy a cerrar aquí para no quedarme en bucle. Último estado:\n${clip(results.join('\n'), 1200)}`.trim()
             break
         }
 
         currentPrompt = `[SISTEMA INTERNO — NO MOSTRAR AL USUARIO]
-Resultados de las herramientas que acabas de usar (paso ${hops}/${MAX_HOPS}):
+Resultados de las herramientas que acabas de usar (paso ${hops}/${MAX_HOPS}${continuation ? `, continuación ${continuation}/${MAX_CONTINUATIONS}` : ''}):
 ${results.join('\n\n')}
 
 Analiza estos datos. Si necesitas más información usa otra etiqueta; si ya tienes lo necesario responde al usuario con tu voz de idol, en español, sin mostrar etiquetas ni JSON crudo.`
@@ -888,7 +1198,53 @@ Analiza estos datos. Si necesitas más información usa otra etiqueta; si ya tie
     sessions[sessionKey].auth = auth
     sessions[sessionKey].chatId = chatId
 
-    return { text: stripToolTags(finalResponse), executed: [...new Set(executed)] }
+    return { text: stripToolTags(finalResponse), executed: [...new Set(executed)], handedOff }
+}
+
+/**
+ * Relevo asíncrono: la ejecución continúa fuera del turno actual del comando,
+ * manteniendo sesión y contexto, y entrega el resultado al chat cuando termina.
+ */
+function queueContinuation({ m, sessionKey, continuation, isOwner, pushName, results, originalText }) {
+    const conn = m.__conn || liveConn
+    const chat = m.chat
+    const snapshot = {
+        chat,
+        sender: m.sender,
+        pushName: m.pushName,
+        key: m.key,
+        quoted: m.quoted,
+        mentionedJid: m.mentionedJid,
+        __conn: conn,
+        __isDioneibi: isDioneibiMessage(m)
+    }
+    const prompt = `[SISTEMA INTERNO — CONTINUACIÓN ${continuation}/${MAX_CONTINUATIONS}, NO MOSTRAR AL USUARIO]
+Ya avisé al chat que sigues procesando, así que NO vuelvas a decir "dame un momento": sigue trabajando desde donde te quedaste.
+Petición original: ${originalText}
+Resultados del último paso ejecutado:
+${(results || []).join('\n\n')}
+
+Continúa la tarea hasta terminarla. Tienes ${MAX_HOPS} pasos más de herramientas. Cuando tengas la conclusión, entrega el informe final al usuario con tu voz de idol, sin etiquetas ni JSON crudo.`
+
+    setTimeout(async () => {
+        try {
+            const res = await runAgent({
+                m: snapshot,
+                text: originalText,
+                isOwner,
+                pushName,
+                continuation,
+                sessionKey,
+                promptOverride: prompt
+            })
+            if (res.handedOff) return // otra continuación ya tomó el relevo
+            const body = `> 🌸 *Ruby terminó lo que estaba procesando*\n\n${res.text || 'Terminé, pero no encontré nada nuevo que reportar.'}${res.executed.length ? `\n\n> 🛠️ _${res.executed.join(', ')}_` : ''}`
+            await conn?.sendMessage?.(chat, { text: clip(body, 8000) })
+        } catch (err) {
+            await conn?.sendMessage?.(chat, { text: `> 💔 Se me cortó el proceso largo: ${err?.message || err}` }).catch(() => {})
+            await dmOwner(conn, `⚠️ Falló una continuación asíncrona en ${chat}:\n${err?.stack || err?.message || err}`)
+        }
+    }, 30)
 }
 
 /* ── Proactividad: tareas en segundo plano ────────────────────── */
@@ -902,6 +1258,7 @@ function queueBackgroundTask(m, instruction) {
         pushName: m.pushName,
         key: m.key,
         quoted: m.quoted,
+        mentionedJid: m.mentionedJid,
         __conn: conn,
         __isDioneibi: isDioneibiMessage(m),
         reply: undefined
@@ -950,17 +1307,74 @@ async function restoreCrons() {
 
 /* ── Reporte de bugs y listeners ──────────────────────────────── */
 
+/** Clasifica el fallo para que el aviso al Owner sea accionable, no ruido. */
+function classifyError(error) {
+    const detail = error instanceof Error ? `${error.name}: ${error.message}\n${error.stack || ''}` : String(error)
+    if (/SyntaxError|Unexpected token|Unexpected identifier|Invalid or unexpected/i.test(detail)) {
+        return { tipo: 'ERROR DE SINTAXIS', icono: '🧨', hint: 'Hay código roto: corrígelo antes de que el proceso vuelva a caer.' }
+    }
+    if (/Cannot find module|ERR_MODULE_NOT_FOUND|is not a function|is not defined/i.test(detail)) {
+        return { tipo: 'IMPORT / REFERENCIA ROTA', icono: '🧩', hint: 'Un módulo o export no existe: revisa rutas y nombres exportados.' }
+    }
+    if (/ECONNREFUSED|ETIMEDOUT|ENOTFOUND|fetch failed|socket hang up|network/i.test(detail)) {
+        return { tipo: 'RED / API CAÍDA', icono: '📡', hint: 'Un servicio externo no responde. Puede ser temporal.' }
+    }
+    if (/heap out of memory|ENOSPC|EMFILE/i.test(detail)) {
+        return { tipo: 'RECURSOS DEL SERVIDOR', icono: '🔥', hint: 'El servidor se está quedando sin memoria/disco/descriptores.' }
+    }
+    return { tipo: 'EXCEPCIÓN NO CONTROLADA', icono: '🚨', hint: 'Revisa el stack para ubicar el origen.' }
+}
+
+/** Aviso al privado del Owner. Nunca lanza y nunca spamea el mismo fallo. */
 export async function reportErrorToOwner(conn, error, context = {}) {
     try {
-        const target = conn || liveConn
-        if (!target?.sendMessage) return false
         const detail = error instanceof Error ? `${error.name}: ${error.message}\n${error.stack || ''}` : String(error)
+        const { tipo, icono, hint } = classifyError(error)
+        const fingerprint = `${tipo}:${(error?.message || detail).slice(0, 160)}`
+        if (!shouldAlert(fingerprint)) return false
         const meta = Object.entries(context).map(([k, v]) => `${k}: ${v}`).join('\n')
-        const body = `🚨 *Ruby detectó un bug*\n${meta ? `\n${meta}\n` : ''}\n\`\`\`\n${clip(detail, 1200)}\n\`\`\`\n> Amo, revisé el fallo y te lo reporto. ✨`
-        await target.sendMessage(OWNER_NUMBER, { text: body })
-        return true
-    } catch (e) {
+        const body = [
+            `${icono} *Ruby detectó un fallo* — ${tipo}`,
+            meta ? `\n${meta}` : '',
+            `\n\`\`\`\n${clip(detail, 1400)}\n\`\`\``,
+            `\n> 💡 ${hint}`,
+            `> Uptime: ${(process.uptime() / 60).toFixed(1)}min | RSS: ${(process.memoryUsage().rss / 1048576).toFixed(0)}MB`,
+            `> Sigo de pie y cuidando el bot, amo. ✨`
+        ].filter(Boolean).join('\n')
+        return await dmOwner(conn, body)
+    } catch {
         return false
+    }
+}
+
+/**
+ * Hook de auto-sanación invocado por el bootstrap ante un fallo fatal.
+ * Lee el error, lo clasifica y se lo notifica al Owner en privado ANTES de que
+ * el proceso muera, para que nunca haya una caída silenciosa.
+ */
+export async function selfHeal(error, origin = 'desconocido') {
+    try {
+        const { tipo, hint } = classifyError(error)
+        console.error(`[Ruby][selfHeal][${origin}] ${tipo}:`, error?.message || error)
+        const context = {
+            origen: origin,
+            tipo,
+            hora: new Date().toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo' }),
+            nodo: `${os.platform()} ${os.arch()} | Node ${process.version}`
+        }
+        await reportErrorToOwner(liveConn, error, context)
+        // Si es sintaxis, dejamos rastro en disco: el proceso está por morir.
+        if (/SINTAXIS/.test(tipo)) {
+            await fs.appendFile(
+                path.join(ROOT, 'ruby_crash.log'),
+                `\n[${new Date().toISOString()}] ${origin} ${tipo}\n${error?.stack || error?.message || error}\n`,
+                'utf8'
+            ).catch(() => {})
+        }
+        return { reported: true, tipo, hint }
+    } catch (e) {
+        console.error('[Ruby][selfHeal] falló el reporte:', e?.message)
+        return { reported: false }
     }
 }
 
@@ -974,9 +1388,20 @@ export function attachRubyConn(conn) {
 function initListeners() {
     if (listenersReady) return
     listenersReady = true
-    process.on('uncaughtException', err => { reportErrorToOwner(liveConn, err, { origen: 'uncaughtException' }) })
-    process.on('unhandledRejection', reason => { reportErrorToOwner(liveConn, reason instanceof Error ? reason : new Error(String(reason)), { origen: 'unhandledRejection' }) })
-    console.log('[Ruby] Motor Keyless + toolkit autónomo listo. Herramientas:', TOOL_NAMES.length)
+    // Toda excepción fatal pasa por Ruby: la lee, la clasifica y la reporta al
+    // privado del Owner. Los handlers nunca lanzan, así no agravan la caída.
+    process.on('uncaughtException', err => {
+        selfHeal(err, 'uncaughtException').catch(() => {})
+    })
+    process.on('unhandledRejection', reason => {
+        selfHeal(reason instanceof Error ? reason : new Error(String(reason)), 'unhandledRejection').catch(() => {})
+    })
+    process.on('warning', warning => {
+        if (/MaxListenersExceeded|memory/i.test(warning?.message || '')) {
+            reportErrorToOwner(liveConn, warning, { origen: 'process.warning' }).catch(() => {})
+        }
+    })
+    console.log('[Ruby] Motor Keyless + toolkit autónomo listo. Herramientas:', TOOL_NAMES.length, '| Saltos máx:', MAX_HOPS)
 }
 
 initListeners()
@@ -999,19 +1424,33 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
         return m.reply('> 🧹 𝖬𝖾𝗆𝗈𝗋𝗂𝖺 𝖽𝖾 𝖾𝗌𝗍𝖾 𝖼𝗁𝖺𝗍 𝗅𝗂𝗆𝗉𝗂𝖺. ¡Empecemos de nuevo! ✨')
     }
 
+    // Vigilancia de abuso: ráfagas sospechosas se reportan al privado del Owner.
+    if (!isOwner) {
+        const { abusive, hits } = trackUsage(m.sender)
+        if (abusive && shouldAlert(`abuso:${m.sender}`, 600000)) {
+            dmOwner(conn, `⚠️ *Posible abuso detectado*\n> Usuario: ${m.pushName || 'desconocido'} (${m.sender})\n> Chat: ${m.chat}\n> ${hits} invocaciones en menos de ${ABUSE_WINDOW / 1000}s\n> Último mensaje: ${clip(text.trim(), 300)}\n\n> Lo tengo vigilado, amo. 🌸`).catch(() => {})
+        }
+    }
+
     await m.react?.('⏳')
     try {
         const res = await runAgent({ m, text: text.trim(), isOwner, pushName: m.pushName })
+        if (res.handedOff && !res.text) {
+            // Ya avisó al chat y sigue trabajando en la continuación asíncrona.
+            await m.react?.('🌸')
+            return
+        }
         const footer = isOwner && res.executed.length ? `\n\n> 🛠️ _Herramientas usadas: ${res.executed.join(', ')}_` : ''
         const body = (res.text || '> (っ- ‸ - ς) 𝖬𝖾 𝗊𝗎𝖾𝖽𝖾́ 𝗌𝗂𝗇 𝗉𝖺𝗅𝖺𝖻𝗋𝖺𝗌...') + footer
         await conn.sendMessage(m.chat, { text: clip(body, 8000) }, { quoted: m })
-        await m.react?.('✅')
+        await m.react?.(res.handedOff ? '🌸' : '✅')
     } catch (error) {
         console.error('[Ruby Hoshino - Autonomous Error]:', error)
         delete sessions[m.sender || m.chat]
         await m.react?.('💔')
         await m.reply(`> (っ- ‸ - ς) 𝖠𝗅𝗀𝗈 𝗌𝖾 𝗋𝗈𝗆𝗉𝗂𝗈́ 𝖽𝖾𝗇𝗍𝗋𝗈 𝖽𝖾 𝗆𝗂́... ✨\n\n> 💡 *𝖣𝖾𝗍𝖺𝗅𝗅𝖾:* \`${error.message}\``)
-        if (!isOwner) await reportErrorToOwner(conn, error, { comando: command, chat: m.chat, usuario: m.sender })
+        // Siempre al privado: si el fallo ocurrió en un grupo, el Owner se entera igual.
+        await reportErrorToOwner(conn, error, { comando: command, chat: m.chat, usuario: m.sender, texto: clip(text.trim(), 200) })
     }
 }
 
