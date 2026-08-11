@@ -23,7 +23,15 @@ export const REPO_SLUG = 'Dioneibi-rip/Ruby-Hoshino-Bot'
 const MEMORY_FILE = path.join(ROOT, 'ruby_memory.json')
 
 export const EXEC_TIMEOUT = 120000
-export const MAX_OUT = 6000
+
+/* MAX_OUT es un PRESUPUESTO DE TOKENS, no un límite estético.
+   Cada resultado de tool vuelve al modelo en la siguiente iteración, así que
+   6000 chars (~1.6k tokens) permitían que un solo `read_file` se comiera el
+   límite de 6000 TPM de Groq por sí mismo. ~2000 chars ≈ 550 tokens deja
+   espacio para varias tools en la misma petición sin provocar un 413.
+   Ajustable con RUBY_MAX_TOOL_OUTPUT si algún día subes de plan. */
+const MAX_OUT_ENV = Number.parseInt(process.env.RUBY_MAX_TOOL_OUTPUT ?? '', 10)
+export const MAX_OUT = Number.isFinite(MAX_OUT_ENV) && MAX_OUT_ENV >= 500 ? MAX_OUT_ENV : 2000
 
 /* Antiabuso: ventana deslizante por usuario. */
 const ABUSE_WINDOW = 60000
