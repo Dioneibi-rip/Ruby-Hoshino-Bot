@@ -21,17 +21,23 @@ import {
     isDioneibiMessage, isOwnerJid, getLiveConn, dmOwner
 } from './runtime.js'
 
-const MODEL = 'openai/gpt-oss-120b'
+/** Lee un entero del entorno con un mínimo y un fallback seguro. */
+function envInt(name, fallback, min = 1) {
+    const raw = Number.parseInt(process.env[name] ?? '', 10)
+    return Number.isFinite(raw) && raw >= min ? raw : fallback
+}
+
+const MODEL = process.env.RUBY_GROQ_MODEL?.trim() || 'openai/gpt-oss-120b'
 const TEMPERATURE = 1
 const MAX_TOKENS = 2048
 
 /* Autonomía real: el techo es de SEGURIDAD (evitar un bucle infinito de tokens),
    no una correa corta. Al acercarse al techo Ruby avisa y sigue trabajando en
    una continuación asíncrona en lugar de abandonar la tarea a medias. */
-const MAX_STEPS = 25
+const MAX_STEPS = envInt('RUBY_MAX_ITERATIONS', 25, 3)
 const RECURSION_LIMIT = MAX_STEPS * 2 + 1 // cada paso = 1 llamada al modelo + 1 de tools
 const MAX_CONTINUATIONS = 3
-const HISTORY_WINDOW = 10 // mensajes recordados por usuario (BufferWindow)
+const HISTORY_WINDOW = envInt('RUBY_MEMORY_WINDOW', 10, 2) // mensajes recordados por usuario (BufferWindow)
 const HEARTBEAT_COOLDOWN = 45000
 
 /** Historial conversacional por usuario. Clave: `m.sender`. */
