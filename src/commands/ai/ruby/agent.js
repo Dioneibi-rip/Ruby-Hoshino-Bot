@@ -63,6 +63,26 @@ let modelError = null
 
 /* ── Modelo (Groq) ────────────────────────────────────────────── */
 
+/**
+ * Groq sin la grasa del JSON Schema.
+ *
+ * `convertToOpenAITool` inyecta `"$schema": "https://json-schema.org/..."` en
+ * CADA tool. Son ~57 chars x 27 tools = ~428 tokens por peticion gastados en una
+ * URL que el modelo no lee: no describe ningun parametro, solo declara el
+ * dialecto de JSON Schema. Groq lo ignora, pero lo COBRA igual. Lo quitamos en
+ * invocationParams, el ultimo punto antes de la red y el unico sitio donde
+ * LangChain ya no puede volver a anadirlo.
+ */
+class LeanChatGroq extends ChatGroq {
+    invocationParams(options, ...rest) {
+        const params = super.invocationParams(options, ...rest)
+        for (const tool of params?.tools || []) {
+            if (tool?.function?.parameters) delete tool.function.parameters.$schema
+        }
+        return params
+    }
+}
+
 function getModel() {
     if (model) return model
     if (modelError) throw modelError
@@ -70,7 +90,7 @@ function getModel() {
         modelError = new Error('Falta GROQ_API_KEY. Dioneibi debe agregarla en el .env del proyecto o en las variables del panel (consíguela gratis en console.groq.com/keys).')
         throw modelError
     }
-    model = new ChatGroq({
+    model = new LeanChatGroq({
         model: MODEL,
         apiKey: process.env.GROQ_API_KEY,
         temperature: TEMPERATURE,

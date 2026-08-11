@@ -93,10 +93,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `exit=${res.exitCode}\nSTDOUT:\n${res.stdout || '(vacío)'}\nSTDERR:\n${res.stderr || '(vacío)'}`
     }), {
         name: 'execute_terminal',
-        description: 'Ejecuta un comando de shell real en la raíz del proyecto. Devuelve stdout, stderr y exit code.',
-        schema: z.object({
-            comando: z.string().describe('Comando, ej "ls -la src".')
-        })
+        description: 'Shell en la raíz del repo. Devuelve stdout/stderr/exit.',
+        schema: z.object({ comando: z.string() })
     })
 
     const findFiles = tool(safeTool(async ({ nombre }) => {
@@ -109,10 +107,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return list ? `Coincidencias para "${needle}":\n${list}` : `Sin resultados para "${needle}". Prueba otro nombre o usa grep_code.`
     }), {
         name: 'find_files',
-        description: 'Busca archivos por nombre en el proyecto. Úsalo antes de asumir una ruta.',
-        schema: z.object({
-            nombre: z.string().describe('Nombre o fragmento, ej "play.js".')
-        })
+        description: 'Busca archivos por nombre. Úsalo antes de asumir una ruta.',
+        schema: z.object({ nombre: z.string() })
     })
 
     const grepCode = tool(safeTool(async ({ texto }) => {
@@ -126,10 +122,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return list ? `"${needle}":\n${list}` : `No encontré "${needle}" en el código.`
     }), {
         name: 'grep_code',
-        description: 'Busca texto en el código y devuelve archivo y línea. Ideal para rastrear una función o un error.',
-        schema: z.object({
-            texto: z.string().describe('Texto literal a buscar.')
-        })
+        description: 'Busca texto en el código: devuelve archivo y línea.',
+        schema: z.object({ texto: z.string() })
     })
 
     const listDir = tool(safeTool(async ({ carpeta }) => {
@@ -140,10 +134,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `${path.relative(ROOT, target) || '.'} (${entries.length} entradas)\n${clip(body, 4000)}`
     }), {
         name: 'list_dir',
-        description: 'Lista el contenido de una carpeta del proyecto.',
-        schema: z.object({
-            carpeta: z.string().optional().describe('Ruta relativa. Vacío = raíz.')
-        })
+        description: 'Lista una carpeta. Vacío = raíz.',
+        schema: z.object({ carpeta: z.string().optional() })
     })
 
     const readFile = tool(safeTool(async ({ ruta }) => {
@@ -161,10 +153,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `${path.relative(ROOT, target)} (${lines.length} líneas)\n${clip(numbered, 15000)}`
     }), {
         name: 'read_file',
-        description: 'Lee un archivo con números de línea, para citar líneas exactas.',
-        schema: z.object({
-            ruta: z.string().describe('Ruta relativa, ej "src/commands/ai/x.js".')
-        })
+        description: 'Lee un archivo con números de línea.',
+        schema: z.object({ ruta: z.string() })
     })
 
     const writeFile = tool(safeTool(async ({ ruta, contenido }) => {
@@ -181,11 +171,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `Guardado ${path.relative(ROOT, target)} (${String(contenido ?? '').length} chars).${extra}`
     }), {
         name: 'write_file',
-        description: 'Sobrescribe o crea un archivo. Si es .js valida la sintaxis al terminar.',
-        schema: z.object({
-            ruta: z.string().describe('Ruta relativa destino.'),
-            contenido: z.string().describe('Contenido COMPLETO del archivo.')
-        })
+        description: 'Crea/sobrescribe un archivo con el contenido COMPLETO. Valida .js al terminar.',
+        schema: z.object({ ruta: z.string(), contenido: z.string() })
     })
 
     const appendFile = tool(safeTool(async ({ ruta, contenido }) => {
@@ -197,11 +184,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `Añadidos ${String(contenido ?? '').length} chars a ${path.relative(ROOT, target)}.`
     }), {
         name: 'append_file',
-        description: 'Agrega contenido al final de un archivo sin borrar lo existente.',
-        schema: z.object({
-            ruta: z.string().describe('Ruta relativa.'),
-            contenido: z.string().describe('Contenido a agregar.')
-        })
+        description: 'Añade al final de un archivo sin borrar lo existente.',
+        schema: z.object({ ruta: z.string(), contenido: z.string() })
     })
 
     const syntaxCheck = tool(safeTool(async ({ ruta }) => {
@@ -217,10 +201,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return res.ok ? `${path.relative(ROOT, target)} → sintaxis OK ✅` : `${path.relative(ROOT, target)} → ERROR ❌\n${res.stderr}`
     }), {
         name: 'syntax_check',
-        description: 'Valida sintaxis JS con "node --check". Sin ruta audita todo. Úsalo antes de git_push.',
-        schema: z.object({
-            ruta: z.string().optional().describe('Ruta a validar. Vacío = todo.')
-        })
+        description: 'node --check. Sin ruta audita todo. Obligatorio antes de git_push.',
+        schema: z.object({ ruta: z.string().optional() })
     })
 
     const readLogs = tool(safeTool(async ({ lineas }) => {
@@ -233,10 +215,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
             : 'No hay archivos de log accesibles. El proceso probablemente escribe a stdout del panel; usa execute_terminal con el comando del panel si lo necesitas.'
     }), {
         name: 'read_logs',
-        description: 'Lee las últimas líneas de los logs (pm2 o .log) para diagnosticar crashes.',
-        schema: z.object({
-            lineas: z.number().int().optional().describe('Líneas a leer (10-300, def 60).')
-        })
+        description: 'Últimas líneas de logs (pm2/.log) para diagnosticar crashes.',
+        schema: z.object({ lineas: z.number().int().optional() })
     })
 
     const healthCheck = tool(safeTool(async () => {
@@ -254,7 +234,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
         ].join('\n')
     }), {
         name: 'health_check',
-        description: 'Signos vitales de tu cuerpo: RAM, CPU, load, uptime, disco y Node. Úsalo si te preguntan cómo estás.',
+        description: 'Tus signos vitales: RAM, CPU, load, uptime, disco, Node.',
         schema: z.object({})
     })
 
@@ -283,10 +263,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `No hay match exacto. Parecidos:\n${similar.map(s => `- ${(s.commands || []).join('/')} → ${path.relative(ROOT, s.filePath)}`).join('\n')}`
     }), {
         name: 'command_lookup',
-        description: 'Dice en qué archivo vive un comando del bot, sus alias, categoría y permisos. Úsalo antes de analizar o arreglar un comando.',
-        schema: z.object({
-            nombre: z.string().describe('Nombre del comando, ej "play".')
-        })
+        description: 'Archivo, alias, categoría y permisos de un comando del bot. Úsalo antes de analizarlo.',
+        schema: z.object({ nombre: z.string() })
     })
 
     const runBotCommand = tool(safeTool(async ({ comando, argumentos, objetivo }) => {
@@ -325,11 +303,11 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `Inyecté "${body}" en el router del bot como si lo hubiera escrito el usuario. La respuesta del comando llegará al chat por separado. Si no llega nada, el comando está roto: revísalo con command_lookup y read_file.`
     }), {
         name: 'run_bot_command',
-        description: 'Ejecuta un comando real del bot inyectándolo en el router, como si un usuario lo escribiera.',
+        description: 'Ejecuta un comando del bot en el router, como si un usuario lo escribiera.',
         schema: z.object({
-            comando: z.string().describe('Nombre del comando, sin prefijo.'),
-            argumentos: z.string().optional().describe('Argumentos del comando.'),
-            objetivo: z.string().optional().describe('Número o JID a mencionar, si aplica.')
+            comando: z.string(),
+            argumentos: z.string().optional(),
+            objetivo: z.string().optional().describe('Número/JID a mencionar.')
         })
     })
 
@@ -391,9 +369,9 @@ export function buildTools(m, hooks = {}, opts = {}) {
         /* El registro de APIs ya no se inyecta en la descripción: eran cientos de
            tokens fijos en cada petición. Con "list" Ruby lo consulta si le hace
            falta, pagando esos tokens solo cuando de verdad los necesita. */
-        description: 'GET a una API y diagnostica si está viva: status, content-type, latencia y estructura del JSON. Acepta una URL, el nombre de una API registrada del bot, o "list" para ver el registro.',
+        description: 'GET a una API y diagnostica si vive: status, latencia y forma del JSON.',
         schema: z.object({
-            url: z.string().describe('URL, nombre de API registrada, o "list".')
+            url: z.string().describe('URL, alias de API del bot, o "list".')
         })
     })
 
@@ -432,10 +410,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `✅ Subido a ${REPO_SLUG} rama ${branch}.\nCommit: ${commitMsg}\nArchivos: ${staged.stdout.split('\n').filter(Boolean).length}\n${sanitized}`
     }), {
         name: 'git_push',
-        description: 'git add + commit + push. Valida sintaxis antes de subir y aborta si algo está roto. Nunca lo uses sin un syntax_check previo.',
-        schema: z.object({
-            mensaje: z.string().describe('Mensaje del commit.')
-        })
+        description: 'git add+commit+push. Aborta si la sintaxis falla. Requiere syntax_check previo.',
+        schema: z.object({ mensaje: z.string() })
     })
 
     /* ---------- WhatsApp / Baileys ---------- */
@@ -471,7 +447,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return clip(JSON.stringify(info, null, 1), 7000)
     }), {
         name: 'wa_group_info',
-        description: 'Metadatos del grupo: nombre, creador, admins, participantes con sus identidades (jid/lid) y si eres admin. Úsalo antes de moderar para sacar el identificador correcto.',
+        description: 'Metadata del grupo: admins, participantes con jid/lid y si eres admin. Úsalo antes de moderar.',
         schema: z.object({})
     })
 
@@ -485,10 +461,10 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `Mensaje entregado a ${target} (${body.length} chars).`
     }), {
         name: 'wa_send_message',
-        description: 'Envía un mensaje de WhatsApp a cualquier chat o grupo por el socket vivo de Baileys.',
+        description: 'Envía un mensaje de WhatsApp a cualquier chat o grupo.',
         schema: z.object({
-            jid: z.string().describe('Destino: número, JID completo, "aqui" o "amo".'),
-            mensaje: z.string().describe('Texto a enviar.')
+            jid: z.string().describe('Número, JID, "aqui" o "amo".'),
+            mensaje: z.string()
         })
     })
 
@@ -504,10 +480,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return 'Reporte entregado a Dioneibi en privado. El usuario de este chat NO lo vio: no le menciones que le escribiste.'
     }), {
         name: 'dm_owner',
-        description: 'Línea directa y SILENCIOSA con Dioneibi: le escribes al privado y el chat actual no ve nada. Úsala SIEMPRE que detectes errores, APIs caídas, crashes, comandos rotos o abuso, aunque quien te hable no sea Dioneibi.',
-        schema: z.object({
-            mensaje: z.string().describe('Reporte detallado para Dioneibi.')
-        })
+        description: 'Privado SILENCIOSO a Dioneibi (el chat actual no lo ve). Úsalo ante errores, crashes o abuso.',
+        schema: z.object({ mensaje: z.string() })
     })
 
     const waKick = tool(safeTool(async ({ objetivo }) => {
@@ -519,10 +493,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `Expulsión de ${jid} → ${clip(JSON.stringify(res), 600)}`
     }), {
         name: 'wa_kick',
-        description: 'Expulsa a un participante del grupo. Acepta número o LID: el mapeo contra la metadata es automático.',
-        schema: z.object({
-            objetivo: z.string().describe('Número, JID o LID a expulsar.')
-        })
+        description: 'Expulsa a un participante. Acepta número, JID o LID.',
+        schema: z.object({ objetivo: z.string() })
     })
 
     const waPromote = tool(safeTool(async ({ objetivo }) => {
@@ -535,10 +507,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `${jid} ahora es admin → ${clip(JSON.stringify(res), 600)}`
     }), {
         name: 'wa_promote',
-        description: 'Da administrador a un participante del grupo.',
-        schema: z.object({
-            objetivo: z.string().describe('Número, JID o LID a promover.')
-        })
+        description: 'Da admin a un participante.',
+        schema: z.object({ objetivo: z.string() })
     })
 
     const waDemote = tool(safeTool(async ({ objetivo }) => {
@@ -551,10 +521,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `${jid} degradado → ${clip(JSON.stringify(res), 600)}`
     }), {
         name: 'wa_demote',
-        description: 'Quita administrador a un participante del grupo.',
-        schema: z.object({
-            objetivo: z.string().describe('Número, JID o LID a degradar.')
-        })
+        description: 'Quita admin a un participante.',
+        schema: z.object({ objetivo: z.string() })
     })
 
     const waDeleteMessage = tool(safeTool(async ({ id }) => {
@@ -573,10 +541,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `Mensaje ${key.id} eliminado.`
     }), {
         name: 'wa_delete_message',
-        description: 'Borra un mensaje del chat actual. Usa "quoted" para el mensaje citado.',
-        schema: z.object({
-            id: z.string().optional().describe('ID del mensaje, o "quoted".')
-        })
+        description: 'Borra un mensaje del chat. "quoted" = el citado.',
+        schema: z.object({ id: z.string().optional() })
     })
 
     const waReact = tool(safeTool(async ({ emoji }) => {
@@ -587,9 +553,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
     }), {
         name: 'wa_react',
         description: 'Reacciona con un emoji al mensaje actual.',
-        schema: z.object({
-            emoji: z.string().optional().describe('Emoji de la reacción. Por defecto ✨.')
-        })
+        schema: z.object({ emoji: z.string().optional() })
     })
 
     /* ---------- Trabajo en segundo plano, agenda y memoria ---------- */
@@ -604,10 +568,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return 'Tarea aceptada y corriendo en segundo plano. Despídete del usuario avisándole que le escribirás con el resultado; NO intentes resolverla ahora.'
     }), {
         name: 'run_background_task',
-        description: 'Lanza una tarea larga en segundo plano (auditar el código, testear muchas APIs) para no dejar esperando. Al llamarla responde "ya lo estoy revisando, te aviso" y termina tu turno.',
-        schema: z.object({
-            instruccion: z.string().describe('Instrucción detallada para ti misma.')
-        })
+        description: 'Lanza una tarea larga en segundo plano. Al llamarla despídete y termina tu turno.',
+        schema: z.object({ instruccion: z.string() })
     })
 
     const scheduleMessage = tool(safeTool(async ({ cron: expr, jid, mensaje }) => {
@@ -624,11 +586,11 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `Programado ${id}: "${expr}" → ${target}. Mensaje: ${clip(body, 200)}`
     }), {
         name: 'schedule_message',
-        description: 'Programa un mensaje recurrente con cron (America/Santo_Domingo). Persiste entre reinicios.',
+        description: 'Mensaje recurrente por cron (America/Santo_Domingo). Persiste entre reinicios.',
         schema: z.object({
-            cron: z.string().describe('Cron, ej "0 8 * * *" = 8am diario.'),
-            jid: z.string().describe('Destino: número, JID, "aqui" o "amo".'),
-            mensaje: z.string().describe('Texto de cada ejecución.')
+            cron: z.string().describe('ej "0 8 * * *".'),
+            jid: z.string().describe('Número, JID, "aqui" o "amo".'),
+            mensaje: z.string()
         })
     })
 
@@ -643,11 +605,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `Guardado en mi memoria eterna: ${key} = ${clip(value, 300)}`
     }), {
         name: 'remember_fact',
-        description: 'Guarda un dato permanente en tu memoria a largo plazo (sobrevive reinicios).',
-        schema: z.object({
-            clave: z.string().describe('Clave corta, ej "cumpleaños_dioneibi".'),
-            valor: z.string().describe('Valor a recordar.')
-        })
+        description: 'Guarda un dato en tu memoria eterna (sobrevive reinicios).',
+        schema: z.object({ clave: z.string(), valor: z.string() })
     })
 
     const recallMemory = tool(safeTool(async () => {
@@ -663,7 +622,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
         ].join('\n')
     }), {
         name: 'recall_memory',
-        description: 'Recupera todo lo que has memorizado a largo plazo: datos guardados y tareas programadas.',
+        description: 'Lee tu memoria eterna: datos y tareas programadas.',
         schema: z.object({})
     })
 
@@ -683,10 +642,8 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return `Olvidé "${k}".`
     }), {
         name: 'forget_fact',
-        description: 'Borra un dato memorizado o cancela una tarea programada por su clave. Exclusivo de Dioneibi.',
-        schema: z.object({
-            clave: z.string().describe('Clave del dato o ID de la tarea a olvidar.')
-        })
+        description: 'Borra un dato memorizado o cancela una tarea por su clave.',
+        schema: z.object({ clave: z.string() })
     })
 
     const all = [
