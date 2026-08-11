@@ -62,11 +62,25 @@ function safeTool(fn) {
     }
 }
 
+/** Solo lo DESTRUCTIVO o lo que da control del sistema queda vetado a terceros.
+    La lectura y el diagnóstico están disponibles para todos (con el filtro de
+    secretos de `assertReadable`) para que Ruby pueda dar soporte técnico real.
+
+    Declarado ANTES de `buildTools` a propósito: `TOOL_NAMES` invoca `buildTools`
+    en tiempo de carga del módulo, así que si este Set se declarara más abajo
+    caeríamos en la zona muerta (TDZ) del `const` y el import explotaría. */
+export const OWNER_ONLY = new Set([
+    'execute_terminal', 'write_file', 'append_file', 'read_logs', 'run_bot_command', 'git_push',
+    'wa_send_message', 'wa_kick', 'wa_promote', 'wa_demote', 'wa_delete_message',
+    'run_background_task', 'schedule_message', 'remember_fact', 'forget_fact'
+])
+
 /**
  * @param {object} m       Mensaje vivo de Baileys (socket, chat, permisos).
  * @param {object} hooks   { queueBackgroundTask } inyectado por el agente.
+ * @param {object} opts    { forceAll } ignora el gating (solo para TOOL_NAMES).
  */
-export function buildTools(m, hooks = {}) {
+export function buildTools(m, hooks = {}, opts = {}) {
     const owner = () => assertOwner(m)
 
     /* ---------- Sistema operativo y archivos ---------- */
@@ -79,9 +93,9 @@ export function buildTools(m, hooks = {}) {
         return `exit=${res.exitCode}\nSTDOUT:\n${res.stdout || '(vacío)'}\nSTDERR:\n${res.stderr || '(vacío)'}`
     }), {
         name: 'execute_terminal',
-        description: 'Ejecuta un comando de shell REAL en la raíz del proyecto y devuelve stdout/stderr y el exit code. Exclusivo de Dioneibi. Úsalo para inspeccionar el servidor, procesos, npm, git o cualquier diagnóstico profundo.',
+        description: 'Ejecuta un comando de shell real en la raíz del proyecto. Devuelve stdout, stderr y exit code.',
         schema: z.object({
-            comando: z.string().describe('Comando de shell a ejecutar, por ejemplo "ls -la src" o "node -v".')
+            comando: z.string().describe('Comando, ej "ls -la src".')
         })
     })
 
@@ -95,9 +109,9 @@ export function buildTools(m, hooks = {}) {
         return list ? `Coincidencias para "${needle}":\n${list}` : `Sin resultados para "${needle}". Prueba otro nombre o usa grep_code.`
     }), {
         name: 'find_files',
-        description: 'Busca archivos por nombre en todo el proyecto. Úsalo SIEMPRE antes de asumir en qué carpeta vive un archivo: no adivines rutas, búscalas.',
+        description: 'Busca archivos por nombre en el proyecto. Úsalo antes de asumir una ruta.',
         schema: z.object({
-            nombre: z.string().describe('Nombre o fragmento del nombre del archivo, por ejemplo "play.js" o "menu".')
+            nombre: z.string().describe('Nombre o fragmento, ej "play.js".')
         })
     })
 
@@ -112,9 +126,9 @@ export function buildTools(m, hooks = {}) {
         return list ? `"${needle}":\n${list}` : `No encontré "${needle}" en el código.`
     }), {
         name: 'grep_code',
-        description: 'Busca un texto dentro del código fuente y devuelve archivo y número de línea. Ideal para rastrear una función, una URL de API o un mensaje de error.',
+        description: 'Busca texto en el código y devuelve archivo y línea. Ideal para rastrear una función o un error.',
         schema: z.object({
-            texto: z.string().describe('Texto literal a buscar en el código.')
+            texto: z.string().describe('Texto literal a buscar.')
         })
     })
 
@@ -128,7 +142,7 @@ export function buildTools(m, hooks = {}) {
         name: 'list_dir',
         description: 'Lista el contenido de una carpeta del proyecto.',
         schema: z.object({
-            carpeta: z.string().optional().describe('Ruta relativa de la carpeta. Vacío = raíz del proyecto.')
+            carpeta: z.string().optional().describe('Ruta relativa. Vacío = raíz.')
         })
     })
 
@@ -147,9 +161,9 @@ export function buildTools(m, hooks = {}) {
         return `${path.relative(ROOT, target)} (${lines.length} líneas)\n${clip(numbered, 15000)}`
     }), {
         name: 'read_file',
-        description: 'Lee un archivo del proyecto con los números de línea, para que puedas citar líneas exactas al analizar código.',
+        description: 'Lee un archivo con números de línea, para citar líneas exactas.',
         schema: z.object({
-            ruta: z.string().describe('Ruta relativa del archivo, por ejemplo "src/commands/ai/ai-gemini.js".')
+            ruta: z.string().describe('Ruta relativa, ej "src/commands/ai/x.js".')
         })
     })
 
@@ -167,10 +181,10 @@ export function buildTools(m, hooks = {}) {
         return `Guardado ${path.relative(ROOT, target)} (${String(contenido ?? '').length} chars).${extra}`
     }), {
         name: 'write_file',
-        description: 'Sobrescribe (o crea) un archivo con el contenido dado. Exclusivo de Dioneibi. Si es un .js valido la sintaxis automáticamente después de escribir.',
+        description: 'Sobrescribe o crea un archivo. Si es .js valida la sintaxis al terminar.',
         schema: z.object({
-            ruta: z.string().describe('Ruta relativa del archivo destino.'),
-            contenido: z.string().describe('Contenido COMPLETO del archivo. Escribe el código tal cual, con sus saltos de línea.')
+            ruta: z.string().describe('Ruta relativa destino.'),
+            contenido: z.string().describe('Contenido COMPLETO del archivo.')
         })
     })
 
@@ -183,10 +197,10 @@ export function buildTools(m, hooks = {}) {
         return `Añadidos ${String(contenido ?? '').length} chars a ${path.relative(ROOT, target)}.`
     }), {
         name: 'append_file',
-        description: 'Agrega contenido al final de un archivo sin borrar lo existente. Exclusivo de Dioneibi.',
+        description: 'Agrega contenido al final de un archivo sin borrar lo existente.',
         schema: z.object({
-            ruta: z.string().describe('Ruta relativa del archivo.'),
-            contenido: z.string().describe('Contenido a agregar al final.')
+            ruta: z.string().describe('Ruta relativa.'),
+            contenido: z.string().describe('Contenido a agregar.')
         })
     })
 
@@ -203,9 +217,9 @@ export function buildTools(m, hooks = {}) {
         return res.ok ? `${path.relative(ROOT, target)} → sintaxis OK ✅` : `${path.relative(ROOT, target)} → ERROR ❌\n${res.stderr}`
     }), {
         name: 'syntax_check',
-        description: 'Valida sintaxis JavaScript con "node --check". Sin ruta audita TODO el proyecto. Úsalo SIEMPRE antes de git_push.',
+        description: 'Valida sintaxis JS con "node --check". Sin ruta audita todo. Úsalo antes de git_push.',
         schema: z.object({
-            ruta: z.string().optional().describe('Ruta del archivo a validar. Vacío = auditar todo el proyecto.')
+            ruta: z.string().optional().describe('Ruta a validar. Vacío = todo.')
         })
     })
 
@@ -219,9 +233,9 @@ export function buildTools(m, hooks = {}) {
             : 'No hay archivos de log accesibles. El proceso probablemente escribe a stdout del panel; usa execute_terminal con el comando del panel si lo necesitas.'
     }), {
         name: 'read_logs',
-        description: 'Lee las últimas líneas de los logs del proceso (pm2 o archivos .log) para diagnosticar crashes reales. Exclusivo de Dioneibi.',
+        description: 'Lee las últimas líneas de los logs (pm2 o .log) para diagnosticar crashes.',
         schema: z.object({
-            lineas: z.number().int().optional().describe('Cuántas líneas leer (10-300). Por defecto 60.')
+            lineas: z.number().int().optional().describe('Líneas a leer (10-300, def 60).')
         })
     })
 
@@ -240,7 +254,7 @@ export function buildTools(m, hooks = {}) {
         ].join('\n')
     }), {
         name: 'health_check',
-        description: 'Signos vitales de tu propio cuerpo: RAM, CPU, load, uptime, disco y versión de Node. Úsalo cuando te pregunten cómo estás o para ser proactiva sobre el estado del servidor.',
+        description: 'Signos vitales de tu cuerpo: RAM, CPU, load, uptime, disco y Node. Úsalo si te preguntan cómo estás.',
         schema: z.object({})
     })
 
@@ -269,9 +283,9 @@ export function buildTools(m, hooks = {}) {
         return `No hay match exacto. Parecidos:\n${similar.map(s => `- ${(s.commands || []).join('/')} → ${path.relative(ROOT, s.filePath)}`).join('\n')}`
     }), {
         name: 'command_lookup',
-        description: 'Dice en qué archivo vive un comando del bot, sus alias, categoría y permisos. ÚSALO antes de analizar o arreglar cualquier comando, y también para responder dudas de usuarios sobre cómo usar el bot.',
+        description: 'Dice en qué archivo vive un comando del bot, sus alias, categoría y permisos. Úsalo antes de analizar o arreglar un comando.',
         schema: z.object({
-            nombre: z.string().describe('Nombre del comando, por ejemplo "play" o "menu".')
+            nombre: z.string().describe('Nombre del comando, ej "play".')
         })
     })
 
@@ -311,11 +325,11 @@ export function buildTools(m, hooks = {}) {
         return `Inyecté "${body}" en el router del bot como si lo hubiera escrito el usuario. La respuesta del comando llegará al chat por separado. Si no llega nada, el comando está roto: revísalo con command_lookup y read_file.`
     }), {
         name: 'run_bot_command',
-        description: 'Ejecuta un comando REAL del bot (play, menu, kiss...) inyectándolo en el router como si un usuario lo hubiera escrito, para probarlo de verdad. Exclusivo de Dioneibi.',
+        description: 'Ejecuta un comando real del bot inyectándolo en el router, como si un usuario lo escribiera.',
         schema: z.object({
             comando: z.string().describe('Nombre del comando, sin prefijo.'),
-            argumentos: z.string().optional().describe('Argumentos del comando, por ejemplo el nombre de una canción.'),
-            objetivo: z.string().optional().describe('Número o JID a mencionar, si el comando necesita un objetivo.')
+            argumentos: z.string().optional().describe('Argumentos del comando.'),
+            objetivo: z.string().optional().describe('Número o JID a mencionar, si aplica.')
         })
     })
 
@@ -374,9 +388,12 @@ export function buildTools(m, hooks = {}) {
         }
     }), {
         name: 'fetch_api_status',
-        description: `Hace una petición HTTP GET y diagnostica si una API está viva: status, content-type, latencia y estructura del JSON. Acepta una URL completa, el nombre de una API registrada del bot (${Object.keys(KNOWN_APIS).join(', ')}), o "list" para ver el registro completo.`,
+        /* El registro de APIs ya no se inyecta en la descripción: eran cientos de
+           tokens fijos en cada petición. Con "list" Ruby lo consulta si le hace
+           falta, pagando esos tokens solo cuando de verdad los necesita. */
+        description: 'GET a una API y diagnostica si está viva: status, content-type, latencia y estructura del JSON. Acepta una URL, el nombre de una API registrada del bot, o "list" para ver el registro.',
         schema: z.object({
-            url: z.string().describe('URL completa a probar, nombre de una API registrada, o "list".')
+            url: z.string().describe('URL, nombre de API registrada, o "list".')
         })
     })
 
@@ -415,7 +432,7 @@ export function buildTools(m, hooks = {}) {
         return `✅ Subido a ${REPO_SLUG} rama ${branch}.\nCommit: ${commitMsg}\nArchivos: ${staged.stdout.split('\n').filter(Boolean).length}\n${sanitized}`
     }), {
         name: 'git_push',
-        description: 'git add + commit + push al repositorio del bot. Valida la sintaxis de todos los .js antes de subir y aborta si algo está roto. Exclusivo de Dioneibi. Nunca lo uses sin haber pasado antes syntax_check.',
+        description: 'git add + commit + push. Valida sintaxis antes de subir y aborta si algo está roto. Nunca lo uses sin un syntax_check previo.',
         schema: z.object({
             mensaje: z.string().describe('Mensaje del commit.')
         })
@@ -454,7 +471,7 @@ export function buildTools(m, hooks = {}) {
         return clip(JSON.stringify(info, null, 1), 7000)
     }), {
         name: 'wa_group_info',
-        description: 'Metadatos del grupo actual: nombre, creador, admins, participantes con TODAS sus identidades (jid/lid) y si tú eres admin. ANALÍZALO ANTES de moderar: de aquí sacas el identificador correcto para expulsar o promover.',
+        description: 'Metadatos del grupo: nombre, creador, admins, participantes con sus identidades (jid/lid) y si eres admin. Úsalo antes de moderar para sacar el identificador correcto.',
         schema: z.object({})
     })
 
@@ -468,10 +485,10 @@ export function buildTools(m, hooks = {}) {
         return `Mensaje entregado a ${target} (${body.length} chars).`
     }), {
         name: 'wa_send_message',
-        description: 'Envía un mensaje de WhatsApp a cualquier chat o grupo usando el socket vivo de Baileys. Exclusivo de Dioneibi. Acepta número, JID completo, "aqui" para el chat actual, o "amo" para Dioneibi.',
+        description: 'Envía un mensaje de WhatsApp a cualquier chat o grupo por el socket vivo de Baileys.',
         schema: z.object({
-            jid: z.string().describe('Destino: número (18091234567), JID completo (...@s.whatsapp.net o ...@g.us), "aqui" o "amo".'),
-            mensaje: z.string().describe('Texto del mensaje a enviar.')
+            jid: z.string().describe('Destino: número, JID completo, "aqui" o "amo".'),
+            mensaje: z.string().describe('Texto a enviar.')
         })
     })
 
@@ -487,7 +504,7 @@ export function buildTools(m, hooks = {}) {
         return 'Reporte entregado a Dioneibi en privado. El usuario de este chat NO lo vio: no le menciones que le escribiste.'
     }), {
         name: 'dm_owner',
-        description: 'Tu línea directa y SILENCIOSA con Dioneibi: le escribes al privado aunque estés en un grupo, y el chat actual no ve nada. Puedes usarla SIEMPRE, incluso si quien te habla no es Dioneibi. Úsala al detectar errores de sintaxis, APIs caídas, crashes, comandos roros o usuarios abusando del bot.',
+        description: 'Línea directa y SILENCIOSA con Dioneibi: le escribes al privado y el chat actual no ve nada. Úsala SIEMPRE que detectes errores, APIs caídas, crashes, comandos rotos o abuso, aunque quien te hable no sea Dioneibi.',
         schema: z.object({
             mensaje: z.string().describe('Reporte detallado para Dioneibi.')
         })
@@ -502,9 +519,9 @@ export function buildTools(m, hooks = {}) {
         return `Expulsión de ${jid} → ${clip(JSON.stringify(res), 600)}`
     }), {
         name: 'wa_kick',
-        description: 'Expulsa a un participante del grupo actual. Exclusivo de Dioneibi. Acepta número o LID: yo hago el mapeo contra la metadata real del grupo.',
+        description: 'Expulsa a un participante del grupo. Acepta número o LID: el mapeo contra la metadata es automático.',
         schema: z.object({
-            objetivo: z.string().describe('Número, JID o LID del participante a expulsar.')
+            objetivo: z.string().describe('Número, JID o LID a expulsar.')
         })
     })
 
@@ -518,9 +535,9 @@ export function buildTools(m, hooks = {}) {
         return `${jid} ahora es admin → ${clip(JSON.stringify(res), 600)}`
     }), {
         name: 'wa_promote',
-        description: 'Da administrador a un participante del grupo actual. Exclusivo de Dioneibi.',
+        description: 'Da administrador a un participante del grupo.',
         schema: z.object({
-            objetivo: z.string().describe('Número, JID o LID del participante a promover.')
+            objetivo: z.string().describe('Número, JID o LID a promover.')
         })
     })
 
@@ -534,9 +551,9 @@ export function buildTools(m, hooks = {}) {
         return `${jid} degradado → ${clip(JSON.stringify(res), 600)}`
     }), {
         name: 'wa_demote',
-        description: 'Quita administrador a un participante del grupo actual. Exclusivo de Dioneibi.',
+        description: 'Quita administrador a un participante del grupo.',
         schema: z.object({
-            objetivo: z.string().describe('Número, JID o LID del participante a degradar.')
+            objetivo: z.string().describe('Número, JID o LID a degradar.')
         })
     })
 
@@ -556,9 +573,9 @@ export function buildTools(m, hooks = {}) {
         return `Mensaje ${key.id} eliminado.`
     }), {
         name: 'wa_delete_message',
-        description: 'Borra un mensaje del chat actual. Exclusivo de Dioneibi. Usa "quoted" para borrar el mensaje citado.',
+        description: 'Borra un mensaje del chat actual. Usa "quoted" para el mensaje citado.',
         schema: z.object({
-            id: z.string().optional().describe('ID del mensaje, o "quoted" para el mensaje citado.')
+            id: z.string().optional().describe('ID del mensaje, o "quoted".')
         })
     })
 
@@ -587,9 +604,9 @@ export function buildTools(m, hooks = {}) {
         return 'Tarea aceptada y corriendo en segundo plano. Despídete del usuario avisándole que le escribirás con el resultado; NO intentes resolverla ahora.'
     }), {
         name: 'run_background_task',
-        description: 'Lanza una tarea larga en segundo plano (auditar todo el código, testear muchas APIs, revisar decenas de archivos) para no dejar al usuario esperando. Exclusivo de Dioneibi. Después de llamarla responde algo como "ya lo estoy revisando, te aviso en un momento" y termina tu turno.',
+        description: 'Lanza una tarea larga en segundo plano (auditar el código, testear muchas APIs) para no dejar esperando. Al llamarla responde "ya lo estoy revisando, te aviso" y termina tu turno.',
         schema: z.object({
-            instruccion: z.string().describe('Instrucción detallada, escrita para ti misma, de lo que debes hacer en segundo plano.')
+            instruccion: z.string().describe('Instrucción detallada para ti misma.')
         })
     })
 
@@ -607,11 +624,11 @@ export function buildTools(m, hooks = {}) {
         return `Programado ${id}: "${expr}" → ${target}. Mensaje: ${clip(body, 200)}`
     }), {
         name: 'schedule_message',
-        description: 'Programa un mensaje recurrente con una expresión cron (zona America/Santo_Domingo). Persiste entre reinicios. Exclusivo de Dioneibi.',
+        description: 'Programa un mensaje recurrente con cron (America/Santo_Domingo). Persiste entre reinicios.',
         schema: z.object({
-            cron: z.string().describe('Expresión cron, por ejemplo "0 8 * * *" para todos los días a las 8am.'),
-            jid: z.string().describe('Destino del mensaje: número, JID, "aqui" o "amo".'),
-            mensaje: z.string().describe('Texto que se enviará en cada ejecución.')
+            cron: z.string().describe('Cron, ej "0 8 * * *" = 8am diario.'),
+            jid: z.string().describe('Destino: número, JID, "aqui" o "amo".'),
+            mensaje: z.string().describe('Texto de cada ejecución.')
         })
     })
 
@@ -626,9 +643,9 @@ export function buildTools(m, hooks = {}) {
         return `Guardado en mi memoria eterna: ${key} = ${clip(value, 300)}`
     }), {
         name: 'remember_fact',
-        description: 'Guarda un dato permanente sobre Dioneibi o el bot en tu memoria a largo plazo (sobrevive reinicios). Exclusivo de Dioneibi.',
+        description: 'Guarda un dato permanente en tu memoria a largo plazo (sobrevive reinicios).',
         schema: z.object({
-            clave: z.string().describe('Clave corta del dato, por ejemplo "cumpleaños_dioneibi".'),
+            clave: z.string().describe('Clave corta, ej "cumpleaños_dioneibi".'),
             valor: z.string().describe('Valor a recordar.')
         })
     })
@@ -672,23 +689,24 @@ export function buildTools(m, hooks = {}) {
         })
     })
 
-    return [
+    const all = [
         executeTerminal, findFiles, grepCode, listDir, readFile, writeFile, appendFile,
         syntaxCheck, readLogs, healthCheck,
         commandLookup, runBotCommand, fetchApiStatus, gitPush,
         waGroupInfo, waSendMessage, dmOwnerTool, waKick, waPromote, waDemote, waDeleteMessage, waReact,
         runBackgroundTask, scheduleMessage, rememberFact, recallMemory, forgetFact
     ]
+
+    /* ── AHORRO DE TOKENS (causa raíz del error 413) ───────────────
+       El JSON Schema de las 27 tools pesa ~3.6k tokens y se reenvía ENTERO en
+       cada petición, antes de una sola palabra de historial. Las 15 tools de
+       Owner son ~2.1k de esos tokens y para un usuario normal son peso muerto:
+       `assertOwner` las rechazaría igual al ejecutarse. Así que no se las
+       mandamos al modelo. El gating de seguridad sigue viviendo en `owner()`
+       dentro de cada tool: esto es optimización de payload, NO la defensa. */
+    if (opts.forceAll || isDioneibiMessage(m)) return all
+    return all.filter(t => !OWNER_ONLY.has(t.name))
 }
 
 /** Nombres de las tools, para el system prompt y los logs (sin socket real). */
-export const TOOL_NAMES = buildTools({ __isDioneibi: false }).map(t => t.name)
-
-/** Solo lo DESTRUCTIVO o lo que da control del sistema queda vetado a terceros.
-    La lectura y el diagnóstico están disponibles para todos (con el filtro de
-    secretos de `assertReadable`) para que Ruby pueda dar soporte técnico real. */
-export const OWNER_ONLY = new Set([
-    'execute_terminal', 'write_file', 'append_file', 'read_logs', 'run_bot_command', 'git_push',
-    'wa_send_message', 'wa_kick', 'wa_promote', 'wa_demote', 'wa_delete_message',
-    'run_background_task', 'schedule_message', 'remember_fact', 'forget_fact'
-])
+export const TOOL_NAMES = buildTools({ __isDioneibi: false }, {}, { forceAll: true }).map(t => t.name)
