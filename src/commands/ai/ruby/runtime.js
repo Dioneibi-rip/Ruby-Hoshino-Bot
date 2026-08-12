@@ -27,8 +27,11 @@ export const EXEC_TIMEOUT = 120000
 /* MAX_OUT es un PRESUPUESTO DE TOKENS, no un límite estético.
    Cada resultado de tool vuelve al modelo en la siguiente iteración, así que
    6000 chars (~1.6k tokens) permitían que un solo `read_file` se comiera el
-   límite de 6000 TPM de Groq por sí mismo. ~2000 chars ≈ 550 tokens deja
+   presupuesto de la petición por sí mismo. ~2000 chars ≈ 550 tokens deja
    espacio para varias tools en la misma petición sin provocar un 413.
+
+   OJO: este es el recorte INTERNO (lo que las tools generan). El tope final que
+   llega al modelo lo aplica `safeTool` en tools.js, que es más agresivo todavía.
    Ajustable con RUBY_MAX_TOOL_OUTPUT si algún día subes de plan. */
 const MAX_OUT_ENV = Number.parseInt(process.env.RUBY_MAX_TOOL_OUTPUT ?? '', 10)
 export const MAX_OUT = Number.isFinite(MAX_OUT_ENV) && MAX_OUT_ENV >= 500 ? MAX_OUT_ENV : 2000
@@ -483,8 +486,8 @@ function classifyError(error) {
     if (/heap out of memory|ENOSPC|EMFILE/i.test(detail)) {
         return { tipo: 'RECURSOS DEL SERVIDOR', icono: '🔥', hint: 'El servidor se está quedando sin memoria/disco/descriptores.' }
     }
-    if (/GROQ_API_KEY|401|invalid_api_key|Unauthorized/i.test(detail)) {
-        return { tipo: 'CREDENCIAL DE IA', icono: '🔑', hint: 'Revisa GROQ_API_KEY en el .env o en las variables del panel.' }
+    if (/OPENROUTER_API_KEY|401|invalid_api_key|No auth credentials|Unauthorized/i.test(detail)) {
+        return { tipo: 'CREDENCIAL DE IA', icono: '🔑', hint: 'Revisa OPENROUTER_API_KEY en el .env o en las variables del panel (openrouter.ai/keys).' }
     }
     return { tipo: 'EXCEPCIÓN NO CONTROLADA', icono: '🚨', hint: 'Revisa el stack para ubicar el origen.' }
 }
@@ -556,5 +559,5 @@ export function initListeners(toolCount = 0) {
             reportErrorToOwner(liveConn, warning, { origen: 'process.warning' }).catch(() => {})
         }
     })
-    console.log('[Ruby] Runtime listo. LangChain + Groq | Tools:', toolCount)
+    console.log('[Ruby] Runtime listo. LangChain + OpenRouter | Tools:', toolCount)
 }

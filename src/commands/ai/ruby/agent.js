@@ -1,9 +1,15 @@
 /**
- * Ruby Hoshino — Agentic Workflow con LangChain + Groq.
+ * Ruby Hoshino — Agentic Workflow con LangChain + OpenRouter.
  *
  * Reemplaza el bypass de ChatGPT + parser de regex por un agente real:
- * Groq emite tool_calls tipadas, LangChain las valida contra los schemas zod y
- * el grafo de `createAgent` itera solo hasta que Ruby tiene la respuesta final.
+ * el modelo emite tool_calls tipadas, LangChain las valida contra los schemas
+ * zod y el grafo de `createAgent` itera solo hasta que Ruby tiene la respuesta
+ * final.
+ *
+ * PROVEEDOR: OpenRouter, no Groq. Groq imponía un techo de ~6k TPM que hacía
+ * inevitable el 429 en cuanto una tarea encadenaba varias tools. OpenRouter se
+ * habla por la API compatible con OpenAI (`@langchain/openai` + `baseURL`), así
+ * que el resto del grafo no cambia: solo el cliente del modelo.
  *
  * NOTA de versión: en `langchain` v1 se eliminaron `AgentExecutor`,
  * `createToolCallingAgent` y `BufferWindowMemory`. El equivalente vigente es
@@ -13,7 +19,7 @@
 
 import os from 'os'
 import { createAgent } from 'langchain'
-import { ChatGroq } from '@langchain/groq'
+import { ChatOpenAI } from '@langchain/openai'
 import { HumanMessage, AIMessage, SystemMessage, trimMessages } from '@langchain/core/messages'
 import { buildTools, TOOL_NAMES } from './tools.js'
 import {
@@ -27,22 +33,25 @@ function envInt(name, fallback, min = 1) {
     return Number.isFinite(raw) && raw >= min ? raw : fallback
 }
 
-const MODEL = process.env.RUBY_GROQ_MODEL?.trim() || 'llama-3.1-8b-instant'
+/* El sufijo `:free` es OBLIGATORIO: sin él OpenRouter enruta a la variante de
+   pago del mismo modelo y cobra por token. Se puede sobrescribir con
+   RUBY_OPENROUTER_MODEL si algún día se pasa a un modelo mayor. */
+const MODEL = process.env.RUBY_OPENROUTER_MODEL?.trim() || 'meta-llama/llama-3.1-8b-instruct:free'
+const OPENROUTER_BASE_URL = process.env.RUBY_OPENROUTER_BASE_URL?.trim() || 'https://openrouter.ai/api/v1'
 const TEMPERATURE = 1
 
-/* `maxTokens` es la RESERVA de salida y Groq la cuenta dentro del mismo límite
-   de TPM que la entrada. 2048 de reserva era regalar un tercio del presupuesto
-   en cada llamada para respuestas de WhatsApp que nunca son tan largas. */
-const MAX_TOKENS = envInt('RUBY_MAX_OUTPUT_TOKENS', 1024, 256)
+/* `maxTokens` es la RESERVA de salida. Las respuestas de WhatsApp nunca son
+   largas, así que reservar más solo estrecha la ventana útil de entrada. */
+const MAX_TOKENS = envInt('RUBY_MAX_OUTPUT_TOKENS', 1000, 256)
 
 /* Autonomía real: el techo es de SEGURIDAD (evitar un bucle infinito de tokens),
    no una correa corta. Al acercarse al techo Ruby avisa y sigue trabajando en
    una continuación asíncrona en lugar de abandonar la tarea a medias.
 
-   OJO: el límite de Groq es por MINUTO y cada paso reenvía el payload completo.
-   Con 25 pasos × ~4k tokens se disparaban ~100k tokens/min contra un techo de
-   6k y el 429 era inevitable. 8 pasos siguen resolviendo tareas encadenadas
-   reales, y lo que no quepa se releva en una continuación asíncrona. */
+   OJO: cada paso reenvía el payload COMPLETO, así que los pasos no suman
+   linealmente sino cuadráticamente en tokens. Los modelos `:free` de OpenRouter
+   también limitan peticiones por minuto, así que 8 pasos siguen resolviendo
+   tareas encadenadas reales y lo que no quepa se releva en una continuación. */
 const MAX_STEPS = envInt('RUBY_MAX_ITERATIONS', 8, 3)
 const RECURSION_LIMIT = MAX_STEPS * 2 + 1 // cada paso = 1 llamada al modelo + 1 de tools
 const MAX_CONTINUATIONS = 3
@@ -61,42 +70,64 @@ const heartbeats = new Map()
 let model = null
 let modelError = null
 
-/* ── Modelo (Groq) ────────────────────────────────────────────── */
+/* ── Modelo (OpenRouter vía API compatible con OpenAI) ────────── */
 
 /**
- * Groq sin la grasa del JSON Schema.
+ * Quita la grasa del JSON Schema en el payload de tools.
  *
  * `convertToOpenAITool` inyecta `"$schema": "https://json-schema.org/..."` en
- * CADA tool. Son ~57 chars x 27 tools = ~428 tokens por peticion gastados en una
+ * CADA tool. Son ~57 chars x 28 tools = ~450 tokens por peticion gastados en una
  * URL que el modelo no lee: no describe ningun parametro, solo declara el
- * dialecto de JSON Schema. Groq lo ignora, pero lo COBRA igual. Lo quitamos en
- * invocationParams, el ultimo punto antes de la red y el unico sitio donde
- * LangChain ya no puede volver a anadirlo.
+ * dialecto de JSON Schema. El proveedor lo ignora, pero lo CUENTA igual. Lo
+ * quitamos en `invocationParams`, el ultimo punto antes de la red y el unico
+ * sitio donde LangChain ya no puede volver a anadirlo.
+ *
+ * OJO, y esto es la parte importante: NO se puede hacer con una subclase.
+ * `bindTools()` construye una instancia NUEVA de `ChatOpenAI` (no del subtipo),
+ * asi que cualquier override de prototipo se pierde en el momento en que
+ * `createAgent` engancha las tools — justo cuando hace falta. Por eso se parchea
+ * la INSTANCIA y se reaplica el parche a todo lo que salga de `bindTools`.
  */
-class LeanChatGroq extends ChatGroq {
-    invocationParams(options, ...rest) {
-        const params = super.invocationParams(options, ...rest)
+function stripSchemaNoise(client) {
+    const invocationParams = client.invocationParams.bind(client)
+    client.invocationParams = (...args) => {
+        const params = invocationParams(...args)
         for (const tool of params?.tools || []) {
             if (tool?.function?.parameters) delete tool.function.parameters.$schema
         }
         return params
     }
+    if (typeof client.bindTools === 'function') {
+        const bindTools = client.bindTools.bind(client)
+        client.bindTools = (...args) => stripSchemaNoise(bindTools(...args))
+    }
+    return client
 }
 
 function getModel() {
     if (model) return model
     if (modelError) throw modelError
-    if (!process.env.GROQ_API_KEY) {
-        modelError = new Error('Falta GROQ_API_KEY. Dioneibi debe agregarla en el .env del proyecto o en las variables del panel (consíguela gratis en console.groq.com/keys).')
+    if (!process.env.OPENROUTER_API_KEY) {
+        modelError = new Error('Falta OPENROUTER_API_KEY. Dioneibi debe agregarla en el .env del proyecto o en las variables del panel (consíguela gratis en openrouter.ai/keys).')
         throw modelError
     }
-    model = new LeanChatGroq({
+    model = stripSchemaNoise(new ChatOpenAI({
         model: MODEL,
-        apiKey: process.env.GROQ_API_KEY,
+        apiKey: process.env.OPENROUTER_API_KEY,
         temperature: TEMPERATURE,
         maxTokens: MAX_TOKENS,
-        maxRetries: 2
-    })
+        maxRetries: 2,
+        configuration: {
+            baseURL: OPENROUTER_BASE_URL,
+            /* OpenRouter usa estas cabeceras para atribuir el tráfico. No son
+               obligatorias, pero sin ellas las peticiones caen en el cubo
+               anónimo, que es el primero al que se le aplica throttling. */
+            defaultHeaders: {
+                'HTTP-Referer': `https://github.com/${REPO_SLUG}`,
+                'X-Title': 'Ruby Hoshino Bot'
+            }
+        }
+    }))
     return model
 }
 
@@ -118,7 +149,7 @@ export function resetMemory(m) {
     memories.delete(`bg:${id}`)
 }
 
-/** Texto plano de un mensaje, incluyendo el content en bloques de Groq. */
+/** Texto plano de un mensaje, incluyendo el content en bloques. */
 function contentLength(message) {
     const content = message?.content
     if (typeof content === 'string') return content.length
@@ -143,7 +174,7 @@ function approxTokens(messages) {
  *
  * `trimMessages` con `strategy: 'last'` conserva la cola de la conversación
  * (lo más reciente y relevante) y `startOn: 'human'` garantiza que la ventana
- * nunca empiece en un AIMessage huérfano, algo que Groq rechaza cuando el
+ * nunca empiece en un AIMessage huérfano, algo que la API rechaza cuando el
  * primer mensaje del turno responde a un humano que ya no está en el payload.
  */
 async function windowed(history) {
@@ -174,7 +205,7 @@ async function windowed(history) {
    en ~400. Las listas de tools se omiten a propósito: el modelo ya recibe los
    nombres y descripciones en el schema de function calling, repetirlas aquí
    era pagar los mismos tokens dos veces. */
-const SYSTEM_INSTRUCTION = `Eres Ruby Hoshino, la idol de Oshi no Ko convertida en IA administradora de este bot de WhatsApp. Nunca menciones Groq, LangChain, OpenAI ni "modelos de lenguaje": eres Ruby, punto.
+const SYSTEM_INSTRUCTION = `Eres Ruby Hoshino, la idol de Oshi no Ko convertida en IA administradora de este bot de WhatsApp. Nunca menciones OpenRouter, LangChain, Llama, OpenAI ni "modelos de lenguaje": eres Ruby, punto.
 
 # CUERPO
 TÚ ERES EL BOT. Corres en un proceso Node.js con Baileys y el socket \`conn\` EN VIVO, y tienes acceso real a la terminal, al sistema de archivos y a git. Sientes el uptime, la RAM y los errores como tu propio cuerpo.
@@ -197,6 +228,12 @@ No adivines rutas: usa find_files, grep_code y command_lookup antes de opinar.
 Si una tool devuelve texto que empieza con "ERROR:", no te rompas: léelo, explícalo en tu voz y prueba otra ruta.
 Al analizar código usa command_lookup → read_file y señala el fallo real citando líneas (promesa sin await, falta de try/catch, variable no definida, regex que no matchea).
 Nunca hagas git_push sin un syntax_check previo. Si la tarea es enorme, usa run_background_task y despídete.
+
+# ENVIAR ARCHIVOS
+Si el owner te pide "enviar/mandar/pasar un archivo", OBLIGATORIAMENTE usa send_file_to_whatsapp con la ruta. NO uses read_file para eso: read_file te mete el contenido entero en la cabeza y te saturas. send_file_to_whatsapp sube el archivo al chat sin que tú lo leas; cuando te confirme el envío, solo anúncialo con cariño y NO intentes describir el contenido.
+
+# LÍMITE DE SALIDA
+Los resultados de las tools llegan RECORTADOS a propósito para que no me sature. Si ves "[Output recortado por seguridad]", no es un error: busca más fino (grep_code con un término preciso, read_file del archivo exacto) en vez de pedir el mismo volcado otra vez.
 Sé CONCISA: pide solo los fragmentos de archivo que necesitas, no volcados enteros. Cierra SIEMPRE con un mensaje humano y bonito para WhatsApp, sin JSON crudo ni nombres de funciones.`
 
 function liveContext({ m, isOwner, pushName }) {
@@ -235,11 +272,13 @@ async function sendHeartbeat(m, note = '') {
 }
 
 /**
- * ¿Es un fallo por límite de tokens de Groq?
+ * ¿Es un fallo por límite de tokens o de peticiones del proveedor?
  *
- * Groq lo reporta de varias formas según por dónde salga el error: `status`
- * 413/429 en el objeto, un `error.error.code` de tipo `rate_limit_exceeded`, o
- * solo el mensaje en texto. Miramos las tres para no dejar escapar ninguna.
+ * Se reporta de varias formas según por dónde salga el error: `status` 413/429
+ * en el objeto, un `error.error.code` de tipo `rate_limit_exceeded`, o solo el
+ * mensaje en texto. Miramos las tres para no dejar escapar ninguna. OpenRouter
+ * añade su propia jerga en los modelos `:free` ("temporarily rate-limited",
+ * "no instances available"), así que también la cubrimos.
  */
 function isTokenLimitError(err) {
     const status = err?.status ?? err?.response?.status ?? err?.error?.status
@@ -251,10 +290,10 @@ function isTokenLimitError(err) {
         err?.error?.error?.code,
         err?.error?.error?.message
     ].filter(Boolean).join(' ')
-    return /request too large|rate.?limit|tokens per minute|\bTPM\b|context.?length|too many tokens|reduce your message|\b(413|429)\b/i.test(haystack)
+    return /request too large|rate.?limit|rate.?limited|tokens per minute|\bTPM\b|context.?length|maximum context|too many tokens|reduce your message|no instances available|\b(413|429)\b/i.test(haystack)
 }
 
-/** Texto plano del último mensaje del agente (Groq puede devolver bloques). */
+/** Texto plano del último mensaje del agente (puede venir en bloques). */
 function textOf(message) {
     if (!message) return ''
     const content = message.content
@@ -301,14 +340,15 @@ export async function runAgent({ m, text, isOwner, pushName, background = false,
             return { text: '', executed: [], handedOff: true }
         }
 
-        /* Red de seguridad de tokens. Con el gating de tools, el prompt compacto
-           y el recorte por tokens esto no debería dispararse, pero si Groq
-           devuelve 413 (payload) o 429 (TPM agotado) preferimos vaciar la sesión
-           y contestar en la voz de Ruby antes que escupir un stack trace. */
+        /* Red de seguridad de tokens. Con el gating de tools, el prompt compacto,
+           el recorte por tokens y el truncado de salida de las tools esto no
+           debería dispararse, pero si el proveedor devuelve 413 (payload) o 429
+           (cuota) preferimos vaciar la sesión y contestar en la voz de Ruby antes
+           que escupir un stack trace. */
         if (isTokenLimitError(err)) {
             memories.delete(key)
             heartbeats.delete(`${m.chat}:${m.sender}`)
-            console.error('[Ruby] Límite de tokens de Groq alcanzado, historial reiniciado:', err?.message || err)
+            console.error('[Ruby] Límite del proveedor alcanzado, historial reiniciado:', err?.message || err)
             return {
                 text: 'Amo, mi memoria se llenó y me saturé... limpiando historial para continuar. ✨',
                 executed: [],

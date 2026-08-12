@@ -2,7 +2,7 @@
  * Ruby Hoshino — Toolkit de LangChain (Function Calling real).
  *
  * Cada capacidad es una StructuredTool con schema zod, así que el modelo ya no
- * escribe etiquetas [TOOL: args] que un regex tiene que adivinar: Groq emite
+ * escribe etiquetas [TOOL: args] que un regex tiene que adivinar: emite
  * tool_calls con argumentos tipados y LangChain los valida antes de ejecutar.
  *
  * Las tools se construyen POR PETICIÓN (`buildTools(m, hooks)`) porque necesitan
@@ -13,6 +13,7 @@
 import { tool } from '@langchain/core/tools'
 import { z } from 'zod'
 import fs from 'fs/promises'
+import { readFileSync } from 'fs'
 import path from 'path'
 import os from 'os'
 import cron from 'node-cron'
@@ -42,24 +43,85 @@ export const KNOWN_APIS = {
     pinterest: 'https://i.pinimg.com',
     tioanime: 'https://tioanime.com',
     fdownloader: 'https://fdownloader.net',
-    groq: 'https://api.groq.com/openai/v1/models'
+    openrouter: 'https://openrouter.ai/api/v1/models'
+}
+
+/* Tope de subida. WhatsApp acepta bastante más, pero el archivo se carga ENTERO
+   en RAM como Buffer antes de enviarse: sin techo, un `send_file_to_whatsapp`
+   sobre un log de 500MB tumba el proceso por heap out of memory. */
+const MAX_UPLOAD_BYTES = 48 * 1024 * 1024
+
+/* Mimetypes de lo que Ruby manda de verdad (código, logs, configs). Lo que no
+   esté aquí viaja como binario genérico, que WhatsApp igual acepta. */
+const MIME_BY_EXT = {
+    '.js': 'text/javascript', '.mjs': 'text/javascript', '.cjs': 'text/javascript',
+    '.json': 'application/json', '.md': 'text/markdown', '.txt': 'text/plain',
+    '.log': 'text/plain', '.env': 'text/plain', '.yml': 'text/yaml', '.yaml': 'text/yaml',
+    '.html': 'text/html', '.css': 'text/css', '.csv': 'text/csv', '.xml': 'application/xml',
+    '.zip': 'application/zip', '.pdf': 'application/pdf',
+    '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp',
+    '.mp3': 'audio/mpeg', '.mp4': 'video/mp4', '.sqlite': 'application/x-sqlite3'
+}
+
+/* ── TRUNCAMIENTO: la causa raíz de los 413/429 ────────────────────
+   Cada resultado de tool NO se lee una vez: vuelve al modelo dentro del payload
+   en TODAS las iteraciones siguientes. Un `read_file` de 15k chars no cuesta
+   ~4k tokens una vez, cuesta ~4k tokens × los pasos que queden. Por eso el tope
+   se aplica aquí, en la frontera con el modelo, y no dentro de cada tool: es el
+   único sitio por el que pasa absolutamente todo lo que Ruby llega a ver.
+
+   TOOL_LIMITS son las excepciones: tools cuya salida es INÚTIL recortada a 300
+   (un archivo de 8 líneas no se puede analizar, un stack de sintaxis cortado no
+   dice dónde falla). Todo lo demás cae al default de 300. */
+const DEFAULT_TOOL_LIMIT = 300
+const ERROR_LIMIT = 100
+
+const TOOL_LIMITS = {
+    read_file: 1500,       // sin esto Ruby no puede analizar código de verdad
+    wa_group_info: 1200,   // 300 chars no alcanzan ni para un participante
+    execute_terminal: 800,
+    grep_code: 800,
+    find_files: 800,
+    list_dir: 800,
+    syntax_check: 800,     // el stack de node --check debe llegar completo
+    read_logs: 800,
+    fetch_api_status: 800,
+    command_lookup: 600,
+    recall_memory: 600,
+    health_check: 500,
+    git_push: 500
+}
+
+/** Corta cualquier salida antes de que llegue al modelo. */
+function truncateForModel(value, limit) {
+    const text = String(value ?? '(sin salida)')
+    if (text.length <= limit) return text
+    return `${text.slice(0, limit)}\n...[Output recortado por seguridad: ${text.length - limit} chars omitidos. Busca más fino si necesitas el resto.]`
 }
 
 /**
  * Los errores de las tools NO se lanzan: se devuelven como texto al modelo.
  * Así una acción denegada o una API caída se convierte en información que Ruby
  * puede explicar en su voz, en lugar de romper el grafo del agente.
+ *
+ * Los stack traces se DESCARTAN sin piedad: un throw de Baileys arrastra miles
+ * de chars de trazas internas que al modelo no le dicen nada y que reventaban el
+ * presupuesto de tokens del turno entero. Solo pasa el mensaje, y solo 100 chars.
  */
-function safeTool(fn) {
+function safeTool(fn, limit = DEFAULT_TOOL_LIMIT) {
     return async (input) => {
         try {
-            const out = await fn(input)
-            return String(out ?? '(sin salida)')
+            return truncateForModel(await fn(input), limit)
         } catch (err) {
-            const msg = err?.message || String(err)
-            return /^(ERROR|ACCESO DENEGADO)/i.test(msg) ? msg : `ERROR: ${msg}`
+            const msg = String(err?.message || err).slice(0, ERROR_LIMIT)
+            return /^(ERROR|ACCESO DENEGADO)/i.test(msg) ? msg : `Error: ${msg}`
         }
     }
+}
+
+/** `tool()` con el tope de salida ya resuelto a partir del nombre. */
+function cappedTool(fn, config) {
+    return tool(safeTool(fn, TOOL_LIMITS[config.name] ?? DEFAULT_TOOL_LIMIT), config)
 }
 
 /** Solo lo DESTRUCTIVO o lo que da control del sistema queda vetado a terceros.
@@ -71,7 +133,7 @@ function safeTool(fn) {
     caeríamos en la zona muerta (TDZ) del `const` y el import explotaría. */
 export const OWNER_ONLY = new Set([
     'execute_terminal', 'write_file', 'append_file', 'read_logs', 'run_bot_command', 'git_push',
-    'wa_send_message', 'wa_kick', 'wa_promote', 'wa_demote', 'wa_delete_message',
+    'wa_send_message', 'send_file_to_whatsapp', 'wa_kick', 'wa_promote', 'wa_demote', 'wa_delete_message',
     'run_background_task', 'schedule_message', 'remember_fact', 'forget_fact'
 ])
 
@@ -85,19 +147,19 @@ export function buildTools(m, hooks = {}, opts = {}) {
 
     /* ---------- Sistema operativo y archivos ---------- */
 
-    const executeTerminal = tool(safeTool(async ({ comando }) => {
+    const executeTerminal = cappedTool(async ({ comando }) => {
         owner()
         const cmd = String(comando || '').trim()
         if (!cmd) return 'ERROR: no me diste ningún comando que ejecutar.'
         const res = await runShell(cmd)
         return `exit=${res.exitCode}\nSTDOUT:\n${res.stdout || '(vacío)'}\nSTDERR:\n${res.stderr || '(vacío)'}`
-    }), {
+    }, {
         name: 'execute_terminal',
         description: 'Shell en la raíz del repo. Devuelve stdout/stderr/exit.',
         schema: z.object({ comando: z.string() })
     })
 
-    const findFiles = tool(safeTool(async ({ nombre }) => {
+    const findFiles = cappedTool(async ({ nombre }) => {
         assertReadable(nombre, m)
         const needle = String(nombre || '').trim()
         if (!needle) return 'ERROR: dime qué archivo buscar.'
@@ -105,13 +167,13 @@ export function buildTools(m, hooks = {}, opts = {}) {
         const res = await runShell(`find . -path ./node_modules -prune -o -path ./.git -prune -o -iname ${shellQuote(pattern)} -print | head -60`)
         const list = (res.stdout || '').trim()
         return list ? `Coincidencias para "${needle}":\n${list}` : `Sin resultados para "${needle}". Prueba otro nombre o usa grep_code.`
-    }), {
+    }, {
         name: 'find_files',
         description: 'Busca archivos por nombre. Úsalo antes de asumir una ruta.',
         schema: z.object({ nombre: z.string() })
     })
 
-    const grepCode = tool(safeTool(async ({ texto }) => {
+    const grepCode = cappedTool(async ({ texto }) => {
         assertReadable(texto, m)
         const needle = String(texto || '').trim()
         if (!needle) return 'ERROR: dime qué texto buscar.'
@@ -120,25 +182,25 @@ export function buildTools(m, hooks = {}, opts = {}) {
         const res = await runShell(`grep -rniI --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=tmp${shield} ${shellQuote(needle)} . | head -50`)
         const list = (res.stdout || '').trim()
         return list ? `"${needle}":\n${list}` : `No encontré "${needle}" en el código.`
-    }), {
+    }, {
         name: 'grep_code',
         description: 'Busca texto en el código: devuelve archivo y línea.',
         schema: z.object({ texto: z.string() })
     })
 
-    const listDir = tool(safeTool(async ({ carpeta }) => {
+    const listDir = cappedTool(async ({ carpeta }) => {
         assertReadable(carpeta, m)
         const target = safePath(carpeta || '.')
         const entries = await fs.readdir(target, { withFileTypes: true })
         const body = entries.map(e => `${e.isDirectory() ? 'DIR ' : 'FILE'} ${e.name}`).join('\n')
         return `${path.relative(ROOT, target) || '.'} (${entries.length} entradas)\n${clip(body, 4000)}`
-    }), {
+    }, {
         name: 'list_dir',
         description: 'Lista una carpeta. Vacío = raíz.',
         schema: z.object({ carpeta: z.string().optional() })
     })
 
-    const readFile = tool(safeTool(async ({ ruta }) => {
+    const readFile = cappedTool(async ({ ruta }) => {
         assertReadable(ruta, m)
         const target = safePath(ruta)
         const stat = await fs.stat(target).catch(() => null)
@@ -151,13 +213,13 @@ export function buildTools(m, hooks = {}, opts = {}) {
         const lines = content.split('\n')
         const numbered = lines.map((l, i) => `${String(i + 1).padStart(4, ' ')}| ${l}`).join('\n')
         return `${path.relative(ROOT, target)} (${lines.length} líneas)\n${clip(numbered, 15000)}`
-    }), {
+    }, {
         name: 'read_file',
         description: 'Lee un archivo con números de línea.',
         schema: z.object({ ruta: z.string() })
     })
 
-    const writeFile = tool(safeTool(async ({ ruta, contenido }) => {
+    const writeFile = cappedTool(async ({ ruta, contenido }) => {
         owner()
         if (!String(ruta || '').trim()) return 'ERROR: dime la ruta del archivo a escribir.'
         const target = safePath(ruta)
@@ -169,26 +231,26 @@ export function buildTools(m, hooks = {}, opts = {}) {
             extra = check.ok ? '\nSintaxis JS: OK ✅' : `\nSintaxis JS: FALLA ❌\n${check.stderr}`
         }
         return `Guardado ${path.relative(ROOT, target)} (${String(contenido ?? '').length} chars).${extra}`
-    }), {
+    }, {
         name: 'write_file',
         description: 'Crea/sobrescribe un archivo con el contenido COMPLETO. Valida .js al terminar.',
         schema: z.object({ ruta: z.string(), contenido: z.string() })
     })
 
-    const appendFile = tool(safeTool(async ({ ruta, contenido }) => {
+    const appendFile = cappedTool(async ({ ruta, contenido }) => {
         owner()
         if (!String(ruta || '').trim()) return 'ERROR: dime la ruta del archivo.'
         const target = safePath(ruta)
         await fs.mkdir(path.dirname(target), { recursive: true })
         await fs.appendFile(target, `\n${String(contenido ?? '')}`, 'utf8')
         return `Añadidos ${String(contenido ?? '').length} chars a ${path.relative(ROOT, target)}.`
-    }), {
+    }, {
         name: 'append_file',
         description: 'Añade al final de un archivo sin borrar lo existente.',
         schema: z.object({ ruta: z.string(), contenido: z.string() })
     })
 
-    const syntaxCheck = tool(safeTool(async ({ ruta }) => {
+    const syntaxCheck = cappedTool(async ({ ruta }) => {
         assertReadable(ruta, m)
         const raw = String(ruta || '').trim()
         if (!raw) {
@@ -199,13 +261,13 @@ export function buildTools(m, hooks = {}, opts = {}) {
         const target = safePath(raw)
         const res = await runShell(`node --check ${shellQuote(target)}`, ROOT, 20000)
         return res.ok ? `${path.relative(ROOT, target)} → sintaxis OK ✅` : `${path.relative(ROOT, target)} → ERROR ❌\n${res.stderr}`
-    }), {
+    }, {
         name: 'syntax_check',
         description: 'node --check. Sin ruta audita todo. Obligatorio antes de git_push.',
         schema: z.object({ ruta: z.string().optional() })
     })
 
-    const readLogs = tool(safeTool(async ({ lineas }) => {
+    const readLogs = cappedTool(async ({ lineas }) => {
         owner()
         const n = Math.min(Math.max(parseInt(String(lineas ?? 60).replace(/\D/g, ''), 10) || 60, 10), 300)
         const res = await runShell(`(command -v pm2 >/dev/null 2>&1 && pm2 logs --nostream --lines ${n} 2>/dev/null) || (ls -t *.log tmp/*.log logs/*.log 2>/dev/null | head -1 | xargs -r tail -n ${n}) || echo "SIN_LOGS"`, ROOT, 30000)
@@ -213,13 +275,13 @@ export function buildTools(m, hooks = {}, opts = {}) {
         return out && out !== 'SIN_LOGS'
             ? `Últimas ${n} líneas:\n${clip(out, 6000)}`
             : 'No hay archivos de log accesibles. El proceso probablemente escribe a stdout del panel; usa execute_terminal con el comando del panel si lo necesitas.'
-    }), {
+    }, {
         name: 'read_logs',
         description: 'Últimas líneas de logs (pm2/.log) para diagnosticar crashes.',
         schema: z.object({ lineas: z.number().int().optional() })
     })
 
-    const healthCheck = tool(safeTool(async () => {
+    const healthCheck = cappedTool(async () => {
         const total = os.totalmem()
         const free = os.freemem()
         const mem = process.memoryUsage()
@@ -232,7 +294,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
             `Plataforma: ${os.platform()} ${os.arch()} | Node ${process.version}`,
             `Disco: ${(disk.stdout || '').trim()}`
         ].join('\n')
-    }), {
+    }, {
         name: 'health_check',
         description: 'Tus signos vitales: RAM, CPU, load, uptime, disco, Node.',
         schema: z.object({})
@@ -240,7 +302,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
 
     /* ---------- Bot y desarrollo ---------- */
 
-    const commandLookup = tool(safeTool(async ({ nombre }) => {
+    const commandLookup = cappedTool(async ({ nombre }) => {
         const needle = String(nombre || '').trim().replace(/^[#/!.]/, '').toLowerCase()
         if (!needle) return 'ERROR: dime el nombre del comando a buscar.'
         const { commandRegistry } = await import('../../../runtime/command-registry.js')
@@ -261,13 +323,13 @@ export function buildTools(m, hooks = {}, opts = {}) {
             .slice(0, 12)
         if (!similar.length) return `No existe ningún comando parecido a "${needle}".`
         return `No hay match exacto. Parecidos:\n${similar.map(s => `- ${(s.commands || []).join('/')} → ${path.relative(ROOT, s.filePath)}`).join('\n')}`
-    }), {
+    }, {
         name: 'command_lookup',
         description: 'Archivo, alias, categoría y permisos de un comando del bot. Úsalo antes de analizarlo.',
         schema: z.object({ nombre: z.string() })
     })
 
-    const runBotCommand = tool(safeTool(async ({ comando, argumentos, objetivo }) => {
+    const runBotCommand = cappedTool(async ({ comando, argumentos, objetivo }) => {
         owner()
         const conn = requireConn(m)
         const name = String(comando || '').trim().replace(/^[#/!.]/, '')
@@ -301,7 +363,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
         Promise.resolve(routerHandler.call(conn, { messages: [fakeRaw], type: 'notify' }))
             .catch(err => console.error('[Ruby run_bot_command]', err?.message || err))
         return `Inyecté "${body}" en el router del bot como si lo hubiera escrito el usuario. La respuesta del comando llegará al chat por separado. Si no llega nada, el comando está roto: revísalo con command_lookup y read_file.`
-    }), {
+    }, {
         name: 'run_bot_command',
         description: 'Ejecuta un comando del bot en el router, como si un usuario lo escribiera.',
         schema: z.object({
@@ -311,7 +373,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
         })
     })
 
-    const fetchApiStatus = tool(safeTool(async ({ url }) => {
+    const fetchApiStatus = cappedTool(async ({ url }) => {
         let raw = String(url || '').trim().replace(/^<|>$/g, '')
         if (!raw) return `ERROR: dame una URL o el nombre de una API conocida. Disponibles: ${Object.keys(KNOWN_APIS).join(', ')}.`
         if (/^(list|lista|apis|conocidas)$/i.test(raw)) {
@@ -364,7 +426,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
         } finally {
             clearTimeout(timer)
         }
-    }), {
+    }, {
         name: 'fetch_api_status',
         /* El registro de APIs ya no se inyecta en la descripción: eran cientos de
            tokens fijos en cada petición. Con "list" Ruby lo consulta si le hace
@@ -375,7 +437,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
         })
     })
 
-    const gitPush = tool(safeTool(async ({ mensaje }) => {
+    const gitPush = cappedTool(async ({ mensaje }) => {
         owner()
         const token = process.env.GITHUB_TOKEN
         if (!token) return 'ERROR: falta configurar GITHUB_TOKEN. Explícale a Dioneibi que debe agregar GITHUB_TOKEN=ghp_xxx en el .env del proyecto (o en las variables del panel) para que yo pueda subir cambios.'
@@ -408,7 +470,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
         const sanitized = clip(String(push.stdout || push.stderr || '').replaceAll(token, '***TOKEN***'), 2000)
         if (!push.ok) return `ERROR al hacer push a ${REPO_SLUG} (${branch}):\n${sanitized}`
         return `✅ Subido a ${REPO_SLUG} rama ${branch}.\nCommit: ${commitMsg}\nArchivos: ${staged.stdout.split('\n').filter(Boolean).length}\n${sanitized}`
-    }), {
+    }, {
         name: 'git_push',
         description: 'git add+commit+push. Aborta si la sintaxis falla. Requiere syntax_check previo.',
         schema: z.object({ mensaje: z.string() })
@@ -416,7 +478,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
 
     /* ---------- WhatsApp / Baileys ---------- */
 
-    const waGroupInfo = tool(safeTool(async () => {
+    const waGroupInfo = cappedTool(async () => {
         const conn = requireConn(m)
         if (!String(m.chat || '').endsWith('@g.us')) {
             return `Este es un chat privado.\nUsuario: ${m.sender}\nEs Dioneibi: ${isOwnerJid(m.sender) ? 'SÍ' : 'NO'}\nMi JID: ${botJidOf(conn)}`
@@ -445,13 +507,13 @@ export function buildTools(m, hooks = {}, opts = {}) {
             participantes: participants.slice(0, 120)
         }
         return clip(JSON.stringify(info, null, 1), 7000)
-    }), {
+    }, {
         name: 'wa_group_info',
         description: 'Metadata del grupo: admins, participantes con jid/lid y si eres admin. Úsalo antes de moderar.',
         schema: z.object({})
     })
 
-    const waSendMessage = tool(safeTool(async ({ jid, mensaje }) => {
+    const waSendMessage = cappedTool(async ({ jid, mensaje }) => {
         owner()
         const body = String(mensaje || '').trim()
         if (!body) return 'ERROR: el mensaje está vacío.'
@@ -459,7 +521,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
         const conn = requireConn(m)
         await conn.sendMessage(target, { text: body })
         return `Mensaje entregado a ${target} (${body.length} chars).`
-    }), {
+    }, {
         name: 'wa_send_message',
         description: 'Envía un mensaje de WhatsApp a cualquier chat o grupo.',
         schema: z.object({
@@ -468,7 +530,49 @@ export function buildTools(m, hooks = {}, opts = {}) {
         })
     })
 
-    const dmOwnerTool = tool(safeTool(async ({ mensaje }) => {
+    /**
+     * Entrega un archivo SIN que el modelo lo lea.
+     *
+     * Es el sustituto de `read_file` cuando lo que se quiere es el archivo, no
+     * su análisis: el contenido va del disco al socket como Buffer y al modelo
+     * solo le vuelve una frase fija. Un archivo de 2MB pasaba por el contexto
+     * como ~500k tokens y era 413 garantizado; por aquí cuesta 0 tokens.
+     */
+    const sendFileToWhatsapp = cappedTool(async ({ ruta, descripcion }) => {
+        owner()
+        const conn = requireConn(m)
+        const raw = String(ruta || '').trim()
+        if (!raw) return 'ERROR: dime la ruta del archivo que debo enviar.'
+        const target = safePath(raw)
+        const stat = await fs.stat(target).catch(() => null)
+        if (!stat) return `ERROR: no existe "${raw}". Localízalo con find_files antes de enviarlo.`
+        if (stat.isDirectory()) return `ERROR: "${raw}" es una carpeta. Comprímela con execute_terminal (zip -r) y envía el .zip.`
+        if (!stat.size) return `ERROR: "${raw}" está vacío (0 bytes), no tiene sentido enviarlo.`
+        if (stat.size > MAX_UPLOAD_BYTES) {
+            return `ERROR: pesa ${(stat.size / 1048576).toFixed(1)}MB y mi tope es ${MAX_UPLOAD_BYTES / 1048576}MB. Comprímelo o manda solo la parte que importa.`
+        }
+        const fileName = path.basename(target)
+        const buffer = readFileSync(target)
+        const mimetype = MIME_BY_EXT[path.extname(fileName).toLowerCase()] || 'application/octet-stream'
+        const caption = String(descripcion || '').trim()
+        await conn.sendMessage(m.chat, {
+            document: buffer,
+            fileName,
+            mimetype,
+            ...(caption ? { caption } : {})
+        }, { quoted: m.key ? m : undefined })
+        // Lo que vuelve al modelo es SIEMPRE esta frase, jamás el contenido.
+        return 'Archivo enviado exitosamente. No proceses el contenido.'
+    }, {
+        name: 'send_file_to_whatsapp',
+        description: 'ENVÍA un archivo al chat como documento, sin leerlo. Úsala SIEMPRE que pidan "enviar/mandar/pasar" un archivo, en lugar de read_file.',
+        schema: z.object({
+            ruta: z.string().describe('Ruta del archivo dentro del repo.'),
+            descripcion: z.string().optional().describe('Texto corto que acompaña al archivo.')
+        })
+    })
+
+    const dmOwnerTool = cappedTool(async ({ mensaje }) => {
         const body = String(mensaje || '').trim()
         if (!body) return 'ERROR: dime qué debo reportarle a Dioneibi en privado.'
         const conn = requireConn(m)
@@ -478,26 +582,26 @@ export function buildTools(m, hooks = {}, opts = {}) {
             return 'ERROR: no pude entregarle el mensaje privado a Dioneibi (socket no disponible).'
         }
         return 'Reporte entregado a Dioneibi en privado. El usuario de este chat NO lo vio: no le menciones que le escribiste.'
-    }), {
+    }, {
         name: 'dm_owner',
         description: 'Privado SILENCIOSO a Dioneibi (el chat actual no lo ve). Úsalo ante errores, crashes o abuso.',
         schema: z.object({ mensaje: z.string() })
     })
 
-    const waKick = tool(safeTool(async ({ objetivo }) => {
+    const waKick = cappedTool(async ({ objetivo }) => {
         owner()
         const conn = requireConn(m)
         const { meta, admins } = await assertBotAdmin(conn, m.chat)
         const jid = await guardTarget(objetivo, meta, admins, m)
         const res = await conn.groupParticipantsUpdate(m.chat, [jid], 'remove')
         return `Expulsión de ${jid} → ${clip(JSON.stringify(res), 600)}`
-    }), {
+    }, {
         name: 'wa_kick',
         description: 'Expulsa a un participante. Acepta número, JID o LID.',
         schema: z.object({ objetivo: z.string() })
     })
 
-    const waPromote = tool(safeTool(async ({ objetivo }) => {
+    const waPromote = cappedTool(async ({ objetivo }) => {
         owner()
         const conn = requireConn(m)
         const { meta, admins } = await assertBotAdmin(conn, m.chat)
@@ -505,13 +609,13 @@ export function buildTools(m, hooks = {}, opts = {}) {
         if (admins.includes(jid)) return `${jid} ya es administrador.`
         const res = await conn.groupParticipantsUpdate(m.chat, [jid], 'promote')
         return `${jid} ahora es admin → ${clip(JSON.stringify(res), 600)}`
-    }), {
+    }, {
         name: 'wa_promote',
         description: 'Da admin a un participante.',
         schema: z.object({ objetivo: z.string() })
     })
 
-    const waDemote = tool(safeTool(async ({ objetivo }) => {
+    const waDemote = cappedTool(async ({ objetivo }) => {
         owner()
         const conn = requireConn(m)
         const { meta, admins } = await assertBotAdmin(conn, m.chat)
@@ -519,13 +623,13 @@ export function buildTools(m, hooks = {}, opts = {}) {
         if (!admins.includes(jid)) return `${jid} no es administrador, no hay nada que quitar.`
         const res = await conn.groupParticipantsUpdate(m.chat, [jid], 'demote')
         return `${jid} degradado → ${clip(JSON.stringify(res), 600)}`
-    }), {
+    }, {
         name: 'wa_demote',
         description: 'Quita admin a un participante.',
         schema: z.object({ objetivo: z.string() })
     })
 
-    const waDeleteMessage = tool(safeTool(async ({ id }) => {
+    const waDeleteMessage = cappedTool(async ({ id }) => {
         owner()
         const conn = requireConn(m)
         const raw = String(id || '').trim()
@@ -539,18 +643,18 @@ export function buildTools(m, hooks = {}, opts = {}) {
         }
         await conn.sendMessage(m.chat, { delete: key })
         return `Mensaje ${key.id} eliminado.`
-    }), {
+    }, {
         name: 'wa_delete_message',
         description: 'Borra un mensaje del chat. "quoted" = el citado.',
         schema: z.object({ id: z.string().optional() })
     })
 
-    const waReact = tool(safeTool(async ({ emoji }) => {
+    const waReact = cappedTool(async ({ emoji }) => {
         const conn = requireConn(m)
         const e = String(emoji || '✨').trim().slice(0, 4) || '✨'
         await conn.sendMessage(m.chat, { react: { text: e, key: m.key } })
         return `Reaccioné con ${e}.`
-    }), {
+    }, {
         name: 'wa_react',
         description: 'Reacciona con un emoji al mensaje actual.',
         schema: z.object({ emoji: z.string().optional() })
@@ -558,7 +662,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
 
     /* ---------- Trabajo en segundo plano, agenda y memoria ---------- */
 
-    const runBackgroundTask = tool(safeTool(async ({ instruccion }) => {
+    const runBackgroundTask = cappedTool(async ({ instruccion }) => {
         owner()
         const task = String(instruccion || '').trim()
         if (!task) return 'ERROR: dime qué debo procesar en segundo plano.'
@@ -566,13 +670,13 @@ export function buildTools(m, hooks = {}, opts = {}) {
         if (typeof hooks.queueBackgroundTask !== 'function') return 'ERROR: el motor de tareas en segundo plano no está disponible.'
         hooks.queueBackgroundTask(m, task)
         return 'Tarea aceptada y corriendo en segundo plano. Despídete del usuario avisándole que le escribirás con el resultado; NO intentes resolverla ahora.'
-    }), {
+    }, {
         name: 'run_background_task',
         description: 'Lanza una tarea larga en segundo plano. Al llamarla despídete y termina tu turno.',
         schema: z.object({ instruccion: z.string() })
     })
 
-    const scheduleMessage = tool(safeTool(async ({ cron: expr, jid, mensaje }) => {
+    const scheduleMessage = cappedTool(async ({ cron: expr, jid, mensaje }) => {
         owner()
         if (!cron.validate(String(expr || ''))) return `ERROR: "${expr}" no es una expresión cron válida.`
         const body = String(mensaje || '').trim()
@@ -584,7 +688,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
         memory.tasks[id] = { expr, jid: target, body, createdAt: Date.now() }
         await saveMemory()
         return `Programado ${id}: "${expr}" → ${target}. Mensaje: ${clip(body, 200)}`
-    }), {
+    }, {
         name: 'schedule_message',
         description: 'Mensaje recurrente por cron (America/Santo_Domingo). Persiste entre reinicios.',
         schema: z.object({
@@ -594,7 +698,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
         })
     })
 
-    const rememberFact = tool(safeTool(async ({ clave, valor }) => {
+    const rememberFact = cappedTool(async ({ clave, valor }) => {
         owner()
         const key = String(clave || '').trim()
         const value = String(valor || '').trim()
@@ -603,13 +707,13 @@ export function buildTools(m, hooks = {}, opts = {}) {
         memory.facts[key] = value
         await saveMemory()
         return `Guardado en mi memoria eterna: ${key} = ${clip(value, 300)}`
-    }), {
+    }, {
         name: 'remember_fact',
         description: 'Guarda un dato en tu memoria eterna (sobrevive reinicios).',
         schema: z.object({ clave: z.string(), valor: z.string() })
     })
 
-    const recallMemory = tool(safeTool(async () => {
+    const recallMemory = cappedTool(async () => {
         const memory = await loadMemory()
         const facts = Object.entries(memory.facts)
         const tasks = Object.entries(memory.tasks)
@@ -620,13 +724,13 @@ export function buildTools(m, hooks = {}, opts = {}) {
             'Tareas programadas:',
             tasks.map(([k, v]) => `- ${k}: ${v.expr} → ${v.jid}`).join('\n') || '(ninguna)'
         ].join('\n')
-    }), {
+    }, {
         name: 'recall_memory',
         description: 'Lee tu memoria eterna: datos y tareas programadas.',
         schema: z.object({})
     })
 
-    const forgetFact = tool(safeTool(async ({ clave }) => {
+    const forgetFact = cappedTool(async ({ clave }) => {
         owner()
         const k = String(clave || '').trim()
         const memory = await loadMemory()
@@ -640,7 +744,7 @@ export function buildTools(m, hooks = {}, opts = {}) {
         }
         await saveMemory()
         return `Olvidé "${k}".`
-    }), {
+    }, {
         name: 'forget_fact',
         description: 'Borra un dato memorizado o cancela una tarea por su clave.',
         schema: z.object({ clave: z.string() })
@@ -650,14 +754,14 @@ export function buildTools(m, hooks = {}, opts = {}) {
         executeTerminal, findFiles, grepCode, listDir, readFile, writeFile, appendFile,
         syntaxCheck, readLogs, healthCheck,
         commandLookup, runBotCommand, fetchApiStatus, gitPush,
-        waGroupInfo, waSendMessage, dmOwnerTool, waKick, waPromote, waDemote, waDeleteMessage, waReact,
+        waGroupInfo, waSendMessage, sendFileToWhatsapp, dmOwnerTool, waKick, waPromote, waDemote, waDeleteMessage, waReact,
         runBackgroundTask, scheduleMessage, rememberFact, recallMemory, forgetFact
     ]
 
     /* ── AHORRO DE TOKENS (causa raíz del error 413) ───────────────
-       El JSON Schema de las 27 tools pesa ~3.6k tokens y se reenvía ENTERO en
-       cada petición, antes de una sola palabra de historial. Las 15 tools de
-       Owner son ~2.1k de esos tokens y para un usuario normal son peso muerto:
+       El JSON Schema de las 28 tools pesa ~3.7k tokens y se reenvía ENTERO en
+       cada petición, antes de una sola palabra de historial. Las 16 tools de
+       Owner son ~2.2k de esos tokens y para un usuario normal son peso muerto:
        `assertOwner` las rechazaría igual al ejecutarse. Así que no se las
        mandamos al modelo. El gating de seguridad sigue viviendo en `owner()`
        dentro de cada tool: esto es optimización de payload, NO la defensa. */
