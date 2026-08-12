@@ -2,7 +2,7 @@
  * Ruby Hoshino — Comando autónomo (.ruby)
  *
  * Este archivo es solo la superficie: el cerebro está en ./ruby/agent.js
- * (LangChain + Groq), las capacidades en ./ruby/tools.js y la infraestructura
+ * (LangChain + OpenRouter), las capacidades en ./ruby/tools.js y la infraestructura
  * (Baileys, shell, memoria, cron, self-heal) en ./ruby/runtime.js.
  *
  * Se mantienen los exports que consume src/bootstrap/app.js:
@@ -68,9 +68,9 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
         console.error('[Ruby Hoshino][agent]', error)
         resetMemory(m)
         await m.react?.('💔')
-        const missingKey = /GROQ_API_KEY/i.test(error?.message || '')
+        const missingKey = /OPENROUTER_API_KEY/i.test(error?.message || '')
         await m.reply(missingKey
-            ? `> (っ- ‸ - ς) 𝖠𝗆𝗈, 𝗆𝖾 𝖿𝖺𝗅𝗍𝖺 𝗆𝗂 𝗏𝗈𝗓... ✨\n\n> 💡 Necesito la variable *GROQ_API_KEY* en el \`.env\` o en las variables del panel. Consíguela gratis en console.groq.com/keys y reiníciame. 🌸`
+            ? `> (っ- ‸ - ς) 𝖠𝗆𝗈, 𝗆𝖾 𝖿𝖺𝗅𝗍𝖺 𝗆𝗂 𝗏𝗈𝗓... ✨\n\n> 💡 Necesito la variable *OPENROUTER_API_KEY* en el \`.env\` o en las variables del panel. Consíguela gratis en openrouter.ai/keys y reiníciame. 🌸`
             : `> (っ- ‸ - ς) 𝖠𝗅𝗀𝗈 𝗌𝖾 𝗋𝗈𝗆𝗉𝗂𝗈́ 𝖽𝖾𝗇𝗍𝗋𝗈 𝖽𝖾 𝗆𝗂́... ✨\n\n> 💡 *𝖣𝖾𝗍𝖺𝗅𝗅𝖾:* \`${error?.message || error}\``)
         // Siempre al privado: si el fallo ocurrió en un grupo, el Owner se entera igual.
         await reportErrorToOwner(conn, error, {
