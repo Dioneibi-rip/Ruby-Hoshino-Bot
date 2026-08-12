@@ -36,7 +36,7 @@ function envInt(name, fallback, min = 1) {
 /* El sufijo `:free` es OBLIGATORIO: sin él OpenRouter enruta a la variante de
    pago del mismo modelo y cobra por token. Se puede sobrescribir con
    RUBY_OPENROUTER_MODEL si algún día se pasa a un modelo mayor. */
-const MODEL = process.env.RUBY_OPENROUTER_MODEL?.trim() || 'google/gemma-2-9b-it:free'
+const MODEL = process.env.RUBY_OPENROUTER_MODEL?.trim() || 'openai/gpt-oss-20b:free'
 const OPENROUTER_BASE_URL = process.env.RUBY_OPENROUTER_BASE_URL?.trim() || 'https://openrouter.ai/api/v1'
 const TEMPERATURE = 1
 
