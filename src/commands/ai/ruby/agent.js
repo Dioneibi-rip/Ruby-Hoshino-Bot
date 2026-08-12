@@ -127,7 +127,7 @@ function getModel() {
                 'X-Title': 'Ruby Hoshino Bot'
             }
         }
-    })
+    }))
     return model
 }
 
