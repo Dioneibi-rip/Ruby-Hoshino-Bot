@@ -56,7 +56,7 @@ return conn.reply(m.chat, `> ꒰ঌ(˶ˆᗜˆ˵)໒꒱ 𝖣𝖾𝖻𝖾𝗌 𝖾
 const query = args.join(" ").trim().split(/\s+/).map(tag => tag.replace(/\s+/g, '_')).join(" ");
 try {
 await m.react(rwait);
-const apiUrl = "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=" + encodeURIComponent(query) + "&limit=100&user_id=5405830&api_key=2b11e512aee1a0f952dd9cda56da50c441957c087278bc59a948fd2e7c9fdc21263580f4ee7a7927c36788ddedeaf64bfa79092750969aca4667966c4018992c";
+  const apiUrl = "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=" + encodeURIComponent(query) + "&limit=100&user_id=" + process.env.RULE34_USER_ID + "&api_key=" + process.env.RULE34_API_KEY;
 const res = await fetch(apiUrl);
 const text = await res.text();
 let json;
